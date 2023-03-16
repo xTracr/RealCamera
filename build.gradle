@@ -18,8 +18,8 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.spongepowered.mixin'
 
 version = project.mod_version
-group = 'com.xtracr.betterfpcam'
-archivesBaseName = 'betterfpcam-1.18.2-forge'
+group = project.maven_group
+archivesBaseName = project.archives_base_name
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
@@ -35,7 +35,7 @@ minecraft {
 
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
-            property 'forge.enabledGameTestNamespaces', 'betterfpcam'
+            property 'forge.enabledGameTestNamespaces', project.modid
 
             mods {
                 betterfpcam {
@@ -49,7 +49,7 @@ minecraft {
 
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
-            property 'forge.enabledGameTestNamespaces', 'betterfpcam'
+            property 'forge.enabledGameTestNamespaces', project.modid
 
             mods {
                 betterfpcam {
@@ -63,7 +63,7 @@ minecraft {
 
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
-            property 'forge.enabledGameTestNamespaces', 'betterfpcam'
+            property 'forge.enabledGameTestNamespaces', project.modid
 
             mods {
                 betterfpcam {
@@ -78,7 +78,7 @@ minecraft {
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
 
-            args '--mod', 'betterfpcam', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+            args '--mod', project.modid, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
 
             mods {
                 betterfpcam {
@@ -104,20 +104,20 @@ dependencies {
 }
 
 mixin {
-    add sourceSets.main, "xtracr.betterfpcam.refmap.json"
+    add sourceSets.main, "xtracr.${project.modid}.refmap.json"
 }
 
 jar {
     manifest {
         attributes([
-                "Specification-Title"     : "betterfpcam",
+                "Specification-Title"     : project.modid,
                 "Specification-Vendor"    : "xtracr",
                 "Specification-Version"   : "1", // We are version 1 of ourselves
                 "Implementation-Title"    : project.name,
                 "Implementation-Version"  : project.jar.archiveVersion,
                 "Implementation-Vendor"   : "xtracr",
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-                "MixinConfigs"            : "betterfpcam.mixin.json"
+                "MixinConfigs"            : "${project.modid}.mixin.json"
         ])
     }
 }

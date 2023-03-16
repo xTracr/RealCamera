@@ -35,6 +35,8 @@ public class BetterFPCam {
         ClientRegistry.registerKeyBinding(KeyController.cameraDOWN);
         ClientRegistry.registerKeyBinding(KeyController.cameraIN);
         ClientRegistry.registerKeyBinding(KeyController.cameraOUT);
+        ClientRegistry.registerKeyBinding(KeyController.cameraLEFT);
+        ClientRegistry.registerKeyBinding(KeyController.cameraRIGHT);
         ClientRegistry.registerKeyBinding(KeyController.centerUP);
         ClientRegistry.registerKeyBinding(KeyController.centerDOWN);
     }

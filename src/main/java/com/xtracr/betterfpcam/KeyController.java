@@ -22,6 +22,8 @@ public class KeyController {
     public static final KeyMapping cameraDOWN = new KeyMapping("key.xtracr_betterfpcam_cameradown", InputConstants.UNKNOWN.getValue(), KEY_CATEGORY);
     public static final KeyMapping cameraIN = new KeyMapping("key.xtracr_betterfpcam_camerain", InputConstants.UNKNOWN.getValue(), KEY_CATEGORY);
     public static final KeyMapping cameraOUT = new KeyMapping("key.xtracr_betterfpcam_cameraout", InputConstants.UNKNOWN.getValue(), KEY_CATEGORY);
+    public static final KeyMapping cameraLEFT = new KeyMapping("key.xtracr_betterfpcam_cameraleft", InputConstants.UNKNOWN.getValue(), KEY_CATEGORY);
+    public static final KeyMapping cameraRIGHT = new KeyMapping("key.xtracr_betterfpcam_cameraright", InputConstants.UNKNOWN.getValue(), KEY_CATEGORY);
     public static final KeyMapping centerUP = new KeyMapping("key.xtracr_betterfpcam_centerup", InputConstants.UNKNOWN.getValue(), KEY_CATEGORY);
     public static final KeyMapping centerDOWN = new KeyMapping("key.xtracr_betterfpcam_centerdown", InputConstants.UNKNOWN.getValue(), KEY_CATEGORY);
     
@@ -37,7 +39,7 @@ public class KeyController {
             }
         }
 
-        while (toggleCamera.consumeClick()) {
+        for(; toggleCamera.consumeClick(); MC.levelRenderer.needsUpdate()) {
             if (config.isEnabled()) {
                 config.setDisabled();
                 if (CameraController.INSTANCE.isActive()){
@@ -51,16 +53,28 @@ public class KeyController {
             }
         }
         while (cameraUP.consumeClick()) {
-            config.addCameraY();
+            if (config.isClassic()) { config.addCameraY(); }
+            else { config.addBindingY(); }
         }
         while (cameraDOWN.consumeClick()) {
-            config.subCameraY();
+            if (config.isClassic()) { config.subCameraY(); }
+            else { config.subBindingY(); }
         }
         while (cameraIN.consumeClick()) {
-            config.addCameraX();
+            if (config.isClassic()) { config.subCameraX(); }
+            else { config.subBindingX(); }
         }
         while (cameraOUT.consumeClick()) {
-            config.subCameraX();
+            if (config.isClassic()) { config.addCameraX(); }
+            else { config.addBindingX(); }
+        }
+        while (cameraLEFT.consumeClick()) {
+            if (config.isClassic()) { config.addCameraZ(); }
+            else { config.addBindingZ(); }
+        }
+        while (cameraRIGHT.consumeClick()) {
+            if (config.isClassic()) { config.subCameraZ(); }
+            else { config.subBindingZ(); }
         }
         while (centerUP.consumeClick()) {
             config.addCenterY();
