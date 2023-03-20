@@ -50,10 +50,10 @@ public class ConfigController {
             .define("xtracr_betterfpcam_enabled", false);
         this.classic = builder.comment("Whether the camera is in classic mode or binding mode")
             .translation("translation.xtracr_betterfpcam_classic")
-            .define("xtracr_betterfpcam_classic", true);
+            .define("xtracr_betterfpcam_classic", false);
         this.thirdPersonMode = builder.comment("Whether Third Person Rendering Mode is enabled")
             .translation("translation.xtracr_betterfpcam_thirdpersonmode")
-            .define("xtracr_betterfpcam_thirdpersonmode", false);
+            .define("xtracr_betterfpcam_thirdpersonmode", true);
         this.cameraStep = builder.comment("The length of the camera adjustment per step")
             .translation("translation.xtracr_betterfpcam_camerastep")
             .defineInRange("xtracr_betterfpcam_camerastep", 0.25D, minVALUE, maxVALUE);
@@ -93,10 +93,10 @@ public class ConfigController {
         return this.debugMode.get();
     }
     
-    public void setDisabled() {
+    public void disable() {
         this.enabled.set(false);
     }
-    public void setEnabled() {
+    public void enable() {
         this.enabled.set(true);
     }
     public boolean isEnabled() {

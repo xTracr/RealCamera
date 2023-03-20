@@ -28,8 +28,7 @@ public abstract class MixinGameRenderer {
         if (ConfigController.configController.isEnabled() && (Minecraft.getInstance().options.getCameraType().isFirstPerson() || CameraController.INSTANCE.isActive()) 
         && Minecraft.getInstance().level != null) {
             double distance = (double)Minecraft.getInstance().gameMode.getPickRange();
-            //Vec3 vec3 = CameraController.INSTANCE.localCamera.getPosition();
-            Vec3 vec3 = entity.getEyePosition(particalTicks).add(CameraController.INSTANCE.cameraOffset);
+            Vec3 vec3 = entity.getEyePosition(particalTicks).add(CameraController.INSTANCE.getCameraOffset());
             Vec3 vec31 = entity.getViewVector(particalTicks);
             Vec3 vec32 = vec3.add(vec31.x * distance, vec31.y * distance, vec31.z * distance);
             Minecraft.getInstance().hitResult = entity.level.clip(new ClipContext(vec3, vec32, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, entity));

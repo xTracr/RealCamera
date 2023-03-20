@@ -25,7 +25,7 @@ public abstract class MixinItem {
     private static Vec3 getCameraPosition(Player player) {
         if (ConfigController.configController.isEnabled() && (Minecraft.getInstance().options.getCameraType().isFirstPerson() || CameraController.INSTANCE.isActive()) 
         && Minecraft.getInstance().level != null) {
-            return player.getEyePosition().add(CameraController.INSTANCE.cameraOffset);
+            return player.getEyePosition().add(CameraController.INSTANCE.getCameraOffset());
         }
         return player.getEyePosition();
     }

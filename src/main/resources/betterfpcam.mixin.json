@@ -9,7 +9,8 @@
       "CameraAccessor",
       "MixinGameRenderer",
       "MixinGui",
-      "MixinItem"
+      "MixinItem",
+      "RendererAccessor"
     ],
     "server": [],
     "injectors": {

@@ -41,15 +41,15 @@ public class KeyController {
 
         for(; toggleCamera.consumeClick(); MC.levelRenderer.needsUpdate()) {
             if (config.isEnabled()) {
-                config.setDisabled();
+                config.disable();
                 if (CameraController.INSTANCE.isActive()){
-                    CameraController.INSTANCE.setInactivate();
+                    CameraController.INSTANCE.inactivate();
                     MC.options.setCameraType(CameraType.FIRST_PERSON);
                     MC.gameRenderer.checkEntityPostEffect(MC.getCameraEntity());
                 }
             }
             else {
-                config.setEnabled();
+                config.enable();
             }
         }
         while (cameraUP.consumeClick()) {
