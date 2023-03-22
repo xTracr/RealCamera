@@ -24,8 +24,15 @@
     "translation.xtracr_betterfpcam_centerY": "Rotation Center Y",
     "translation.xtracr_betterfpcam_centerstep": "Rotation Center Step",
 
+    "translation.xtracr_betterfpcam_binddirection": "Bind Direction",
+    "translation.xtracr_betterfpcam_modelpart": "Model part",
     "translation.xtracr_betterfpcam_bindingX": "Camera X",
     "translation.xtracr_betterfpcam_bindingY": "Camera Y",
-    "translation.xtracr_betterfpcam_bindingZ": "Camera Z"
+    "translation.xtracr_betterfpcam_bindingZ": "Camera Z",
+    "translation.xtracr_betterfpcam_directionX": "Direction X",
+    "translation.xtracr_betterfpcam_directionY": "Direction Y",
+    "translation.xtracr_betterfpcam_directionZ": "Direction Z",
+
+    "comment.xtracr_betterfpcam_directionX": "Direction X"
     
 }

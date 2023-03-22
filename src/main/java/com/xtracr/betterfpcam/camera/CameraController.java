@@ -1,7 +1,5 @@
 package com.xtracr.betterfpcam.camera;
 
-import java.util.Random;
-
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
 import com.mojang.math.Vector4f;
@@ -15,7 +13,6 @@ import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.model.geom.ModelPart.Cube;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
@@ -32,7 +29,6 @@ public class CameraController {
     public static final CameraController INSTANCE = new CameraController();
     private static final ConfigController config = ConfigController.configController;
 
-    private ModelPart modelPart;
     private Vec3 cameraOffset = Vec3.ZERO;
     private float centerYRot = 0.0F;
     private boolean thirdPersonActive = false;
@@ -64,7 +60,6 @@ public class CameraController {
         this.stopBetterFPCam = true;
     }
 
-    @SuppressWarnings("null")
     public void setCameraOffset(CameraSetup cameraSetup, Minecraft MC, double particalTicks) {
         if(this.stopBetterFPCam) {
             this.stopBetterFPCam = false;
@@ -72,17 +67,11 @@ public class CameraController {
             this.cameraOffset = Vec3.ZERO;
             return;
         }
-        if (MC.player.isFallFlying()) {
-            this.thirdPersonActive = false;
-            MC.options.setCameraType(CameraType.FIRST_PERSON);
-            MC.gameRenderer.checkEntityPostEffect(MC.getCameraEntity());
-            return;
-        }
-        if (config.isThirdPersonMode() && !this.thirdPersonActive) {
+        if ((config.isThirdPersonMode() || !config.isClassic()) && !this.thirdPersonActive) {
             this.thirdPersonActive = true;
             MC.options.setCameraType(CameraType.THIRD_PERSON_BACK);
         }
-        else if (!config.isThirdPersonMode() && this.thirdPersonActive) {
+        else if (!config.isThirdPersonMode() && config.isClassic() && this.thirdPersonActive) {
             this.thirdPersonActive = false;
             MC.options.setCameraType(CameraType.FIRST_PERSON);
             MC.gameRenderer.checkEntityPostEffect(MC.getCameraEntity());
@@ -106,6 +95,12 @@ public class CameraController {
         double centerY = config.getScale() * config.getCenterY();
         double centerZ = config.getScale() * 0.0D;
 
+        if (player.isFallFlying()) {
+            this.thirdPersonActive = false;
+            MC.options.setCameraType(CameraType.FIRST_PERSON);
+            MC.gameRenderer.checkEntityPostEffect(MC.getCameraEntity());
+            return;
+        }
         if (player.isCrouching()) {
             centerY -= 0.021875;
         }
@@ -159,10 +154,7 @@ public class CameraController {
         // get modelPart data
         PlayerRenderer playerRenderer = (PlayerRenderer)MC.getEntityRenderDispatcher().getRenderer(player);
         PlayerModel<AbstractClientPlayer> playerModel = playerRenderer.getModel();
-        this.modelPart = playerModel.head;
-        Random random = new Random((long)player.getId());
-        Cube cube = this.modelPart.getRandomCube(random);
-        Vector3f center = new Vector3f((cube.maxX + cube.minX)/32.0F, (cube.maxY + cube.minY)/32.0F, (cube.maxZ + cube.minZ)/32.0F);
+        ModelPart modelPart = config.getModelPart(playerModel);
 
         // get offset vector
         // GameRenderer.render
@@ -183,12 +175,13 @@ public class CameraController {
             );
         }
         // EntityRenderDispatcher.render
-        renderOffset = renderOffset.subtract(this.cameraOffset);
+        renderOffset = renderOffset.subtract(camera.getPosition());
         poseStack.translate(renderOffset.x(), renderOffset.y(), renderOffset.z());
         // LivingEntityRenderer.render
+        boolean shouldSit = player.isPassenger() && (player.getVehicle() != null && player.getVehicle().shouldRiderSit());
         float yBodyRot = Mth.lerp((float)particalTicks, player.yBodyRotO, player.yBodyRot);
         float yHeadRot = Mth.lerp((float)particalTicks, player.yHeadRotO, player.yHeadRot);
-        if (playerModel.riding && player.getVehicle() instanceof LivingEntity) {
+        if (shouldSit && player.getVehicle() instanceof LivingEntity) {
             LivingEntity livingentity = (LivingEntity)player.getVehicle();
             yBodyRot = Mth.rotLerp((float)particalTicks, livingentity.yBodyRotO, livingentity.yBodyRot);
             float f3 = Mth.wrapDegrees(yHeadRot - yBodyRot);
@@ -217,22 +210,39 @@ public class CameraController {
         // ModelPart.render
         modelPart.translateAndRotate(poseStack);
         // ModelPart$Cube.compile
-        double cameraX = config.getScale() * config.getBindingX() + center.x();
-        double cameraY = config.getScale() * config.getBindingY() + center.y();
-        double cameraZ = config.getScale() * config.getBindingZ() + center.z();
-        Vector4f offset =  new Vector4f((float)cameraZ, (float)cameraY, (float)cameraX, 1.0F);
+        double cameraX = config.getScale() * config.getBindingX();
+        double cameraY = config.getScale() * config.getBindingY();
+        double cameraZ = config.getScale() * config.getBindingZ();
+        Vector4f offset =  new Vector4f((float)cameraZ, -(float)cameraY, -(float)cameraX, 1.0F);
         offset.transform(poseStack.last().pose());
 
-        ((CameraAccessor)camera).invokeMove(-offset.z(), -offset.y(), offset.x());
+        ((CameraAccessor)camera).invokeMove(-offset.z(), offset.y(), -offset.x());
+
+        if (config.isDirectionBound()) {
+            Vector3f direction = new Vector3f(config.getDirectionX(), config.getDirectionY(), config.getDirectionZ());
+            if (direction == Vector3f.ZERO) { direction = Vector3f.XP; }
+            direction.transform(poseStack.last().normal());
+            direction.set(direction.z(), direction.y(), direction.x());
+            float xRot = 0.0F;
+            float yRot = 0.0F;
+            if (direction.y() != 0.0F) { xRot = (float)(180.0D/Math.PI * Math.asin(-direction.y() / (float)Math.sqrt((double)(direction.y()*direction.y() + direction.z()*direction.z())))); }
+            if (direction.x() != 0.0F) { yRot = (float)(180.0D/Math.PI * Math.asin( direction.x() / (float)Math.sqrt((double)(direction.z()*direction.z() + direction.x()*direction.x())))); }
+            xRot = cameraSetup.getPitch() - xRot;
+            yRot = cameraSetup.getYaw() - yRot;
+            ((CameraAccessor)camera).invokeSetRotation(yRot, xRot);
+            cameraSetup.setYaw(yRot);
+            cameraSetup.setPitch(xRot);
+            debugMessage("cameraXRot: " + Float.toString(xRot) + "  cameraYRot: " + Float.toString(yRot));
+            debugMessage("directionX: " + Float.toString(direction.x()) + "  directionY: " + Float.toString(direction.y()) + "  directionZ: " + Float.toString(direction.z()));
+        }
 
         this.cameraOffset = player.getEyePosition((float)particalTicks);
         this.cameraOffset = camera.getPosition().subtract(this.cameraOffset);
         
-        debugMessage("target:   xRot: " + Float.toString(camera.getXRot()) + "  yRot: " + Float.toString(camera.getYRot()));
-        debugMessage("moveX: " + Float.toString(offset.x()) + "  moveY: " + Float.toString(offset.y()) + "  moveZ: " + Float.toString(offset.z()));
+        debugMessage("playerXRot: " + Float.toString(player.getViewXRot((float)particalTicks)) + "  playerYRot: " + Float.toString(player.getViewYRot((float)particalTicks)));
+        //debugMessage("moveX: " + Float.toString(offset.x()) + "  moveY: " + Float.toString(offset.y()) + "  moveZ: " + Float.toString(offset.z()));
         debugMessage("cameraX: " + Float.toString((float)cameraX) + "  cameraY: " + Float.toString((float)cameraY) + "  cameraZ: " + Float.toString((float)cameraZ));
-        debugMessage("offSetX: " + Float.toString((float)cameraOffset.x) + "  offSetY: " + Float.toString((float)cameraOffset.y) + "  offSetZ: " + Float.toString((float)cameraOffset.z));
+        //debugMessage("offSetX: " + Float.toString((float)cameraOffset.x) + "  offSetY: " + Float.toString((float)cameraOffset.y) + "  offSetZ: " + Float.toString((float)cameraOffset.z));
     }
-
 
 }
