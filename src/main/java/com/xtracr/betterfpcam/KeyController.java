@@ -44,7 +44,7 @@ public class KeyController {
             if (config.isEnabled()) {
                 config.disable();
                 if (CameraController.INSTANCE.isActive()){
-                    CameraController.INSTANCE.inactivate();
+                    CameraController.INSTANCE.inactivateThirdPerson();
                     MC.options.setCameraType(CameraType.FIRST_PERSON);
                     MC.gameRenderer.checkEntityPostEffect(MC.getCameraEntity());
                 }

@@ -14,6 +14,15 @@ Download the mod from CurseForge or [Releases page](https://github.com/xTracr/Be
 
 # FAQ #
 
+# Compatibility #
+* Compatible:  
+    - Camera Mods such as Shoulder Surfing
+    - Not Enough Animations
+    - Player Animation Lib
+    - First Person Model
+* Incompatible:  
+    - Epic Fight
+
 # Change Log #
 * 0.3:  
 - Make the hit result of the player's crosshair match the actual position of the crosshair in third-person rendering mode  
@@ -24,6 +33,8 @@ Download the mod from CurseForge or [Releases page](https://github.com/xTracr/Be
     - 0.3.2:  
     - Added more binding mode configuration
     - Try to bind camera direction to the model part
+    - 0.3.3:
+    - Allow camera direction to be bound to the model part
 * 0.2:  
 - Added third-person rendering mode  
     - 0.2.1:  

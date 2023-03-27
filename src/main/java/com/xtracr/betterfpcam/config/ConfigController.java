@@ -39,14 +39,15 @@ public class ConfigController {
     private final DoubleValue centerY;
     private final DoubleValue centerStep;
 
-    private final BooleanValue bindDirection;
     private final EnumValue<AcceptableModelParts> modelPart;
+    private final BooleanValue bindDirection;
+    private final BooleanValue lockRotationZ;
     private final DoubleValue bindingX;
     private final DoubleValue bindingY;
     private final DoubleValue bindingZ;
-    private final DoubleValue directionX;
-    private final DoubleValue directionY;
-    private final DoubleValue directionZ;
+    private final DoubleValue RotationX;
+    private final DoubleValue RotationY;
+    private final DoubleValue RotationZ;
 
 
     public ConfigController(ForgeConfigSpec.Builder builder) {
@@ -87,12 +88,15 @@ public class ConfigController {
             .translation("translation."+MODID+"centerstep")
             .defineInRange("ClassicModeConfig."+MODID+"centerstep", 0.25D, minVALUE, maxVALUE);
 
-        this.bindDirection = builder.comment("Whether to bind camera direction to the model part")
-            .translation("translation."+MODID+"binddirection")
-            .define("BindingModeConfig."+MODID+"binddirection", false);
         this.modelPart = builder.comment("The model part you want to bind camera to")
             .translation("translation."+MODID+"modelpart")
             .defineEnum("BindingModeConfig."+MODID+"modelpart", AcceptableModelParts.HEAD);
+        this.bindDirection = builder.comment("Whether to bind camera direction to the model part")
+            .translation("translation."+MODID+"binddirection")
+            .define("BindingModeConfig."+MODID+"binddirection", false);
+        this.lockRotationZ = builder.comment("Whether to lock camera rotation on axis Z")
+            .translation("translation."+MODID+"lockrotationZ")
+            .define("BindingModeConfig."+MODID+"lockrotationZ", false);
         this.bindingX = builder.comment("Camera's X relative to the modelPart being bound")
             .translation("translation."+MODID+"bindingX")
             .defineInRange("BindingModeConfig."+MODID+"bindingX", 3.5D, minVALUE, maxVALUE);
@@ -102,15 +106,15 @@ public class ConfigController {
         this.bindingZ = builder.comment("Camera's Z relative to the modelPart being bound")
             .translation("translation."+MODID+"bindingZ")
             .defineInRange("BindingModeConfig."+MODID+"bindingZ", 0.0D, minVALUE, maxVALUE);
-        this.directionX = builder.comment("The X component of the direction vector")
-            .translation("translation."+MODID+"directionX")
-            .defineInRange("BindingModeConfig."+MODID+"directionX", 1.0D, minVALUE, maxVALUE);
-        this.directionY = builder.comment("The Y component of the direction vector")
-            .translation("translation."+MODID+"directionY")
-            .defineInRange("BindingModeConfig."+MODID+"directionY", 0.0D, minVALUE, maxVALUE);
-        this.directionZ = builder.comment("The Z component of the direction vector")
-            .translation("translation."+MODID+"directionZ")
-            .defineInRange("BindingModeConfig."+MODID+"directionZ", 0.0D, minVALUE, maxVALUE);
+        this.RotationX = builder.comment("The extra rotation of the camera about the X axis")
+            .translation("translation."+MODID+"rotationX")
+            .defineInRange("BindingModeConfig."+MODID+"rotationX", 0.0D, -180.0D, 180.0D);
+        this.RotationY = builder.comment("The extra rotation of the camera about the Y axis")
+            .translation("translation."+MODID+"rotationY")
+            .defineInRange("BindingModeConfig."+MODID+"rotationY", 0.0D, -180.0D, 180.0D);
+        this.RotationZ = builder.comment("The extra rotation of the camera about the Z axis")
+            .translation("translation."+MODID+"rotationZ")
+            .defineInRange("BindingModeConfig."+MODID+"rotationZ", 0.0D, -180.0D, 180.0D);
         
     }
 
@@ -217,26 +221,14 @@ public class ConfigController {
     }
 
     // binding
+    public ModelPart getModelPartFrom(PlayerModel<AbstractClientPlayer> playerModel) {
+        return this.modelPart.get().getTarget(playerModel);
+    }
     public boolean isDirectionBound() {
         return this.bindDirection.get();
     }
-    public ModelPart getModelPart(PlayerModel<AbstractClientPlayer> playerModel) {
-        switch (this.modelPart.get()){
-        case HEAD:
-            return playerModel.head;
-        case BODY:
-            return playerModel.body;
-        case LEFT_ARM:
-            return playerModel.leftArm;
-        case RIGHT_ARM:
-            return playerModel.rightArm;
-        case LEFT_LEG:
-            return playerModel.leftLeg;
-        case RIGHT_LEG:
-            return playerModel.rightLeg;
-        default:
-            return playerModel.head; 
-        }
+    public boolean isRotationZLocked() {
+        return this.lockRotationZ.get();
     }
     public double getBindingX() {
         return this.bindingX.get();
@@ -247,14 +239,14 @@ public class ConfigController {
     public double getBindingZ() {
         return this.bindingZ.get();
     }
-    public float getDirectionX() {
-        return (float)(double)this.directionX.get();
+    public float getRotationX() {
+        return (float)(double)this.RotationX.get();
     }
-    public float getDirectionY() {
-        return (float)(double)this.directionY.get();
+    public float getRotationY() {
+        return (float)(double)this.RotationY.get();
     }
-    public float getDirectionZ() {
-        return (float)(double)this.directionZ.get();
+    public float getRotationZ() {
+        return (float)(double)this.RotationZ.get();
     }
 
     public void setBindingX(double value) {
@@ -265,6 +257,15 @@ public class ConfigController {
     }
     public void setBindingZ(double value) {
         this.bindingZ.set(value);
+    }
+    public void setRotationX(float value) {
+        this.RotationX.set((double)value);
+    }
+    public void setRotationY(float value) {
+        this.RotationY.set((double)value);
+    }
+    public void setRotationZ(float value) {
+        this.RotationZ.set((double)value);
     }
 
     public void addBindingX() {

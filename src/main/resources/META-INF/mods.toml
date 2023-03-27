@@ -34,6 +34,7 @@ credits="" #optional
 authors="xTracr" #optional
 # The description text for the mod (multi line!) (#mandatory)
 description='''
+Change the camera position in the first-person mode.
 '''
 # A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
 [[dependencies.betterfpcam]] #optional

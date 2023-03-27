@@ -10,7 +10,7 @@
       "MixinGameRenderer",
       "MixinGui",
       "MixinItem",
-      "RendererAccessor"
+      "PlayerRendererAccessor"
     ],
     "server": [],
     "injectors": {
