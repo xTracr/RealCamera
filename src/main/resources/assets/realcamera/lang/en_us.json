@@ -1,0 +1,37 @@
+{
+    "category.xtracr_realcamera": "Real Camera",
+    "key.xtracr_realcamera_toggle": "Toggle Camera",
+    "key.xtracr_realcamera_cameraup": "Camera UP",
+    "key.xtracr_realcamera_cameradown": "Camera DOWN",
+    "key.xtracr_realcamera_camerain": "Camera IN",
+    "key.xtracr_realcamera_cameraout": "Camera OUT",
+    "key.xtracr_realcamera_cameraleft": "Camera LEFT",
+    "key.xtracr_realcamera_cameraright": "Camera RIGHT",
+    "key.xtracr_realcamera_centerup": "Rotation Center UP",
+    "key.xtracr_realcamera_centerdown": "Rotation Center DOWN",
+    "key.xtracr_realcamera_centerin": "Rotation Center IN",
+    "key.xtracr_realcamera_centerout": "Rotation Center OUT",
+
+    "translation.xtracr_realcamera_enabled": "Mod Enabled",
+    "translation.xtracr_realcamera_classic": "Classic Mode",
+    "translation.xtracr_realcamera_thirdpersonmode": "Third Person Rendering",
+    "translation.xtracr_realcamera_camerastep": "Camera Step",
+    "translation.xtracr_realcamera_scale": "Scale",
+    
+    "translation.xtracr_realcamera_cameraX": "Camera X",
+    "translation.xtracr_realcamera_cameraY": "Camera Y",
+    "translation.xtracr_realcamera_cameraZ": "Camera Z",
+    "translation.xtracr_realcamera_centerY": "Rotation Center Y",
+    "translation.xtracr_realcamera_centerstep": "Rotation Center Step",
+
+    "translation.xtracr_realcamera_modelpart": "Model part",
+    "translation.xtracr_realcamera_binddirection": "Bind Direction",
+    "translation.xtracr_realcamera_lockrolling": "Lock Rolling",
+    "translation.xtracr_realcamera_bindingX": "Camera X",
+    "translation.xtracr_realcamera_bindingY": "Camera Y",
+    "translation.xtracr_realcamera_bindingZ": "Camera Z",
+    "translation.xtracr_realcamera_pitch": "Pitch",
+    "translation.xtracr_realcamera_yaw": "Yaw",
+    "translation.xtracr_realcamera_roll": "Roll"
+    
+}

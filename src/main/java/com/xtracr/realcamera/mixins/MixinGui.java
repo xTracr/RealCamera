@@ -1,11 +1,11 @@
-package com.xtracr.betterfpcam.mixins;
+package com.xtracr.realcamera.mixins;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import com.xtracr.betterfpcam.camera.CameraController;
+import com.xtracr.realcamera.camera.CameraController;
 
 import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
@@ -32,7 +32,7 @@ public abstract class MixinGui {
         at = @At("HEAD")
     )
     private void onRenderCrosshairHEAD(CallbackInfo cInfo) {
-        if (CameraController.INSTANCE.isActive()) {
+        if (CameraController.INSTANCE.isThirdPersonActive()) {
             Minecraft.getInstance().options.setCameraType(CameraType.FIRST_PERSON);
         }
     }
@@ -43,7 +43,7 @@ public abstract class MixinGui {
         at = @At("RETURN")
     )
     private void onRenderCrosshairRETURN(CallbackInfo cInfo) {
-        if (CameraController.INSTANCE.isActive()) {
+        if (CameraController.INSTANCE.isThirdPersonActive()) {
             Minecraft.getInstance().options.setCameraType(CameraType.THIRD_PERSON_BACK);
         }
     }

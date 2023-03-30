@@ -1,4 +1,4 @@
-package com.xtracr.betterfpcam.math;
+package com.xtracr.realcamera.math;
 
 import com.mojang.math.Matrix3f;
 import com.mojang.math.Quaternion;

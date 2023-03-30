@@ -1,4 +1,4 @@
-package com.xtracr.betterfpcam.config;
+package com.xtracr.realcamera.config;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -15,7 +15,7 @@ public class ConfigController {
     public static final ConfigController configController; 
     public static final ForgeConfigSpec forgeConfigSpec;
 
-    private static final String MODID = "xtracr_betterfpcam_";
+    private static final String MODID = "xtracr_realcamera_";
     private static final double minVALUE = -64.0D;
     private static final double maxVALUE = 64.0D;
 
@@ -41,13 +41,13 @@ public class ConfigController {
 
     private final EnumValue<AcceptableModelParts> modelPart;
     private final BooleanValue bindDirection;
-    private final BooleanValue lockRotationZ;
+    private final BooleanValue lockRolling;
     private final DoubleValue bindingX;
     private final DoubleValue bindingY;
     private final DoubleValue bindingZ;
-    private final DoubleValue RotationX;
-    private final DoubleValue RotationY;
-    private final DoubleValue RotationZ;
+    private final DoubleValue Pitch;
+    private final DoubleValue Yaw;
+    private final DoubleValue Roll;
 
 
     public ConfigController(ForgeConfigSpec.Builder builder) {
@@ -93,28 +93,28 @@ public class ConfigController {
             .defineEnum("BindingModeConfig."+MODID+"modelpart", AcceptableModelParts.HEAD);
         this.bindDirection = builder.comment("Whether to bind camera direction to the model part")
             .translation("translation."+MODID+"binddirection")
-            .define("BindingModeConfig."+MODID+"binddirection", false);
-        this.lockRotationZ = builder.comment("Whether to lock camera rotation on axis Z")
-            .translation("translation."+MODID+"lockrotationZ")
-            .define("BindingModeConfig."+MODID+"lockrotationZ", false);
+            .define("BindingModeConfig."+MODID+"binddirection", true);
+        this.lockRolling = builder.comment("Whether to lock rolling of camera")
+            .translation("translation."+MODID+"lockrolling")
+            .define("BindingModeConfig."+MODID+"lockrolling", false);
         this.bindingX = builder.comment("Camera's X relative to the modelPart being bound")
             .translation("translation."+MODID+"bindingX")
-            .defineInRange("BindingModeConfig."+MODID+"bindingX", 3.5D, minVALUE, maxVALUE);
+            .defineInRange("BindingModeConfig."+MODID+"bindingX", 3.25D, minVALUE, maxVALUE);
         this.bindingY = builder.comment("Camera's Y relative to the modelPart being bound")
             .translation("translation."+MODID+"bindingY")
             .defineInRange("BindingModeConfig."+MODID+"bindingY", 2.0D, minVALUE, maxVALUE);
         this.bindingZ = builder.comment("Camera's Z relative to the modelPart being bound")
             .translation("translation."+MODID+"bindingZ")
             .defineInRange("BindingModeConfig."+MODID+"bindingZ", 0.0D, minVALUE, maxVALUE);
-        this.RotationX = builder.comment("The extra rotation of the camera about the X axis")
-            .translation("translation."+MODID+"rotationX")
-            .defineInRange("BindingModeConfig."+MODID+"rotationX", 0.0D, -180.0D, 180.0D);
-        this.RotationY = builder.comment("The extra rotation of the camera about the Y axis")
-            .translation("translation."+MODID+"rotationY")
-            .defineInRange("BindingModeConfig."+MODID+"rotationY", 0.0D, -180.0D, 180.0D);
-        this.RotationZ = builder.comment("The extra rotation of the camera about the Z axis")
-            .translation("translation."+MODID+"rotationZ")
-            .defineInRange("BindingModeConfig."+MODID+"rotationZ", 0.0D, -180.0D, 180.0D);
+        this.Pitch = builder.comment("The extra rotation of the camera about the X axis")
+            .translation("translation."+MODID+"pitch")
+            .defineInRange("BindingModeConfig."+MODID+"pitch", 0.0D, -180.0D, 180.0D);
+        this.Yaw = builder.comment("The extra rotation of the camera about the Y axis")
+            .translation("translation."+MODID+"yaw")
+            .defineInRange("BindingModeConfig."+MODID+"yaw", 0.0D, -180.0D, 180.0D);
+        this.Roll = builder.comment("The extra rotation of the camera about the Z axis")
+            .translation("translation."+MODID+"roll")
+            .defineInRange("BindingModeConfig."+MODID+"roll", 0.0D, -180.0D, 180.0D);
         
     }
 
@@ -227,8 +227,8 @@ public class ConfigController {
     public boolean isDirectionBound() {
         return this.bindDirection.get();
     }
-    public boolean isRotationZLocked() {
-        return this.lockRotationZ.get();
+    public boolean isRollingLocked() {
+        return this.lockRolling.get();
     }
     public double getBindingX() {
         return this.bindingX.get();
@@ -239,14 +239,14 @@ public class ConfigController {
     public double getBindingZ() {
         return this.bindingZ.get();
     }
-    public float getRotationX() {
-        return (float)(double)this.RotationX.get();
+    public float getPitch() {
+        return (float)(double)this.Pitch.get();
     }
-    public float getRotationY() {
-        return (float)(double)this.RotationY.get();
+    public float getYaw() {
+        return (float)(double)this.Yaw.get();
     }
-    public float getRotationZ() {
-        return (float)(double)this.RotationZ.get();
+    public float getRoll() {
+        return (float)(double)this.Roll.get();
     }
 
     public void setBindingX(double value) {
@@ -258,14 +258,14 @@ public class ConfigController {
     public void setBindingZ(double value) {
         this.bindingZ.set(value);
     }
-    public void setRotationX(float value) {
-        this.RotationX.set((double)value);
+    public void setPitch(float value) {
+        this.Pitch.set((double)value);
     }
-    public void setRotationY(float value) {
-        this.RotationY.set((double)value);
+    public void setYaw(float value) {
+        this.Yaw.set((double)value);
     }
-    public void setRotationZ(float value) {
-        this.RotationZ.set((double)value);
+    public void setRoll(float value) {
+        this.Roll.set((double)value);
     }
 
     public void addBindingX() {

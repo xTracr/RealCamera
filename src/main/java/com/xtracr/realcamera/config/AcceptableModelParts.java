@@ -1,4 +1,4 @@
-package com.xtracr.betterfpcam.config;
+package com.xtracr.realcamera.config;
 
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;

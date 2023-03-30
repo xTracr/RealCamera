@@ -1,8 +1,7 @@
-package com.xtracr.betterfpcam.event;
+package com.xtracr.realcamera;
 
-import com.xtracr.betterfpcam.KeyController;
-import com.xtracr.betterfpcam.camera.CameraController;
-import com.xtracr.betterfpcam.config.ConfigController;
+import com.xtracr.realcamera.camera.CameraController;
+import com.xtracr.realcamera.config.ConfigController;
 
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.InputEvent;
@@ -18,7 +17,7 @@ public class EventHandler {
 
     @SubscribeEvent
     public static void onCameraSetup(CameraSetup event) {
-        if (ConfigController.configController.isEnabled() && (Minecraft.getInstance().options.getCameraType().isFirstPerson() || CameraController.INSTANCE.isActive()) && Minecraft.getInstance().player != null) {
+        if (ConfigController.configController.isEnabled() && (Minecraft.getInstance().options.getCameraType().isFirstPerson() || CameraController.INSTANCE.isThirdPersonActive()) && Minecraft.getInstance().player != null) {
             CameraController.INSTANCE.setCameraOffset(event, Minecraft.getInstance(), event.getPartialTicks());
         }
     }

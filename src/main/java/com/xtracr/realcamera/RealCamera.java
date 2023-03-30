@@ -1,7 +1,6 @@
-package com.xtracr.betterfpcam;
+package com.xtracr.realcamera;
 
-import com.xtracr.betterfpcam.config.ConfigController;
-import com.xtracr.betterfpcam.event.EventHandler;
+import com.xtracr.realcamera.config.ConfigController;
 
 import net.minecraftforge.client.ClientRegistry;
 import net.minecraftforge.common.MinecraftForge;
@@ -13,10 +12,10 @@ import net.minecraftforge.fml.config.ModConfig.Type;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
-@Mod("betterfpcam")
-public class BetterFPCam {
+@Mod("realcamera")
+public class RealCamera {
 
-    public BetterFPCam() {
+    public RealCamera() {
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
         eventBus.addListener(this::clientSetup);
 
