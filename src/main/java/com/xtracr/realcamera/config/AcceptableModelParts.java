@@ -5,42 +5,40 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.player.AbstractClientPlayer;
 
 public enum AcceptableModelParts {
-    HEAD("head") {
+    HEAD {
         public ModelPart getTarget(PlayerModel<AbstractClientPlayer> playerModel) {
             return playerModel.head;
         }
     },
-    BODY("body") {
+    BODY {
         public ModelPart getTarget(PlayerModel<AbstractClientPlayer> playerModel) {
             return playerModel.body;
         }
     },
-    LEFT_ARM("leftArm") {
+    LEFT_ARM {
         public ModelPart getTarget(PlayerModel<AbstractClientPlayer> playerModel) {
             return playerModel.leftArm;
         }
     },
-    RIGHT_ARM("rightArm") {
+    RIGHT_ARM {
         public ModelPart getTarget(PlayerModel<AbstractClientPlayer> playerModel) {
             return playerModel.rightArm;
         }
     },
-    LEFT_LEG("leftLeg") {
+    LEFT_LEG {
         public ModelPart getTarget(PlayerModel<AbstractClientPlayer> playerModel) {
             return playerModel.leftLeg;
         }
     },
-    RIGHT_LEG("rightLeg") {
+    RIGHT_LEG {
         public ModelPart getTarget(PlayerModel<AbstractClientPlayer> playerModel) {
             return playerModel.rightLeg;
         }
     };
 
     private static final AcceptableModelParts[] VALUES = values();
-    public final String name;
 
-    private AcceptableModelParts(String name) {
-        this.name = name;
+    private AcceptableModelParts() {
     }
 
     public AcceptableModelParts cycle() {

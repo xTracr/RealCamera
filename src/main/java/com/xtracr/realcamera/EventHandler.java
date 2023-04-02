@@ -1,7 +1,6 @@
 package com.xtracr.realcamera;
 
 import com.xtracr.realcamera.camera.CameraController;
-import com.xtracr.realcamera.config.ConfigController;
 
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.InputEvent;
@@ -17,8 +16,8 @@ public class EventHandler {
 
     @SubscribeEvent
     public static void onCameraSetup(CameraSetup event) {
-        if (ConfigController.configController.isEnabled() && (Minecraft.getInstance().options.getCameraType().isFirstPerson() || CameraController.INSTANCE.isThirdPersonActive()) && Minecraft.getInstance().player != null) {
-            CameraController.INSTANCE.setCameraOffset(event, Minecraft.getInstance(), event.getPartialTicks());
+        if (CameraController.isActive() && Minecraft.getInstance().player != null) {
+            CameraController.setCameraOffset(event, Minecraft.getInstance(), event.getPartialTicks());
         }
     }
 

@@ -53,7 +53,7 @@ public class Matrix3d {
         this.m22 = matrix3d.m22;
     } 
 
-    public Vec3 getEularAngle() {
+    public Vec3 getEulerAngle() {
         // Rotating order: ZXY
         if (this.m12 <= -1.0D) {
             return new Vec3(Math.PI/2, Math.atan2(m01, m00), 0.0D);
@@ -68,8 +68,8 @@ public class Matrix3d {
         return new Vec3(xRot, yRot, zRot);
     }
 
-    public Vec3 getEularAngleDegrees() {
-        return this.getEularAngle().scale(180.0D/Math.PI);
+    public Vec3 getEulerAngleDegrees() {
+        return this.getEulerAngle().scale(180.0D/Math.PI);
     }
 
     public static Matrix3d multiply(Matrix3d left, Matrix3d right) {

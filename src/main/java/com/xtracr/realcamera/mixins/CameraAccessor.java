@@ -15,6 +15,9 @@ public interface CameraAccessor {
 	@Accessor
 	float getEyeHeightOld();
 
+	@Accessor("detached")
+	void setDetached(boolean detached);
+
 	@Invoker
 	void invokeSetRotation(float yRot, float xRot);
 

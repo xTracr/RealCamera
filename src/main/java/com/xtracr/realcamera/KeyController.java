@@ -3,8 +3,7 @@ package com.xtracr.realcamera;
 import org.lwjgl.glfw.GLFW;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.xtracr.realcamera.camera.CameraController;
-import com.xtracr.realcamera.config.ConfigController;
+import com.xtracr.realcamera.config.ModConfig;
 
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -12,9 +11,9 @@ import net.minecraft.client.Minecraft;
 public class KeyController {
 
     private static final Minecraft MC = Minecraft.getInstance();
-    private static final ConfigController config = ConfigController.configController; 
+    private static final ModConfig config = ModConfig.modConfig; 
 
-    private static final String KEY_CATEGORY = "category.xtracr_realcamera";
+    private static final String KEY_CATEGORY = "key.category.xtracr_realcamera";
     private static final String KEY_ID = "key.xtracr_realcamera_";
     
     public static final KeyMapping toggleCamera = new KeyMapping(KEY_ID+"toggle", GLFW.GLFW_KEY_F6, KEY_CATEGORY);
@@ -33,18 +32,9 @@ public class KeyController {
             return;
         }
 
-        if (CameraController.INSTANCE.isThirdPersonActive()) {
-            for(; MC.options.keyTogglePerspective.consumeClick(); MC.levelRenderer.needsUpdate()) { 
-                CameraController.INSTANCE.stopRealCamera();
-            }
-        }
-
         for(; toggleCamera.consumeClick(); MC.levelRenderer.needsUpdate()) {
             if (config.isEnabled()) {
                 config.disable();
-                if (CameraController.INSTANCE.isThirdPersonActive()){
-                    CameraController.INSTANCE.inactivateThirdPerson();
-                }
             }
             else {
                 config.enable();

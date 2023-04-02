@@ -2,61 +2,35 @@
 
 ## [English](README.md) ##
 
-使第一人称视角下的摄像头更加真实  
+使第一人称视角下的摄像头更加真实。  
 支持的版本: 1.18 Forge  
 将会在将来支持 1.19 Forge 和 1.19 Fabric  
-从[Releases](https://github.com/xTracr/RealCamera/releases)页面、[CurseForge](https://curseforge.com)或[Modrinth](https://modrinth.com)下载 （WIP, 现在仅支持从源代码生成）  
+从[Releases](https://github.com/xTracr/RealCamera/releases)页面、[CurseForge](https://curseforge.com)(WIP)或[Modrinth](https://modrinth.com)(WIP)下载  
 
 ## 特性 ##
 
 * 将摄像头绑定到身体的某个部位
-* 在第一人称视角下渲染第三人称模型
-* 支持移动摄像头（相对于旋转中心） 和它的旋转中心（相对于头部）的位置
-* 按下F6来开关，另外一些键来调整位置.（热键可以在设置更改）
+* 移动摄像头和旋转中心的位置
+* 在第一人称视角下渲染玩家模型
+* 按下F6来开关，另外一些键来调整位置
 * 在Config界面配置以上特性
 
 ## 兼容性 ##
 
-* 兼容:  
-  * Shoulder Surfing等摄像头模组
+* 兼容:
+  * Shoulder Surfing、FreeCam、CameraOverhaul等摄像头模组
   * Not Enough Animations
   * Player Animation Lib
   * First Person Model
-* 不完全兼容：
+* 不兼容:
   * Epic Fight
-* 不兼容:  
+  * Pehkui
+* 引起崩溃:
 
-### 常见问题 ###
-
-## 更新日志 ##
-
-* 0.3:  
-* 使第三人称渲染模式下玩家十字准心的命中结果与十字准心的实际位置相匹配  
-* 初步实现了绑定模式的效果  
-  * 0.3.1:  
-  * 添加了对其余状态的摄像头位置修正  
-  * 初步完善了绑定模式  
-  * 0.3.2:  
-  * 添加了更多绑定模式的配置  
-  * 尝试将摄像头方向绑定在模型上  
-  * 0.3.3:  
-  * 允许将摄像头方向绑定在模型上  
-  * 0.3.4:  
-  * 允许让十字准心的方向跟随摄像头  
-  * 修改了MOD名字  
-  * 修复了两个绑定模式下的问题:  
-    * 摄像头与模型动画不同步  
-    * 开启物品栏时摄像头跟随物品栏内人物模型转动  
-
-* 0.2:  
-* 添加了第三人称渲染模式  
-  * 0.2.1:  
-  * 添加了对潜行状态的摄像头位置的修正  
-  * 可以在第三人称渲染模式下渲染十字准心  
-
-* 0.1:  
-* 添加了移动摄像头及其旋转中心的功能  
+## 常见问题 ##
 
 ### 已知问题 ###
 
 * 鞘翅转向或高速飞行时人物闪烁且摄像头抖动(实际上原版也有这个问题，只是体现为人物抖动)
+
+## [更新日志](changelog.md) ##

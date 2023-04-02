@@ -8,7 +8,6 @@
     "client": [
       "CameraAccessor",
       "MixinGameRenderer",
-      "MixinGui",
       "MixinItem",
       "PlayerRendererAccessor"
     ],

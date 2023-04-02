@@ -3,14 +3,13 @@ package com.xtracr.realcamera.camera;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
 import com.mojang.math.Vector4f;
-import com.xtracr.realcamera.config.ConfigController;
+import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.math.Matrix3d;
 import com.xtracr.realcamera.mixins.CameraAccessor;
 import com.xtracr.realcamera.mixins.PlayerRendererAccessor;
 
 import net.minecraft.Util;
 import net.minecraft.client.Camera;
-import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
@@ -27,15 +26,12 @@ import net.minecraftforge.client.event.EntityViewRenderEvent.CameraSetup;
 
 public class CameraController {
     
-    public static final CameraController INSTANCE = new CameraController();
-    private static final ConfigController config = ConfigController.configController;
+    private static final ModConfig config = ModConfig.modConfig;
 
-    private Vec3 cameraOffset = Vec3.ZERO;
-    private Vec3 cameraRotation = Vec3.ZERO;
-    private float centerYRot = 0.0F;
-    private boolean thirdPersonActive = false;
-    private boolean stopRealCamera = false;
-    private boolean wasVisuallySwimming = false;
+    private static Vec3 cameraOffset = Vec3.ZERO;
+    private static Vec3 cameraRotation = Vec3.ZERO;
+    private static float centerYRot = 0.0F;
+    private static boolean wasVisuallySwimming = false;
 
     @SuppressWarnings({"resource","null"})
     public static void debugMessage(String string) {
@@ -44,13 +40,21 @@ public class CameraController {
         }
     }
 
-    public Vec3 getCameraOffset() {
-        return this.cameraOffset;
+    public static boolean isActive() {
+        return config.isEnabled() && Minecraft.getInstance().options.getCameraType().isFirstPerson();
     }
 
-    public Vec3 getViewVector() {
-        float f = (float)this.cameraRotation.x() * ((float)Math.PI / 180F);
-        float f1 = -(float)this.cameraRotation.y() * ((float)Math.PI / 180F);
+    public static boolean doCrosshairRotate() {
+        return isActive() && config.isDirectionBound() && !config.isClassic();
+    }
+
+    public static Vec3 getCameraOffset() {
+        return cameraOffset;
+    }
+
+    public static Vec3 getViewVector() {
+        float f = (float)cameraRotation.x() * ((float)Math.PI / 180F);
+        float f1 = -(float)cameraRotation.y() * ((float)Math.PI / 180F);
         float f2 = Mth.cos(f1);
         float f3 = Mth.sin(f1);
         float f4 = Mth.cos(f);
@@ -58,38 +62,15 @@ public class CameraController {
         return new Vec3((double)(f3 * f4), (double)(-f5), (double)(f2 * f4));
     }
 
-    public boolean isThirdPersonActive() {
-        return this.thirdPersonActive;
-    }
+    public static void setCameraOffset(CameraSetup cameraSetup, Minecraft MC, double particalTicks) {
+        cameraOffset = Vec3.ZERO;
+        cameraRotation = new Vec3(cameraSetup.getPitch(), cameraSetup.getYaw(), cameraSetup.getRoll());
 
-    public boolean doCrosshairOffset() {
-        return config.isEnabled() && ((Minecraft.getInstance().options.getCameraType().isFirstPerson() || isThirdPersonActive()));
-    }
-
-    public void inactivateThirdPerson() {
-        this.thirdPersonActive = false;
-        Minecraft MC = Minecraft.getInstance();
-        MC.options.setCameraType(CameraType.FIRST_PERSON);
-        MC.gameRenderer.checkEntityPostEffect(MC.getCameraEntity());
-    }
-    
-    public void stopRealCamera() {
-        this.stopRealCamera = true;
-    }
-
-    public void setCameraOffset(CameraSetup cameraSetup, Minecraft MC, double particalTicks) {
-        this.cameraOffset = Vec3.ZERO;
-        if(this.stopRealCamera) {
-            this.stopRealCamera = false;
-            this.thirdPersonActive = false;
+        if (config.isDisabledWhen(MC.player) && !config.onlyDisableRenderingWhen(MC.player)) {
             return;
         }
-        if ((config.isThirdPersonMode() || !config.isClassic()) && !this.thirdPersonActive) {
-            this.thirdPersonActive = true;
-            MC.options.setCameraType(CameraType.THIRD_PERSON_BACK);
-        }
-        else if (!config.isThirdPersonMode() && config.isClassic() && this.thirdPersonActive) {
-            inactivateThirdPerson();
+        if (config.renderModel() && !config.onlyDisableRenderingWhen(MC.player)) {
+            ((CameraAccessor)cameraSetup.getCamera()).setDetached(true);
         }
 
         if (config.isClassic()) { setClassicOffset(cameraSetup, MC, particalTicks); }
@@ -97,14 +78,9 @@ public class CameraController {
     }
 
     @SuppressWarnings("null")
-    private void setClassicOffset(CameraSetup cameraSetup, Minecraft MC, double particalTicks) {
+    private static void setClassicOffset(CameraSetup cameraSetup, Minecraft MC, double particalTicks) {
         CameraAccessor camera = (CameraAccessor)cameraSetup.getCamera();
         LocalPlayer player = MC.player;
-        
-        if (player.isFallFlying()) {
-            inactivateThirdPerson();
-            return;
-        }
         
         float xRot = player.getViewXRot((float)particalTicks);
         float yRot = player.getViewYRot((float)particalTicks);
@@ -125,17 +101,17 @@ public class CameraController {
             cameraZ = 0.0D;
         }
         if (player.isVisuallySwimming()) {
-            if (!this.wasVisuallySwimming) {
-                this.wasVisuallySwimming = true;
-                this.centerYRot = yRot;
+            if (!wasVisuallySwimming) {
+                wasVisuallySwimming = true;
+                centerYRot = yRot;
             }
-            else if (yRot-this.centerYRot >= 50.0F) { this.centerYRot += 10.0F; }
-            else if (yRot-this.centerYRot <=-50.0F) { this.centerYRot -= 10.0F; }
+            else if (yRot-centerYRot >= 50.0F) { centerYRot += 10.0F; }
+            else if (yRot-centerYRot <=-50.0F) { centerYRot -= 10.0F; }
             cameraX = config.getScale() * config.getCameraY();
             cameraY = - config.getScale() * config.getCameraX();
             centerX = config.getScale() * config.getCenterY();
             centerY = 0.0D;
-            if (config.isThirdPersonMode()) {
+            if (config.renderModel() && !config.onlyDisableRenderingWhen(MC.player)) {
                 cameraX -= 0.09375;
                 cameraY += 0.109375;
                 centerX += 0.9D;
@@ -143,25 +119,24 @@ public class CameraController {
             }
         }
         else {
-            this.wasVisuallySwimming = false;
-            this.centerYRot = yRot;
+            wasVisuallySwimming = false;
+            centerYRot = yRot;
         }
 
         camera.invokeSetPosition(Mth.lerp(particalTicks, player.xo, player.getX()), 
-            Mth.lerp(particalTicks, player.yo, player.getY()) + Mth.lerp(particalTicks, camera.getEyeHeightOld(), camera.getEyeHeight()), 
-            Mth.lerp(particalTicks, player.zo, player.getZ())
+        Mth.lerp(particalTicks, player.yo, player.getY()) + Mth.lerp(particalTicks, camera.getEyeHeightOld(), camera.getEyeHeight()), 
+        Mth.lerp(particalTicks, player.zo, player.getZ())
         );
-        this.cameraOffset = ((Camera)camera).getPosition();
-        camera.invokeSetRotation(this.centerYRot, 0.0F);
+        camera.invokeSetRotation(centerYRot, 0.0F);
         camera.invokeMove(centerX, centerY, centerZ);
         camera.invokeSetRotation(yRot, xRot);
         camera.invokeMove(cameraX, cameraY, cameraZ);
 
-        this.cameraOffset = ((Camera)camera).getPosition().subtract(this.cameraOffset);
+        cameraOffset = ((Camera)camera).getPosition().subtract(player.getEyePosition((float)particalTicks));
     }
 
     @SuppressWarnings("null")
-    private void setBindingOffset(CameraSetup cameraSetup, Minecraft MC, double particalTicks) {
+    private static void setBindingOffset(CameraSetup cameraSetup, Minecraft MC, double particalTicks) {
         LocalPlayer player = MC.player;
         Camera camera = cameraSetup.getCamera();
 
@@ -270,7 +245,7 @@ public class CameraController {
         if (config.isDirectionBound()) {
             Matrix3d matrix = new Matrix3d(rotatePose.last().normal());
             matrix.mulByRight(Vector3f.XP.rotationDegrees(180.0F));
-            Vector3f eularAngle = new Vector3f(matrix.getEularAngleDegrees());
+            Vector3f eularAngle = new Vector3f(matrix.getEulerAngleDegrees());
 
             float pitch =  eularAngle.x() + config.getPitch();
             float yaw = -eularAngle.y() - config.getYaw();
@@ -282,11 +257,10 @@ public class CameraController {
             if (!config.isRollingLocked()) {
                 cameraSetup.setRoll(roll);
             }
-            this.cameraRotation = new Vec3(pitch, yaw, roll);
+            cameraRotation = new Vec3(pitch, yaw, roll);
         }
 
-        this.cameraOffset = player.getEyePosition((float)particalTicks);
-        this.cameraOffset = camera.getPosition().subtract(this.cameraOffset);
+        cameraOffset = camera.getPosition().subtract(player.getEyePosition((float)particalTicks));
     }
 
 }

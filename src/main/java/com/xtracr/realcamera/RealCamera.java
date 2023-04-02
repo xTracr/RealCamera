@@ -1,6 +1,9 @@
 package com.xtracr.realcamera;
 
-import com.xtracr.realcamera.config.ConfigController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.xtracr.realcamera.config.ModConfig;
 
 import net.minecraftforge.client.ClientRegistry;
 import net.minecraftforge.common.MinecraftForge;
@@ -15,11 +18,13 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 @Mod("realcamera")
 public class RealCamera {
 
+    public static final Logger LOGGER = LoggerFactory.getLogger("realcamera");
+    
     public RealCamera() {
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
         eventBus.addListener(this::clientSetup);
 
-        ModLoadingContext.get().registerConfig(Type.CLIENT, ConfigController.forgeConfigSpec);
+        ModLoadingContext.get().registerConfig(Type.CLIENT, ModConfig.forgeConfigSpec);
 
     }
     
