@@ -6,37 +6,37 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 import com.xtracr.realcamera.camera.CameraController;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.item.Item;
+import net.minecraft.util.math.Vec3d;
 
 @Mixin(Item.class)
 public abstract class MixinItem {
     
     @ModifyVariable(
-        method = "getPlayerPOVHitResult",
+        method = "raycast",
         at = @At("STORE"),
         ordinal = 0
     )
-    private static Vec3 getCameraPosition(Vec3 vec3) {
-        return (CameraController.isActive() ? vec3.add(CameraController.getCameraOffset()) : vec3);
+    private static Vec3d getCameraPosition(Vec3d vec3d) {
+        return (CameraController.isActive() ? vec3d.add(CameraController.getCameraOffset()) : vec3d);
     }
     
     @ModifyVariable(
-        method = "getPlayerPOVHitResult",
+        method = "raycast",
         at = @At("STORE"),
         ordinal = 0
     )
     private static float getCameraXRot(float f) {
-        return (CameraController.doCrosshairRotate() ? Minecraft.getInstance().getEntityRenderDispatcher().camera.getXRot() : f);
+        return (CameraController.doCrosshairRotate() ? MinecraftClient.getInstance().getEntityRenderDispatcher().camera.getPitch() : f);
     }
     
     @ModifyVariable(
-        method = "getPlayerPOVHitResult",
+        method = "raycast",
         at = @At("STORE"),
         ordinal = 1
     )
-    private static float getCameraYRot(float f1) {
-        return (CameraController.doCrosshairRotate() ? Minecraft.getInstance().getEntityRenderDispatcher().camera.getYRot() : f1);
+    private static float getCameraYRot(float g) {
+        return (CameraController.doCrosshairRotate() ? MinecraftClient.getInstance().getEntityRenderDispatcher().camera.getYaw() : g);
     }
 }

@@ -1,6 +1,7 @@
 package com.xtracr.realcamera.mixins;
 
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -8,51 +9,75 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.xtracr.realcamera.camera.CameraController;
 
-import net.minecraft.client.CameraType;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.Perspective;
+import net.minecraft.client.render.Camera;
+import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.math.RotationAxis;
+import net.minecraft.util.math.Vec3d;
 
 @Mixin(GameRenderer.class)
 public abstract class MixinGameRenderer {
+    
+    // Events
+    @Shadow
+    private Camera camera;
 
+    @Inject(
+        method = "renderWorld",
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/render/Camera;update(Lnet/minecraft/world/BlockView;Lnet/minecraft/entity/Entity;ZZF)V",
+            shift = At.Shift.AFTER
+        )
+    )
+    private void onCameraUpdate(float tickDelta, long limitTime, MatrixStack matrices, CallbackInfo cInfo) {
+        if (CameraController.isActive() && MinecraftClient.getInstance().player != null) {
+            CameraController.cameraRoll = 0.0F;
+            CameraController.setCameraOffset(camera, MinecraftClient.getInstance(), tickDelta);
+            matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(CameraController.cameraRoll));
+        }
+    }
+    
+    // Mixins
     private static boolean toggle = false;
 
     @ModifyVariable(
-        method = "pick(F)V",
+        method = "updateTargetedEntity",
         at = @At("STORE"),
         ordinal = 0
     )
-    private Vec3 getCameraPosition(Vec3 vec3) {
-        return (CameraController.isActive() ? vec3.add(CameraController.getCameraOffset()) : vec3);
+    private Vec3d getCameraPosition(Vec3d vec3d) {
+        return (CameraController.isActive() ? vec3d.add(CameraController.getCameraOffset()) : vec3d);
     }
 
     @SuppressWarnings("resource")
     @Inject(
-        method = "renderItemInHand",
+        method = "renderHand",
         at = @At(
             value = "INVOKE",
-            target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V"
+            target = "Lnet/minecraft/client/util/math/MatrixStack;push()V"
         )
     )
     private void setThirdPerson(CallbackInfo cInfo) {
         if (CameraController.isActive()) {
-            Minecraft.getInstance().options.setCameraType(CameraType.THIRD_PERSON_BACK);
+            MinecraftClient.getInstance().options.setPerspective(Perspective.THIRD_PERSON_BACK);
             toggle = true;
         }
     }
 
     @SuppressWarnings("resource")
     @Inject(
-        method = "renderItemInHand",
+        method = "renderHand",
         at = @At(
             value = "INVOKE",
-            target = "Lcom/mojang/blaze3d/vertex/PoseStack;popPose()V"
+            target = "Lnet/minecraft/client/util/math/MatrixStack;pop()V"
         )
     )
     private void setFirstPerson(CallbackInfo cInfo) {
         if (toggle) {
-            Minecraft.getInstance().options.setCameraType(CameraType.FIRST_PERSON);
+            MinecraftClient.getInstance().options.setPerspective(Perspective.FIRST_PERSON);
             toggle = false;
         }
     }

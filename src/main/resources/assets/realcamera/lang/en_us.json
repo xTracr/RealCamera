@@ -12,6 +12,12 @@
     "key.xtracr_realcamera_centerin": "Rotation Center IN",
     "key.xtracr_realcamera_centerout": "Rotation Center OUT",
 
+    "config.title.xtracr_realcamera": "Real Camera",
+    "config.category.xtracr_realcamera_general": "General",
+    "config.category.xtracr_realcamera_bindingmode": "Binding Mode",
+    "config.category.xtracr_realcamera_classicmode": "Classic Mode",
+    "config.category.xtracr_realcamera_disables": "Disabling Conditions",
+
     "config.option.xtracr_realcamera_enabled": "Mod Enabled",
     "config.option.xtracr_realcamera_classic": "Classic Mode",
     "config.option.xtracr_realcamera_rendermodel": "Render Player Model",

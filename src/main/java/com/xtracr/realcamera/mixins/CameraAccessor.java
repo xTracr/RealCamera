@@ -4,27 +4,26 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
-import net.minecraft.client.Camera;
+import net.minecraft.client.render.Camera;
 
 @Mixin(Camera.class)
 public interface CameraAccessor {
-	
-	@Accessor("eyeHeight")
-	float getCameraY();
+    
+    @Accessor("cameraY")
+    float getCameraY();
 
-	@Accessor("eyeHeightOld")
-	float getLastCameraY();
+    @Accessor("lastCameraY")
+    float getLastCameraY();
 
-	@Accessor("detached")
-	void setThirdPerson(boolean thirdPerson);
+    @Accessor("thirdPerson")
+    void setThirdPerson(boolean thirdPerson);
 
-	@Invoker("setRotation")
-	void invokeSetRotation(float yaw, float pitch);
+    @Invoker("setRotation")
+    void invokeSetRotation(float yaw, float pitch);
 
-	@Invoker("setPosition")
+	@Invoker("setPos")
 	void invokeSetPos(double x, double y, double z);
 
-	@Invoker("move")
-	void invokeMoveBy(double x, double y, double z);
-	
+    @Invoker("moveBy")
+    void invokeMoveBy(double x, double y, double z);
 }

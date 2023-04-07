@@ -6,27 +6,27 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 import com.xtracr.realcamera.camera.CameraController;
 
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.math.Vec3d;
 
 @Mixin(Entity.class)
 public abstract class MixinEntity {
     
     @ModifyVariable(
-        method = "pick",
+        method = "raycast",
         at = @At("STORE"),
         ordinal = 0
     )
-    private Vec3 getCameraPosition(Vec3 vec3) {
-        return (CameraController.isActive() ? vec3.add(CameraController.getCameraOffset()) : vec3);
+    private Vec3d getCameraPosition(Vec3d vec3d) {
+        return (CameraController.isActive() ? vec3d.add(CameraController.getCameraOffset()) : vec3d);
     }
     
     @ModifyVariable(
-        method = "pick",
+        method = "raycast",
         at = @At("STORE"),
         ordinal = 1
     )
-    private Vec3 getCameraDirection(Vec3 vec31) {
-        return (CameraController.doCrosshairRotate() ? CameraController.getCameraDirection() : vec31);
+    private Vec3d getCameraDirection(Vec3d vec3d2) {
+        return (CameraController.doCrosshairRotate() ? CameraController.getCameraDirection() : vec3d2);
     }
 }

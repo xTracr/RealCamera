@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "id": "realcamera",
+  "version": "${version}",
+
+  "name": "Real Camera",
+  "description": "Make the camera more realistic in the first-person view.",
+  "authors": [
+    "xTracr"
+  ],
+  "contact": {
+    "homepage": "",
+    "sources": "https://github.com/xTracr/RealCamera",
+    "issues": "https://github.com/xTracr/RealCamera/issues"
+  },
+
+  "license": "MIT license",
+  "icon": "assets/realcamera/icon.png",
+
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.xtracr.realcamera.RealCamera"
+    ],
+    "modmenu": [
+      "com.xtracr.realcamera.config.RealCameraMenu"
+    ]
+  },
+  "mixins": [
+    "realcamera.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.14.18",
+    "fabric-api": "*",
+    "minecraft": "~1.19.4",
+    "java": ">=17"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}

@@ -1,241 +1,209 @@
 package com.xtracr.realcamera.config;
 
-import org.apache.commons.lang3.tuple.Pair;
-
-import net.minecraft.client.model.PlayerModel;
-import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
-import net.minecraftforge.common.ForgeConfigSpec.DoubleValue;
-import net.minecraftforge.common.ForgeConfigSpec.EnumValue;
+import net.minecraft.client.model.ModelPart;
+import net.minecraft.client.network.AbstractClientPlayerEntity;
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.render.entity.model.PlayerEntityModel;
 
 public class ModConfig {
 
-    public static final ModConfig modConfig; 
-    public static final ForgeConfigSpec forgeConfigSpec;
+    public static final double minVALUE = -64.0D;
+    public static final double maxVALUE = 64.0D;
 
-    private static final String Option = "config.option.xtracr_realcamera_";
-    private static final String General = "";
-    private static final String Binding = "bindingMode.";
-    private static final String Classic = "classicMode.";
-    private static final String Disables = "disables.";
+    public General general = new General();
+    public BindingMode bindingMode = new BindingMode();
+    public ClassicMode classicMode = new ClassicMode();
+    public Disables disables = new Disables();
+
+    public class General {
+
+        public boolean enabled = false;
+        public boolean classic = false;
+        public boolean renderModel = true;
+        public double cameraStep = 0.25D;
+        public double scale = 1.0D;
+
+        private void clamp() {
+            cameraStep = clampValue(cameraStep, 0.0D, maxVALUE);
+            scale = clampValue(scale, 0.0D, maxVALUE);
+        }
+
+    }
+
+    public class BindingMode {
+
+        public AcceptableModelParts modelPart = AcceptableModelParts.HEAD;
+        public boolean bindDirection = true;
+        public boolean lockRolling = false;
+        public double bindingX = 3.25D;
+        public double bindingY = 2.0D;
+        public double bindingZ = 0.0D;
+        public double pitch = 0.0D;
+        public double yaw = 0.0D;
+        public double roll = 0.0D;
+
+        private void clamp() {
+            if (!(modelPart instanceof AcceptableModelParts)) { modelPart = AcceptableModelParts.HEAD; }
+            bindingX = clampValue(bindingX, minVALUE, maxVALUE);
+            bindingY = clampValue(bindingY, minVALUE, maxVALUE);
+            bindingZ = clampValue(bindingZ, minVALUE, maxVALUE);
+            pitch = clampValue(pitch, -180.0D, 180.0D);
+            yaw = clampValue(yaw, -180.0D, 180.0D);
+            roll = clampValue(roll, -180.0D, 180.0D);
+        }
+
+    }
+
+    public class ClassicMode {
+
+        public double cameraX = 3.25D;
+        public double cameraY = 2.0D;
+        public double cameraZ = 0.0D;
+        public double centerY = -3.4D;
+        public double centerStep = 0.25D;
+
+        private void clamp() {
+            cameraX = clampValue(cameraX, minVALUE, maxVALUE);
+            cameraY = clampValue(cameraY, minVALUE, maxVALUE);
+            cameraZ = clampValue(cameraZ, minVALUE, maxVALUE);
+            centerY = clampValue(centerY, minVALUE, maxVALUE);
+            centerStep = clampValue(centerStep, 0.0D, maxVALUE);
+        }
+
+    }
     
-    private static final double minVALUE = -64.0D;
-    private static final double maxVALUE = 64.0D;
+    public class Disables {
 
-    static {
-        Pair<ModConfig, ForgeConfigSpec> pair = new ForgeConfigSpec.Builder().configure(ModConfig::new); 
-        modConfig = pair.getLeft();
-        forgeConfigSpec = pair.getRight();
+        public boolean fallFlying = true;
+        public boolean swiming = false;
+        public boolean crawling = false;
+        public boolean sneaking = false;
+        public boolean sleeping = false;
+        public boolean scoping = true;
+    
     }
 
-    private final BooleanValue enabled;
-    private final BooleanValue classic;
-    private final BooleanValue renderModel;
-    private final DoubleValue cameraStep;
-    private final DoubleValue scale;
-
-    private final EnumValue<AcceptableModelParts> modelPart;
-    private final BooleanValue bindDirection;
-    private final BooleanValue lockRolling;
-    private final DoubleValue bindingX;
-    private final DoubleValue bindingY;
-    private final DoubleValue bindingZ;
-    private final DoubleValue pitch;
-    private final DoubleValue yaw;
-    private final DoubleValue roll;
-
-    private final DoubleValue cameraX;
-    private final DoubleValue cameraY;
-    private final DoubleValue cameraZ;
-    private final DoubleValue centerY;
-    private final DoubleValue centerStep;
-
-    private final BooleanValue fallFlying;
-    private final BooleanValue swiming;
-    private final BooleanValue crawling;
-    private final BooleanValue sneaking;
-    private final BooleanValue sleeping;
-    private final BooleanValue scoping;
-
-
-    public ModConfig(ForgeConfigSpec.Builder builder) {
-
-        this.enabled = builder.comment("Whether the Mod's main function is enabled")
-            .translation(Option+"enabled")
-            .define(General+"enabled", false);
-        this.classic = builder.comment("Whether the camera is in classic mode or binding mode")
-            .translation(Option+"classic")
-            .define(General+"classic", false);
-        this.renderModel = builder.comment("Whether to render player model in first-person mode")
-            .translation(Option+"rendermodel")
-            .define(General+"rendermodel", true);
-        this.cameraStep = builder.comment("The length of the camera adjustment per step")
-            .translation(Option+"camerastep")
-            .defineInRange(General+"camerastep", 0.25D, 0.0D, maxVALUE);
-        this.scale = builder.comment("Control the size of the config values, 16 = 1 block")
-            .translation(Option+"scale")
-            .defineInRange(General+"scale", 1.0D, 0.0D, maxVALUE);
-        
-        this.modelPart = builder.comment("The model part you want to bind camera to")
-            .translation(Option+"modelpart")
-            .defineEnum(Binding+"modelpart", AcceptableModelParts.HEAD);
-        this.bindDirection = builder.comment("Whether to bind camera direction to the model part")
-            .translation(Option+"binddirection")
-            .define(Binding+"binddirection", true);
-        this.lockRolling = builder.comment("Whether to lock rolling of camera")
-            .translation(Option+"lockrolling")
-            .define(Binding+"lockrolling", false);
-        this.bindingX = builder.comment("Camera's X relative to the modelPart being bound")
-            .translation(Option+"bindingX")
-            .defineInRange(Binding+"bindingX", 3.25D, minVALUE, maxVALUE);
-        this.bindingY = builder.comment("Camera's Y relative to the modelPart being bound")
-            .translation(Option+"bindingY")
-            .defineInRange(Binding+"bindingY", 2.0D, minVALUE, maxVALUE);
-        this.bindingZ = builder.comment("Camera's Z relative to the modelPart being bound")
-            .translation(Option+"bindingZ")
-            .defineInRange(Binding+"bindingZ", 0.0D, minVALUE, maxVALUE);
-        this.pitch = builder.comment("The extra rotation of the camera about the X axis")
-            .translation(Option+"pitch")
-            .defineInRange(Binding+"pitch", 0.0D, -180.0D, 180.0D);
-        this.yaw = builder.comment("The extra rotation of the camera about the Y axis")
-            .translation(Option+"yaw")
-            .defineInRange(Binding+"yaw", 0.0D, -180.0D, 180.0D);
-        this.roll = builder.comment("The extra rotation of the camera about the Z axis")
-            .translation(Option+"roll")
-            .defineInRange(Binding+"roll", 0.0D, -180.0D, 180.0D);
-        
-        this.cameraX = builder.comment("Camera's X relative to the rotation center")
-            .translation(Option+"cameraX")
-            .defineInRange(Classic+"cameraX", 3.25D, minVALUE, maxVALUE);
-        this.cameraY = builder.comment("Camera's Y relative to the rotation center")
-            .translation(Option+"cameraY")
-            .defineInRange(Classic+"cameraY", 2.0D, minVALUE, maxVALUE);
-        this.cameraZ = builder.comment("Camera's Z relative to the rotation center")
-            .translation(Option+"cameraZ")
-            .defineInRange(Classic+"cameraZ", 0.0D, minVALUE, maxVALUE);
-        this.centerY = builder.comment("Rotation center's Y relative to the head")
-            .translation(Option+"centerY")
-            .defineInRange(Classic+"centerY", -3.4D, minVALUE, maxVALUE);
-        this.centerStep = builder.comment("The length of the rotation center adjustment per step")
-            .translation(Option+"centerstep")
-            .defineInRange(Classic+"centerstep", 0.25D, 0.0D, maxVALUE);
-
-        this.fallFlying = builder.comment("")
-            .translation(Option+"fallflying")
-            .define(Disables+"fallflying", true);
-        this.swiming = builder.comment("")
-            .translation(Option+"swiming")
-            .define(Disables+"swiming", false);
-        this.crawling = builder.comment("")
-            .translation(Option+"crawling")
-            .define(Disables+"crawling", false);
-        this.sneaking = builder.comment("")
-            .translation(Option+"sneaking")
-            .define(Disables+"sneaking", false);
-        this.sleeping = builder.comment("")
-            .translation(Option+"sleeping")
-            .define(Disables+"sleeping", false);
-        this.scoping = builder.comment("Only disable rendering player model")
-            .translation(Option+"scoping")
-            .define(Disables+"scoping", true);
-        
+    public void set(ModConfig modConfig) {
+        this.general = modConfig.general;
+        this.bindingMode = modConfig.bindingMode;
+        this.classicMode = modConfig.classicMode;
+        this.disables = modConfig.disables;
     }
 
+    public void clamp() {
+        this.general.clamp();
+        this.bindingMode.clamp();
+        this.classicMode.clamp();
+    }
+
+    private static double clampValue(double value, double min, double max) {
+        return value < min ? min : Math.min(value, max);
+    }
+    
     public boolean isEnabled() {
-        return this.enabled.get();
+        return this.general.enabled;
     }
     public boolean isClassic() {
-        return this.classic.get();
+        return this.general.classic;
     }
     public boolean isRendering() {
-        return this.renderModel.get();
+        return this.general.renderModel;
     }
     public double getCameraStep() {
-        return this.cameraStep.get();
+        return this.general.cameraStep;
     }
     public double getScale() {
-        return this.scale.get() * 0.0625D;
+        return this.general.scale * 0.0625D;
     }
 
     public void setEnabled(boolean value) {
-        this.enabled.set(value);
+        this.general.enabled = value;
+        ConfigFile.save();
     }
     public void setClassic(boolean value) {
-        this.classic.set(value);
+        this.general.classic = value;
+        ConfigFile.save();
     }
     public void setRendering(boolean value) {
-        this.renderModel.set(value);
+        this.general.renderModel = value;
+        ConfigFile.save();
     }
     public void setCameraStep(double value) {
-        this.cameraStep.set(value);
+        this.general.cameraStep = value;
+        ConfigFile.save();
     }
     public void setScale(double value) {
-        this.scale.set(value);
+        this.general.scale = value;
+        ConfigFile.save();
     }
 
-    public boolean isDisabledWhen(LocalPlayer player) {
-        return (player.isFallFlying() && this.fallFlying.get())
-            || (player.isSwimming() && this.swiming.get())
-            || (player.isVisuallyCrawling() && this.crawling.get())
-            || (player.isCrouching() && this.sneaking.get())
-            || (player.isSleeping() && this.sleeping.get());
+    public boolean isDisabledWhen(ClientPlayerEntity player) {
+        return (player.isFallFlying() && this.disables.fallFlying)
+            || (player.isSwimming() && this.disables.swiming)
+            || (player.isCrawling() && this.disables.crawling)
+            || (player.isSneaking() && this.disables.sneaking)
+            || (player.isSleeping() && this.disables.sleeping);
     }
-    public boolean onlyDisableRenderingWhen(LocalPlayer player) {
-        return player.isScoping() && this.scoping.get();
+    public boolean onlyDisableRenderingWhen(ClientPlayerEntity player) {
+        return player.isUsingSpyglass() && this.disables.scoping;
     }
 
     // binding
-    public ModelPart getModelPartFrom(PlayerModel<AbstractClientPlayer> playerModel) {
-        return this.modelPart.get().getTarget(playerModel);
+    public ModelPart getModelPartFrom(PlayerEntityModel<AbstractClientPlayerEntity> playerModel) {
+        return this.bindingMode.modelPart.getTarget(playerModel);
     }
     public boolean isDirectionBound() {
-        return this.bindDirection.get();
+        return this.bindingMode.bindDirection;
     }
     public boolean isRollingLocked() {
-        return this.lockRolling.get();
+        return this.bindingMode.lockRolling;
     }
     public double getBindingX() {
-        return this.bindingX.get();
+        return this.bindingMode.bindingX;
     }
     public double getBindingY() {
-        return this.bindingY.get();
+        return this.bindingMode.bindingY;
     }
     public double getBindingZ() {
-        return this.bindingZ.get();
+        return this.bindingMode.bindingZ;
     }
     public float getPitch() {
-        return (float)(double)this.pitch.get();
+        return (float)this.bindingMode.pitch;
     }
     public float getYaw() {
-        return (float)(double)this.yaw.get();
+        return (float)this.bindingMode.yaw;
     }
     public float getRoll() {
-        return (float)(double)this.roll.get();
+        return (float)this.bindingMode.roll;
     }
 
     public void setModelPart(AcceptableModelParts modelPart) {
-        this.modelPart.set(modelPart);
+        this.bindingMode.modelPart = modelPart;
+        ConfigFile.save();
     }
     public void setBindingX(double value) {
-        this.bindingX.set(value);
+        this.bindingMode.bindingX = value;
+        ConfigFile.save();
     }
     public void setBindingY(double value) {
-        this.bindingY.set(value);
+        this.bindingMode.bindingY = value;
+        ConfigFile.save();
     }
     public void setBindingZ(double value) {
-        this.bindingZ.set(value);
+        this.bindingMode.bindingZ = value;
+        ConfigFile.save();
     }
     public void setPitch(float value) {
-        this.pitch.set((double)value);
+        this.bindingMode.pitch = value;
+        ConfigFile.save();
     }
     public void setYaw(float value) {
-        this.yaw.set((double)value);
+        this.bindingMode.yaw = value;
+        ConfigFile.save();
     }
     public void setRoll(float value) {
-        this.roll.set((double)value);
+        this.bindingMode.roll = value;
+        ConfigFile.save();
     }
 
     public void addBindingX() {
@@ -259,35 +227,40 @@ public class ModConfig {
 
     // classic
     public double getCameraX() {
-        return this.cameraX.get();
+        return this.classicMode.cameraX;
     }
     public double getCameraY() {
-        return this.cameraY.get();
+        return this.classicMode.cameraY;
     }
     public double getCameraZ() {
-        return this.cameraZ.get();
+        return this.classicMode.cameraZ;
     }
     public double getCenterY() {
-        return this.centerY.get();
+        return this.classicMode.centerY;
     }
     public double getCenterStep() {
-        return this.centerStep.get();
+        return this.classicMode.centerStep;
     }
     
     public void setCameraX(double value) {
-        this.cameraX.set(value);
+        this.classicMode.cameraX = value;
+        ConfigFile.save();
     }
     public void setCameraY(double value) {
-        this.cameraY.set(value);
+        this.classicMode.cameraY = value;
+        ConfigFile.save();
     }
     public void setCameraZ(double value) {
-        this.cameraZ.set(value);
+        this.classicMode.cameraZ = value;
+        ConfigFile.save();
     }
     public void setCenterY(double value) {
-        this.centerY.set(value);
+        this.classicMode.centerY = value;
+        ConfigFile.save();
     }
     public void setCenterStep(double value) {
-        this.centerStep.set(value);
+        this.classicMode.centerStep = value;
+        ConfigFile.save();
     }
 
     public void addCameraX() {
