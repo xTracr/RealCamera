@@ -2,59 +2,41 @@ package com.xtracr.realcamera.mixins;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 import com.xtracr.realcamera.camera.CameraController;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.Vec3;
 
 @Mixin(Item.class)
 public abstract class MixinItem {
     
-    @Redirect(
+    @ModifyVariable(
         method = "getPlayerPOVHitResult",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/world/entity/player/Player;getEyePosition()Lnet/minecraft/world/phys/Vec3;"
-        )
+        at = @At("STORE"),
+        ordinal = 0
     )
-    private static Vec3 getCameraPosition(Player player) {
-        if (CameraController.isActive()) {
-            return player.getEyePosition().add(CameraController.getCameraOffset());
-        }
-        return player.getEyePosition();
+    private static Vec3 getCameraPosition(Vec3 vec3) {
+        return (CameraController.isActive() ? vec3.add(CameraController.getCameraOffset()) : vec3);
     }
     
-    @SuppressWarnings("resource")
-    @Redirect(
+    @ModifyVariable(
         method = "getPlayerPOVHitResult",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/world/entity/player/Player;getXRot()F"
-        )
+        at = @At("STORE"),
+        ordinal = 0
     )
-    private static float getCameraXRot(Player player) {
-        if (CameraController.doCrosshairRotate()) {
-            return Minecraft.getInstance().getEntityRenderDispatcher().camera.getXRot();
-        }
-        return player.getXRot();
+    private static float getCameraXRot(float f) {
+        return (CameraController.doCrosshairRotate() ? Minecraft.getInstance().getEntityRenderDispatcher().camera.getXRot() : f);
     }
     
-    @SuppressWarnings("resource")
-    @Redirect(
+    @ModifyVariable(
         method = "getPlayerPOVHitResult",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/world/entity/player/Player;getYRot()F"
-        )
+        at = @At("STORE"),
+        ordinal = 1
     )
-    private static float getCameraYRot(Player player) {
-        if (CameraController.doCrosshairRotate()) {
-            return Minecraft.getInstance().getEntityRenderDispatcher().camera.getYRot();
-        }
-        return player.getYRot();
+    private static float getCameraYRot(float f1) {
+        return (CameraController.doCrosshairRotate() ? Minecraft.getInstance().getEntityRenderDispatcher().camera.getYRot() : f1);
     }
 }

@@ -33,12 +33,7 @@ public class KeyController {
         }
 
         for(; toggleCamera.consumeClick(); MC.levelRenderer.needsUpdate()) {
-            if (config.isEnabled()) {
-                config.disable();
-            }
-            else {
-                config.enable();
-            }
+            config.setEnabled(!config.isEnabled());
         }
         while (cameraUP.consumeClick()) {
             if (config.isClassic()) { config.addCameraY(); }

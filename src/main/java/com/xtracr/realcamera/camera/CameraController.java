@@ -31,11 +31,11 @@ public class CameraController {
     private static Vec3 cameraOffset = Vec3.ZERO;
     private static Vec3 cameraRotation = Vec3.ZERO;
     private static float centerYRot = 0.0F;
-    private static boolean wasVisuallySwimming = false;
+    private static boolean wasSwimming = false;
 
     @SuppressWarnings({"resource","null"})
     public static void debugMessage(String string) {
-        if (Minecraft.getInstance().player != null && config.isDebug()) {
+        if (Minecraft.getInstance().player != null) {
             Minecraft.getInstance().player.sendMessage(new TextComponent(string), Util.NIL_UUID);
         }
     }
@@ -49,10 +49,10 @@ public class CameraController {
     }
 
     public static Vec3 getCameraOffset() {
-        return cameraOffset;
+        return new Vec3(cameraOffset.x(), cameraOffset.y(), cameraOffset.z());
     }
 
-    public static Vec3 getViewVector() {
+    public static Vec3 getCameraDirection() {
         float f = (float)cameraRotation.x() * ((float)Math.PI / 180F);
         float f1 = -(float)cameraRotation.y() * ((float)Math.PI / 180F);
         float f2 = Mth.cos(f1);
@@ -66,11 +66,9 @@ public class CameraController {
         cameraOffset = Vec3.ZERO;
         cameraRotation = new Vec3(cameraSetup.getPitch(), cameraSetup.getYaw(), cameraSetup.getRoll());
 
-        if (config.isDisabledWhen(MC.player) && !config.onlyDisableRenderingWhen(MC.player)) {
-            return;
-        }
-        if (config.renderModel() && !config.onlyDisableRenderingWhen(MC.player)) {
-            ((CameraAccessor)cameraSetup.getCamera()).setDetached(true);
+        if (config.isDisabledWhen(MC.player)) return;
+        if (config.isRendering() && !config.onlyDisableRenderingWhen(MC.player)) {
+            ((CameraAccessor)cameraSetup.getCamera()).setThirdPerson(true);
         }
 
         if (config.isClassic()) { setClassicOffset(cameraSetup, MC, particalTicks); }
@@ -101,8 +99,8 @@ public class CameraController {
             cameraZ = 0.0D;
         }
         if (player.isVisuallySwimming()) {
-            if (!wasVisuallySwimming) {
-                wasVisuallySwimming = true;
+            if (!wasSwimming) {
+                wasSwimming = true;
                 centerYRot = yRot;
             }
             else if (yRot-centerYRot >= 50.0F) { centerYRot += 10.0F; }
@@ -111,7 +109,7 @@ public class CameraController {
             cameraY = - config.getScale() * config.getCameraX();
             centerX = config.getScale() * config.getCenterY();
             centerY = 0.0D;
-            if (config.renderModel() && !config.onlyDisableRenderingWhen(MC.player)) {
+            if (config.isRendering() && !config.onlyDisableRenderingWhen(MC.player)) {
                 cameraX -= 0.09375;
                 cameraY += 0.109375;
                 centerX += 0.9D;
@@ -119,18 +117,18 @@ public class CameraController {
             }
         }
         else {
-            wasVisuallySwimming = false;
+            wasSwimming = false;
             centerYRot = yRot;
         }
 
-        camera.invokeSetPosition(Mth.lerp(particalTicks, player.xo, player.getX()), 
-        Mth.lerp(particalTicks, player.yo, player.getY()) + Mth.lerp(particalTicks, camera.getEyeHeightOld(), camera.getEyeHeight()), 
+        camera.invokeSetPos(Mth.lerp(particalTicks, player.xo, player.getX()), 
+        Mth.lerp(particalTicks, player.yo, player.getY()) + Mth.lerp(particalTicks, camera.getCameraY(), camera.getLastCameraY()), 
         Mth.lerp(particalTicks, player.zo, player.getZ())
         );
         camera.invokeSetRotation(centerYRot, 0.0F);
-        camera.invokeMove(centerX, centerY, centerZ);
+        camera.invokeMoveBy(centerX, centerY, centerZ);
         camera.invokeSetRotation(yRot, xRot);
-        camera.invokeMove(cameraX, cameraY, cameraZ);
+        camera.invokeMoveBy(cameraX, cameraY, cameraZ);
 
         cameraOffset = ((Camera)camera).getPosition().subtract(player.getEyePosition((float)particalTicks));
     }
@@ -139,16 +137,12 @@ public class CameraController {
     private static void setBindingOffset(CameraSetup cameraSetup, Minecraft MC, double particalTicks) {
         LocalPlayer player = MC.player;
         Camera camera = cameraSetup.getCamera();
-
-        // get modelPart data
         PlayerRenderer playerRenderer = (PlayerRenderer)MC.getEntityRenderDispatcher().getRenderer(player);
-        PlayerModel<AbstractClientPlayer> playerModel = playerRenderer.getModel();
-        ModelPart modelPart = config.getModelPartFrom(playerModel);
 
         // get offset vector
         // GameRenderer.render
         PoseStack poseStack = new PoseStack();
-        PoseStack rotatePose = new PoseStack();
+        // GameRenderer.renderLevel
         poseStack.mulPose(Vector3f.ZP.rotationDegrees(cameraSetup.getRoll()));
         poseStack.mulPose(Vector3f.XP.rotationDegrees(cameraSetup.getPitch()));
         poseStack.mulPose(Vector3f.YP.rotationDegrees(cameraSetup.getYaw() + 180.0F));
@@ -167,6 +161,47 @@ public class CameraController {
         // EntityRenderDispatcher.render
         renderOffset = renderOffset.subtract(camera.getPosition());
         poseStack.translate(renderOffset.x(), renderOffset.y(), renderOffset.z());
+
+        poseStack.last().normal().setIdentity();
+        
+        getMatrixFromEntity(player, playerRenderer, poseStack, particalTicks);
+        
+        // ModelPart$Cube.compile
+        double cameraX = config.getScale() * config.getBindingX();
+        double cameraY = config.getScale() * config.getBindingY();
+        double cameraZ = config.getScale() * config.getBindingZ();
+        Vector4f offset =  new Vector4f((float)cameraZ, -(float)cameraY, -(float)cameraX, 1.0F);
+        offset.transform(poseStack.last().pose());
+
+        ((CameraAccessor)camera).invokeMoveBy(-offset.z(), offset.y(), -offset.x());
+
+        if (config.isDirectionBound()) {
+            Matrix3d normal = new Matrix3d(poseStack.last().normal());
+            normal.mulByRight(Vector3f.XP.rotationDegrees(180.0F));
+            Vector3f eularAngle = new Vector3f(normal.getEulerAngleDegrees());
+
+            float pitch =  eularAngle.x() + config.getPitch();
+            float yaw = -eularAngle.y() - config.getYaw();
+            float roll =  eularAngle.z() + config.getRoll();
+
+            ((CameraAccessor)camera).invokeSetRotation(yaw, pitch);
+            cameraSetup.setPitch(pitch);
+            cameraSetup.setYaw(yaw);
+            if (!config.isRollingLocked()) {
+                cameraSetup.setRoll(roll);
+            }
+            cameraRotation = new Vec3(pitch, yaw, roll);
+        }
+
+        cameraOffset = camera.getPosition().subtract(player.getEyePosition((float)particalTicks));
+    }
+
+    @SuppressWarnings("null")
+    private static void getMatrixFromEntity(LocalPlayer player, PlayerRenderer playerRenderer, PoseStack poseStack, double particalTicks) {
+        // get modelPart data
+        PlayerModel<AbstractClientPlayer> playerModel = playerRenderer.getModel();
+        ModelPart modelPart = config.getModelPartFrom(playerModel);
+
         // LivingEntityRenderer.render
         playerModel.attackTime = player.getAttackAnim((float)particalTicks);
 
@@ -209,11 +244,9 @@ public class CameraController {
 
         float bob = (float)player.tickCount + (float)particalTicks;
         ((PlayerRendererAccessor)playerRenderer).invokeSetupRotations(player, poseStack, bob, yBodyRot, (float)particalTicks);
-        ((PlayerRendererAccessor)playerRenderer).invokeSetupRotations(player, rotatePose, bob, yBodyRot, (float)particalTicks);
         poseStack.scale(-1.0F, -1.0F, 1.0F);
         poseStack.scale(0.9375F, 0.9375F, 0.9375F);
         poseStack.translate(0.0D, -1.501D, 0.0D);
-        rotatePose.scale(-1.0F, -1.0F, 1.0F);
         float f8 = 0.0F;
         float f5 = 0.0F;
         if (!shouldSit && player.isAlive()) {
@@ -230,37 +263,9 @@ public class CameraController {
         
         playerModel.prepareMobModel(player, f5, f8, (float)particalTicks);
         playerModel.setupAnim(player, f5, f8, bob, f2, xPlayerRot);
+        // AgeableListModel.renderToBuffer
         // ModelPart.render
         modelPart.translateAndRotate(poseStack);
-        modelPart.translateAndRotate(rotatePose);
-        // ModelPart$Cube.compile
-        double cameraX = config.getScale() * config.getBindingX();
-        double cameraY = config.getScale() * config.getBindingY();
-        double cameraZ = config.getScale() * config.getBindingZ();
-        Vector4f offset =  new Vector4f((float)cameraZ, -(float)cameraY, -(float)cameraX, 1.0F);
-        offset.transform(poseStack.last().pose());
-
-        ((CameraAccessor)camera).invokeMove(-offset.z(), offset.y(), -offset.x());
-
-        if (config.isDirectionBound()) {
-            Matrix3d matrix = new Matrix3d(rotatePose.last().normal());
-            matrix.mulByRight(Vector3f.XP.rotationDegrees(180.0F));
-            Vector3f eularAngle = new Vector3f(matrix.getEulerAngleDegrees());
-
-            float pitch =  eularAngle.x() + config.getPitch();
-            float yaw = -eularAngle.y() - config.getYaw();
-            float roll =  eularAngle.z() + config.getRoll();
-
-            ((CameraAccessor)camera).invokeSetRotation(yaw, pitch);
-            cameraSetup.setPitch(pitch);
-            cameraSetup.setYaw(yaw);
-            if (!config.isRollingLocked()) {
-                cameraSetup.setRoll(roll);
-            }
-            cameraRotation = new Vec3(pitch, yaw, roll);
-        }
-
-        cameraOffset = camera.getPosition().subtract(player.getEyePosition((float)particalTicks));
     }
 
 }

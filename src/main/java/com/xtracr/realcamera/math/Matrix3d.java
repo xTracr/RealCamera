@@ -8,15 +8,9 @@ import net.minecraft.world.phys.Vec3;
 
 public class Matrix3d {
 
-    protected double m00;
-    protected double m01;
-    protected double m02;
-    protected double m10;
-    protected double m11;
-    protected double m12;
-    protected double m20;
-    protected double m21;
-    protected double m22;
+    protected double m00, m01, m02;
+    protected double m10, m11, m12;
+    protected double m20, m21, m22;
 
     public Matrix3d() {
     }
@@ -34,11 +28,25 @@ public class Matrix3d {
     }
     
     public Matrix3d(Matrix3f matrix3f) {
-        this.getMatrixFrom(matrix3f);
+        Vector3f column0 = new Vector3f(1.0F, 0.0F, 0.0F);
+        Vector3f column1 = new Vector3f(0.0F, 1.0F, 0.0F);
+        Vector3f column2 = new Vector3f(0.0F, 0.0F, 1.0F);
+        column0.transform(matrix3f);
+        column1.transform(matrix3f);
+        column2.transform(matrix3f);
+        this.m00 = column0.x();
+        this.m10 = column0.y();
+        this.m20 = column0.z();
+        this.m01 = column1.x();
+        this.m11 = column1.y();
+        this.m21 = column1.z();
+        this.m02 = column2.x();
+        this.m12 = column2.y();
+        this.m22 = column2.z();
     }
 
     public Matrix3d(Quaternion quaternion) {
-        this.getMatrixFrom(new Matrix3f(quaternion));
+        this(new Matrix3f(quaternion));
     }
 
     public void set(Matrix3d matrix3d) {
@@ -110,21 +118,4 @@ public class Matrix3d {
         this.mulByLeft(new Matrix3d(quaternion));
     }
     
-    protected void getMatrixFrom(Matrix3f matrix3f) {
-        Vector3f column0 = new Vector3f(1.0F, 0.0F, 0.0F);
-        Vector3f column1 = new Vector3f(0.0F, 1.0F, 0.0F);
-        Vector3f column2 = new Vector3f(0.0F, 0.0F, 1.0F);
-        column0.transform(matrix3f);
-        column1.transform(matrix3f);
-        column2.transform(matrix3f);
-        this.m00 = column0.x();
-        this.m10 = column0.y();
-        this.m20 = column0.z();
-        this.m01 = column1.x();
-        this.m11 = column1.y();
-        this.m21 = column1.z();
-        this.m02 = column2.x();
-        this.m12 = column2.y();
-        this.m22 = column2.z();
-    }
 }

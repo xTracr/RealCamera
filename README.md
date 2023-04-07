@@ -3,8 +3,7 @@
 ## [中文](README_ZH.md) ##
 
 Make the camera more realistic in the first-person view.  
-Supported version: 1.18 Forge  
-Will support 1.19 Forge and 1.19 Fabric in the future  
+Supported version: 1.18-1.19 Forge, 1.19 Fabric  
 Download the mod from [Releases page](https://github.com/xTracr/RealCamera/releases), [CurseForge](https://curseforge.com)(WIP) or [Modrinth](https://modrinth.com)(WIP)  
 
 ## Features ##
@@ -30,5 +29,7 @@ Download the mod from [Releases page](https://github.com/xTracr/RealCamera/relea
 ## FAQ ##
 
 ### Known Problems ###
+
+See in [中文](README_ZH.md)
 
 ## [Change Log](changelog.md) ##

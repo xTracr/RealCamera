@@ -3,8 +3,7 @@
 ## [English](README.md) ##
 
 使第一人称视角下的摄像头更加真实。  
-支持的版本: 1.18 Forge  
-将会在将来支持 1.19 Forge 和 1.19 Fabric  
+支持的版本: 1.18-1.19 Forge、 1.19Fabric  
 从[Releases](https://github.com/xTracr/RealCamera/releases)页面、[CurseForge](https://curseforge.com)(WIP)或[Modrinth](https://modrinth.com)(WIP)下载  
 
 ## 特性 ##
@@ -32,5 +31,6 @@
 ### 已知问题 ###
 
 * 鞘翅转向或高速飞行时人物闪烁且摄像头抖动(实际上原版也有这个问题，只是体现为人物抖动)
+* 人物切换状态(如蹲下)时屏幕可能会闪一下
 
 ## [更新日志](changelog.md) ##

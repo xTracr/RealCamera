@@ -27,7 +27,7 @@ println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty '
 
 minecraft {
     
-    mappings channel: 'official', version: '1.18.2'
+    mappings channel: 'official', version: project.minecraft_version
 
     runs {
         client {
@@ -98,8 +98,8 @@ repositories {
 
 dependencies {
     
-    minecraft 'net.minecraftforge:forge:1.18.2-40.2.1'
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    minecraft "net.minecraftforge:forge:${project.forge_version}"
+    annotationProcessor "org.spongepowered:mixin:${project.mixin_version}:processor"
     
 }
 

@@ -17,10 +17,10 @@ public class ModConfig {
     public static final ForgeConfigSpec forgeConfigSpec;
 
     private static final String Option = "config.option.xtracr_realcamera_";
-    private static final String General = "xtracr_realcamera_";
-    private static final String Binding = "BindingMode.xtracr_realcamera_";
-    private static final String Classic = "ClassicMode.xtracr_realcamera_";
-    private static final String Disables = "DisablingConditions.xtracr_realcamera_";
+    private static final String General = "";
+    private static final String Binding = "bindingMode.";
+    private static final String Classic = "classicMode.";
+    private static final String Disables = "disables.";
     
     private static final double minVALUE = -64.0D;
     private static final double maxVALUE = 64.0D;
@@ -30,8 +30,6 @@ public class ModConfig {
         modConfig = pair.getLeft();
         forgeConfigSpec = pair.getRight();
     }
-
-    private final BooleanValue debugMode;
 
     private final BooleanValue enabled;
     private final BooleanValue classic;
@@ -58,16 +56,12 @@ public class ModConfig {
     private final BooleanValue fallFlying;
     private final BooleanValue swiming;
     private final BooleanValue crawling;
-    private final BooleanValue crouching;
+    private final BooleanValue sneaking;
     private final BooleanValue sleeping;
     private final BooleanValue scoping;
 
 
     public ModConfig(ForgeConfigSpec.Builder builder) {
-
-        this.debugMode = builder.comment("Debug Mode")
-            .translation("Debug Mode")
-            .define("Debug_mode", false);
 
         this.enabled = builder.comment("Whether the Mod's main function is enabled")
             .translation(Option+"enabled")
@@ -138,9 +132,9 @@ public class ModConfig {
         this.crawling = builder.comment("")
             .translation(Option+"crawling")
             .define(Disables+"crawling", false);
-        this.crouching = builder.comment("")
-            .translation(Option+"crouching")
-            .define(Disables+"crouching", false);
+        this.sneaking = builder.comment("")
+            .translation(Option+"sneaking")
+            .define(Disables+"sneaking", false);
         this.sleeping = builder.comment("")
             .translation(Option+"sleeping")
             .define(Disables+"sleeping", false);
@@ -150,57 +144,44 @@ public class ModConfig {
         
     }
 
-    public boolean isDebug() {
-        return this.debugMode.get();
-    }
-    
-    public void disable() {
-        this.enabled.set(false);
-    }
-    public void enable() {
-        this.enabled.set(true);
-    }
     public boolean isEnabled() {
         return this.enabled.get();
-    }
-
-    public void setClassic() {
-        this.classic.set(true);
-    }
-    public void setBinding() {
-        this.classic.set(false);
     }
     public boolean isClassic() {
         return this.classic.get();
     }
-
-    public void setrendermodel() {
-        this.renderModel.set(true);
-    }
-    public void setFirstPerson() {
-        this.renderModel.set(false);
-    }
-    public boolean renderModel() {
+    public boolean isRendering() {
         return this.renderModel.get();
     }
-
     public double getCameraStep() {
         return this.cameraStep.get();
+    }
+    public double getScale() {
+        return this.scale.get() * 0.0625D;
+    }
+
+    public void setEnabled(boolean value) {
+        this.enabled.set(value);
+    }
+    public void setClassic(boolean value) {
+        this.classic.set(value);
+    }
+    public void setRendering(boolean value) {
+        this.renderModel.set(value);
     }
     public void setCameraStep(double value) {
         this.cameraStep.set(value);
     }
-    public double getScale() {
-        return this.scale.get() * 0.0625D;
+    public void setScale(double value) {
+        this.scale.set(value);
     }
 
     public boolean isDisabledWhen(LocalPlayer player) {
         return (player.isFallFlying() && this.fallFlying.get())
             || (player.isSwimming() && this.swiming.get())
             || (player.isVisuallyCrawling() && this.crawling.get())
-            || (player.isCrouching() && this.crouching.get())
-            || (player.isSleeping() && this.sleeping.get())
-            || (player.isScoping() && this.scoping.get());
+            || (player.isCrouching() && this.sneaking.get())
+            || (player.isSleeping() && this.sleeping.get());
     }
     public boolean onlyDisableRenderingWhen(LocalPlayer player) {
         return player.isScoping() && this.scoping.get();
@@ -235,6 +216,9 @@ public class ModConfig {
         return (float)(double)this.roll.get();
     }
 
+    public void setModelPart(AcceptableModelParts modelPart) {
+        this.modelPart.set(modelPart);
+    }
     public void setBindingX(double value) {
         this.bindingX.set(value);
     }
@@ -255,22 +239,22 @@ public class ModConfig {
     }
 
     public void addBindingX() {
-        this.bindingX.set(Math.min(getBindingX() + getCameraStep(), maxVALUE));
+        setBindingX(Math.min(getBindingX() + getCameraStep(), maxVALUE));
     }
     public void subBindingX() {
-        this.bindingX.set(Math.max(getBindingX() - getCameraStep(), minVALUE));
+        setBindingX(Math.max(getBindingX() - getCameraStep(), minVALUE));
     }
     public void addBindingY() {
-        this.bindingY.set(Math.min(getBindingY() + getCameraStep(), maxVALUE));
+        setBindingY(Math.min(getBindingY() + getCameraStep(), maxVALUE));
     }
     public void subBindingY() {
-        this.bindingY.set(Math.max(getBindingY() - getCameraStep(), minVALUE));
+        setBindingY(Math.max(getBindingY() - getCameraStep(), minVALUE));
     }
     public void addBindingZ() {
-        this.bindingZ.set(Math.min(getBindingZ() + getCameraStep(), maxVALUE));
+        setBindingZ(Math.min(getBindingZ() + getCameraStep(), maxVALUE));
     }
     public void subBindingZ() {
-        this.bindingZ.set(Math.max(getBindingZ() - getCameraStep(), minVALUE));
+        setBindingZ(Math.max(getBindingZ() - getCameraStep(), minVALUE));
     }
 
     // classic
@@ -307,28 +291,28 @@ public class ModConfig {
     }
 
     public void addCameraX() {
-        this.cameraX.set(Math.min(getCameraX() + getCameraStep(), maxVALUE));
+        setCameraX(Math.min(getCameraX() + getCameraStep(), maxVALUE));
     }
     public void subCameraX() {
-        this.cameraX.set(Math.max(getCameraX() - getCameraStep(), minVALUE));
+        setCameraX(Math.max(getCameraX() - getCameraStep(), minVALUE));
     }
     public void addCameraY() {
-        this.cameraY.set(Math.min(getCameraY() + getCameraStep(), maxVALUE));
+        setCameraY(Math.min(getCameraY() + getCameraStep(), maxVALUE));
     }
     public void subCameraY() {
-        this.cameraY.set(Math.max(getCameraY() - getCameraStep(), minVALUE));
+        setCameraY(Math.max(getCameraY() - getCameraStep(), minVALUE));
     }
     public void addCameraZ() {
-        this.cameraZ.set(Math.min(getCameraZ() + getCameraStep(), maxVALUE));
+        setCameraZ(Math.min(getCameraZ() + getCameraStep(), maxVALUE));
     }
     public void subCameraZ() {
-        this.cameraZ.set(Math.max(getCameraZ() - getCameraStep(), minVALUE));
+        setCameraZ(Math.max(getCameraZ() - getCameraStep(), minVALUE));
     }
     public void addCenterY() {
-        this.centerY.set(Math.min(getCenterY() + getCenterStep(), maxVALUE));
+        setCenterY(Math.min(getCenterY() + getCenterStep(), maxVALUE));
     }
     public void subCenterY() {
-        this.centerY.set(Math.max(getCenterY() - getCenterStep(), minVALUE));
+        setCenterY(Math.max(getCenterY() - getCenterStep(), minVALUE));
     }
 
 }

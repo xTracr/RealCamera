@@ -37,7 +37,7 @@
     "config.option.xtracr_realcamera_fallflying": "Flying with Elytra",
     "config.option.xtracr_realcamera_swiming": "Swiming",
     "config.option.xtracr_realcamera_crawling": "Crawling",
-    "config.option.xtracr_realcamera_crouching": "Crouching",
+    "config.option.xtracr_realcamera_sneaking": "Sneaking",
     "config.option.xtracr_realcamera_sleeping": "Sleeping",
     "config.option.xtracr_realcamera_scoping": "Using Spyglass"
     
