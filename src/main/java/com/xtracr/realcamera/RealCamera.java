@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 
 import com.xtracr.realcamera.config.ModConfig;
 
-import net.minecraftforge.client.ClientRegistry;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -33,16 +32,7 @@ public class RealCamera {
 
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onKeyInput);
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onCameraSetup);
-
-        ClientRegistry.registerKeyBinding(KeyController.toggleCamera);
-        ClientRegistry.registerKeyBinding(KeyController.cameraUP);
-        ClientRegistry.registerKeyBinding(KeyController.cameraDOWN);
-        ClientRegistry.registerKeyBinding(KeyController.cameraIN);
-        ClientRegistry.registerKeyBinding(KeyController.cameraOUT);
-        ClientRegistry.registerKeyBinding(KeyController.cameraLEFT);
-        ClientRegistry.registerKeyBinding(KeyController.cameraRIGHT);
-        ClientRegistry.registerKeyBinding(KeyController.centerUP);
-        ClientRegistry.registerKeyBinding(KeyController.centerDOWN);
+        MinecraftForge.EVENT_BUS.addListener(EventHandler::onKeyRegister);
     }
     
 }
