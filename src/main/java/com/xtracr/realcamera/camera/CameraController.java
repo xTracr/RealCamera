@@ -3,6 +3,7 @@ package com.xtracr.realcamera.camera;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
+import com.xtracr.realcamera.compat.PehkuiCompat;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.math.Matrix3dr;
@@ -33,7 +34,6 @@ public class CameraController {
     private static Vec3d cameraOffset = Vec3d.ZERO;
     private static Vec3d cameraRotation = Vec3d.ZERO;
     private static float centerYRot = 0.0F;
-    private static boolean wasSwimming = false;
 
     public static float cameraRoll = 0.0F;
 
@@ -84,55 +84,22 @@ public class CameraController {
         
         float xRot = player.getPitch(tickDelta);
         float yRot = player.getYaw(tickDelta);
-        double cameraX = config.getScale() * config.getCameraX();
-        double cameraY = config.getScale() * config.getCameraY();
-        double cameraZ = config.getScale() * config.getCameraZ();
-        double centerX = config.getScale() * 0.0D;
-        double centerY = config.getScale() * config.getCenterY();
-        double centerZ = config.getScale() * 0.0D;
+        Vec3d offset = new Vec3d(config.getCameraX(), config.getCameraY(), config.getCameraZ()).multiply(config.getScale());
+        Vec3d center = new Vec3d(0.0D, config.getCenterY(), 0.0D).multiply(config.getScale());
 
         if (player.isSneaking()) {
-            centerY -= 0.021875;
-        }
-        else if (player.isSleeping()) {
-            centerY = cameraX;
-            cameraX = 0.0D;
-            cameraY = 0.0D;
-            cameraZ = 0.0D;
-        }
-        if (player.isSwimming()) {
-            if (!wasSwimming) {
-                wasSwimming = true;
-                centerYRot = yRot;
-            }
-            else if (yRot-centerYRot >= 50.0F) { centerYRot += 10.0F; }
-            else if (yRot-centerYRot <=-50.0F) { centerYRot -= 10.0F; }
-            cameraX = config.getScale() * config.getCameraY();
-            cameraY = - config.getScale() * config.getCameraX();
-            centerX = config.getScale() * config.getCenterY();
-            centerY = 0.0D;
-            if (config.isRendering() && !config.onlyDisableRenderingWhen(MC.player)) {
-                cameraX -= 0.09375;
-                cameraY += 0.109375;
-                centerX += 0.9D;
-                centerY -= 0.2D;
-            }
-        }
-        else {
-            wasSwimming = false;
-            centerYRot = yRot;
+            center = center.add(0.0D, -0.021875, 0.0D);
         }
 
-        camera.invokeSetPos(MathHelper.lerp(tickDelta, player.prevX, player.getX()), 
-        MathHelper.lerp(tickDelta, player.prevY, player.getY()) + MathHelper.lerp(tickDelta, camera.getCameraY(), camera.getLastCameraY()), 
-        MathHelper.lerp(tickDelta, player.prevZ, player.getZ())
-        );
+        if (config.compatPehkui()) {
+            offset = PehkuiCompat.scaleVec3d(offset, player, tickDelta);
+            center = PehkuiCompat.scaleVec3d(center, player, tickDelta);
+        }
+
         camera.invokeSetRotation(centerYRot, 0.0F);
-        camera.invokeMoveBy(centerX, centerY, centerZ);
+        camera.invokeMoveBy(center.getX(), center.getY(), center.getZ());
         camera.invokeSetRotation(yRot, xRot);
-        camera.invokeMoveBy(cameraX, cameraY, cameraZ);
-
-        cameraOffset = ((Camera)camera).getPos().subtract(player.getCameraPosVec(tickDelta));
+        camera.invokeMoveBy(offset.getX(), offset.getY(), offset.getZ());
     }
 
     private static void setBindingOffset(Camera camera, MinecraftClient MC, float tickDelta) {
@@ -147,12 +114,12 @@ public class CameraController {
         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(camera.getPitch()));
         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(camera.getYaw() + 180.0F));
         // EntityRenderDispatcher.render
-        Vec3d renderOffset = playerRenderer.getPositionOffset(player, tickDelta);
+        Vec3d renderOffset = (config.compatPehkui() ? playerRenderer.getPositionOffset(player, tickDelta) : 
+            PehkuiCompat.getScaledRenderOffset(playerRenderer, player, tickDelta));
         // WorldRenderer.renderEntity
         if (player.age == 0) {
             renderOffset = renderOffset.add(player.getX(), player.getY(), player.getZ());
-        }
-        else {
+        } else {
             renderOffset = renderOffset.add(MathHelper.lerp(tickDelta, player.prevX, player.getX()), 
                 MathHelper.lerp(tickDelta, player.prevY, player.getY()), 
                 MathHelper.lerp(tickDelta, player.prevZ, player.getZ())
@@ -164,6 +131,7 @@ public class CameraController {
 
         matrices.peek().getNormalMatrix().identity();
         
+        if (config.compatPehkui()) PehkuiCompat.scaleMatrices(matrices, player, tickDelta);
         getMatrixFromEntity(player, playerRenderer, matrices, tickDelta);
         
         // ModelPart$Cube.compile
@@ -190,7 +158,6 @@ public class CameraController {
             cameraRotation = new Vec3d(pitch, yaw, roll);
         }
 
-        cameraOffset = camera.getPos().subtract(player.getCameraPosVec(tickDelta));
     }
 
     private static void getMatrixFromEntity(ClientPlayerEntity player, PlayerEntityRenderer playerRenderer, MatrixStack matrices, float tickDelta) {

@@ -16,6 +16,7 @@
     "config.category.xtracr_realcamera_general": "General",
     "config.category.xtracr_realcamera_bindingmode": "Binding Mode",
     "config.category.xtracr_realcamera_classicmode": "Classic Mode",
+    "config.category.xtracr_realcamera_compats": "Compatibility",
     "config.category.xtracr_realcamera_disables": "Disabling Conditions",
 
     "config.option.xtracr_realcamera_enabled": "Mod Enabled",
@@ -24,12 +25,6 @@
     "config.option.xtracr_realcamera_camerastep": "Camera Step",
     "config.option.xtracr_realcamera_scale": "Scale",
     
-    "config.option.xtracr_realcamera_cameraX": "Camera X",
-    "config.option.xtracr_realcamera_cameraY": "Camera Y",
-    "config.option.xtracr_realcamera_cameraZ": "Camera Z",
-    "config.option.xtracr_realcamera_centerY": "Rotation Center Y",
-    "config.option.xtracr_realcamera_centerstep": "Rotation Center Step",
-
     "config.option.xtracr_realcamera_modelpart": "Model part",
     "config.option.xtracr_realcamera_binddirection": "Bind Direction",
     "config.option.xtracr_realcamera_lockrolling": "Lock Rolling",
@@ -40,11 +35,19 @@
     "config.option.xtracr_realcamera_yaw": "Yaw",
     "config.option.xtracr_realcamera_roll": "Roll",
     
+    "config.option.xtracr_realcamera_cameraX": "Camera X",
+    "config.option.xtracr_realcamera_cameraY": "Camera Y",
+    "config.option.xtracr_realcamera_cameraZ": "Camera Z",
+    "config.option.xtracr_realcamera_centerY": "Rotation Center Y",
+    "config.option.xtracr_realcamera_centerstep": "Rotation Center Step",
+
+    "config.option.xtracr_realcamera_pehkui": "Pehkui",
+    
     "config.option.xtracr_realcamera_fallflying": "Flying with Elytra",
     "config.option.xtracr_realcamera_swiming": "Swiming",
     "config.option.xtracr_realcamera_crawling": "Crawling",
     "config.option.xtracr_realcamera_sneaking": "Sneaking",
     "config.option.xtracr_realcamera_sleeping": "Sleeping",
     "config.option.xtracr_realcamera_scoping": "Using Spyglass"
-    
+
 }

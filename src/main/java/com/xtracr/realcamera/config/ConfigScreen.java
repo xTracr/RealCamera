@@ -27,6 +27,7 @@ public class ConfigScreen implements ConfigScreenFactory<Screen> {
         ConfigCategory general = builder.getOrCreateCategory(Text.translatable(Category+"general"));
         ConfigCategory bindingMode = builder.getOrCreateCategory(Text.translatable(Category+"bindingmode"));
         ConfigCategory classicMode = builder.getOrCreateCategory(Text.translatable(Category+"classicmode"));
+        ConfigCategory compats = builder.getOrCreateCategory(Text.translatable(Category+"compats"));
         ConfigCategory disables = builder.getOrCreateCategory(Text.translatable(Category+"disables"));
 
         general.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"enabled"), config.general.enabled)
@@ -151,6 +152,12 @@ public class ConfigScreen implements ConfigScreenFactory<Screen> {
             .setMax(ModConfig.maxVALUE)
             .setTooltip(Text.translatable(Tooltip+"centerstep"))
             .setSaveConsumer(d -> { config.classicMode.centerStep = d; ConfigFile.save(); })
+            .build());
+        
+        compats.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"pehkui"), config.compats.pehkui)
+            .setDefaultValue(true)
+            .setTooltip(Text.translatable(Tooltip+"pehkui"))
+            .setSaveConsumer(b -> { config.compats.pehkui = b; ConfigFile.save(); })
             .build());
         
         disables.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"fallflying"), config.disables.fallFlying)

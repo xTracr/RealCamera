@@ -13,6 +13,7 @@ public class ModConfig {
     public General general = new General();
     public BindingMode bindingMode = new BindingMode();
     public ClassicMode classicMode = new ClassicMode();
+    public Compats compats = new Compats();
     public Disables disables = new Disables();
 
     public class General {
@@ -71,6 +72,12 @@ public class ModConfig {
         }
 
     }
+
+    public class Compats {
+
+        public boolean pehkui = true;
+
+    }
     
     public class Disables {
 
@@ -87,6 +94,7 @@ public class ModConfig {
         this.general = modConfig.general;
         this.bindingMode = modConfig.bindingMode;
         this.classicMode = modConfig.classicMode;
+        this.compats = modConfig.compats;
         this.disables = modConfig.disables;
     }
 
@@ -146,6 +154,10 @@ public class ModConfig {
     }
     public boolean onlyDisableRenderingWhen(ClientPlayerEntity player) {
         return player.isUsingSpyglass() && this.disables.scoping;
+    }
+
+    public boolean compatPehkui() {
+        return this.compats.pehkui;
     }
 
     // binding
