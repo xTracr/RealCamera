@@ -20,7 +20,8 @@ public class ModConfig {
     private static final String General = "";
     private static final String Binding = "bindingMode.";
     private static final String Classic = "classicMode.";
-    private static final String Disables = "disables.";
+    private static final String Disables = "disableConditions.";
+    private static final String Compats = "compatibility.";
     
     private static final double minVALUE = -64.0D;
     private static final double maxVALUE = 64.0D;
@@ -60,6 +61,7 @@ public class ModConfig {
     private final BooleanValue sleeping;
     private final BooleanValue scoping;
 
+    private final BooleanValue pehkui;
 
     public ModConfig(ForgeConfigSpec.Builder builder) {
 
@@ -141,6 +143,10 @@ public class ModConfig {
         this.scoping = builder.comment("Only disable rendering player model")
             .translation(Option+"scoping")
             .define(Disables+"scoping", true);
+
+        this.pehkui = builder.comment("")
+            .translation(Option+"pehkui")
+            .define(Compats+"pehkui", true);
         
     }
 
@@ -185,6 +191,10 @@ public class ModConfig {
     }
     public boolean onlyDisableRenderingWhen(LocalPlayer player) {
         return player.isScoping() && this.scoping.get();
+    }
+
+    public boolean compatPehkui() {
+        return this.pehkui.get();
     }
 
     // binding

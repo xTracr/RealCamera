@@ -9,12 +9,6 @@ import net.minecraft.client.Camera;
 @Mixin(Camera.class)
 public interface CameraAccessor {
 	
-	@Accessor("eyeHeight")
-	float getCameraY();
-
-	@Accessor("eyeHeightOld")
-	float getLastCameraY();
-
 	@Accessor("detached")
 	void setThirdPerson(boolean thirdPerson);
 

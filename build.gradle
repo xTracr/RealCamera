@@ -93,7 +93,10 @@ minecraft {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
-    
+    //maven {
+    //    name = "jitpack"
+    //    url = "https://jitpack.io"
+    //}
 }
 
 dependencies {
