@@ -25,8 +25,8 @@ public class ConfigScreen implements ConfigScreenFactory<Screen> {
             .setTitle(Text.translatable("config.title.xtracr_realcamera"));
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
         ConfigCategory general = builder.getOrCreateCategory(Text.translatable(Category+"general"));
-        ConfigCategory bindingMode = builder.getOrCreateCategory(Text.translatable(Category+"bindingmode"));
-        ConfigCategory classicMode = builder.getOrCreateCategory(Text.translatable(Category+"classicmode"));
+        ConfigCategory binding = builder.getOrCreateCategory(Text.translatable(Category+"binding"));
+        ConfigCategory classic = builder.getOrCreateCategory(Text.translatable(Category+"classic"));
         ConfigCategory compats = builder.getOrCreateCategory(Text.translatable(Category+"compats"));
         ConfigCategory disables = builder.getOrCreateCategory(Text.translatable(Category+"disables"));
 
@@ -60,98 +60,98 @@ public class ConfigScreen implements ConfigScreenFactory<Screen> {
             .setSaveConsumer(d -> { config.general.scale = d; ConfigFile.save(); })
             .build());
         
-        bindingMode.addEntry(entryBuilder.startEnumSelector(Text.translatable(Option+"modelpart"), AcceptableModelParts.class, config.bindingMode.modelPart)
+        binding.addEntry(entryBuilder.startEnumSelector(Text.translatable(Option+"modelpart"), AcceptableModelParts.class, config.binding.modelPart)
             .setDefaultValue(AcceptableModelParts.HEAD)
             .setTooltip(Text.translatable(Tooltip+"modelpart"))
-            .setSaveConsumer(e -> { config.bindingMode.modelPart = e; ConfigFile.save(); })
+            .setSaveConsumer(e -> { config.binding.modelPart = e; ConfigFile.save(); })
             .build());
-        bindingMode.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"binddirection"), config.bindingMode.bindDirection)
+        binding.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"binddirection"), config.binding.bindDirection)
             .setDefaultValue(true)
             .setTooltip(Text.translatable(Tooltip+"binddirection"))
-            .setSaveConsumer(b -> { config.bindingMode.bindDirection = b; ConfigFile.save(); })
+            .setSaveConsumer(b -> { config.binding.bindDirection = b; ConfigFile.save(); })
             .build());
-        bindingMode.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"lockrolling"), config.bindingMode.lockRolling)
+        binding.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"lockrolling"), config.binding.lockRolling)
             .setDefaultValue(false)
             .setTooltip(Text.translatable(Tooltip+"lockrolling"))
-            .setSaveConsumer(b -> { config.bindingMode.lockRolling = b; ConfigFile.save(); })
+            .setSaveConsumer(b -> { config.binding.lockRolling = b; ConfigFile.save(); })
             .build());
-        bindingMode.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"bindingX"), config.bindingMode.bindingX)
+        binding.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"bindingX"), config.binding.bindingX)
             .setDefaultValue(3.25D)
             .setMin(ModConfig.minVALUE)
             .setMax(ModConfig.maxVALUE)
             .setTooltip(Text.translatable(Tooltip+"bindingX"))
-            .setSaveConsumer(d -> { config.bindingMode.bindingX = d; ConfigFile.save(); })
+            .setSaveConsumer(d -> { config.binding.bindingX = d; ConfigFile.save(); })
             .build());
-        bindingMode.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"bindingY"), config.bindingMode.bindingY)
+        binding.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"bindingY"), config.binding.bindingY)
             .setDefaultValue(2.0D)
             .setMin(ModConfig.minVALUE)
             .setMax(ModConfig.maxVALUE)
             .setTooltip(Text.translatable(Tooltip+"bindingY"))
-            .setSaveConsumer(d -> { config.bindingMode.bindingY = d; ConfigFile.save(); })
+            .setSaveConsumer(d -> { config.binding.bindingY = d; ConfigFile.save(); })
             .build());
-        bindingMode.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"bindingZ"), config.bindingMode.bindingZ)
+        binding.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"bindingZ"), config.binding.bindingZ)
             .setDefaultValue(0.0D)
             .setMin(ModConfig.minVALUE)
             .setMax(ModConfig.maxVALUE)
             .setTooltip(Text.translatable(Tooltip+"bindingZ"))
-            .setSaveConsumer(d -> { config.bindingMode.bindingZ = d; ConfigFile.save(); })
+            .setSaveConsumer(d -> { config.binding.bindingZ = d; ConfigFile.save(); })
             .build());
-        bindingMode.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"pitch"), config.bindingMode.pitch)
+        binding.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"pitch"), config.binding.pitch)
             .setDefaultValue(0.0D)
             .setMin(-180.0D)
             .setMax(180.0D)
             .setTooltip(Text.translatable(Tooltip+"pitch"))
-            .setSaveConsumer(d -> { config.bindingMode.pitch = d; ConfigFile.save(); })
+            .setSaveConsumer(d -> { config.binding.pitch = d; ConfigFile.save(); })
             .build());
-        bindingMode.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"yaw"), config.bindingMode.yaw)
+        binding.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"yaw"), config.binding.yaw)
             .setDefaultValue(0.0D)
             .setMin(-180.0D)
             .setMax(180.0D)
             .setTooltip(Text.translatable(Tooltip+"yaw"))
-            .setSaveConsumer(d -> { config.bindingMode.yaw = d; ConfigFile.save(); })
+            .setSaveConsumer(d -> { config.binding.yaw = d; ConfigFile.save(); })
             .build());
-        bindingMode.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"roll"), config.bindingMode.roll)
+        binding.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"roll"), config.binding.roll)
             .setDefaultValue(0.0D)
             .setMin(-180.0D)
             .setMax(180.0D)
             .setTooltip(Text.translatable(Tooltip+"roll"))
-            .setSaveConsumer(d -> { config.bindingMode.roll = d; ConfigFile.save(); })
+            .setSaveConsumer(d -> { config.binding.roll = d; ConfigFile.save(); })
             .build());
         
-        classicMode.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"cameraX"), config.classicMode.cameraX)
+        classic.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"cameraX"), config.classic.cameraX)
             .setDefaultValue(3.25D)
             .setMin(ModConfig.minVALUE)
             .setMax(ModConfig.maxVALUE)
             .setTooltip(Text.translatable(Tooltip+"cameraX"))
-            .setSaveConsumer(d -> { config.classicMode.cameraX = d; ConfigFile.save(); })
+            .setSaveConsumer(d -> { config.classic.cameraX = d; ConfigFile.save(); })
             .build());
-        classicMode.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"cameraY"), config.classicMode.cameraY)
+        classic.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"cameraY"), config.classic.cameraY)
             .setDefaultValue(2.0D)
             .setMin(ModConfig.minVALUE)
             .setMax(ModConfig.maxVALUE)
             .setTooltip(Text.translatable(Tooltip+"cameraY"))
-            .setSaveConsumer(d -> { config.classicMode.cameraY = d; ConfigFile.save(); })
+            .setSaveConsumer(d -> { config.classic.cameraY = d; ConfigFile.save(); })
             .build());
-        classicMode.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"cameraZ"), config.classicMode.cameraZ)
+        classic.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"cameraZ"), config.classic.cameraZ)
             .setDefaultValue(0.0D)
             .setMin(ModConfig.minVALUE)
             .setMax(ModConfig.maxVALUE)
             .setTooltip(Text.translatable(Tooltip+"cameraZ"))
-            .setSaveConsumer(d -> { config.classicMode.cameraZ = d; ConfigFile.save(); })
+            .setSaveConsumer(d -> { config.classic.cameraZ = d; ConfigFile.save(); })
             .build());
-        classicMode.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"centerY"), config.classicMode.centerY)
+        classic.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"centerY"), config.classic.centerY)
             .setDefaultValue(-3.4D)
             .setMin(ModConfig.minVALUE)
             .setMax(ModConfig.maxVALUE)
             .setTooltip(Text.translatable(Tooltip+"centerY"))
-            .setSaveConsumer(d -> { config.classicMode.centerY = d; ConfigFile.save(); })
+            .setSaveConsumer(d -> { config.classic.centerY = d; ConfigFile.save(); })
             .build());
-        classicMode.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"centerstep"), config.classicMode.centerStep)
+        classic.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"centerstep"), config.classic.centerStep)
             .setDefaultValue(0.25D)
             .setMin(ModConfig.minVALUE)
             .setMax(ModConfig.maxVALUE)
             .setTooltip(Text.translatable(Tooltip+"centerstep"))
-            .setSaveConsumer(d -> { config.classicMode.centerStep = d; ConfigFile.save(); })
+            .setSaveConsumer(d -> { config.classic.centerStep = d; ConfigFile.save(); })
             .build());
         
         compats.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"pehkui"), config.compats.pehkui)

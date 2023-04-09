@@ -76,6 +76,8 @@ public class CameraController {
 
         if (config.isClassic()) {setClassicOffset(cameraOld, MC, tickDelta);}
         else {setBindingOffset(cameraOld, MC, tickDelta);}
+
+        cameraOffset = cameraOld.getPos().subtract(MC.player.getCameraPosVec(tickDelta));
     }
 
     private static void setClassicOffset(Camera cameraOld, MinecraftClient MC, float tickDelta) {
@@ -113,20 +115,21 @@ public class CameraController {
         matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(cameraRoll));
         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(camera.getPitch()));
         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(camera.getYaw() + 180.0F));
-        // EntityRenderDispatcher.render
-        Vec3d renderOffset = (config.compatPehkui() ? playerRenderer.getPositionOffset(player, tickDelta) : 
-            PehkuiCompat.getScaledRenderOffset(playerRenderer, player, tickDelta));
-        // WorldRenderer.renderEntity
+        // WorldRender.render
         if (player.age == 0) {
-            renderOffset = renderOffset.add(player.getX(), player.getY(), player.getZ());
-        } else {
-            renderOffset = renderOffset.add(MathHelper.lerp(tickDelta, player.prevX, player.getX()), 
-                MathHelper.lerp(tickDelta, player.prevY, player.getY()), 
-                MathHelper.lerp(tickDelta, player.prevZ, player.getZ())
-            );
+            player.lastRenderX = player.getX();
+            player.lastRenderY = player.getY();
+            player.lastRenderZ = player.getZ();
         }
+        // WorldRenderer.renderEntity
+        Vec3d renderOffset = new Vec3d(MathHelper.lerp(tickDelta, player.lastRenderX, player.getX()), 
+            MathHelper.lerp(tickDelta, player.lastRenderY, player.getY()), 
+            MathHelper.lerp(tickDelta, player.lastRenderZ, player.getZ())
+        ).subtract(camera.getPos());
         // EntityRenderDispatcher.render
-        renderOffset = renderOffset.subtract(camera.getPos());
+        //renderOffset = renderOffset.add((config.compatPehkui() ? playerRenderer.getPositionOffset(player, tickDelta) : 
+        //    PehkuiCompat.getScaledRenderOffset(playerRenderer, player, tickDelta)));
+        renderOffset = renderOffset.add(playerRenderer.getPositionOffset(player, tickDelta));
         matrices.translate(renderOffset.getX(), renderOffset.getY(), renderOffset.getZ());
 
         matrices.peek().getNormalMatrix().identity();
@@ -165,6 +168,8 @@ public class CameraController {
         PlayerEntityModel<AbstractClientPlayerEntity> playerModel = playerRenderer.getModel();
         ModelPart modelPart = config.getModelPartFrom(playerModel);
 
+        // PlayerEntityRenderer.render
+        ((PlayerEntityRendererAccessor)playerRenderer).invokeSetModelPose(player);
         // LivingEntityRenderer.render
         float n;
         Direction direction;

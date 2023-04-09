@@ -11,8 +11,8 @@ public class ModConfig {
     public static final double maxVALUE = 64.0D;
 
     public General general = new General();
-    public BindingMode bindingMode = new BindingMode();
-    public ClassicMode classicMode = new ClassicMode();
+    public Binding binding = new Binding();
+    public Classic classic = new Classic();
     public Compats compats = new Compats();
     public Disables disables = new Disables();
 
@@ -31,7 +31,7 @@ public class ModConfig {
 
     }
 
-    public class BindingMode {
+    public class Binding {
 
         public AcceptableModelParts modelPart = AcceptableModelParts.HEAD;
         public boolean bindDirection = true;
@@ -55,7 +55,7 @@ public class ModConfig {
 
     }
 
-    public class ClassicMode {
+    public class Classic {
 
         public double cameraX = 3.25D;
         public double cameraY = 2.0D;
@@ -92,16 +92,16 @@ public class ModConfig {
 
     public void set(ModConfig modConfig) {
         this.general = modConfig.general;
-        this.bindingMode = modConfig.bindingMode;
-        this.classicMode = modConfig.classicMode;
+        this.binding = modConfig.binding;
+        this.classic = modConfig.classic;
         this.compats = modConfig.compats;
         this.disables = modConfig.disables;
     }
 
     public void clamp() {
         this.general.clamp();
-        this.bindingMode.clamp();
-        this.classicMode.clamp();
+        this.binding.clamp();
+        this.classic.clamp();
     }
 
     private static double clampValue(double value, double min, double max) {
@@ -162,59 +162,59 @@ public class ModConfig {
 
     // binding
     public ModelPart getModelPartFrom(PlayerEntityModel<AbstractClientPlayerEntity> playerModel) {
-        return this.bindingMode.modelPart.getTarget(playerModel);
+        return this.binding.modelPart.getTarget(playerModel);
     }
     public boolean isDirectionBound() {
-        return this.bindingMode.bindDirection;
+        return this.binding.bindDirection;
     }
     public boolean isRollingLocked() {
-        return this.bindingMode.lockRolling;
+        return this.binding.lockRolling;
     }
     public double getBindingX() {
-        return this.bindingMode.bindingX;
+        return this.binding.bindingX;
     }
     public double getBindingY() {
-        return this.bindingMode.bindingY;
+        return this.binding.bindingY;
     }
     public double getBindingZ() {
-        return this.bindingMode.bindingZ;
+        return this.binding.bindingZ;
     }
     public float getPitch() {
-        return (float)this.bindingMode.pitch;
+        return (float)this.binding.pitch;
     }
     public float getYaw() {
-        return (float)this.bindingMode.yaw;
+        return (float)this.binding.yaw;
     }
     public float getRoll() {
-        return (float)this.bindingMode.roll;
+        return (float)this.binding.roll;
     }
 
     public void setModelPart(AcceptableModelParts modelPart) {
-        this.bindingMode.modelPart = modelPart;
+        this.binding.modelPart = modelPart;
         ConfigFile.save();
     }
     public void setBindingX(double value) {
-        this.bindingMode.bindingX = value;
+        this.binding.bindingX = value;
         ConfigFile.save();
     }
     public void setBindingY(double value) {
-        this.bindingMode.bindingY = value;
+        this.binding.bindingY = value;
         ConfigFile.save();
     }
     public void setBindingZ(double value) {
-        this.bindingMode.bindingZ = value;
+        this.binding.bindingZ = value;
         ConfigFile.save();
     }
     public void setPitch(float value) {
-        this.bindingMode.pitch = value;
+        this.binding.pitch = value;
         ConfigFile.save();
     }
     public void setYaw(float value) {
-        this.bindingMode.yaw = value;
+        this.binding.yaw = value;
         ConfigFile.save();
     }
     public void setRoll(float value) {
-        this.bindingMode.roll = value;
+        this.binding.roll = value;
         ConfigFile.save();
     }
 
@@ -239,39 +239,39 @@ public class ModConfig {
 
     // classic
     public double getCameraX() {
-        return this.classicMode.cameraX;
+        return this.classic.cameraX;
     }
     public double getCameraY() {
-        return this.classicMode.cameraY;
+        return this.classic.cameraY;
     }
     public double getCameraZ() {
-        return this.classicMode.cameraZ;
+        return this.classic.cameraZ;
     }
     public double getCenterY() {
-        return this.classicMode.centerY;
+        return this.classic.centerY;
     }
     public double getCenterStep() {
-        return this.classicMode.centerStep;
+        return this.classic.centerStep;
     }
     
     public void setCameraX(double value) {
-        this.classicMode.cameraX = value;
+        this.classic.cameraX = value;
         ConfigFile.save();
     }
     public void setCameraY(double value) {
-        this.classicMode.cameraY = value;
+        this.classic.cameraY = value;
         ConfigFile.save();
     }
     public void setCameraZ(double value) {
-        this.classicMode.cameraZ = value;
+        this.classic.cameraZ = value;
         ConfigFile.save();
     }
     public void setCenterY(double value) {
-        this.classicMode.centerY = value;
+        this.classic.centerY = value;
         ConfigFile.save();
     }
     public void setCenterStep(double value) {
-        this.classicMode.centerStep = value;
+        this.classic.centerStep = value;
         ConfigFile.save();
     }
 

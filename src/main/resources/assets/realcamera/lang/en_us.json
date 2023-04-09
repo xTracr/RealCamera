@@ -14,8 +14,8 @@
 
     "config.title.xtracr_realcamera": "Real Camera",
     "config.category.xtracr_realcamera_general": "General",
-    "config.category.xtracr_realcamera_bindingmode": "Binding Mode",
-    "config.category.xtracr_realcamera_classicmode": "Classic Mode",
+    "config.category.xtracr_realcamera_binding": "Binding Mode",
+    "config.category.xtracr_realcamera_classic": "Classic Mode",
     "config.category.xtracr_realcamera_compats": "Compatibility",
     "config.category.xtracr_realcamera_disables": "Disabling Conditions",
 
