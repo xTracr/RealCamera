@@ -125,26 +125,26 @@ public class ModConfig {
             .translation(Option+"centerstep")
             .defineInRange(Classic+"centerstep", 0.25D, 0.0D, maxVALUE);
 
-        this.fallFlying = builder.comment("")
+        this.fallFlying = builder.comment(" ")
             .translation(Option+"fallflying")
             .define(Disables+"fallflying", true);
-        this.swiming = builder.comment("")
+        this.swiming = builder.comment(" ")
             .translation(Option+"swiming")
             .define(Disables+"swiming", false);
-        this.crawling = builder.comment("")
+        this.crawling = builder.comment(" ")
             .translation(Option+"crawling")
             .define(Disables+"crawling", false);
-        this.sneaking = builder.comment("")
+        this.sneaking = builder.comment(" ")
             .translation(Option+"sneaking")
             .define(Disables+"sneaking", false);
-        this.sleeping = builder.comment("")
+        this.sleeping = builder.comment(" ")
             .translation(Option+"sleeping")
             .define(Disables+"sleeping", false);
         this.scoping = builder.comment("Only disable rendering player model")
             .translation(Option+"scoping")
             .define(Disables+"scoping", true);
 
-        this.pehkui = builder.comment("")
+        this.pehkui = builder.comment(" ")
             .translation(Option+"pehkui")
             .define(Compats+"pehkui", true);
         

@@ -15,9 +15,6 @@ public interface CameraAccessor {
 	@Invoker("setRotation")
 	void invokeSetRotation(float yaw, float pitch);
 
-	@Invoker("setPosition")
-	void invokeSetPos(double x, double y, double z);
-
 	@Invoker("move")
 	void invokeMoveBy(double x, double y, double z);
 	
