@@ -11,6 +11,9 @@ import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 @Mixin(PlayerRenderer.class)
 public interface PlayerRendererAccessor {
 
+    @Invoker("setModelProperties")
+    void invokeSetModelPose(AbstractClientPlayer player);
+
     @Invoker("setupRotations")
     void invokeSetupRotations(AbstractClientPlayer player, PoseStack poseStack, float bob, float yRot, float particalTicks);
 }

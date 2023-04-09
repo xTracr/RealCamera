@@ -117,18 +117,21 @@ public class CameraController {
         poseStack.mulPose(Axis.ZP.rotationDegrees(cameraSetup.getRoll()));
         poseStack.mulPose(Axis.XP.rotationDegrees(cameraSetup.getPitch()));
         poseStack.mulPose(Axis.YP.rotationDegrees(cameraSetup.getYaw() + 180.0F));
-        // EntityRenderDispatcher.render
-        Vec3 renderOffset = (config.compatPehkui() ? playerRenderer.getRenderOffset(player, (float)particalTick) : 
-            PehkuiCompat.getScaledRenderOffset(playerRenderer, player, (float)particalTick));
-        // LevelRenderer.renderEntity
+        // LevelRenderer.renderLevel
         if (player.tickCount == 0) {
-            renderOffset = renderOffset.add(player.getX(), player.getY(), player.getZ());
-        } else {
-            renderOffset = renderOffset.add(Mth.lerp(particalTick, player.xOld, player.getX()), 
-                Mth.lerp(particalTick, player.yOld, player.getY()), 
-                Mth.lerp(particalTick, player.zOld, player.getZ())
-            );
+            player.xOld = player.getX();
+            player.yOld = player.getY();
+            player.zOld = player.getZ();
         }
+        // EntityRenderDispatcher.render
+        //Vec3 renderOffset = (!config.compatPehkui() ? playerRenderer.getRenderOffset(player, (float)particalTick) : 
+        //    PehkuiCompat.getScaledRenderOffset(playerRenderer, player, (float)particalTick));
+        Vec3 renderOffset = playerRenderer.getRenderOffset(player, (float)particalTick);
+        // LevelRenderer.renderEntity
+        renderOffset = renderOffset.add(Mth.lerp(particalTick, player.xOld, player.getX()), 
+            Mth.lerp(particalTick, player.yOld, player.getY()), 
+            Mth.lerp(particalTick, player.zOld, player.getZ())
+        );
         // EntityRenderDispatcher.render
         renderOffset = renderOffset.subtract(camera.getPosition());
         poseStack.translate(renderOffset.x(), renderOffset.y(), renderOffset.z());
@@ -173,6 +176,8 @@ public class CameraController {
         PlayerModel<AbstractClientPlayer> playerModel = playerRenderer.getModel();
         ModelPart modelPart = config.getModelPartFrom(playerModel);
 
+        // PLayerRenderer.render
+        ((PlayerRendererAccessor)playerRenderer).invokeSetModelPose(player);
         // LivingEntityRenderer.render
         playerModel.attackTime = player.getAttackAnim((float)particalTick);
 

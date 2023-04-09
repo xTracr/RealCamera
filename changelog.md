@@ -7,6 +7,7 @@
 ### Test Versions ###
 
 * 0.4.0-alpha:
+* Bug fixes
 * Compatible with Pehkui
 
 * 0.3.0-alpha:
@@ -50,6 +51,7 @@
 ### 测试版 ###
 
 * 0.4.0-alpha:
+* bug修复
 * 兼容Pehkui
 
 * 0.3.0-alpha:

@@ -29,7 +29,7 @@ Download the mod from [Releases page](https://github.com/xTracr/RealCamera/relea
   * Yes Steve Model
 * Cause crash:
 
-### Known Problems ###
+### Known Issues ###
 
 See in [中文](README_ZH.md)
 

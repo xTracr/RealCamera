@@ -34,13 +34,13 @@
     "config.option.xtracr_realcamera_centerY": "Rotation Center Y",
     "config.option.xtracr_realcamera_centerstep": "Rotation Center Step",
 
+    "config.option.xtracr_realcamera_pehkui": "Pehkui",
+    
     "config.option.xtracr_realcamera_fallflying": "Flying with Elytra",
     "config.option.xtracr_realcamera_swiming": "Swiming",
     "config.option.xtracr_realcamera_crawling": "Crawling",
     "config.option.xtracr_realcamera_sneaking": "Sneaking",
     "config.option.xtracr_realcamera_sleeping": "Sleeping",
-    "config.option.xtracr_realcamera_scoping": "Using Spyglass",
+    "config.option.xtracr_realcamera_scoping": "Using Spyglass"
 
-    "config.option.xtracr_realcamera_pehkui": "Pehkui"
-    
 }
