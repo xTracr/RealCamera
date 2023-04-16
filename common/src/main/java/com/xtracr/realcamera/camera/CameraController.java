@@ -2,9 +2,6 @@ package com.xtracr.realcamera.camera;
 
 import java.lang.reflect.InvocationTargetException;
 
-import org.joml.Vector3f;
-import org.joml.Vector4f;
-
 import com.xtracr.realcamera.compat.PehkuiCompat;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
@@ -24,8 +21,9 @@ import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3f;
+import net.minecraft.util.math.Vector4f;
 
 public class CameraController {
     
@@ -60,6 +58,7 @@ public class CameraController {
     }
 
     public static void setCameraOffset(Camera camera, MinecraftClient MC, float tickDelta) {
+        cameraRoll = 0.0F;
         cameraOffset = Vec3d.ZERO;
         cameraRotation = new Vec3d(camera.getPitch(), camera.getYaw(), cameraRoll);
 
@@ -103,10 +102,10 @@ public class CameraController {
         // GameRenderer.render
         MatrixStack matrixStack = new MatrixStack();
         // GameRenderer.renderWorld
-        matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(cameraRoll));
-        matrixStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(camera.getPitch()));
-        matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(camera.getYaw() + 180.0F));
-        matrixStack.peek().getNormalMatrix().identity();
+        matrixStack.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(cameraRoll));
+        matrixStack.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(camera.getPitch()));
+        matrixStack.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(camera.getYaw() + 180.0F));
+        matrixStack.peek().getNormalMatrix().loadIdentity();;
         // WorldRender.render
         ClientPlayerEntity player = MC.player;
         if (player.age == 0) {
@@ -147,22 +146,23 @@ public class CameraController {
             virtualRender(player, playerRenderer, tickDelta, matrixStack);
         }
         
-        // ModelPart$Cube.compile
+        // ModelPart$Cuboid.renderCuboid
         double cameraX = config.getScale() * config.getBindingX();
         double cameraY = config.getScale() * config.getBindingY();
         double cameraZ = config.getScale() * config.getBindingZ();
-        Vector4f offset =  matrixStack.peek().getPositionMatrix().transform(new Vector4f((float)cameraZ, -(float)cameraY, -(float)cameraX, 1.0F));
+        Vector4f offset =  new Vector4f((float)cameraZ, -(float)cameraY, -(float)cameraX, 1.0F);
+        offset.transform(matrixStack.peek().getPositionMatrix());
 
-        ((CameraAccessor)camera).invokeMoveBy(-offset.z(), offset.y(), -offset.x());
+        ((CameraAccessor)camera).invokeMoveBy(-offset.getZ(), offset.getY(), -offset.getX());
 
         if (config.isDirectionBound()) {
             Matrix3dr normal = new Matrix3dr(matrixStack.peek().getNormalMatrix());
-            normal.mulByRight(RotationAxis.POSITIVE_X.rotationDegrees(180.0F));
-            Vector3f eularAngle = normal.getEulerAngleDegrees().toVector3f();
+            normal.mulByRight(Vec3f.POSITIVE_X.getDegreesQuaternion(180.0F));
+            Vec3f eulerAngle = new Vec3f(normal.getEulerAngleDegrees());
 
-            float pitch =  eularAngle.x() + config.getPitch();
-            float yaw = -eularAngle.y() - config.getYaw();
-            float roll =  eularAngle.z() + config.getRoll();
+            float pitch =  eulerAngle.getX() + config.getPitch();
+            float yaw = -eulerAngle.getY() - config.getYaw();
+            float roll =  eulerAngle.getZ() + config.getRoll();
 
             ((CameraAccessor)camera).invokeSetRotation(yaw, pitch);
             if (!config.isRollingLocked()) {
@@ -187,8 +187,8 @@ public class CameraController {
         float j = MathHelper.lerpAngleDegrees(tickDelta, player.prevHeadYaw, player.headYaw);
         float k = j - h;
         if (player.hasVehicle() && player.getVehicle() instanceof LivingEntity) {
-            LivingEntity player2 = (LivingEntity)player.getVehicle();
-            h = MathHelper.lerpAngleDegrees(tickDelta, player2.prevBodyYaw, player2.bodyYaw);
+            LivingEntity vehicle = (LivingEntity)player.getVehicle();
+            h = MathHelper.lerpAngleDegrees(tickDelta, vehicle.prevBodyYaw, vehicle.bodyYaw);
             k = j - h;
             float l = MathHelper.wrapDegrees(k);
             if (l < -85.0f) {
@@ -208,7 +208,7 @@ public class CameraController {
             m *= -1.0f;
             k *= -1.0f;
         }
-        if (player.isInPose(EntityPose.SLEEPING) && (direction = player.getSleepingDirection()) != null) {
+        if (player.getPose() == EntityPose.SLEEPING && (direction = player.getSleepingDirection()) != null) {
             n = player.getEyeHeight(EntityPose.STANDING) - 0.1f;
             matrixStack.translate((float)(-direction.getOffsetX()) * n, 0.0f, (float)(-direction.getOffsetZ()) * n);
         }
@@ -220,8 +220,8 @@ public class CameraController {
         n = 0.0f;
         float o = 0.0f;
         if (!player.hasVehicle() && player.isAlive()) {
-            n = player.limbAnimator.getSpeed(tickDelta);
-            o = player.limbAnimator.getPos(tickDelta);
+            n = MathHelper.lerp(tickDelta, player.lastLimbDistance, player.limbDistance);
+            o = player.limbAngle - player.limbDistance * (1.0f - tickDelta);
             if (player.isBaby()) {
                 o *= 3.0f;
             }

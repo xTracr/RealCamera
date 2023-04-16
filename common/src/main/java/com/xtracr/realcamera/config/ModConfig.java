@@ -145,7 +145,7 @@ public class ModConfig {
     public boolean isDisabledWhen(ClientPlayerEntity player) {
         return (player.isFallFlying() && this.disables.fallFlying)
             || (player.isSwimming() && this.disables.swiming)
-            || (player.isCrawling() && this.disables.crawling)
+            || (player.shouldLeaveSwimmingPose() && this.disables.crawling)
             || (player.isSneaking() && this.disables.sneaking)
             || (player.isSleeping() && this.disables.sleeping);
     }

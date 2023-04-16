@@ -2,9 +2,9 @@ package com.xtracr.realcamera;
 
 import com.xtracr.realcamera.config.ConfigScreen;
 
-import net.minecraftforge.client.ConfigScreenHandler.ConfigScreenFactory;
-import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
-import net.minecraftforge.client.event.InputEvent.Key;
+import net.minecraftforge.client.ClientRegistry;
+import net.minecraftforge.client.ConfigGuiHandler.ConfigGuiFactory;
+import net.minecraftforge.client.event.InputEvent.KeyInputEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -20,11 +20,10 @@ public class RealCameraForge {
     public RealCameraForge() {
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
         eventBus.addListener(this::clientSetup);
-        eventBus.addListener(this::onKeyRegister);
 
         if (ModList.get().isLoaded("cloth_config")) {
-            ModLoadingContext.get().registerExtensionPoint(ConfigScreenFactory.class, () -> 
-                new ConfigScreenFactory((mc, screen) -> ConfigScreen.create(screen)
+            ModLoadingContext.get().registerExtensionPoint(ConfigGuiFactory.class, () -> 
+                new ConfigGuiFactory((mc, screen) -> ConfigScreen.create(screen)
             ));
         }
     }
@@ -34,22 +33,18 @@ public class RealCameraForge {
 
         RealCamera.setup();
 
-        MinecraftForge.EVENT_BUS.addListener((Key keyEvent) -> KeyBindings.handle());
+        MinecraftForge.EVENT_BUS.addListener((KeyInputEvent keyEvent) -> KeyBindings.handle());
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onCameraSetup);
+        
+        ClientRegistry.registerKeyBinding(KeyBindings.toggleCamera);
+        ClientRegistry.registerKeyBinding(KeyBindings.cameraUP);
+        ClientRegistry.registerKeyBinding(KeyBindings.cameraDOWN);
+        ClientRegistry.registerKeyBinding(KeyBindings.cameraIN);
+        ClientRegistry.registerKeyBinding(KeyBindings.cameraOUT);
+        ClientRegistry.registerKeyBinding(KeyBindings.cameraLEFT);
+        ClientRegistry.registerKeyBinding(KeyBindings.cameraRIGHT);
+        ClientRegistry.registerKeyBinding(KeyBindings.centerUP);
+        ClientRegistry.registerKeyBinding(KeyBindings.centerDOWN);
     }
-
-    @SubscribeEvent
-    public void onKeyRegister(RegisterKeyMappingsEvent event) {       
-        event.register(KeyBindings.toggleCamera);
-        event.register(KeyBindings.cameraUP);
-        event.register(KeyBindings.cameraDOWN);
-        event.register(KeyBindings.cameraIN);
-        event.register(KeyBindings.cameraOUT);
-        event.register(KeyBindings.cameraLEFT);
-        event.register(KeyBindings.cameraRIGHT);
-        event.register(KeyBindings.centerUP);
-        event.register(KeyBindings.centerDOWN);
-    }
-
     
 }

@@ -110,8 +110,8 @@ public class CompatExample {
         float j = MathHelper.lerpAngleDegrees(tickDelta, player.prevHeadYaw, player.headYaw);
         float k = j - h;
         if (player.hasVehicle() && player.getVehicle() instanceof LivingEntity) {
-            LivingEntity player2 = (LivingEntity)player.getVehicle();
-            h = MathHelper.lerpAngleDegrees(tickDelta, player2.prevBodyYaw, player2.bodyYaw);
+            LivingEntity vehicle = (LivingEntity)player.getVehicle();
+            h = MathHelper.lerpAngleDegrees(tickDelta, vehicle.prevBodyYaw, vehicle.bodyYaw);
             k = j - h;
             float l = MathHelper.wrapDegrees(k);
             if (l < -85.0f) {
@@ -131,7 +131,7 @@ public class CompatExample {
             m *= -1.0f;
             k *= -1.0f;
         }
-        if (player.isInPose(EntityPose.SLEEPING) && (direction = player.getSleepingDirection()) != null) {
+        if (player.getPose() == EntityPose.SLEEPING && (direction = player.getSleepingDirection()) != null) {
             n = player.getEyeHeight(EntityPose.STANDING) - 0.1f;
             matrixStack.translate((float)(-direction.getOffsetX()) * n, 0.0f, (float)(-direction.getOffsetZ()) * n);
         }
@@ -143,8 +143,8 @@ public class CompatExample {
         n = 0.0f;
         float o = 0.0f;
         if (!player.hasVehicle() && player.isAlive()) {
-            n = player.limbAnimator.getSpeed(tickDelta);
-            o = player.limbAnimator.getPos(tickDelta);
+            n = MathHelper.lerp(tickDelta, player.lastLimbDistance, player.limbDistance);
+            o = player.limbAngle - player.limbDistance * (1.0f - tickDelta);
             if (player.isBaby()) {
                 o *= 3.0f;
             }
