@@ -30,7 +30,6 @@ public abstract class GameRendererEvents {
     )
     private void onCameraUpdate(float tickDelta, long limitTime, MatrixStack matrixStack, CallbackInfo cInfo) {
         if (CameraController.isActive() && MinecraftClient.getInstance().player != null) {
-            CameraController.cameraRoll = 0.0F;
             CameraController.setCameraOffset(camera, MinecraftClient.getInstance(), tickDelta);
             matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(CameraController.cameraRoll));
         }

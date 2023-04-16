@@ -60,6 +60,7 @@ public class CameraController {
     }
 
     public static void setCameraOffset(Camera camera, MinecraftClient MC, float tickDelta) {
+        cameraRoll = 0.0F;
         cameraOffset = Vec3d.ZERO;
         cameraRotation = new Vec3d(camera.getPitch(), camera.getYaw(), cameraRoll);
 
@@ -147,7 +148,7 @@ public class CameraController {
             virtualRender(player, playerRenderer, tickDelta, matrixStack);
         }
         
-        // ModelPart$Cube.compile
+        // ModelPart$Cuboid.renderCuboid
         double cameraX = config.getScale() * config.getBindingX();
         double cameraY = config.getScale() * config.getBindingY();
         double cameraZ = config.getScale() * config.getBindingZ();
@@ -187,8 +188,8 @@ public class CameraController {
         float j = MathHelper.lerpAngleDegrees(tickDelta, player.prevHeadYaw, player.headYaw);
         float k = j - h;
         if (player.hasVehicle() && player.getVehicle() instanceof LivingEntity) {
-            LivingEntity player2 = (LivingEntity)player.getVehicle();
-            h = MathHelper.lerpAngleDegrees(tickDelta, player2.prevBodyYaw, player2.bodyYaw);
+            LivingEntity vehicle = (LivingEntity)player.getVehicle();
+            h = MathHelper.lerpAngleDegrees(tickDelta, vehicle.prevBodyYaw, vehicle.bodyYaw);
             k = j - h;
             float l = MathHelper.wrapDegrees(k);
             if (l < -85.0f) {

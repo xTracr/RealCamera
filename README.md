@@ -3,7 +3,7 @@
 ## [中文](README_ZH.md) ##
 
 Make the camera more realistic in the first-person view.  
-Supported version: 1.18-1.19 Forge, 1.19 Fabric  
+Supported version: 1.18-1.19 Forge & Fabric  
 Download the mod from [Releases page](https://github.com/xTracr/RealCamera/releases), [CurseForge](https://curseforge.com)(WIP) or [Modrinth](https://modrinth.com)(WIP)  
 
 ## Features ##
@@ -12,7 +12,7 @@ Download the mod from [Releases page](https://github.com/xTracr/RealCamera/relea
 * Change the position of camera and rotation center
 * Render player model in first-person perspective
 * Use F6 to toggle the feature on/off and other hotkeys to adjust the position
-* Configure these features in the config interface(Configured required in Forge, Cloth Config and Mod Menu required in Fabric)
+* Configure these features in the config interface(Cloth Config required)
 
 ## FAQ ##
 

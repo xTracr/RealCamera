@@ -21,8 +21,7 @@ public class Matrix3dr extends Matrix3d {
         // Rotating order: ZXY
         if (this.m12 <= -1.0D) {
             return new Vec3d(Math.PI/2, Math.atan2(m01, m00), 0.0D);
-        }
-        else if (this.m12 >= 1.0D) {
+        } else if (this.m12 >= 1.0D) {
             return new Vec3d(-Math.PI/2, -Math.atan2(m01, m00), 0.0D);
         }
         double xRot = Math.asin(-this.m12);
