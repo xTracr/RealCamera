@@ -26,7 +26,7 @@ Download the mod from [Releases page](https://github.com/xTracr/RealCamera/relea
   * Pehkui
 * Incompatible:
   * Epic Fight
-  * Yes Steve Model
+  * Yes Steve Model(GeckoLib?)
 * Cause crash:
 
 ### Known Issues ###

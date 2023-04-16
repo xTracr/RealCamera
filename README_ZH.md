@@ -26,7 +26,7 @@
   * Pehkui
 * 不兼容:
   * Epic Fight
-  * Yes Steve Model
+  * Yes Steve Model(GeckoLib?)
 * 引起崩溃:
 
 ### 已知问题 ###

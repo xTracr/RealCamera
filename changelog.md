@@ -7,8 +7,9 @@
 ### Test Versions ###
 
 * 0.4.0-alpha:
-* Bug fixes
+* Fixed an issue where the camera would not follow the model action when the player started/ended sneaking
 * Compatible with Pehkui
+* API for compat with
 
 * 0.3.0-alpha:
 * Made the hit result of the player's crosshair match the actual position of the crosshair
@@ -24,14 +25,14 @@
   * 0.3.4-alpha:
   * Allowed crosshair direction to follow the camera
   * Changed the mod's name
-  * Fixed two binding mode issues
+  * Fixed two binding mode issues:
     * Camera and model animation are not completely synchronized
     * When the inventory is opened, the camera follows the character model in the inventory
   * 0.3.5-alpha:
-  * Bug fixes
+  * Optimized code logic
   * Allowed to disable in specfic conditions
   * 0.3.6-alpha:
-  * Bug fixes
+  * Optimized code logic
   * Updated to 1.19.4
   * Supported Fabric
 
@@ -51,12 +52,13 @@
 ### 测试版 ###
 
 * 0.4.0-alpha:
-* bug修复
+* 修复了玩家开始/结束潜行时摄像头未跟上模型动作的问题
 * 兼容Pehkui
+* 用于兼容的API
 
 * 0.3.0-alpha:
 * 使玩家十字准心的命中结果与十字准心的实际位置相匹配
-* 初步实现了绑定模式的效果
+* 尝试实现绑定模式的效果
   * 0.3.1-alpha:
   * 添加了对其余动作的摄像头位置修正
   * 初步完善了绑定模式
@@ -68,14 +70,14 @@
   * 0.3.4-alpha:
   * 允许让十字准心的方向跟随摄像头
   * 修改了MOD名字
-  * 修复了两个绑定模式下的问题
+  * 修复了两个绑定模式下的问题:
     * 摄像头与模型动画不完全同步
     * 开启物品栏时摄像头跟随物品栏内人物模型转动
   * 0.3.5-alpha:
-  * bug修复
+  * 代码逻辑优化
   * 允许在特定情况下禁用mod部分功能
   * 0.3.6-alpha:
-  * bug修复
+  * 代码逻辑优化
   * 更新至1.19.4
   * 支持Fabric
 
