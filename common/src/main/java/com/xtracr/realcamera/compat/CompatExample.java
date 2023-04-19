@@ -19,15 +19,51 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 
+/**
+ * 
+ * This example uses {@code reflection} to {@code register} and {@code getModelPart}
+ * 
+ * <p>{@code Note:} the variables and methods should all be {@code static}
+ * 
+ * <p>If you don't want to use reflection, here're other examples:
+ * {@code VirtualRenderer.register(modid, CompatExample::virtualRender, nameMap)} 
+ * or {@code VirtualRenderer.register(CompatExample.class)}
+ * <p>However, an (optional) dependency should be added to call the method {@link com.xtracr.realcamera.utils.VirtualRenderer#register()}
+ * <p>If you don't know how to add a dependency, see {@link https://jitpack.io or https://jitpack.io/#xTracr/RealCamera/} to get information about it
+ * 
+ */
 public class CompatExample {
 
+    /**
+     * 
+     * It's not necessary to use your {@code modid}. 
+     * <p>However, It is strongly recommended to use {@code modid} directly.
+     * 
+     */
     public static final String modid = "minecraft";
+    /**
+     * 
+     * {@code nameMap} is a mapping from the {@link com.xtracr.realcamera.config.ModConfig.Compats#modModelPart name} of {@code ModelPart}
+     * to the name of the {@link java.lang.reflect.Field field} of {@code ModelPart} in the code.
+     * <p>The situation is somewhat unique for Minecraft Vanilla. In the case of a mod, {@code nameMap} may not be necessary.
+     * <p>Therefore, you can directly register a {@code null} or not declare a {@code nameMap}, so that no mapping will be performed when obtaining the name.
+     * 
+     */
     public static final Map<String, String> nameMap = new HashMap<>();
 
+    /**
+     * 
+     * {@code = VirtualRenderer.class.getDeclaredMethod("getModelPart", Object.class)}
+     * @see #register()
+     * @see com.xtracr.realcamera.utils.VirtualRenderer#getModelPart(Object) getModelPart(Object)
+     * 
+     */
     private static Method getModelPartMethod;
 
     static {
+        // These data were obtained from the mapping file.
         try {
+            // Fabric
             Class.forName("net.fabricmc.loader.api.FabricLoader");
             nameMap.put("head", "field_3398");
             nameMap.put("hat", "field_3394");
@@ -44,6 +80,7 @@ public class CompatExample {
             nameMap.put("cloak", "field_3485");
             nameMap.put("ear", "field_3481");
         } catch (ClassNotFoundException exception) {
+            // Forge
             nameMap.put("head", "f_102808_");
             nameMap.put("hat", "f_102809_");
             nameMap.put("body", "f_102810_");
@@ -66,17 +103,22 @@ public class CompatExample {
      * 
      * This method is called in {@link com.xtracr.realcamera.RealCamera#setup()}
      * <p>Your should register before the first time camera setup
+     * @see com.xtracr.realcamera.utils.VirtualRenderer#register methods to register
      * 
      */
     public static void register() {
         //if ( Real Camera isn't loaded ) return; -- in fact not necessary here
         try {
             final Class<?> VirtualRendererClass = Class.forName("com.xtracr.realcamera.utils.VirtualRenderer");
-            final Method registerA = VirtualRendererClass.getDeclaredMethod("register", Class.class);
-            //final Method registerB = VirtualRenderersClass.getDeclaredMethod("register", String.class, Class.class, String.class, Map.class);
             getModelPartMethod = VirtualRendererClass.getDeclaredMethod("getModelPart", Object.class);
+
+            final Method registerA = VirtualRendererClass.getDeclaredMethod("register", Class.class);
             registerA.invoke(null, CompatExample.class);
+
+            // -- another way to register
+            //final Method registerB = VirtualRenderersClass.getDeclaredMethod("register", String.class, Class.class, String.class, Map.class);
             //registerB.invoke(null, modid, CompatExample.class, "virtualRender", nameMap);
+            
         } catch (ClassNotFoundException exception) {
             // handle ClassNotFoundException
         } catch (NoSuchMethodException | SecurityException exception) {
@@ -88,8 +130,15 @@ public class CompatExample {
 
     /**
      * 
+     * This method's code should include as much as possible all parts related to {@code matrixStack} in the code that renders the player model, 
+     * to ensure that the result of {@code matrixStack} after processing is identical to the actual rendering
      * @param tickDelta
      * @param matrixStack
+     * @see net.minecraft.client.render.entity.EntityRenderDispatcher#render
+     * @see net.minecraft.client.render.entity.PlayerEntityRenderer#render
+     * @see net.minecraft.client.render.entity.LivingEntityRenderer#render
+     * @see net.minecraft.client.render.entity.model.AnimalModel#render
+     * @see net.minecraft.client.model.ModelPart#render
      * 
      */
     @SuppressWarnings("resource")
@@ -172,9 +221,6 @@ public class CompatExample {
             matrixStack.scale(f, f, f);
             matrixStack.translate(0.0f, playerModel.childBodyYOffset / 16.0f, 0.0f);
             ((ModelPart)getModelPartMethod.invoke(null, playerModel)).rotate(matrixStack);
-            playerModel.getBodyParts().forEach(bodyPart -> bodyPart.render(matrixStack, vertices, light, overlay, red, green, blue, alpha));
-            return;
-            matrixStack.pop();
         }
          */
         // ModelPart.render

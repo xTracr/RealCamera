@@ -9,7 +9,8 @@
 * 0.4.0-alpha:
 * Fixed an issue where the camera would not follow the model action when the player started/ended sneaking
 * Compatible with Pehkui
-* API for compat with
+* API to compat with
+  * 0.4.1-alpha:
 
 * 0.3.0-alpha:
 * Made the hit result of the player's crosshair match the actual position of the crosshair
@@ -55,6 +56,7 @@
 * 修复了玩家开始/结束潜行时摄像头未跟上模型动作的问题
 * 兼容Pehkui
 * 用于兼容的API
+  * 0.4.1-alpha:
 
 * 0.3.0-alpha:
 * 使玩家十字准心的命中结果与十字准心的实际位置相匹配

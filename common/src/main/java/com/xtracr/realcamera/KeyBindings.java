@@ -11,68 +11,64 @@ import net.minecraft.client.util.InputUtil;
 
 public final class KeyBindings {
     
-    private static final MinecraftClient MC = MinecraftClient.getInstance();
     private static final ModConfig config = ConfigFile.modConfig; 
 
     private static final String KEY_CATEGORY = "key.category.xtracr_"+RealCamera.MODID;
     private static final String KEY_ID = "key.xtracr_"+RealCamera.MODID+"_";
     
     public static final KeyBinding toggleCamera = new KeyBinding(
-        KEY_ID+"toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F6, KEY_CATEGORY);
-    public static final KeyBinding cameraUP = new KeyBinding(
-        KEY_ID+"cameraup", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
-    public static final KeyBinding cameraDOWN = new KeyBinding(
-        KEY_ID+"cameradown", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
-    public static final KeyBinding cameraIN = new KeyBinding(
-        KEY_ID+"camerain", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
-    public static final KeyBinding cameraOUT = new KeyBinding(
-        KEY_ID+"cameraout", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
-    public static final KeyBinding cameraLEFT = new KeyBinding(
-        KEY_ID+"cameraleft", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
-    public static final KeyBinding cameraRIGHT = new KeyBinding(
-        KEY_ID+"cameraright", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
-    public static final KeyBinding centerUP = new KeyBinding(
-        KEY_ID+"centerup", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
-    public static final KeyBinding centerDOWN = new KeyBinding(
-        KEY_ID+"centerdown", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
+        KEY_ID+"toggleCamera", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F6, KEY_CATEGORY);
+    public static final KeyBinding toggleAdjustMode = new KeyBinding(
+        KEY_ID+"toggleAdjust", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
+    public static final KeyBinding adjustUP = new KeyBinding(
+        KEY_ID+"adjustUP", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
+    public static final KeyBinding adjustDOWN = new KeyBinding(
+        KEY_ID+"adjustDOWN", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
+    public static final KeyBinding adjustFRONT = new KeyBinding(
+        KEY_ID+"adjustFRONT", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
+    public static final KeyBinding adjustBACK = new KeyBinding(
+        KEY_ID+"adjustBACK", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
+    public static final KeyBinding adjustLEFT = new KeyBinding(
+        KEY_ID+"adjustLEFT", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
+    public static final KeyBinding adjustRIGHT = new KeyBinding(
+        KEY_ID+"adjustRIGHT", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
     
-    public static void handle() {
+    public static void handle(MinecraftClient MC) {
         if (MC.player == null || MC.currentScreen != null) {
             return;
         }
 
         while (toggleCamera.wasPressed()) {
-            config.setEnabled(!config.isEnabled());
+            boolean enabled = config.isEnabled();
+            ConfigFile.load();
+            config.setEnabled(!enabled);
         }
-        while (cameraUP.wasPressed()) {
-            if (config.isClassic()) { config.addCameraY(); }
+        while (toggleAdjustMode.wasPressed()) {
+            config.setAdjustCamera(!config.isAdjustCamera());
+        }
+        while (adjustUP.wasPressed()) {
+            if (config.isClassic()) { config.addClassicY(); }
             else { config.addBindingY(); }
         }
-        while (cameraDOWN.wasPressed()) {
-            if (config.isClassic()) { config.subCameraY(); }
+        while (adjustDOWN.wasPressed()) {
+            if (config.isClassic()) { config.subClassicY(); }
             else { config.subBindingY(); }
         }
-        while (cameraIN.wasPressed()) {
-            if (config.isClassic()) { config.subCameraX(); }
-            else { config.subBindingX(); }
-        }
-        while (cameraOUT.wasPressed()) {
-            if (config.isClassic()) { config.addCameraX(); }
+        while (adjustFRONT.wasPressed()) {
+            if (config.isClassic()) { config.addClassicX(); }
             else { config.addBindingX(); }
         }
-        while (cameraLEFT.wasPressed()) {
-            if (config.isClassic()) { config.addCameraZ(); }
+        while (adjustBACK.wasPressed()) {
+            if (config.isClassic()) { config.subClassicX(); }
+            else { config.subBindingX(); }
+        }
+        while (adjustLEFT.wasPressed()) {
+            if (config.isClassic()) { config.addClassicZ(); }
             else { config.addBindingZ(); }
         }
-        while (cameraRIGHT.wasPressed()) {
-            if (config.isClassic()) { config.subCameraZ(); }
+        while (adjustRIGHT.wasPressed()) {
+            if (config.isClassic()) { config.subClassicZ(); }
             else { config.subBindingZ(); }
-        }
-        while (centerUP.wasPressed()) {
-            config.addCenterY();
-        }
-        while (centerDOWN.wasPressed()) {
-            config.subCenterY();
         }
     }
 

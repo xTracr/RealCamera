@@ -2,6 +2,7 @@ package com.xtracr.realcamera;
 
 import com.xtracr.realcamera.config.ConfigScreen;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraftforge.client.ConfigScreenHandler.ConfigScreenFactory;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.event.InputEvent.Key;
@@ -34,21 +35,22 @@ public class RealCameraForge {
 
         RealCamera.setup();
 
-        MinecraftForge.EVENT_BUS.addListener((Key keyEvent) -> KeyBindings.handle());
+        MinecraftForge.EVENT_BUS.addListener((Key keyEvent) -> 
+            KeyBindings.handle(MinecraftClient.getInstance())
+        );
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onCameraSetup);
     }
 
     @SubscribeEvent
     public void onKeyRegister(RegisterKeyMappingsEvent event) {       
         event.register(KeyBindings.toggleCamera);
-        event.register(KeyBindings.cameraUP);
-        event.register(KeyBindings.cameraDOWN);
-        event.register(KeyBindings.cameraIN);
-        event.register(KeyBindings.cameraOUT);
-        event.register(KeyBindings.cameraLEFT);
-        event.register(KeyBindings.cameraRIGHT);
-        event.register(KeyBindings.centerUP);
-        event.register(KeyBindings.centerDOWN);
+        event.register(KeyBindings.toggleAdjustMode);
+        event.register(KeyBindings.adjustUP);
+        event.register(KeyBindings.adjustDOWN);
+        event.register(KeyBindings.adjustBACK);
+        event.register(KeyBindings.adjustFRONT);
+        event.register(KeyBindings.adjustLEFT);
+        event.register(KeyBindings.adjustRIGHT);
     }
 
     

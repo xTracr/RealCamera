@@ -33,12 +33,12 @@ public class CameraController {
 
     private static Vec3d cameraOffset = Vec3d.ZERO;
     private static Vec3d cameraRotation = Vec3d.ZERO;
-    private static float centerYRot = 0.0F;
 
     public static float cameraRoll = 0.0F;
 
     public static boolean isActive() {
-        return config.isEnabled() && MinecraftClient.getInstance().options.getPerspective().isFirstPerson();
+        MinecraftClient MC = MinecraftClient.getInstance();
+        return config.isEnabled() && MC.options.getPerspective().isFirstPerson() && !config.isDisabledWhen(MC.player);
     }
 
     public static boolean doCrosshairRotate() {
@@ -64,13 +64,12 @@ public class CameraController {
         cameraOffset = Vec3d.ZERO;
         cameraRotation = new Vec3d(camera.getPitch(), camera.getYaw(), cameraRoll);
 
-        if (config.isDisabledWhen(MC.player)) return;
         if (config.isRendering() && !config.onlyDisableRenderingWhen(MC.player)) {
             ((CameraAccessor)camera).setThirdPerson(true);
         }
 
-        if (config.isClassic()) {setClassicOffset(camera, MC, tickDelta);}
-        else {setBindingOffset(camera, MC, tickDelta);}
+        if (config.isClassic()) { setClassicOffset(camera, MC, tickDelta); }
+        else { setBindingOffset(camera, MC, tickDelta); }
 
         cameraOffset = camera.getPos().subtract(MC.player.getCameraPosVec(tickDelta));
     }
@@ -79,13 +78,17 @@ public class CameraController {
         CameraAccessor cameraAccessor = (CameraAccessor)camera;
         ClientPlayerEntity player = MC.player;
         
-        float xRot = player.getPitch(tickDelta);
-        float yRot = player.getYaw(tickDelta);
+        float xRot = camera.getPitch();
+        float yRot = camera.getYaw();
+        float centerYRot = yRot;
         Vec3d offset = new Vec3d(config.getCameraX(), config.getCameraY(), config.getCameraZ()).multiply(config.getScale());
-        Vec3d center = new Vec3d(0.0D, config.getCenterY(), 0.0D).multiply(config.getScale());
+        Vec3d center = new Vec3d(config.getCenterX(), config.getCenterY(), config.getCenterZ()).multiply(config.getScale());
 
         if (player.isSneaking()) {
             center = center.add(0.0D, -0.021875, 0.0D);
+        } else if (player.isInSwimmingPose()) {
+            offset = offset.rotateZ((float)Math.PI/2);
+            center = center.rotateZ((float)Math.PI/2);
         }
 
         if (config.compatPehkui()) {
@@ -131,7 +134,8 @@ public class CameraController {
             try {
                 matrixStack.push();
                 VirtualRenderer.virtualRender(tickDelta, matrixStack);
-            } catch (Exception exception) {
+            } catch (Throwable exception) {
+                //exception.printStackTrace();
                 matrixStack.pop();
                 virtualRender(player, playerRenderer, tickDelta, matrixStack);
                 if (exception instanceof IllegalAccessException || exception instanceof IllegalArgumentException) {
@@ -250,9 +254,6 @@ public class CameraController {
             matrixStack.scale(f, f, f);
             matrixStack.translate(0.0f, playerModel.childBodyYOffset / 16.0f, 0.0f);
             config.getVanillaModelPart().get(renderer.getModel()).rotate(matrixStack);
-            playerModel.getBodyParts().forEach(bodyPart -> bodyPart.render(matrixStack, vertices, light, overlay, red, green, blue, alpha));
-            return;
-            matrixStack.pop();
         }
          */
         // ModelPart.render

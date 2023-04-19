@@ -1,6 +1,5 @@
 package com.xtracr.realcamera.utils;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,16 +12,36 @@ import com.xtracr.realcamera.config.ModConfig;
 
 import net.minecraft.client.util.math.MatrixStack;
 
+/**
+ * @see com.xtracr.realcamera.compat.CompatExample example
+ */
 public class VirtualRenderer {
     
     private static final ModConfig config = ConfigFile.modConfig;
 
+    private static final Map<String, VirtualRenderFunction> functionProvider = new HashMap<>();
     private static final Map<String, Optional<Method>> methodProvider = new HashMap<>();
     private static final Map<String, Map<String, String>> fieldNameProvider = new HashMap<>();
 
     /**
      * 
-     * @param rendererClass
+     * @param modid
+     * @param function a {@link VirtualRenderFunction}
+     * @param nameMap a mapping from the {@link com.xtracr.realcamera.config.ModConfig.Compats#modModelPart name} of {@code ModelPart}
+     * to the name of the {@link java.lang.reflect.Field field} of {@code ModelPart} in the code.
+     * {@link com.xtracr.realcamera.compat.CompatExample#nameMap See example}
+     * 
+     */
+    public static void register(final String modid, final VirtualRenderFunction function, @Nullable final Map<String, String> nameMap) {
+        functionProvider.put(modid, function);
+        if (nameMap != null) fieldNameProvider.put(modid, nameMap);
+    }
+
+    /**
+     * 
+     * @param rendererClass containing a {@link String} {@code modid}, a {@link Method void Method} {@code virtualRender} 
+     * and a {@link Map} {@code nameMap} from String to  String.These variables should all be {@code static}.
+     * {@link com.xtracr.realcamera.compat.CompatExample See example}
      * 
      */
     @SuppressWarnings("unchecked")
@@ -34,9 +53,12 @@ public class VirtualRenderer {
     /**
      * 
      * @param modid
-     * @param rendererClass
-     * @param methodName
-     * @param nameMap
+     * @param rendererClass containing a {@link Method void Method} {@code methodName}.
+     * {@link com.xtracr.realcamera.compat.CompatExample See example}
+     * @param methodName {@code virtualRender} default
+     * @param nameMap a mapping from the {@link com.xtracr.realcamera.config.ModConfig.Compats#modModelPart name} of {@code ModelPart}
+     * to the name of the {@link java.lang.reflect.Field field} of {@code ModelPart} in the code.
+     * {@link com.xtracr.realcamera.compat.CompatExample#nameMap See example}
      * 
      */
     public static void register(final String modid, final Class<?> rendererClass, String methodName, @Nullable final Map<String, String> nameMap) {
@@ -46,7 +68,7 @@ public class VirtualRenderer {
 
     /**
      * 
-     * @return
+     * @return the model part name entered by the user in the config interface
      * 
      */
     public static String getModelPartName() {
@@ -55,16 +77,7 @@ public class VirtualRenderer {
 
     /**
      * 
-     * @return
-     * 
-     */
-    public static String getVanillaModelPartName() {
-        return config.getVanillaModelPart().name();
-    }
-
-    /**
-     * 
-     * @return
+     * @return the mapped model part field name
      * 
      */
     public static String getModelPartFieldName() {
@@ -76,17 +89,24 @@ public class VirtualRenderer {
 
     /**
      * 
-     * @param model
-     * @return 
+     * {@link #getModelPart(Object)} provides you with a convenient way to obtain model parts based on config information.
+     * <p>However, It is recommended to use the {@link #getModelPartName()} method to directly obtain the config information 
+     * and write a method to decide which model part to get in each case.
+     * 
+     * @param model player model
+     * @return {@code ModelPart} obtained based on the mapped name.
      * 
      */
     public static Object getModelPart(final Object model) {
         return getFieldValue(model.getClass(), getModelPartFieldName(), model);
     }
 
-    public static void virtualRender(float particalTick, MatrixStack matrixStack)
-            throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NullPointerException {
-        methodProvider.get(config.getModelModID()).get().invoke(null, particalTick, matrixStack);
+    public static void virtualRender(float tickDelta, MatrixStack matrixStack) throws Throwable {
+        if (functionProvider.containsKey(config.getModelModID())) {
+            functionProvider.get(config.getModelModID()).virtualRender(tickDelta, matrixStack);
+        } else {
+            methodProvider.get(config.getModelModID()).get().invoke(null, tickDelta, matrixStack);
+        }
     }
 
     private static Object getFieldValue(final Class<?> renderClass, final String fieldName, @Nullable final Object object) {
