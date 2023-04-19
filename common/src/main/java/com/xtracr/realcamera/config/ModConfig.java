@@ -19,11 +19,11 @@ public class ModConfig {
         public boolean enabled = false;
         public boolean classic = false;
         public boolean renderModel = true;
-        public double cameraStep = 0.25D;
+        public double adjustStep = 0.25D;
         public double scale = 1.0D;
 
         private void clamp() {
-            cameraStep = MathHelper.clamp(cameraStep, 0.0D, maxVALUE);
+            adjustStep = MathHelper.clamp(adjustStep, 0.0D, maxVALUE);
             scale = MathHelper.clamp(scale, 0.0D, maxVALUE);
         }
 
@@ -55,18 +55,21 @@ public class ModConfig {
 
     public class Classic {
 
+        public boolean adjustCamera = true;
         public double cameraX = 3.25D;
         public double cameraY = 2.0D;
         public double cameraZ = 0.0D;
+        public double centerX = 0.0D;
         public double centerY = -3.4D;
-        public double centerStep = 0.25D;
+        public double centerZ = 0.0D;
 
         private void clamp() {
             cameraX = MathHelper.clamp(cameraX, minVALUE, maxVALUE);
             cameraY = MathHelper.clamp(cameraY, minVALUE, maxVALUE);
             cameraZ = MathHelper.clamp(cameraZ, minVALUE, maxVALUE);
+            centerX = MathHelper.clamp(centerX, minVALUE, maxVALUE);
             centerY = MathHelper.clamp(centerY, minVALUE, maxVALUE);
-            centerStep = MathHelper.clamp(centerStep, 0.0D, maxVALUE);
+            centerZ = MathHelper.clamp(centerZ, minVALUE, maxVALUE);
         }
 
     }
@@ -114,8 +117,8 @@ public class ModConfig {
     public boolean isRendering() {
         return this.general.renderModel;
     }
-    public double getCameraStep() {
-        return this.general.cameraStep;
+    public double getAdjustStep() {
+        return this.general.adjustStep;
     }
     public double getScale() {
         return this.general.scale * 0.0625D;
@@ -133,8 +136,8 @@ public class ModConfig {
         this.general.renderModel = value;
         ConfigFile.save();
     }
-    public void setCameraStep(double value) {
-        this.general.cameraStep = value;
+    public void setAdjustStep(double value) {
+        this.general.adjustStep = value;
         ConfigFile.save();
     }
     public void setScale(double value) {
@@ -225,25 +228,28 @@ public class ModConfig {
     }
 
     public void addBindingX() {
-        setBindingX(Math.min(getBindingX() + getCameraStep(), maxVALUE));
+        setBindingX(Math.min(getBindingX() + getAdjustStep(), maxVALUE));
     }
     public void subBindingX() {
-        setBindingX(Math.max(getBindingX() - getCameraStep(), minVALUE));
+        setBindingX(Math.max(getBindingX() - getAdjustStep(), minVALUE));
     }
     public void addBindingY() {
-        setBindingY(Math.min(getBindingY() + getCameraStep(), maxVALUE));
+        setBindingY(Math.min(getBindingY() + getAdjustStep(), maxVALUE));
     }
     public void subBindingY() {
-        setBindingY(Math.max(getBindingY() - getCameraStep(), minVALUE));
+        setBindingY(Math.max(getBindingY() - getAdjustStep(), minVALUE));
     }
     public void addBindingZ() {
-        setBindingZ(Math.min(getBindingZ() + getCameraStep(), maxVALUE));
+        setBindingZ(Math.min(getBindingZ() + getAdjustStep(), maxVALUE));
     }
     public void subBindingZ() {
-        setBindingZ(Math.max(getBindingZ() - getCameraStep(), minVALUE));
+        setBindingZ(Math.max(getBindingZ() - getAdjustStep(), minVALUE));
     }
 
     // classic
+    public boolean isAdjustCamera() {
+        return this.classic.adjustCamera;
+    }
     public double getCameraX() {
         return this.classic.cameraX;
     }
@@ -253,13 +259,20 @@ public class ModConfig {
     public double getCameraZ() {
         return this.classic.cameraZ;
     }
+    public double getCenterX() {
+        return this.classic.centerX;
+    }
     public double getCenterY() {
         return this.classic.centerY;
     }
-    public double getCenterStep() {
-        return this.classic.centerStep;
+    public double getCenterZ() {
+        return this.classic.centerZ;
     }
     
+    public void setAdjustCamera(boolean value) {
+        this.classic.adjustCamera = value;
+        ConfigFile.save();
+    }
     public void setCameraX(double value) {
         this.classic.cameraX = value;
         ConfigFile.save();
@@ -272,38 +285,42 @@ public class ModConfig {
         this.classic.cameraZ = value;
         ConfigFile.save();
     }
+    public void setCenterX(double value) {
+        this.classic.centerX = value;
+        ConfigFile.save();
+    }
     public void setCenterY(double value) {
         this.classic.centerY = value;
         ConfigFile.save();
     }
-    public void setCenterStep(double value) {
-        this.classic.centerStep = value;
+    public void setCenterZ(double value) {
+        this.classic.centerZ = value;
         ConfigFile.save();
     }
 
-    public void addCameraX() {
-        setCameraX(Math.min(getCameraX() + getCameraStep(), maxVALUE));
+    public void addClassicX() {
+        if (isAdjustCamera()) setCameraX(Math.min(getCameraX() + getAdjustStep(), maxVALUE));
+        else setCenterX(Math.min(getCenterX() + getAdjustStep(), maxVALUE));
     }
-    public void subCameraX() {
-        setCameraX(Math.max(getCameraX() - getCameraStep(), minVALUE));
+    public void subClassicX() {
+        if (isAdjustCamera()) setCameraX(Math.max(getCameraX() - getAdjustStep(), minVALUE));
+        else setCenterX(Math.max(getCenterX() - getAdjustStep(), minVALUE));
     }
-    public void addCameraY() {
-        setCameraY(Math.min(getCameraY() + getCameraStep(), maxVALUE));
+    public void addClassicY() {
+        if (isAdjustCamera()) {setCameraY(Math.min(getCameraY() + getAdjustStep(), maxVALUE));}
+        else setCenterY(Math.min(getCenterY() + getAdjustStep(), maxVALUE));
     }
-    public void subCameraY() {
-        setCameraY(Math.max(getCameraY() - getCameraStep(), minVALUE));
+    public void subClassicY() {
+        if (isAdjustCamera()) setCameraY(Math.max(getCameraY() - getAdjustStep(), minVALUE));
+        else setCenterY(Math.max(getCenterY() - getAdjustStep(), minVALUE));
     }
-    public void addCameraZ() {
-        setCameraZ(Math.min(getCameraZ() + getCameraStep(), maxVALUE));
+    public void addClassicZ() {
+        if (isAdjustCamera()) setCameraZ(Math.min(getCameraZ() + getAdjustStep(), maxVALUE));
+        else setCenterZ(Math.min(getCenterZ() + getAdjustStep(), maxVALUE));
     }
-    public void subCameraZ() {
-        setCameraZ(Math.max(getCameraZ() - getCameraStep(), minVALUE));
-    }
-    public void addCenterY() {
-        setCenterY(Math.min(getCenterY() + getCenterStep(), maxVALUE));
-    }
-    public void subCenterY() {
-        setCenterY(Math.max(getCenterY() - getCenterStep(), minVALUE));
+    public void subClassicZ() {
+        if (isAdjustCamera()) setCameraZ(Math.max(getCameraZ() - getAdjustStep(), minVALUE));
+        else setCenterZ(Math.max(getCenterZ() - getAdjustStep(), minVALUE));
     }
 
 }

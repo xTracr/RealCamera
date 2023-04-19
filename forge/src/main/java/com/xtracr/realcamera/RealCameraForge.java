@@ -2,6 +2,7 @@ package com.xtracr.realcamera;
 
 import com.xtracr.realcamera.config.ConfigScreen;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraftforge.client.ClientRegistry;
 import net.minecraftforge.client.ConfigGuiHandler.ConfigGuiFactory;
 import net.minecraftforge.client.event.InputEvent.KeyInputEvent;
@@ -33,18 +34,19 @@ public class RealCameraForge {
 
         RealCamera.setup();
 
-        MinecraftForge.EVENT_BUS.addListener((KeyInputEvent keyEvent) -> KeyBindings.handle());
+        MinecraftForge.EVENT_BUS.addListener((KeyInputEvent keyEvent) -> 
+            KeyBindings.handle(MinecraftClient.getInstance())
+        );
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onCameraSetup);
         
         ClientRegistry.registerKeyBinding(KeyBindings.toggleCamera);
-        ClientRegistry.registerKeyBinding(KeyBindings.cameraUP);
-        ClientRegistry.registerKeyBinding(KeyBindings.cameraDOWN);
-        ClientRegistry.registerKeyBinding(KeyBindings.cameraIN);
-        ClientRegistry.registerKeyBinding(KeyBindings.cameraOUT);
-        ClientRegistry.registerKeyBinding(KeyBindings.cameraLEFT);
-        ClientRegistry.registerKeyBinding(KeyBindings.cameraRIGHT);
-        ClientRegistry.registerKeyBinding(KeyBindings.centerUP);
-        ClientRegistry.registerKeyBinding(KeyBindings.centerDOWN);
+        ClientRegistry.registerKeyBinding(KeyBindings.toggleAdjustMode);
+        ClientRegistry.registerKeyBinding(KeyBindings.adjustUP);
+        ClientRegistry.registerKeyBinding(KeyBindings.adjustDOWN);
+        ClientRegistry.registerKeyBinding(KeyBindings.adjustFRONT);
+        ClientRegistry.registerKeyBinding(KeyBindings.adjustBACK);
+        ClientRegistry.registerKeyBinding(KeyBindings.adjustLEFT);
+        ClientRegistry.registerKeyBinding(KeyBindings.adjustRIGHT);
     }
     
 }

@@ -41,17 +41,17 @@ public class ConfigScreen {
             .setTooltip(new TranslatableText(Tooltip+"classic"))
             .setSaveConsumer(b -> config.general.classic = b)
             .build());
-        general.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(Option+"rendermodel"), config.general.renderModel)
+        general.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(Option+"renderModel"), config.general.renderModel)
             .setDefaultValue(true)
-            .setTooltip(new TranslatableText(Tooltip+"rendermodel"))
+            .setTooltip(new TranslatableText(Tooltip+"renderModel"))
             .setSaveConsumer(b -> config.general.renderModel = b)
             .build());
-        general.addEntry(entryBuilder.startDoubleField(new TranslatableText(Option+"camerastep"), config.general.cameraStep)
+        general.addEntry(entryBuilder.startDoubleField(new TranslatableText(Option+"adjustStep"), config.general.adjustStep)
             .setDefaultValue(0.25D)
             .setMin(0.0D)
             .setMax(ModConfig.maxVALUE)
-            .setTooltip(new TranslatableText(Tooltip+"camerastep"))
-            .setSaveConsumer(d -> config.general.cameraStep = d)
+            .setTooltip(new TranslatableText(Tooltip+"adjustStep"))
+            .setSaveConsumer(d -> config.general.adjustStep = d)
             .build());
         general.addEntry(entryBuilder.startDoubleField(new TranslatableText(Option+"scale"), config.general.scale)
             .setDefaultValue(1.0D)
@@ -61,19 +61,19 @@ public class ConfigScreen {
             .setSaveConsumer(d -> config.general.scale = d)
             .build());
         
-        binding.addEntry(entryBuilder.startEnumSelector(new TranslatableText(Option+"vanillamodelpart"), VanillaModelPart.class, config.binding.vanillaModelPart)
+        binding.addEntry(entryBuilder.startEnumSelector(new TranslatableText(Option+"vanillaModelPart"), VanillaModelPart.class, config.binding.vanillaModelPart)
             .setDefaultValue(VanillaModelPart.head)
-            .setTooltip(new TranslatableText(Tooltip+"vanillamodelpart"))
+            .setTooltip(new TranslatableText(Tooltip+"vanillaModelPart"))
             .setSaveConsumer(e -> config.binding.vanillaModelPart = e)
             .build());
-        binding.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(Option+"binddirection"), config.binding.bindDirection)
+        binding.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(Option+"bindDirection"), config.binding.bindDirection)
             .setDefaultValue(true)
-            .setTooltip(new TranslatableText(Tooltip+"binddirection"))
+            .setTooltip(new TranslatableText(Tooltip+"bindDirection"))
             .setSaveConsumer(b -> config.binding.bindDirection = b)
             .build());
-        binding.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(Option+"lockrolling"), config.binding.lockRolling)
+        binding.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(Option+"lockRolling"), config.binding.lockRolling)
             .setDefaultValue(false)
-            .setTooltip(new TranslatableText(Tooltip+"lockrolling"))
+            .setTooltip(new TranslatableText(Tooltip+"lockRolling"))
             .setSaveConsumer(b -> config.binding.lockRolling = b)
             .build());
         binding.addEntry(entryBuilder.startDoubleField(new TranslatableText(Option+"bindingX"), config.binding.bindingX)
@@ -119,6 +119,11 @@ public class ConfigScreen {
             .setSaveConsumer(d -> config.binding.roll = d)
             .build());
         
+        classic.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(Option+"adjustCamera"), config.classic.adjustCamera)
+            .setDefaultValue(true)
+            .setTooltip(new TranslatableText(Tooltip+"adjustCamera"))
+            .setSaveConsumer(b -> config.classic.adjustCamera = b)
+            .build());
         classic.addEntry(entryBuilder.startDoubleField(new TranslatableText(Option+"cameraX"), config.classic.cameraX)
             .setDefaultValue(3.25D)
             .setMin(ModConfig.minVALUE)
@@ -140,6 +145,13 @@ public class ConfigScreen {
             .setTooltip(new TranslatableText(Tooltip+"cameraZ"))
             .setSaveConsumer(d -> config.classic.cameraZ = d)
             .build());
+        classic.addEntry(entryBuilder.startDoubleField(new TranslatableText(Option+"centerX"), config.classic.centerX)
+            .setDefaultValue(0.0D)
+            .setMin(ModConfig.minVALUE)
+            .setMax(ModConfig.maxVALUE)
+            .setTooltip(new TranslatableText(Tooltip+"centerX"))
+            .setSaveConsumer(d -> config.classic.centerX = d)
+            .build());
         classic.addEntry(entryBuilder.startDoubleField(new TranslatableText(Option+"centerY"), config.classic.centerY)
             .setDefaultValue(-3.4D)
             .setMin(ModConfig.minVALUE)
@@ -147,27 +159,27 @@ public class ConfigScreen {
             .setTooltip(new TranslatableText(Tooltip+"centerY"))
             .setSaveConsumer(d -> config.classic.centerY = d)
             .build());
-        classic.addEntry(entryBuilder.startDoubleField(new TranslatableText(Option+"centerstep"), config.classic.centerStep)
-            .setDefaultValue(0.25D)
+        classic.addEntry(entryBuilder.startDoubleField(new TranslatableText(Option+"centerZ"), config.classic.centerZ)
+            .setDefaultValue(0.0D)
             .setMin(ModConfig.minVALUE)
             .setMax(ModConfig.maxVALUE)
-            .setTooltip(new TranslatableText(Tooltip+"centerstep"))
-            .setSaveConsumer(d -> config.classic.centerStep = d)
+            .setTooltip(new TranslatableText(Tooltip+"centerZ"))
+            .setSaveConsumer(d -> config.classic.centerZ = d)
             .build());
         
-        compats.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(Option+"usemodmodel"), config.compats.useModModel)
+        compats.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(Option+"useModModel"), config.compats.useModModel)
             .setDefaultValue(false)
-            .setTooltip(new TranslatableText(Tooltip+"usemodmodel"))
+            .setTooltip(new TranslatableText(Tooltip+"useModModel"))
             .setSaveConsumer(b -> config.compats.useModModel = b)
             .build());
-        compats.addEntry(entryBuilder.startStrField(new TranslatableText(Option+"modelmodid"), config.compats.modelModID)
+        compats.addEntry(entryBuilder.startStrField(new TranslatableText(Option+"modelModID"), config.compats.modelModID)
             .setDefaultValue("minecraft")
-            .setTooltip(new TranslatableText(Tooltip+"modelmodid"))
+            .setTooltip(new TranslatableText(Tooltip+"modelModID"))
             .setSaveConsumer(s -> config.compats.modelModID = s)
             .build());
-        compats.addEntry(entryBuilder.startStrField(new TranslatableText(Option+"modmodelpart"), config.compats.modModelPart)
+        compats.addEntry(entryBuilder.startStrField(new TranslatableText(Option+"modModelPart"), config.compats.modModelPart)
             .setDefaultValue("head")
-            .setTooltip(new TranslatableText(Tooltip+"modmodelpart"))
+            .setTooltip(new TranslatableText(Tooltip+"modModelPart"))
             .setSaveConsumer(s -> config.compats.modModelPart = s)
             .build());
         if (PehkuiCompat.loaded)
@@ -177,9 +189,9 @@ public class ConfigScreen {
             .setSaveConsumer(b -> config.compats.pehkui = b)
             .build());
         
-        disables.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(Option+"fallflying"), config.disables.fallFlying)
+        disables.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(Option+"fallFlying"), config.disables.fallFlying)
             .setDefaultValue(true)
-            .setTooltip(new TranslatableText(Tooltip+"fallflying"))
+            .setTooltip(new TranslatableText(Tooltip+"fallFlying"))
             .setSaveConsumer(b -> config.disables.fallFlying = b)
             .build());
         disables.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(Option+"swiming"), config.disables.swiming)

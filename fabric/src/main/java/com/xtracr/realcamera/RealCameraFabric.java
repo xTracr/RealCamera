@@ -18,15 +18,14 @@ public class RealCameraFabric implements ClientModInitializer {
 	private void registerKeyBindings() {
         
         KeyBindingHelper.registerKeyBinding(KeyBindings.toggleCamera);
-        KeyBindingHelper.registerKeyBinding(KeyBindings.cameraUP);
-        KeyBindingHelper.registerKeyBinding(KeyBindings.cameraDOWN);
-        KeyBindingHelper.registerKeyBinding(KeyBindings.cameraIN);
-        KeyBindingHelper.registerKeyBinding(KeyBindings.cameraOUT);
-        KeyBindingHelper.registerKeyBinding(KeyBindings.cameraLEFT);
-        KeyBindingHelper.registerKeyBinding(KeyBindings.cameraRIGHT);
-        KeyBindingHelper.registerKeyBinding(KeyBindings.centerUP);
-        KeyBindingHelper.registerKeyBinding(KeyBindings.centerDOWN);
+        KeyBindingHelper.registerKeyBinding(KeyBindings.toggleAdjustMode);
+        KeyBindingHelper.registerKeyBinding(KeyBindings.adjustUP);
+        KeyBindingHelper.registerKeyBinding(KeyBindings.adjustDOWN);
+        KeyBindingHelper.registerKeyBinding(KeyBindings.adjustBACK);
+        KeyBindingHelper.registerKeyBinding(KeyBindings.adjustFRONT);
+        KeyBindingHelper.registerKeyBinding(KeyBindings.adjustLEFT);
+        KeyBindingHelper.registerKeyBinding(KeyBindings.adjustRIGHT);
 
-        ClientTickEvents.END_CLIENT_TICK.register(client -> KeyBindings.handle());
+        ClientTickEvents.END_CLIENT_TICK.register(KeyBindings::handle);
 	}
 }
