@@ -37,6 +37,9 @@ dependencies {
     // Cloth Config
     //modImplementation "me.shedaniel.cloth:cloth-config-forge:${rootProject.cloth_config_version}"
 
+    // Epic Fight
+    //modImplementation "curse.maven:epicfightmod-405076:4018756"
+
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 }

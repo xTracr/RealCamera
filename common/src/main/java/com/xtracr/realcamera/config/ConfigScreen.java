@@ -20,7 +20,7 @@ public class ConfigScreen {
         ConfigFile.load();
         final ModConfig config = ConfigFile.modConfig;
 
-        ConfigBuilder builder = ConfigBuilder.create()
+        final ConfigBuilder builder = ConfigBuilder.create()
             .setParentScreen(parent)
             .setSavingRunnable(ConfigFile::save)
             .setTitle(new TranslatableText("config.title.xtracr_"+RealCamera.MODID));

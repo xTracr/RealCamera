@@ -2,10 +2,8 @@ package com.xtracr.realcamera;
 
 import com.xtracr.realcamera.config.ConfigScreen;
 
-import net.minecraft.client.MinecraftClient;
 import net.minecraftforge.client.ClientRegistry;
 import net.minecraftforge.client.ConfigGuiHandler.ConfigGuiFactory;
-import net.minecraftforge.client.event.InputEvent.KeyInputEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -34,10 +32,9 @@ public class RealCameraForge {
 
         RealCamera.setup();
 
-        MinecraftForge.EVENT_BUS.addListener((KeyInputEvent keyEvent) -> 
-            KeyBindings.handle(MinecraftClient.getInstance())
-        );
+        MinecraftForge.EVENT_BUS.addListener(EventHandler::onKeyInput);
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onCameraSetup);
+        MinecraftForge.EVENT_BUS.addListener(EventHandler::onClientCommandRegister);
         
         ClientRegistry.registerKeyBinding(KeyBindings.toggleCamera);
         ClientRegistry.registerKeyBinding(KeyBindings.toggleAdjustMode);

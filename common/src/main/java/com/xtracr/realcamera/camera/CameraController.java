@@ -1,7 +1,6 @@
 package com.xtracr.realcamera.camera;
 
-import java.lang.reflect.InvocationTargetException;
-
+import com.xtracr.realcamera.command.ClientCommand;
 import com.xtracr.realcamera.compat.PehkuiCompat;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
@@ -47,6 +46,10 @@ public class CameraController {
         return new Vec3d(cameraOffset.getX(), cameraOffset.getY(), cameraOffset.getZ());
     }
 
+    public static Vec3d getCameraRotation() {
+        return new Vec3d(cameraRotation.getX(), cameraRotation.getY(), cameraRotation.getZ());
+    }
+
     public static Vec3d getCameraDirection() {
         float f = (float)cameraRotation.getX() * ((float)Math.PI / 180);
         float g = -(float)cameraRotation.getY() * ((float)Math.PI / 180);
@@ -70,6 +73,7 @@ public class CameraController {
         else { setBindingOffset(camera, MC, tickDelta); }
 
         cameraOffset = camera.getPos().subtract(MC.player.getCameraPosVec(tickDelta));
+        cameraRotation = new Vec3d(camera.getPitch(), camera.getYaw(), cameraRoll);
     }
 
     private static void setClassicOffset(Camera camera, MinecraftClient MC, float tickDelta) {
@@ -108,8 +112,8 @@ public class CameraController {
         matrixStack.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(cameraRoll));
         matrixStack.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(camera.getPitch()));
         matrixStack.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(camera.getYaw() + 180.0F));
-        matrixStack.peek().getNormalMatrix().loadIdentity();;
-        // WorldRender.render
+        matrixStack.peek().getNormalMatrix().loadIdentity();
+        // WorldRenderer.render
         ClientPlayerEntity player = MC.player;
         if (player.age == 0) {
             player.lastRenderX = player.getX();
@@ -128,23 +132,15 @@ public class CameraController {
 
         if (config.compatPehkui()) PehkuiCompat.scaleMatrices(matrixStack, player, tickDelta);
         
+        ClientCommand.virtualRenderException = null;
         if (config.isUsingModModel()) {
             try {
                 matrixStack.push();
                 VirtualRenderer.virtualRender(tickDelta, matrixStack);
-            } catch (Throwable exception) {
-                //exception.printStackTrace();
+            } catch (Exception exception) {
+                ClientCommand.virtualRenderException = exception;
                 matrixStack.pop();
                 virtualRender(player, playerRenderer, tickDelta, matrixStack);
-                if (exception instanceof IllegalAccessException || exception instanceof IllegalArgumentException) {
-
-                } else if (exception instanceof InvocationTargetException) {
-
-                } else if (exception instanceof NullPointerException) {
-
-                } else {
-
-                }
             }
         } else {
             virtualRender(player, playerRenderer, tickDelta, matrixStack);
@@ -172,7 +168,6 @@ public class CameraController {
             if (!config.isRollingLocked()) {
                 cameraRoll = roll;
             }
-            cameraRotation = new Vec3d(pitch, yaw, roll);
         }
 
     }
@@ -219,7 +214,7 @@ public class CameraController {
         float l = player.age + tickDelta;
         ((PlayerEntityRendererAccessor)renderer).invokeSetupTransforms(player, matrixStack, l, h, tickDelta);
         matrixStack.scale(-1.0f, -1.0f, 1.0f);
-        matrixStack.scale(0.9375f, 0.9375f, 0.9375f);
+        ((PlayerEntityRendererAccessor)renderer).invokeScale(player, matrixStack, tickDelta);
         matrixStack.translate(0.0f, -1.501f, 0.0f);
         n = 0.0f;
         float o = 0.0f;

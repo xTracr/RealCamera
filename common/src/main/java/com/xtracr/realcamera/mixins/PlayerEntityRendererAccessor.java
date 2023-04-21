@@ -13,6 +13,9 @@ public interface PlayerEntityRendererAccessor {
     @Invoker("setModelPose")
     void invokeSetModelPose(AbstractClientPlayerEntity player);
 
+    @Invoker("scale")
+    void invokeScale(AbstractClientPlayerEntity abstractClientPlayerEntity, MatrixStack matrixStack, float tickDelta);
+
     @Invoker("setupTransforms")
-    void invokeSetupTransforms(AbstractClientPlayerEntity abstractClientPlayerEntity, MatrixStack matrixStack, float f, float g, float h);
+    void invokeSetupTransforms(AbstractClientPlayerEntity abstractClientPlayerEntity, MatrixStack matrixStack, float f, float g, float tickDelta);
 }
