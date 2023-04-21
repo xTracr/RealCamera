@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -26,8 +27,8 @@ public class VirtualRenderer {
     /**
      * 
      * @param modid
-     * @param function a {@link VirtualRenderFunction}
-     * @param nameMap a mapping from the {@link com.xtracr.realcamera.config.ModConfig.Compats#modModelPart name} of {@code ModelPart}
+     * @param function  a {@link VirtualRenderFunction}
+     * @param nameMap   a mapping from the {@link com.xtracr.realcamera.config.ModConfig.Compats#modModelPart name} of {@code ModelPart}
      * to the name of the {@link java.lang.reflect.Field field} of {@code ModelPart} in the code.
      * {@link com.xtracr.realcamera.compat.CompatExample#nameMap See example}
      * 
@@ -40,7 +41,7 @@ public class VirtualRenderer {
     /**
      * 
      * @param rendererClass containing a {@link String} {@code modid}, a {@link Method void Method} {@code virtualRender} 
-     * and a {@link Map} {@code nameMap} from String to  String.These variables should all be {@code static}.
+     * and a {@link Map} {@code nameMap} from String to  String.These should all be {@code static}.
      * {@link com.xtracr.realcamera.compat.CompatExample See example}
      * 
      */
@@ -55,8 +56,8 @@ public class VirtualRenderer {
      * @param modid
      * @param rendererClass containing a {@link Method void Method} {@code methodName}.
      * {@link com.xtracr.realcamera.compat.CompatExample See example}
-     * @param methodName {@code virtualRender} default
-     * @param nameMap a mapping from the {@link com.xtracr.realcamera.config.ModConfig.Compats#modModelPart name} of {@code ModelPart}
+     * @param methodName    {@code virtualRender} default
+     * @param nameMap       a mapping from the {@link com.xtracr.realcamera.config.ModConfig.Compats#modModelPart name} of {@code ModelPart}
      * to the name of the {@link java.lang.reflect.Field field} of {@code ModelPart} in the code.
      * {@link com.xtracr.realcamera.compat.CompatExample#nameMap See example}
      * 
@@ -101,12 +102,20 @@ public class VirtualRenderer {
         return getFieldValue(model.getClass(), getModelPartFieldName(), model);
     }
 
-    public static void virtualRender(float tickDelta, MatrixStack matrixStack) throws Throwable {
+    public static void virtualRender(float tickDelta, MatrixStack matrixStack) throws Exception {
         if (functionProvider.containsKey(config.getModelModID())) {
             functionProvider.get(config.getModelModID()).virtualRender(tickDelta, matrixStack);
         } else {
             methodProvider.get(config.getModelModID()).get().invoke(null, tickDelta, matrixStack);
         }
+    }
+
+    public static Set<String> getFunctionsKeys() {
+        return functionProvider.keySet();
+    }
+
+    public static Set<String> getMethodsKeys() {
+        return methodProvider.keySet();
     }
 
     private static Object getFieldValue(final Class<?> renderClass, final String fieldName, @Nullable final Object object) {

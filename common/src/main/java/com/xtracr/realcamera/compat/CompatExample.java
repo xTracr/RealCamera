@@ -28,6 +28,7 @@ import net.minecraft.util.math.MathHelper;
  * <p>If you don't want to use reflection, here're other examples:
  * {@code VirtualRenderer.register(modid, CompatExample::virtualRender, nameMap)} 
  * or {@code VirtualRenderer.register(CompatExample.class)}
+ * 
  * <p>However, an (optional) dependency should be added to call the method {@link com.xtracr.realcamera.utils.VirtualRenderer#register()}
  * <p>If you don't know how to add a dependency, see {@link https://jitpack.io or https://jitpack.io/#xTracr/RealCamera/} to get information about it
  * 
@@ -109,10 +110,10 @@ public class CompatExample {
     public static void register() {
         //if ( Real Camera isn't loaded ) return; -- in fact not necessary here
         try {
-            final Class<?> VirtualRendererClass = Class.forName("com.xtracr.realcamera.utils.VirtualRenderer");
-            getModelPartMethod = VirtualRendererClass.getDeclaredMethod("getModelPart", Object.class);
+            final Class<?> virtualRendererClass = Class.forName("com.xtracr.realcamera.utils.VirtualRenderer");
+            getModelPartMethod = virtualRendererClass.getDeclaredMethod("getModelPart", Object.class);
 
-            final Method registerA = VirtualRendererClass.getDeclaredMethod("register", Class.class);
+            final Method registerA = virtualRendererClass.getDeclaredMethod("register", Class.class);
             registerA.invoke(null, CompatExample.class);
 
             // -- another way to register
@@ -132,8 +133,8 @@ public class CompatExample {
      * 
      * This method's code should include as much as possible all parts related to {@code matrixStack} in the code that renders the player model, 
      * to ensure that the result of {@code matrixStack} after processing is identical to the actual rendering
-     * @param tickDelta
-     * @param matrixStack
+     * @param tickDelta or particalTick(s) (official mapping)
+     * @param matrixStack or poseStack (official mapping)
      * @see net.minecraft.client.render.entity.EntityRenderDispatcher#render
      * @see net.minecraft.client.render.entity.PlayerEntityRenderer#render
      * @see net.minecraft.client.render.entity.LivingEntityRenderer#render
@@ -187,7 +188,7 @@ public class CompatExample {
         float l = player.age + tickDelta;
         ((PlayerEntityRendererAccessor)renderer).invokeSetupTransforms(player, matrixStack, l, h, tickDelta);
         matrixStack.scale(-1.0f, -1.0f, 1.0f);
-        matrixStack.scale(0.9375f, 0.9375f, 0.9375f);
+        ((PlayerEntityRendererAccessor)renderer).invokeScale(player, matrixStack, tickDelta);
         matrixStack.translate(0.0f, -1.501f, 0.0f);
         n = 0.0f;
         float o = 0.0f;

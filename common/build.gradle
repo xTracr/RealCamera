@@ -16,6 +16,9 @@ dependencies {
     modImplementation("me.shedaniel.cloth:cloth-config:${rootProject.cloth_config_version}") {
         exclude(group: "net.fabricmc.fabric-api")
     }
+
+    // GeckoLib
+    //modImplementation "software.bernie.geckolib:geckolib-fabric-${rootProject.geckolib_version}"
 }
 
 publishing {
