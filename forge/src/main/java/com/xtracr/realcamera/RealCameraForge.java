@@ -1,5 +1,6 @@
 package com.xtracr.realcamera;
 
+import com.xtracr.realcamera.compat.EpicFightCompat;
 import com.xtracr.realcamera.config.ConfigScreen;
 
 import net.minecraftforge.client.ClientRegistry;
@@ -31,6 +32,7 @@ public class RealCameraForge {
     public void clientSetup(FMLClientSetupEvent event) {
 
         RealCamera.setup();
+        if (ModList.get().isLoaded("epicfight")) EpicFightCompat.register();
 
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onKeyInput);
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onCameraSetup);

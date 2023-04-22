@@ -132,19 +132,7 @@ public class CameraController {
 
         if (config.compatPehkui()) PehkuiCompat.scaleMatrices(matrixStack, player, tickDelta);
         
-        ClientCommand.virtualRenderException = null;
-        if (config.isUsingModModel()) {
-            try {
-                matrixStack.push();
-                VirtualRenderer.virtualRender(tickDelta, matrixStack);
-            } catch (Exception exception) {
-                ClientCommand.virtualRenderException = exception;
-                matrixStack.pop();
-                virtualRender(player, playerRenderer, tickDelta, matrixStack);
-            }
-        } else {
-            virtualRender(player, playerRenderer, tickDelta, matrixStack);
-        }
+        virtualRender(player, playerRenderer, tickDelta, matrixStack);
         
         // ModelPart$Cuboid.renderCuboid
         double cameraX = config.getScale() * config.getBindingX();
@@ -172,11 +160,25 @@ public class CameraController {
 
     }
 
-    private static void virtualRender(AbstractClientPlayerEntity player, PlayerEntityRenderer renderer, float tickDelta, MatrixStack matrixStack) {
+    private static void virtualRender(AbstractClientPlayerEntity player, PlayerEntityRenderer playerRenderer, float tickDelta, MatrixStack matrixStack) {
+        
+        ClientCommand.virtualRenderException = null;
+        if (config.isUsingModModel()) {
+            try {
+                matrixStack.push();
+                if (!VirtualRenderer.virtualRender(tickDelta, matrixStack)) {
+                    return;
+                }
+            } catch (Exception exception) {
+                ClientCommand.virtualRenderException = exception;
+                matrixStack.pop();
+            }
+        }
+
         // PlayerEntityRenderer.render
-        ((PlayerEntityRendererAccessor)renderer).invokeSetModelPose(player);
+        ((PlayerEntityRendererAccessor)playerRenderer).invokeSetModelPose(player);
         // LivingEntityRenderer.render
-        PlayerEntityModel<AbstractClientPlayerEntity> playerModel = renderer.getModel();
+        PlayerEntityModel<AbstractClientPlayerEntity> playerModel = playerRenderer.getModel();
         float n;
         Direction direction;
         playerModel.handSwingProgress = player.getHandSwingProgress(tickDelta);
@@ -212,9 +214,9 @@ public class CameraController {
             matrixStack.translate((float)(-direction.getOffsetX()) * n, 0.0f, (float)(-direction.getOffsetZ()) * n);
         }
         float l = player.age + tickDelta;
-        ((PlayerEntityRendererAccessor)renderer).invokeSetupTransforms(player, matrixStack, l, h, tickDelta);
+        ((PlayerEntityRendererAccessor)playerRenderer).invokeSetupTransforms(player, matrixStack, l, h, tickDelta);
         matrixStack.scale(-1.0f, -1.0f, 1.0f);
-        ((PlayerEntityRendererAccessor)renderer).invokeScale(player, matrixStack, tickDelta);
+        ((PlayerEntityRendererAccessor)playerRenderer).invokeScale(player, matrixStack, tickDelta);
         matrixStack.translate(0.0f, -1.501f, 0.0f);
         n = 0.0f;
         float o = 0.0f;
@@ -251,6 +253,6 @@ public class CameraController {
         }
          */
         // ModelPart.render
-        config.getVanillaModelPart().get(renderer.getModel()).rotate(matrixStack);
+        config.getVanillaModelPart().get(playerRenderer.getModel()).rotate(matrixStack);
     }
 }

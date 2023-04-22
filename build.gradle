@@ -34,7 +34,7 @@ allprojects {
         maven { url "https://maven.shedaniel.me/" }
 		maven { url "https://maven.terraformersmc.com/releases/" }
 	    //maven { url "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/" }
-        //maven { url "https://cursemaven.com" }
+        maven { url "https://cursemaven.com" }
         //maven { url "https://jitpack.io" }
     }
 

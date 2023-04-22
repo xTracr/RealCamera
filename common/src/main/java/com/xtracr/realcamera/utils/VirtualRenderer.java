@@ -27,7 +27,7 @@ public class VirtualRenderer {
     /**
      * 
      * @param modid
-     * @param function  a {@link VirtualRenderFunction}
+     * @param function  a {@link VirtualRenderFunction} return a boolean
      * @param nameMap   a mapping from the {@link com.xtracr.realcamera.config.ModConfig.Compats#modModelPart name} of {@code ModelPart}
      * to the name of the {@link java.lang.reflect.Field field} of {@code ModelPart} in the code.
      * {@link com.xtracr.realcamera.compat.CompatExample#nameMap See example}
@@ -40,21 +40,25 @@ public class VirtualRenderer {
 
     /**
      * 
-     * @param rendererClass containing a {@link String} {@code modid}, a {@link Method void Method} {@code virtualRender} 
+     * @param rendererClass containing a {@link String} {@code modid}, a {@link Method boolean Method} {@code virtualRender} 
      * and a {@link Map} {@code nameMap} from String to  String.These should all be {@code static}.
      * {@link com.xtracr.realcamera.compat.CompatExample See example}
      * 
      */
     @SuppressWarnings("unchecked")
     public static void register(final Class<?> rendererClass) {
-        register((String)getFieldValue(rendererClass, "modid", null), rendererClass, "virtualRender", 
-            (Map<String, String>)getFieldValue(rendererClass, "nameMap", null));
+        try {
+            register((String)getFieldValue(rendererClass, "modid", null), rendererClass, "virtualRender", 
+                (Map<String, String>)getFieldValue(rendererClass, "nameMap", null));
+        } catch (Exception exception) {
+            register((String)getFieldValue(rendererClass, "modid", null), rendererClass, "virtualRender", null);
+        }
     }
 
     /**
      * 
      * @param modid
-     * @param rendererClass containing a {@link Method void Method} {@code methodName}.
+     * @param rendererClass containing a {@link Method boolean Method} {@code methodName}.
      * {@link com.xtracr.realcamera.compat.CompatExample See example}
      * @param methodName    {@code virtualRender} default
      * @param nameMap       a mapping from the {@link com.xtracr.realcamera.config.ModConfig.Compats#modModelPart name} of {@code ModelPart}
@@ -102,11 +106,11 @@ public class VirtualRenderer {
         return getFieldValue(model.getClass(), getModelPartFieldName(), model);
     }
 
-    public static void virtualRender(float tickDelta, MatrixStack matrixStack) throws Exception {
+    public static boolean virtualRender(float tickDelta, MatrixStack matrixStack) throws Exception {
         if (functionProvider.containsKey(config.getModelModID())) {
-            functionProvider.get(config.getModelModID()).virtualRender(tickDelta, matrixStack);
+            return functionProvider.get(config.getModelModID()).virtualRender(tickDelta, matrixStack);
         } else {
-            methodProvider.get(config.getModelModID()).get().invoke(null, tickDelta, matrixStack);
+            return (boolean)methodProvider.get(config.getModelModID()).get().invoke(null, tickDelta, matrixStack);
         }
     }
 

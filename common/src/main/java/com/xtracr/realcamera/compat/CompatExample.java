@@ -132,9 +132,10 @@ public class CompatExample {
     /**
      * 
      * This method's code should include as much as possible all parts related to {@code matrixStack} in the code that renders the player model, 
-     * to ensure that the result of {@code matrixStack} after processing is identical to the actual rendering
+     * to ensure that the result of {@code matrixStack} after processing is identical to the actual rendering.
      * @param tickDelta or particalTick(s) (official mapping)
      * @param matrixStack or poseStack (official mapping)
+     * @return {@code boolean} skip rendering if true
      * @see net.minecraft.client.render.entity.EntityRenderDispatcher#render
      * @see net.minecraft.client.render.entity.PlayerEntityRenderer#render
      * @see net.minecraft.client.render.entity.LivingEntityRenderer#render
@@ -143,7 +144,7 @@ public class CompatExample {
      * 
      */
     @SuppressWarnings("resource")
-    public static void virtualRender(float tickDelta, MatrixStack matrixStack)
+    public static boolean virtualRender(float tickDelta, MatrixStack matrixStack)
             throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         PlayerEntityRenderer renderer = (PlayerEntityRenderer)MinecraftClient.getInstance().getEntityRenderDispatcher().getRenderer(player);
@@ -226,6 +227,7 @@ public class CompatExample {
          */
         // ModelPart.render
         ((ModelPart)getModelPartMethod.invoke(null, playerModel)).rotate(matrixStack);
+        return false;
     }
 
 }

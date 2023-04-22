@@ -45,8 +45,8 @@ Download the mod from [Releases page](https://github.com/xTracr/RealCamera/relea
   * Player Animation Lib
   * First Person Model
   * Pehkui
-* Incompatible:
   * Epic Fight
+* Incompatible:
   * Yes Steve Model(GeckoLib?)
 * Cause crash:
 
