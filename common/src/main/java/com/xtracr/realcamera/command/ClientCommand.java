@@ -1,5 +1,10 @@
 package com.xtracr.realcamera.command;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.mojang.brigadier.CommandDispatcher;
@@ -19,16 +24,31 @@ import net.minecraft.text.Text;
 public abstract class ClientCommand<S extends CommandSource> {
 
     private static final ModConfig config = ConfigFile.modConfig;
+    private static final Map<FeedbackType, List<feedbackProvider>> addnlFeedbackProvider = new HashMap<>();
 
     @Nullable
     public static Exception virtualRenderException = null;
     
+    static {
+        for (FeedbackType type : FeedbackType.values()) {
+            addnlFeedbackProvider.put(type, new ArrayList<>());
+        }
+    }
+
+    public static void registerFeedback(FeedbackType type, feedbackProvider provider) {
+        try {
+            addnlFeedbackProvider.get(type).add(provider);
+        } catch (Exception exception) {
+
+        }
+    }
+
     public void register(CommandDispatcher<S> dispatcher, CommandRegistryAccess registryAccess) {
         final LiteralArgumentBuilder<S> builder = literal(RealCamera.MODID);
         builder.then(literal("debug")
-                .then(literal("config").executes(this::config)
-                    .then(literal("detail").executes(this::detail)))
-                .then(literal("camera").executes(this::camera)));
+                .then(literal(FeedbackType.config.name()).executes(this::config)
+                    .then(literal(FeedbackType.detail.name()).executes(this::detail)))
+                .then(literal(FeedbackType.camera.name()).executes(this::camera)));
 
         dispatcher.register(builder);
     }
@@ -39,8 +59,13 @@ public abstract class ClientCommand<S extends CommandSource> {
             .append("Mapped Model Part Name: [" + VirtualRenderer.getModelPartFieldName() + "]\n"));
         
         if (virtualRenderException != null) {
-            this.sendFeedback(source, Text.literal("Failed to get model part: " + virtualRenderException.getClass().getSimpleName() + "\n"));
+            this.sendFeedback(source, Text.literal("Failed to bind camera: " + virtualRenderException.getClass().getSimpleName() + "\n"));
         }
+
+        addnlFeedbackProvider.get(FeedbackType.config).forEach((provider) -> {
+            this.sendFeedback(source, Text.literal(provider.provide()));
+        });
+
         return 0;
     }
 
@@ -64,8 +89,13 @@ public abstract class ClientCommand<S extends CommandSource> {
         interim = "";
         
         if (virtualRenderException != null) {
-            this.sendFeedback(source, Text.literal("Failed to get model part: " + virtualRenderException.getClass().getSimpleName() + "\n"));
+            this.sendFeedback(source, Text.literal("Failed to bind camera: " + virtualRenderException.getClass().getSimpleName() + "\n"));
         }
+        
+        addnlFeedbackProvider.get(FeedbackType.detail).forEach((provider) -> {
+            this.sendFeedback(source, Text.literal(provider.provide()));
+        });
+
         return 0;
     }
 
@@ -73,6 +103,11 @@ public abstract class ClientCommand<S extends CommandSource> {
         final S source = context.getSource();
         this.sendFeedback(source, Text.literal("Camera offset: " + CameraController.getCameraOffset().toString() + "\n")
             .append("Camera rotation: " + CameraController.getCameraRotation().toString()));
+        
+        addnlFeedbackProvider.get(FeedbackType.camera).forEach((provider) -> {
+            this.sendFeedback(source, Text.literal(provider.provide()));
+        });
+        
         return 0;
     }
     
@@ -80,6 +115,17 @@ public abstract class ClientCommand<S extends CommandSource> {
     
     private LiteralArgumentBuilder<S> literal(final String name) {
         return LiteralArgumentBuilder.literal(name);
+    }
+
+    public enum FeedbackType {
+        config,
+        detail,
+        camera;
+    }
+
+    @FunctionalInterface
+    public interface feedbackProvider{
+        String provide();
     }
 
 }

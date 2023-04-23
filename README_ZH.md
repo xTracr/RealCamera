@@ -45,8 +45,8 @@
   * Player Animation Lib
   * First Person Model
   * Pehkui
-* 不兼容:
   * Epic Fight
+* 不兼容:
   * Yes Steve Model(GeckoLib?)
 * 引起崩溃:
 

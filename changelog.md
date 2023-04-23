@@ -11,6 +11,8 @@
 * Compatible with Pehkui
 * API to compat with
   * 0.4.1-alpha:
+  * Compatible with EpicFight
+  * Added commands for debugging
 
 * 0.3.0-alpha:
 * Made the hit result of the player's crosshair match the actual position of the crosshair
@@ -57,6 +59,8 @@
 * 兼容Pehkui
 * 用于兼容的API
   * 0.4.1-alpha:
+  * 兼容EpicFight
+  * 新增用于调试的命令
 
 * 0.3.0-alpha:
 * 使玩家十字准心的命中结果与十字准心的实际位置相匹配
