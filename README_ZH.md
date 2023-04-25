@@ -40,9 +40,8 @@
 ### 兼容性 ###
 
 * 兼容:
-  * Shoulder Surfing、FreeCam、CameraOverhaul
-  * Not Enough Animations
   * Player Animation Lib
+  * Not Enough Animations
   * First Person Model
   * Pehkui
   * Epic Fight

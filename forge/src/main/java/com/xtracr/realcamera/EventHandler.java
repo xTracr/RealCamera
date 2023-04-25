@@ -19,9 +19,9 @@ public class EventHandler {
 
     @SubscribeEvent
     public static void onCameraSetup(CameraSetup event) {
-        if (CameraController.isActive() && MinecraftClient.getInstance().player != null) {
+        if (CameraController.isActive()) {
             Camera camera = event.getCamera();
-            CameraController.setCameraOffset(camera, MinecraftClient.getInstance(), (float)event.getPartialTicks());
+            CameraController.setCameraOffset(camera, event.getRenderer().getClient(), (float)event.getPartialTicks());
             event.setPitch(camera.getPitch());
             event.setYaw(camera.getYaw());
             event.setRoll(CameraController.cameraRoll);

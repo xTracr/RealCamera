@@ -27,7 +27,7 @@ public abstract class MixinItem {
         at = @At("STORE"),
         ordinal = 0
     )
-    private static float getCameraXRot(float f) {
+    private static float getCameraPitch(float f) {
         return (CameraController.doCrosshairRotate() ? MinecraftClient.getInstance().getEntityRenderDispatcher().camera.getPitch() : f);
     }
     
@@ -36,7 +36,7 @@ public abstract class MixinItem {
         at = @At("STORE"),
         ordinal = 1
     )
-    private static float getCameraYRot(float g) {
+    private static float getCameraYaw(float g) {
         return (CameraController.doCrosshairRotate() ? MinecraftClient.getInstance().getEntityRenderDispatcher().camera.getYaw() : g);
     }
 }

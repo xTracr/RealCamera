@@ -40,9 +40,8 @@ Download the mod from [Releases page](https://github.com/xTracr/RealCamera/relea
 ### Compatibility ###
 
 * Compatible:
-  * Shoulder Surfing, FreeCam, CameraOverhaul
-  * Not Enough Animations
   * Player Animation Lib
+  * Not Enough Animations
   * First Person Model
   * Pehkui
   * Epic Fight

@@ -24,6 +24,7 @@
     "config.option.xtracr_realcamera_scale": "缩放比例",
     
     "config.option.xtracr_realcamera_vanillaModelPart": "原版模型部位",
+    "config.option.xtracr_realcamera_adjustOffset": "调整摄像头偏移",
     "config.option.xtracr_realcamera_bindDirection": "绑定方向",
     "config.option.xtracr_realcamera_lockRolling": "锁定滚动",
     "config.option.xtracr_realcamera_bindingX": "摄像头X偏移",
@@ -44,6 +45,7 @@
     "config.option.xtracr_realcamera_useModModel": "模组模型兼容",
     "config.option.xtracr_realcamera_modelModID": "模型模组ID",
     "config.option.xtracr_realcamera_modModelPart": "模组模型部位",
+    "config.option.xtracr_realcamera_doABarrelRoll": "Do A Barrel Roll",
     "config.option.xtracr_realcamera_pehkui": "Pehkui",
     
     "config.option.xtracr_realcamera_fallFlying": "鞘翅飞行",
@@ -59,8 +61,8 @@
     "config.tooltip.xtracr_realcamera_adjustStep": "每一步调整位置的长度",
     "config.tooltip.xtracr_realcamera_scale": "控制配置数值的大小, 16 = 1 格",
     
-    "config.tooltip.xtracr_realcamera_adjustCamera": "当前按下调整键时是调整摄像头还是旋转中心的偏移",
     "config.tooltip.xtracr_realcamera_vanillaModelPart": "摄像头绑定的模型部位",
+    "config.tooltip.xtracr_realcamera_adjustOffset": "当前按下调整键时是调整摄像头的偏移还是旋转",
     "config.tooltip.xtracr_realcamera_bindDirection": "让摄像头跟随模型旋转",
     "config.tooltip.xtracr_realcamera_lockRolling": "锁定摄像头的翻滚",
     "config.tooltip.xtracr_realcamera_bindingX": "摄像头相对模型部位的X偏移值",
@@ -70,6 +72,7 @@
     "config.tooltip.xtracr_realcamera_yaw": "额外的偏航角, 即额外的以上方为轴旋转的角度",
     "config.tooltip.xtracr_realcamera_roll": "额外的翻滚角, 即额外的以前方为轴旋转的角度",
     
+    "config.tooltip.xtracr_realcamera_adjustCamera": "当前按下调整键时是调整摄像头还是旋转中心的偏移",
     "config.tooltip.xtracr_realcamera_cameraX": "摄像头相对旋转中心的X偏移值",
     "config.tooltip.xtracr_realcamera_cameraY": "摄像头相对旋转中心的X偏移值",
     "config.tooltip.xtracr_realcamera_cameraZ": "摄像头相对旋转中心的X偏移值",
@@ -80,6 +83,7 @@
     "config.tooltip.xtracr_realcamera_useModModel": "如果无法获取模组模型部位的数据, 会自动使用绑定模式设置",
     "config.tooltip.xtracr_realcamera_modelModID": "请到本mod的wiki界面查看支持的mod的列表",
     "config.tooltip.xtracr_realcamera_modModelPart": "摄像头绑定的模型部位的名字",
+    "config.tooltip.xtracr_realcamera_doABarrelRoll": "适配它的摄像头翻滚",
     "config.tooltip.xtracr_realcamera_pehkui": "适配Pehkui对模型尺寸的缩放",
     
     "config.tooltip.xtracr_realcamera_fallFlying": " ",

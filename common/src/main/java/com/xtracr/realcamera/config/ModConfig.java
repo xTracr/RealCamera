@@ -32,23 +32,24 @@ public class ModConfig {
     public class Binding {
 
         public VanillaModelPart vanillaModelPart = VanillaModelPart.head;
+        public boolean adjustOffset = true;
         public boolean bindDirection = true;
         public boolean lockRolling = false;
         public double bindingX = 3.25D;
         public double bindingY = 2.0D;
         public double bindingZ = 0.0D;
-        public double pitch = 0.0D;
-        public double yaw = 0.0D;
-        public double roll = 0.0D;
+        public float pitch = 0.0F;
+        public float yaw = 0.0F;
+        public float roll = 0.0F;
 
         private void clamp() {
             if (!(vanillaModelPart instanceof VanillaModelPart)) { vanillaModelPart = VanillaModelPart.head; }
             bindingX = MathHelper.clamp(bindingX, minVALUE, maxVALUE);
             bindingY = MathHelper.clamp(bindingY, minVALUE, maxVALUE);
             bindingZ = MathHelper.clamp(bindingZ, minVALUE, maxVALUE);
-            pitch = MathHelper.clamp(pitch, -180.0D, 180.0D);
-            yaw = MathHelper.clamp(yaw, -180.0D, 180.0D);
-            roll = MathHelper.clamp(roll, -180.0D, 180.0D);
+            pitch = MathHelper.wrapDegrees(pitch);
+            yaw = MathHelper.wrapDegrees(yaw);
+            roll = MathHelper.wrapDegrees(roll);
         }
 
     }
@@ -79,6 +80,7 @@ public class ModConfig {
         public boolean useModModel = false;
         public String modelModID = "minecraft";
         public String modModelPart = "head";
+        public boolean doABarrelRoll = true;
         public boolean pehkui = true;
 
     }
@@ -156,22 +158,12 @@ public class ModConfig {
         return player.isUsingSpyglass() && this.disables.scoping;
     }
 
-    public boolean isUsingModModel() {
-        return this.compats.useModModel;
-    }
-    public String getModelModID() {
-        return this.compats.modelModID;
-    }
-    public String getModModelPartName() {
-        return this.compats.modModelPart;
-    }
-    public boolean compatPehkui() {
-        return this.compats.pehkui;
-    }
-
     // binding
     public VanillaModelPart getVanillaModelPart() {
         return this.binding.vanillaModelPart;
+    }
+    public boolean isAdjustOffset() {
+        return this.binding.adjustOffset;
     }
     public boolean isDirectionBound() {
         return this.binding.bindDirection;
@@ -189,61 +181,77 @@ public class ModConfig {
         return this.binding.bindingZ;
     }
     public float getPitch() {
-        return (float)this.binding.pitch;
+        return this.binding.pitch;
     }
     public float getYaw() {
-        return (float)this.binding.yaw;
+        return this.binding.yaw;
     }
     public float getRoll() {
-        return (float)this.binding.roll;
+        return this.binding.roll;
     }
 
+    public void setAdjustOffset(boolean value) {
+        this.binding.adjustOffset = value;
+        ConfigFile.save();
+    }
     public void setModelPart(VanillaModelPart modelPart) {
         this.binding.vanillaModelPart = modelPart;
         ConfigFile.save();
     }
     public void setBindingX(double value) {
         this.binding.bindingX = value;
+        this.binding.clamp();
         ConfigFile.save();
     }
     public void setBindingY(double value) {
         this.binding.bindingY = value;
+        this.binding.clamp();
         ConfigFile.save();
     }
     public void setBindingZ(double value) {
         this.binding.bindingZ = value;
+        this.binding.clamp();
         ConfigFile.save();
     }
     public void setPitch(float value) {
         this.binding.pitch = value;
+        this.binding.clamp();
         ConfigFile.save();
     }
     public void setYaw(float value) {
         this.binding.yaw = value;
+        this.binding.clamp();
         ConfigFile.save();
     }
     public void setRoll(float value) {
         this.binding.roll = value;
+        this.binding.clamp();
         ConfigFile.save();
     }
 
     public void addBindingX() {
-        setBindingX(Math.min(getBindingX() + getAdjustStep(), maxVALUE));
+        if (this.isAdjustOffset()) setBindingX(getBindingX() + getAdjustStep());
+        else setRoll(getRoll() + 4*(float)getAdjustStep());
     }
     public void subBindingX() {
-        setBindingX(Math.max(getBindingX() - getAdjustStep(), minVALUE));
+        if (this.isAdjustOffset()) setBindingX(getBindingX() - getAdjustStep());
+        else setRoll(getRoll() - 4*(float)getAdjustStep());
     }
     public void addBindingY() {
-        setBindingY(Math.min(getBindingY() + getAdjustStep(), maxVALUE));
+        if (this.isAdjustOffset()) setBindingY(getBindingY() + getAdjustStep());
+        else setYaw(getYaw() + 4*(float)getAdjustStep());
     }
     public void subBindingY() {
-        setBindingY(Math.max(getBindingY() - getAdjustStep(), minVALUE));
+        if (this.isAdjustOffset()) setBindingY(getBindingY() - getAdjustStep());
+        else setYaw(getYaw() - 4*(float)getAdjustStep());
     }
     public void addBindingZ() {
-        setBindingZ(Math.min(getBindingZ() + getAdjustStep(), maxVALUE));
+        if (this.isAdjustOffset()) setBindingZ(getBindingZ() + getAdjustStep());
+        else setPitch(getPitch() + 4*(float)getAdjustStep());
     }
     public void subBindingZ() {
-        setBindingZ(Math.max(getBindingZ() - getAdjustStep(), minVALUE));
+        if (this.isAdjustOffset()) setBindingZ(getBindingZ() - getAdjustStep());
+        else setPitch(getPitch() - 4*(float)getAdjustStep());
     }
 
     // classic
@@ -271,56 +279,80 @@ public class ModConfig {
     
     public void setAdjustCamera(boolean value) {
         this.classic.adjustCamera = value;
+        this.classic.clamp();
         ConfigFile.save();
     }
     public void setCameraX(double value) {
         this.classic.cameraX = value;
+        this.classic.clamp();
         ConfigFile.save();
     }
     public void setCameraY(double value) {
         this.classic.cameraY = value;
+        this.classic.clamp();
         ConfigFile.save();
     }
     public void setCameraZ(double value) {
         this.classic.cameraZ = value;
+        this.classic.clamp();
         ConfigFile.save();
     }
     public void setCenterX(double value) {
         this.classic.centerX = value;
+        this.classic.clamp();
         ConfigFile.save();
     }
     public void setCenterY(double value) {
         this.classic.centerY = value;
+        this.classic.clamp();
         ConfigFile.save();
     }
     public void setCenterZ(double value) {
         this.classic.centerZ = value;
+        this.classic.clamp();
         ConfigFile.save();
     }
 
     public void addClassicX() {
-        if (isAdjustCamera()) setCameraX(Math.min(getCameraX() + getAdjustStep(), maxVALUE));
-        else setCenterX(Math.min(getCenterX() + getAdjustStep(), maxVALUE));
+        if (isAdjustCamera()) setCameraX(getCameraX() + getAdjustStep());
+        else setCenterX(getCenterX() + getAdjustStep());
     }
     public void subClassicX() {
-        if (isAdjustCamera()) setCameraX(Math.max(getCameraX() - getAdjustStep(), minVALUE));
-        else setCenterX(Math.max(getCenterX() - getAdjustStep(), minVALUE));
+        if (isAdjustCamera()) setCameraX(getCameraX() - getAdjustStep());
+        else setCenterX(getCenterX() - getAdjustStep());
     }
     public void addClassicY() {
-        if (isAdjustCamera()) {setCameraY(Math.min(getCameraY() + getAdjustStep(), maxVALUE));}
-        else setCenterY(Math.min(getCenterY() + getAdjustStep(), maxVALUE));
+        if (isAdjustCamera()) {setCameraY(getCameraY() + getAdjustStep());}
+        else setCenterY(getCenterY() + getAdjustStep());
     }
     public void subClassicY() {
-        if (isAdjustCamera()) setCameraY(Math.max(getCameraY() - getAdjustStep(), minVALUE));
-        else setCenterY(Math.max(getCenterY() - getAdjustStep(), minVALUE));
+        if (isAdjustCamera()) setCameraY(getCameraY() - getAdjustStep());
+        else setCenterY(getCenterY() - getAdjustStep());
     }
     public void addClassicZ() {
-        if (isAdjustCamera()) setCameraZ(Math.min(getCameraZ() + getAdjustStep(), maxVALUE));
-        else setCenterZ(Math.min(getCenterZ() + getAdjustStep(), maxVALUE));
+        if (isAdjustCamera()) setCameraZ(getCameraZ() + getAdjustStep());
+        else setCenterZ(getCenterZ() + getAdjustStep());
     }
     public void subClassicZ() {
-        if (isAdjustCamera()) setCameraZ(Math.max(getCameraZ() - getAdjustStep(), minVALUE));
-        else setCenterZ(Math.max(getCenterZ() - getAdjustStep(), minVALUE));
+        if (isAdjustCamera()) setCameraZ(getCameraZ() - getAdjustStep());
+        else setCenterZ(getCenterZ() - getAdjustStep());
+    }
+
+    // compats
+    public boolean isUsingModModel() {
+        return this.compats.useModModel;
+    }
+    public String getModelModID() {
+        return this.compats.modelModID;
+    }
+    public String getModModelPartName() {
+        return this.compats.modModelPart;
+    }
+    public boolean compatDoABarrelRoll() {
+        return this.compats.doABarrelRoll;
+    }
+    public boolean compatPehkui() {
+        return this.compats.pehkui;
     }
 
 }

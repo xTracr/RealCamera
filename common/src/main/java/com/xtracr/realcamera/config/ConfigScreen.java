@@ -1,6 +1,7 @@
 package com.xtracr.realcamera.config;
 
 import com.xtracr.realcamera.RealCamera;
+import com.xtracr.realcamera.compat.DoABarrelRollCompat;
 import com.xtracr.realcamera.compat.PehkuiCompat;
 
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
@@ -66,6 +67,11 @@ public class ConfigScreen {
             .setTooltip(new TranslatableText(Tooltip+"vanillaModelPart"))
             .setSaveConsumer(e -> config.binding.vanillaModelPart = e)
             .build());
+        binding.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(Option+"adjustOffset"), config.binding.adjustOffset)
+            .setDefaultValue(true)
+            .setTooltip(new TranslatableText(Tooltip+"adjustOffset"))
+            .setSaveConsumer(b -> config.binding.adjustOffset = b)
+            .build());
         binding.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(Option+"bindDirection"), config.binding.bindDirection)
             .setDefaultValue(true)
             .setTooltip(new TranslatableText(Tooltip+"bindDirection"))
@@ -97,26 +103,26 @@ public class ConfigScreen {
             .setTooltip(new TranslatableText(Tooltip+"bindingZ"))
             .setSaveConsumer(d -> config.binding.bindingZ = d)
             .build());
-        binding.addEntry(entryBuilder.startDoubleField(new TranslatableText(Option+"pitch"), config.binding.pitch)
-            .setDefaultValue(0.0D)
-            .setMin(-180.0D)
-            .setMax(180.0D)
+        binding.addEntry(entryBuilder.startFloatField(new TranslatableText(Option+"pitch"), config.binding.pitch)
+            .setDefaultValue(0.0F)
+            .setMin(-180.0F)
+            .setMax(180.0F)
             .setTooltip(new TranslatableText(Tooltip+"pitch"))
-            .setSaveConsumer(d -> config.binding.pitch = d)
+            .setSaveConsumer(f -> config.binding.pitch = f)
             .build());
-        binding.addEntry(entryBuilder.startDoubleField(new TranslatableText(Option+"yaw"), config.binding.yaw)
-            .setDefaultValue(0.0D)
-            .setMin(-180.0D)
-            .setMax(180.0D)
+        binding.addEntry(entryBuilder.startFloatField(new TranslatableText(Option+"yaw"), config.binding.yaw)
+            .setDefaultValue(0.0F)
+            .setMin(-180.0F)
+            .setMax(180.0F)
             .setTooltip(new TranslatableText(Tooltip+"yaw"))
-            .setSaveConsumer(d -> config.binding.yaw = d)
+            .setSaveConsumer(f -> config.binding.yaw = f)
             .build());
-        binding.addEntry(entryBuilder.startDoubleField(new TranslatableText(Option+"roll"), config.binding.roll)
-            .setDefaultValue(0.0D)
-            .setMin(-180.0D)
-            .setMax(180.0D)
+        binding.addEntry(entryBuilder.startFloatField(new TranslatableText(Option+"roll"), config.binding.roll)
+            .setDefaultValue(0.0F)
+            .setMin(-180.0F)
+            .setMax(180.0F)
             .setTooltip(new TranslatableText(Tooltip+"roll"))
-            .setSaveConsumer(d -> config.binding.roll = d)
+            .setSaveConsumer(f -> config.binding.roll = f)
             .build());
         
         classic.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(Option+"adjustCamera"), config.classic.adjustCamera)
@@ -181,6 +187,12 @@ public class ConfigScreen {
             .setDefaultValue("head")
             .setTooltip(new TranslatableText(Tooltip+"modModelPart"))
             .setSaveConsumer(s -> config.compats.modModelPart = s)
+            .build());
+        if (DoABarrelRollCompat.loaded)
+        compats.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(Option+"doABarrelRoll"), config.compats.doABarrelRoll)
+            .setDefaultValue(true)
+            .setTooltip(new TranslatableText(Tooltip+"doABarrelRoll"))
+            .setSaveConsumer(b -> config.compats.doABarrelRoll = b)
             .build());
         if (PehkuiCompat.loaded)
         compats.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(Option+"pehkui"), config.compats.pehkui)
