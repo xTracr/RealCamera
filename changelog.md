@@ -13,6 +13,9 @@
   * 0.4.1-alpha:
   * Compatible with EpicFight
   * Added commands for debugging
+  * 0.4.2-alpha:
+  * Fixed an issue where extra camera rotation cannot be applied correctly in specific situations
+  * Allowed adjusting camera rotation with hotkeys
 
 * 0.3.0-alpha:
 * Made the hit result of the player's crosshair match the actual position of the crosshair
@@ -61,6 +64,9 @@
   * 0.4.1-alpha:
   * 兼容EpicFight
   * 新增用于调试的命令
+  * 0.4.2-alpha:
+  * 修复了额外的摄像头旋转在特定情况下无法正确应用的问题
+  * 允许用按键调整摄像头旋转
 
 * 0.3.0-alpha:
 * 使玩家十字准心的命中结果与十字准心的实际位置相匹配

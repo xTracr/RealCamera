@@ -33,8 +33,8 @@ public final class KeyBindings {
     public static final KeyBinding adjustRIGHT = new KeyBinding(
         KEY_ID+"adjustRIGHT", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
     
-    public static void handle(MinecraftClient MC) {
-        if (MC.player == null || MC.currentScreen != null) {
+    public static void handle(MinecraftClient client) {
+        if (client.player == null || client.currentScreen != null) {
             return;
         }
 
@@ -44,31 +44,32 @@ public final class KeyBindings {
             config.setEnabled(!enabled);
         }
         while (toggleAdjustMode.wasPressed()) {
-            config.setAdjustCamera(!config.isAdjustCamera());
-        }
-        while (adjustUP.wasPressed()) {
-            if (config.isClassic()) { config.addClassicY(); }
-            else { config.addBindingY(); }
-        }
-        while (adjustDOWN.wasPressed()) {
-            if (config.isClassic()) { config.subClassicY(); }
-            else { config.subBindingY(); }
-        }
-        while (adjustFRONT.wasPressed()) {
-            if (config.isClassic()) { config.addClassicX(); }
-            else { config.addBindingX(); }
-        }
-        while (adjustBACK.wasPressed()) {
-            if (config.isClassic()) { config.subClassicX(); }
-            else { config.subBindingX(); }
+            if (config.isClassic()) config.setAdjustCamera(!config.isAdjustCamera());
+            else config.setAdjustOffset(!config.isAdjustOffset());
         }
         while (adjustLEFT.wasPressed()) {
-            if (config.isClassic()) { config.addClassicZ(); }
-            else { config.addBindingZ(); }
+            if (config.isClassic()) config.addClassicZ();
+            else config.addBindingZ();
         }
         while (adjustRIGHT.wasPressed()) {
-            if (config.isClassic()) { config.subClassicZ(); }
-            else { config.subBindingZ(); }
+            if (config.isClassic()) config.subClassicZ();
+            else config.subBindingZ();
+        }
+        while (adjustUP.wasPressed()) {
+            if (config.isClassic()) config.addClassicY();
+            else config.addBindingY();
+        }
+        while (adjustDOWN.wasPressed()) {
+            if (config.isClassic()) config.subClassicY();
+            else config.subBindingY();
+        }
+        while (adjustFRONT.wasPressed()) {
+            if (config.isClassic()) config.addClassicX();
+            else config.addBindingX();
+        }
+        while (adjustBACK.wasPressed()) {
+            if (config.isClassic()) config.subClassicX();
+            else config.subBindingX();
         }
     }
 

@@ -24,6 +24,7 @@
     "config.option.xtracr_realcamera_scale": "Scale",
     
     "config.option.xtracr_realcamera_vanillaModelPart": "Vanilla Model part",
+    "config.option.xtracr_realcamera_adjustOffset": "Adjust Camera Offset",
     "config.option.xtracr_realcamera_bindDirection": "Bind Direction",
     "config.option.xtracr_realcamera_lockRolling": "Lock Rolling",
     "config.option.xtracr_realcamera_bindingX": "Camera X Offset",
@@ -44,6 +45,7 @@
     "config.option.xtracr_realcamera_useModModel": "Mod Model Compat",
     "config.option.xtracr_realcamera_modelModID": "Model Mod ID",
     "config.option.xtracr_realcamera_modModelPart": "Mod Model Part",
+    "config.option.xtracr_realcamera_doABarrelRoll": "Do A Barrel Roll",
     "config.option.xtracr_realcamera_pehkui": "Pehkui",
     
     "config.option.xtracr_realcamera_fallFlying": "Elytra Flying",
@@ -60,6 +62,7 @@
     "config.tooltip.xtracr_realcamera_scale": "Control the size of the config values, 16 = 1 block",
     
     "config.tooltip.xtracr_realcamera_vanillaModelPart": "Model part to bind camera to",
+    "config.tooltip.xtracr_realcamera_adjustOffset": "When pressing the adjustment key, adjust the offset or rotation of camera",
     "config.tooltip.xtracr_realcamera_bindDirection": "Let camera Follow Model Rotation",
     "config.tooltip.xtracr_realcamera_lockRolling": "Lock camera rolling",
     "config.tooltip.xtracr_realcamera_bindingX": "Camera's X offset from modelPart being bound",
@@ -80,6 +83,7 @@
     "config.tooltip.xtracr_realcamera_useModModel": "Binding Mode config is automatically used if data from Mod Model Part isnt available",
     "config.tooltip.xtracr_realcamera_modelModID": "Please refer to the wiki page of this mod to see the list of supported mods",
     "config.tooltip.xtracr_realcamera_modModelPart": "Name of the model part to bind camera to",
+    "config.tooltip.xtracr_realcamera_doABarrelRoll": "Adapt to its camera rolling",
     "config.tooltip.xtracr_realcamera_pehkui": "Adapt to Pehkui's scaling of model size",
     
     "config.tooltip.xtracr_realcamera_fallFlying": " ",

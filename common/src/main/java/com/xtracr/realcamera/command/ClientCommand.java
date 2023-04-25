@@ -24,7 +24,7 @@ import net.minecraft.text.Text;
 public abstract class ClientCommand<S extends CommandSource> {
 
     private static final ModConfig config = ConfigFile.modConfig;
-    private static final Map<FeedbackType, List<feedbackProvider>> addnlFeedbackProvider = new HashMap<>();
+    private static final Map<FeedbackType, List<FeedbackProvider>> addnlFeedbackProvider = new HashMap<>();
 
     @Nullable
     public static Exception virtualRenderException = null;
@@ -35,7 +35,7 @@ public abstract class ClientCommand<S extends CommandSource> {
         }
     }
 
-    public static void registerFeedback(FeedbackType type, feedbackProvider provider) {
+    public static void registerFeedback(FeedbackType type, FeedbackProvider provider) {
         try {
             addnlFeedbackProvider.get(type).add(provider);
         } catch (Exception exception) {
@@ -46,30 +46,13 @@ public abstract class ClientCommand<S extends CommandSource> {
     public void register(CommandDispatcher<S> dispatcher, CommandRegistryAccess registryAccess) {
         final LiteralArgumentBuilder<S> builder = literal(RealCamera.MODID);
         builder.then(literal("debug")
-                .then(literal(FeedbackType.config.name()).executes(this::config)
-                    .then(literal(FeedbackType.detail.name()).executes(this::detail)))
+                .then(literal(FeedbackType.config.name()).executes(this::config))
                 .then(literal(FeedbackType.camera.name()).executes(this::camera)));
 
         dispatcher.register(builder);
     }
     
     private int config(CommandContext<S> context) throws CommandSyntaxException {
-        final S source = context.getSource();
-        this.sendFeedback(source, Text.literal("Target Mod Model Part: [" + config.getModelModID() + ":" + config.getModModelPartName() + "]\n")
-            .append("Mapped Model Part Name: [" + VirtualRenderer.getModelPartFieldName() + "]\n"));
-        
-        if (virtualRenderException != null) {
-            this.sendFeedback(source, Text.literal("Failed to bind camera: " + virtualRenderException.getClass().getSimpleName() + "\n"));
-        }
-
-        addnlFeedbackProvider.get(FeedbackType.config).forEach((provider) -> {
-            this.sendFeedback(source, Text.literal(provider.provide()));
-        });
-
-        return 0;
-    }
-
-    private int detail(CommandContext<S> context) throws CommandSyntaxException {
         final S source = context.getSource();
         String interim = "";
         this.sendFeedback(source, Text.literal("Camera Mode: " + (config.isClassic() ? "[classic]" : "[binding]") + "\n")
@@ -92,7 +75,7 @@ public abstract class ClientCommand<S extends CommandSource> {
             this.sendFeedback(source, Text.literal("Failed to bind camera: " + virtualRenderException.getClass().getSimpleName() + "\n"));
         }
         
-        addnlFeedbackProvider.get(FeedbackType.detail).forEach((provider) -> {
+        addnlFeedbackProvider.get(FeedbackType.config).forEach((provider) -> {
             this.sendFeedback(source, Text.literal(provider.provide()));
         });
 
@@ -119,12 +102,11 @@ public abstract class ClientCommand<S extends CommandSource> {
 
     public enum FeedbackType {
         config,
-        detail,
         camera;
     }
 
     @FunctionalInterface
-    public interface feedbackProvider{
+    public interface FeedbackProvider{
         String provide();
     }
 
