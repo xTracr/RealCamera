@@ -9,12 +9,12 @@ import net.minecraft.client.render.Camera;
 @Mixin(Camera.class)
 public interface CameraAccessor {
     
-    @Accessor("thirdPerson")
+    @Accessor
     void setThirdPerson(boolean thirdPerson);
 
-    @Invoker("setRotation")
+    @Invoker
     void invokeSetRotation(float yaw, float pitch);
 
-    @Invoker("moveBy")
+    @Invoker
     void invokeMoveBy(double x, double y, double z);
 }

@@ -35,7 +35,7 @@ public class RealCameraForge {
         if (ModList.get().isLoaded("epicfight")) EpicFightCompat.register();
 
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onKeyInput);
-        MinecraftForge.EVENT_BUS.addListener(EventHandler::onCameraSetup);
+        MinecraftForge.EVENT_BUS.addListener(EventHandler::onCameraUpdate);
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onClientCommandRegister);
         
         ClientRegistry.registerKeyBinding(KeyBindings.toggleCamera);

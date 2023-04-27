@@ -14,16 +14,20 @@
 * 按下F6来开关，另外一些键来调整位置
 * 在Config界面配置以上特性（需Cloth Config）
 
+> 详细了解[如何配置](https://github.com/xTracr/RealCamera/wiki/Configuration)
+
 ### 支持的游戏版本 ###
 
 * Fabric:
   * `realcamera-1.19.4-fabric`: 1.19.4, 1.19.3
-  * `realcamera-1.18.2-fabric`: 1.18.2
+  * `realcamera-1.18.2-fabric`: 1.18.2, 1.19.2[^1]
 * Forge:
   * `realcamera-1.19.4-forge`: 1.19.4
   * `realcamera-1.18.2-forge`: 1.18.2
 
-### 依赖 ###
+[^1]:该模组已测试并支持1.19.2版本(尽管配置界面无法工作)，但并不保证其在1.19.2的完全兼容性，且不会特意维护其在1.19.2的支持。
+
+### 依赖项目 ###
 
 #### (建议使用最新版本) ####
 
@@ -47,11 +51,8 @@
   * Epic Fight
 * 不兼容:
   * Yes Steve Model(GeckoLib?)
+  * Customizable Player Models
 * 引起崩溃:
-
-### 已知问题 ###
-
-* 鞘翅转向或高速飞行时摄像头抖动(实际上原版也有这个问题，只是体现为人物抖动)，人物闪烁(摄像头离人物太近时发生)
 
 ## [更多信息](https://github.com/xTracr/RealCamera/wiki) ##
 

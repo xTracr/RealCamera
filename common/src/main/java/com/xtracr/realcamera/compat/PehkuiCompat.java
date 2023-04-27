@@ -8,6 +8,7 @@ import com.xtracr.realcamera.utils.ClassUtils;
 
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 
 public class PehkuiCompat {
@@ -34,7 +35,7 @@ public class PehkuiCompat {
         if (!loaded) return;
         final float widthScale = getModelScaleValue(getModelWidthScale, entity, tickDelta);
         final float heightScale = getModelScaleValue(getModelHeightScale, entity, tickDelta);
-        matrixStack.scale(widthScale, heightScale, widthScale);
+        matrixStack.peek().getPositionMatrix().multiply(Matrix4f.scale(widthScale, heightScale, widthScale));
     }
 
     public static Vec3d scaleVec3d(Vec3d vec3d, Entity entity, float tickDelta) {

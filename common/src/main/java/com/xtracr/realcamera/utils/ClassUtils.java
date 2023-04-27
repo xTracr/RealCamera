@@ -73,7 +73,7 @@ public class ClassUtils {
 		});
 	}
 
-    public static Optional<?> getFieldValue(final Optional<Field> field, @Nullable final Object object) {
+    public static Optional<Object> getFieldValue(final Optional<Field> field, @Nullable final Object object) {
         return field.map(fld -> {
             try {
                 return fld.get(object);

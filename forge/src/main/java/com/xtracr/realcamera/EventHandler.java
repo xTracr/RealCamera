@@ -18,7 +18,7 @@ public class EventHandler {
     }
 
     @SubscribeEvent
-    public static void onCameraSetup(CameraSetup event) {
+    public static void onCameraUpdate(CameraSetup event) {
         if (CameraController.isActive()) {
             Camera camera = event.getCamera();
             CameraController.setCameraOffset(camera, event.getRenderer().getClient(), (float)event.getPartialTicks());

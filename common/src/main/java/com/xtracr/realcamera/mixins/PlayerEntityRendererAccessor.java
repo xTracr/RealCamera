@@ -10,12 +10,12 @@ import net.minecraft.client.util.math.MatrixStack;
 @Mixin(PlayerEntityRenderer.class)
 public interface PlayerEntityRendererAccessor {
     
-    @Invoker("setModelPose")
+    @Invoker
     void invokeSetModelPose(AbstractClientPlayerEntity player);
 
-    @Invoker("scale")
+    @Invoker
     void invokeScale(AbstractClientPlayerEntity abstractClientPlayerEntity, MatrixStack matrixStack, float tickDelta);
 
-    @Invoker("setupTransforms")
+    @Invoker
     void invokeSetupTransforms(AbstractClientPlayerEntity abstractClientPlayerEntity, MatrixStack matrixStack, float f, float g, float tickDelta);
 }

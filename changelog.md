@@ -16,6 +16,8 @@
   * 0.4.2-alpha:
   * Fixed an issue where extra camera rotation cannot be applied correctly in specific situations
   * Allowed adjusting camera rotation with hotkeys
+  * 0.4.3-alpha:
+  * Fixed an issue where the model sometimes isn't rendered when flying with elytra
 
 * 0.3.0-alpha:
 * Made the hit result of the player's crosshair match the actual position of the crosshair
@@ -67,6 +69,8 @@
   * 0.4.2-alpha:
   * 修复了额外的摄像头旋转在特定情况下无法正确应用的问题
   * 允许用按键调整摄像头旋转
+  * 0.4.3-alpha:
+  * 修复了鞘翅飞行时模型有时不渲染的问题
 
 * 0.3.0-alpha:
 * 使玩家十字准心的命中结果与十字准心的实际位置相匹配
