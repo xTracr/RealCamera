@@ -34,7 +34,7 @@ public class PehkuiCompat {
         if (!loaded) return;
         final float widthScale = getModelScaleValue(getModelWidthScale, entity, tickDelta);
         final float heightScale = getModelScaleValue(getModelHeightScale, entity, tickDelta);
-        matrixStack.scale(widthScale, heightScale, widthScale);
+        matrixStack.peek().getPositionMatrix().scale(widthScale, heightScale, widthScale);
     }
 
     public static Vec3d scaleVec3d(Vec3d vec3d, Entity entity, float tickDelta) {

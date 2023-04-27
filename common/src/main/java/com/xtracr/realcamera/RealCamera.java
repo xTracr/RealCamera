@@ -9,7 +9,7 @@ import com.xtracr.realcamera.config.ConfigFile;
 public class RealCamera {
 
     public static final String MODID = "realcamera";
-    public static final Logger LOGGER = LoggerFactory.getLogger("realcamera");
+    public static final Logger LOGGER = LoggerFactory.getLogger(MODID);
 
     public static void setup() {
         ConfigFile.setup();

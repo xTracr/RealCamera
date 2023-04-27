@@ -14,14 +14,18 @@ Download the mod from [Releases page](https://github.com/xTracr/RealCamera/relea
 * Use F6 to toggle the feature on/off and other hotkeys to adjust the position
 * Configure these features in the config interface(Cloth Config required)
 
+> Learn more about [Configuration](https://github.com/xTracr/RealCamera/wiki/Configuration)
+
 ### Supported Minecraft Versions ###
 
 * Fabric:
   * `realcamera-1.19.4-fabric`: 1.19.4, 1.19.3
-  * `realcamera-1.18.2-fabric`: 1.18.2
+  * `realcamera-1.18.2-fabric`: 1.18.2, 1.19.2[^1]
 * Forge:
   * `realcamera-1.19.4-forge`: 1.19.4
   * `realcamera-1.18.2-forge`: 1.18.2
+
+[^1]:This mod has been tested and supports 1.19.2(though config screen doesnt work), but we do not guarantee full compatibility with it, nor will we actively maintain support for it.
 
 ### Dependencies ###
 
@@ -47,11 +51,8 @@ Download the mod from [Releases page](https://github.com/xTracr/RealCamera/relea
   * Epic Fight
 * Incompatible:
   * Yes Steve Model(GeckoLib?)
+  * Customizable Player Models
 * Cause crash:
-
-### Known Issues ###
-
-See in [中文](README_ZH.md#已知问题)
 
 ## [More Information](https://github.com/xTracr/RealCamera/wiki) ##
 
