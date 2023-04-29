@@ -1,6 +1,6 @@
 package com.xtracr.realcamera;
 
-import com.xtracr.realcamera.command.ClientCommandFabric;
+import com.xtracr.realcamera.command.DebugCommandFabric;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
@@ -16,7 +16,7 @@ public class RealCameraFabric implements ClientModInitializer {
 	public void onInitializeClient() {
 		RealCamera.setup();
 		this.registerKeyBindings();
-        ClientCommandRegistrationCallback.EVENT.register(ClientCommandFabric.INSTANCE::register);
+        ClientCommandRegistrationCallback.EVENT.register(DebugCommandFabric.INSTANCE::register);
 	}
 
 	private void registerKeyBindings() {

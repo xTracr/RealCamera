@@ -1,16 +1,16 @@
-package com.xtracr.realcamera.camera;
+package com.xtracr.realcamera;
 
 import org.joml.Matrix3f;
 import org.joml.Vector4f;
 
-import com.xtracr.realcamera.command.ClientCommand;
+import com.xtracr.realcamera.api.VirtualRenderer;
+import com.xtracr.realcamera.command.DebugCommand;
 import com.xtracr.realcamera.compat.PehkuiCompat;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.mixins.CameraAccessor;
 import com.xtracr.realcamera.mixins.PlayerEntityRendererAccessor;
 import com.xtracr.realcamera.utils.MathUtils;
-import com.xtracr.realcamera.utils.VirtualRenderer;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
@@ -26,7 +26,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
 
-public class CameraController {
+public class RealCameraCore {
     
     private static final ModConfig config = ConfigFile.modConfig;
 
@@ -38,18 +38,21 @@ public class CameraController {
             && client.player != null && !config.isDisabledWhen(client.player);
     }
 
-    public static void setCameraOffset(Camera camera, MinecraftClient client, float tickDelta) {
+    public static void updateCamera(Camera camera, MinecraftClient client, float tickDelta) {
         cameraRoll = 0.0F;
 
         if (config.isRendering() && !config.onlyDisableRenderingWhen(client.player)) {
             ((CameraAccessor)camera).setThirdPerson(true);
         }
 
-        if (config.isClassic()) { setClassicOffset(camera, client, tickDelta); }
-        else { setBindingOffset(camera, client, tickDelta); }
+        if (config.isClassic()) {
+            classicModeUpdate(camera, client, tickDelta);
+        } else {
+            bindingModeUpdate(camera, client, tickDelta);
+        }
     }
 
-    private static void setClassicOffset(Camera camera, MinecraftClient client, float tickDelta) {
+    private static void classicModeUpdate(Camera camera, MinecraftClient client, float tickDelta) {
         CameraAccessor cameraAccessor = (CameraAccessor)camera;
         ClientPlayerEntity player = client.player;
         
@@ -78,7 +81,7 @@ public class CameraController {
         cameraAccessor.invokeMoveBy(offset.getX(), offset.getY(), offset.getZ());
     }
 
-    private static void setBindingOffset(Camera camera, MinecraftClient client, float tickDelta) {
+    private static void bindingModeUpdate(Camera camera, MinecraftClient client, float tickDelta) {
         
         // GameRenderer.render
         MatrixStack matrixStack = new MatrixStack();
@@ -132,7 +135,7 @@ public class CameraController {
 
     private static void virtualRender(AbstractClientPlayerEntity player, PlayerEntityRenderer playerRenderer, float tickDelta, MatrixStack matrixStack) {
         
-        ClientCommand.virtualRenderException = null;
+        DebugCommand.virtualRenderException = null;
         if (config.isUsingModModel()) {
             try {
                 matrixStack.push();
@@ -140,7 +143,7 @@ public class CameraController {
                     return;
                 }
             } catch (Exception exception) {
-                ClientCommand.virtualRenderException = exception;
+                DebugCommand.virtualRenderException = exception;
                 matrixStack.pop();
             }
         }

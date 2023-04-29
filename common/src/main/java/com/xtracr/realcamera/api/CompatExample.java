@@ -1,4 +1,4 @@
-package com.xtracr.realcamera.compat;
+package com.xtracr.realcamera.api;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -29,7 +29,7 @@ import net.minecraft.util.math.MathHelper;
  * {@code VirtualRenderer.register(modid, CompatExample::virtualRender, nameMap)} 
  * or {@code VirtualRenderer.register(CompatExample.class)}
  * 
- * <p>However, an (optional) dependency should be added to call the method {@link com.xtracr.realcamera.utils.VirtualRenderer#register()}
+ * <p>However, an (optional) dependency should be added to call the method {@link com.xtracr.realcamera.api.VirtualRenderer#register()}
  * <p>If you don't know how to add a dependency, see {@link https://jitpack.io or https://jitpack.io/#xTracr/RealCamera/} to get information about it
  * 
  */
@@ -56,7 +56,7 @@ public class CompatExample {
      * 
      * {@code = VirtualRenderer.class.getDeclaredMethod("getModelPart", Object.class)}
      * @see #register()
-     * @see com.xtracr.realcamera.utils.VirtualRenderer#getModelPart(Object) getModelPart(Object)
+     * @see com.xtracr.realcamera.api.VirtualRenderer#getModelPart(Object) getModelPart(Object)
      * 
      */
     private static Method getModelPartMethod;
@@ -104,13 +104,13 @@ public class CompatExample {
      * 
      * This method is called in {@link com.xtracr.realcamera.RealCamera#setup()}
      * <p>Your should register before the first time camera setup
-     * @see com.xtracr.realcamera.utils.VirtualRenderer#register methods to register
+     * @see com.xtracr.realcamera.api.VirtualRenderer#register methods to register
      * 
      */
     public static void register() {
         //if ( Real Camera isn't loaded ) return; -- in fact not necessary here
         try {
-            final Class<?> virtualRendererClass = Class.forName("com.xtracr.realcamera.utils.VirtualRenderer");
+            final Class<?> virtualRendererClass = Class.forName("com.xtracr.realcamera.api.VirtualRenderer");
             getModelPartMethod = virtualRendererClass.getDeclaredMethod("getModelPart", Object.class);
 
             final Method registerA = virtualRendererClass.getDeclaredMethod("register", Class.class);

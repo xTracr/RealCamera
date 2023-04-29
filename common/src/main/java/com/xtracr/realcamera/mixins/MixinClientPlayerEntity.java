@@ -5,7 +5,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 import com.mojang.authlib.GameProfile;
-import com.xtracr.realcamera.camera.CameraController;
+import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.utils.RaycastUtils;
 
@@ -31,13 +31,13 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
         )
     )
     private boolean returnFalse(Perspective perspective) {
-        if (ConfigFile.modConfig.isRendering() &&  CameraController.isActive()) return false;
+        if (ConfigFile.modConfig.isRendering() &&  RealCameraCore.isActive()) return false;
         return perspective.isFirstPerson();
     }
 
     @Override
     public HitResult raycast(double maxDistance, float tickDelta, boolean includeFluids) {
-        if (CameraController.isActive()) {
+        if (RealCameraCore.isActive()) {
             RaycastUtils.update(this, maxDistance*maxDistance, tickDelta);
             return this.world.raycast(RaycastUtils.getRaycastContext(RaycastContext.ShapeType.OUTLINE, 
                 includeFluids ? RaycastContext.FluidHandling.ANY : RaycastContext.FluidHandling.NONE, this));
