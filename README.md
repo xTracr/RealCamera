@@ -25,7 +25,7 @@ Download the mod from [Releases page](https://github.com/xTracr/RealCamera/relea
   * `realcamera-1.19.4-forge`: 1.19.4
   * `realcamera-1.18.2-forge`: 1.18.2
 
-[^1]:This mod has been tested and supports 1.19.2(though config screen doesnt work), but we do not guarantee full compatibility with it, nor will we actively maintain support for it.
+[^1]:The 1.18.2-fabric version of this mod has been tested and supports 1.19.2(though config screen doesnt work), but we do not guarantee full compatibility with it, nor will we actively maintain support for it.
 
 ### Dependencies ###
 

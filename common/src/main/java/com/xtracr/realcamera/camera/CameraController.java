@@ -30,42 +30,16 @@ public class CameraController {
     
     private static final ModConfig config = ConfigFile.modConfig;
 
-    private static Vec3d cameraOffset = Vec3d.ZERO;
-    private static Vec3d cameraRotation = Vec3d.ZERO;
-
     public static float cameraRoll = 0.0F;
 
     public static boolean isActive() {
         MinecraftClient client = MinecraftClient.getInstance();
-        return config.isEnabled() && client.options.getPerspective().isFirstPerson() && client.player != null && !config.isDisabledWhen(client.player);
-    }
-
-    public static boolean doCrosshairRotate() {
-        return isActive() && config.isDirectionBound() && !config.isClassic();
-    }
-
-    public static Vec3d getCameraOffset() {
-        return new Vec3d(cameraOffset.getX(), cameraOffset.getY(), cameraOffset.getZ());
-    }
-
-    public static Vec3d getCameraRotation() {
-        return new Vec3d(cameraRotation.getX(), cameraRotation.getY(), cameraRotation.getZ());
-    }
-
-    public static Vec3d getCameraDirection() {
-        float f = (float)cameraRotation.getX() * ((float)Math.PI / 180);
-        float g = -(float)cameraRotation.getY() * ((float)Math.PI / 180);
-        float h = MathHelper.cos(g);
-        float i = MathHelper.sin(g);
-        float j = MathHelper.cos(f);
-        float k = MathHelper.sin(f);
-        return new Vec3d(i * j, -k, h * j);
+        return config.isEnabled() && client.options.getPerspective().isFirstPerson() && client.getEntityRenderDispatcher().camera != null 
+            && client.player != null && !config.isDisabledWhen(client.player);
     }
 
     public static void setCameraOffset(Camera camera, MinecraftClient client, float tickDelta) {
         cameraRoll = 0.0F;
-        cameraOffset = Vec3d.ZERO;
-        cameraRotation = new Vec3d(camera.getPitch(), camera.getYaw(), cameraRoll);
 
         if (config.isRendering() && !config.onlyDisableRenderingWhen(client.player)) {
             ((CameraAccessor)camera).setThirdPerson(true);
@@ -73,19 +47,17 @@ public class CameraController {
 
         if (config.isClassic()) { setClassicOffset(camera, client, tickDelta); }
         else { setBindingOffset(camera, client, tickDelta); }
-
-        cameraOffset = camera.getPos().subtract(client.player.getCameraPosVec(tickDelta));
-        cameraRotation = new Vec3d(camera.getPitch(), camera.getYaw(), cameraRoll);
     }
 
     private static void setClassicOffset(Camera camera, MinecraftClient client, float tickDelta) {
         CameraAccessor cameraAccessor = (CameraAccessor)camera;
         ClientPlayerEntity player = client.player;
         
-        float pitch = camera.getPitch();
-        float yaw = camera.getYaw();
-        float centerYaw = yaw;
-        Vec3d offset = new Vec3d(config.getCameraX(), config.getCameraY(), config.getCameraZ()).multiply(config.getScale());
+        float centerYaw = camera.getYaw();
+        float pitch = camera.getPitch() + config.getClassicPitch();
+        float yaw = centerYaw - config.getClassicYaw();
+        cameraRoll = config.getClassicRoll();
+        Vec3d offset = new Vec3d(config.getClassicX(), config.getClassicY(), config.getClassicZ()).multiply(config.getScale());
         Vec3d center = new Vec3d(config.getCenterX(), config.getCenterY(), config.getCenterZ()).multiply(config.getScale());
 
         if (player.isSneaking()) {
@@ -111,7 +83,6 @@ public class CameraController {
         // GameRenderer.render
         MatrixStack matrixStack = new MatrixStack();
         // GameRenderer.renderWorld
-        matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(cameraRoll));
         matrixStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(camera.getPitch()));
         matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(camera.getYaw() + 180.0F));
         matrixStack.peek().getNormalMatrix().identity();
@@ -146,9 +117,9 @@ public class CameraController {
 
         if (config.isDirectionBound()) {
             Matrix3f normal = matrixStack.peek().getNormalMatrix().scale(1.0F, -1.0F, -1.0F);
-            normal.rotateLocal(config.getYaw()*(float)Math.PI/180.0F, normal.m10, normal.m11, normal.m12);
-            normal.rotateLocal(config.getPitch()*(float)Math.PI/180.0F, normal.m00, normal.m01, normal.m02);
-            normal.rotateLocal(config.getRoll()*(float)Math.PI/180.0F, normal.m20, normal.m21, normal.m22);
+            normal.rotateLocal(config.getBindingYaw()*(float)Math.PI/180.0F, normal.m10, normal.m11, normal.m12);
+            normal.rotateLocal(config.getBindingPitch()*(float)Math.PI/180.0F, normal.m00, normal.m01, normal.m02);
+            normal.rotateLocal(config.getBindingRoll()*(float)Math.PI/180.0F, normal.m20, normal.m21, normal.m22);
             Vec3d eulerAngle = MathUtils.getEulerAngleYXZ(normal).multiply(180.0D/Math.PI);
 
             ((CameraAccessor)camera).invokeSetRotation((float)-eulerAngle.getY(), (float)eulerAngle.getX());
@@ -232,25 +203,6 @@ public class CameraController {
         playerModel.animateModel(player, o, n, tickDelta);
         playerModel.setAngles(player, o, n, l, k, m);
         // AnimalModel.render
-        /*
-        if (playerModel.child) {
-            float f;
-            matrixStack.push();
-            if (playerModel.headScaled) {
-                f = 1.5f / playerModel.invertedChildHeadScale;
-                matrixStack.scale(f, f, f);
-            }
-            matrixStack.translate(0.0f, playerModel.childHeadYOffset / 16.0f, playerModel.childHeadZOffset / 16.0f);
-            config.getVanillaModelPart().get(renderer.getModel()).rotate(matrixStack);
-            if (...) return; 
-            matrixStack.pop();
-            matrixStack.push();
-            f = 1.0f / playerModel.invertedChildBodyScale;
-            matrixStack.scale(f, f, f);
-            matrixStack.translate(0.0f, playerModel.childBodyYOffset / 16.0f, 0.0f);
-            config.getVanillaModelPart().get(renderer.getModel()).rotate(matrixStack);
-        }
-         */
         // ModelPart.render
         config.getVanillaModelPart().get(playerRenderer.getModel()).rotate(matrixStack);
     }

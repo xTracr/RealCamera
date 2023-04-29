@@ -44,32 +44,32 @@ public final class KeyBindings {
             config.setEnabled(!enabled);
         }
         while (toggleAdjustMode.wasPressed()) {
-            if (config.isClassic()) config.setAdjustCamera(!config.isAdjustCamera());
+            if (config.isClassic()) config.cycleClassicAdjustMode();
             else config.setAdjustOffset(!config.isAdjustOffset());
         }
         while (adjustLEFT.wasPressed()) {
-            if (config.isClassic()) config.addClassicZ();
-            else config.addBindingZ();
+            if (config.isClassic()) config.adjustClassicZ(true);
+            else config.adjustBindingZ(true);
         }
         while (adjustRIGHT.wasPressed()) {
-            if (config.isClassic()) config.subClassicZ();
-            else config.subBindingZ();
+            if (config.isClassic()) config.adjustClassicZ(false);
+            else config.adjustBindingZ(false);
         }
         while (adjustUP.wasPressed()) {
-            if (config.isClassic()) config.addClassicY();
-            else config.addBindingY();
+            if (config.isClassic()) config.adjustClassicY(true);
+            else config.adjustBindingY(true);
         }
         while (adjustDOWN.wasPressed()) {
-            if (config.isClassic()) config.subClassicY();
-            else config.subBindingY();
+            if (config.isClassic()) config.adjustClassicY(false);
+            else config.adjustBindingY(false);
         }
         while (adjustFRONT.wasPressed()) {
-            if (config.isClassic()) config.addClassicX();
-            else config.addBindingX();
+            if (config.isClassic()) config.adjustClassicX(true);
+            else config.adjustBindingX(true);
         }
         while (adjustBACK.wasPressed()) {
-            if (config.isClassic()) config.subClassicX();
-            else config.subBindingX();
+            if (config.isClassic()) config.adjustClassicX(false);
+            else config.adjustBindingX(false);
         }
     }
 
