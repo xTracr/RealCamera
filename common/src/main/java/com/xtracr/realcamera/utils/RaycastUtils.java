@@ -1,0 +1,53 @@
+package com.xtracr.realcamera.utils;
+
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.Camera;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.RaycastContext;
+import net.minecraft.world.RaycastContext.FluidHandling;
+import net.minecraft.world.RaycastContext.ShapeType;
+
+public class RaycastUtils {
+
+    private static Vec3d startVec = new Vec3d(0, 0, 0);
+    private static Vec3d direction = new Vec3d(0, 0, 0);
+    private static Vec3d endVec = new Vec3d(0, 0, 0);
+
+    public static Vec3d getStartVec() {
+        return new Vec3d(startVec.getX(), startVec.getY(), startVec.getZ());
+    }
+
+    public static Vec3d getDirection() {
+        return new Vec3d(direction.getX(), direction.getY(), direction.getZ());
+    }
+
+    public static Vec3d getEndVec() {
+        return new Vec3d(endVec.getX(), endVec.getY(), endVec.getZ());
+    }
+
+    public static RaycastContext getRaycastContext(ShapeType shapeType, FluidHandling fluidHandling, Entity entity) {
+        return new RaycastContext(startVec, endVec, shapeType, fluidHandling, entity);
+    }
+
+    @SuppressWarnings("resource")
+    public static void update(Entity entity, double sqDistance, float tickDelta) {
+        final Camera camera = MinecraftClient.getInstance().getEntityRenderDispatcher().camera;
+        final Vec3d eyePos = entity.getCameraPosVec(tickDelta);
+        startVec = camera.getPos();
+        direction = Vec3d.fromPolar(camera.getPitch(), camera.getYaw());
+
+        final Vec3d offset = startVec.subtract(eyePos);
+        final Vec3d footPoint = MathUtils.getIntersectionPoint(Vec3d.ZERO, direction, offset, direction);
+        if (footPoint.lengthSquared() > sqDistance) {
+            startVec = eyePos;
+            direction = entity.getRotationVec(tickDelta);
+            endVec = startVec.add(direction.multiply(Math.sqrt(sqDistance)));
+            return;
+        } else if (offset.lengthSquared() > sqDistance) {
+            startVec = startVec.add(direction.multiply(offset.distanceTo(footPoint) - Math.sqrt(sqDistance-footPoint.lengthSquared())));
+        }
+        endVec = eyePos.add(footPoint.add(direction.multiply(Math.sqrt(sqDistance-footPoint.lengthSquared()))));
+    }
+
+}

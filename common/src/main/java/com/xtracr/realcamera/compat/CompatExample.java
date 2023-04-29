@@ -216,13 +216,14 @@ public class CompatExample {
             }
             matrixStack.translate(0.0f, playerModel.childHeadYOffset / 16.0f, playerModel.childHeadZOffset / 16.0f);
             ((ModelPart)getModelPartMethod.invoke(null, playerModel)).rotate(matrixStack);
-            if (...) return; 
+            if (...) return false; 
             matrixStack.pop();
             matrixStack.push();
             f = 1.0f / playerModel.invertedChildBodyScale;
             matrixStack.scale(f, f, f);
             matrixStack.translate(0.0f, playerModel.childBodyYOffset / 16.0f, 0.0f);
             ((ModelPart)getModelPartMethod.invoke(null, playerModel)).rotate(matrixStack);
+            return false;
         }
          */
         // ModelPart.render

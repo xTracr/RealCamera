@@ -9,7 +9,7 @@
 * 0.4.0-alpha:
 * Fixed an issue where the camera would not follow the model action when the player started/ended sneaking
 * Compatible with Pehkui
-* API to compat with
+* API for others to compat with
   * 0.4.1-alpha:
   * Compatible with EpicFight
   * Added commands for debugging
@@ -17,7 +17,11 @@
   * Fixed an issue where extra camera rotation cannot be applied correctly in specific situations
   * Allowed adjusting camera rotation with hotkeys
   * 0.4.3-alpha:
-  * Fixed an issue where the model sometimes isn't rendered when flying with elytra
+  * Allowed adjusting camera rotation in classic mode
+  * Improved calculation of crosshair hit result
+  * Bug fixes:
+    * model sometimes isn't rendered when flying with elytra
+    * leash position isn't correct
 
 * 0.3.0-alpha:
 * Made the hit result of the player's crosshair match the actual position of the crosshair
@@ -70,7 +74,11 @@
   * 修复了额外的摄像头旋转在特定情况下无法正确应用的问题
   * 允许用按键调整摄像头旋转
   * 0.4.3-alpha:
-  * 修复了鞘翅飞行时模型有时不渲染的问题
+  * 允许调整经典模式下的摄像头旋转
+  * 改进了准心命中结果的计算
+  * Bug修复:
+    * 鞘翅飞行时模型有时不渲染
+    * 缰绳位置不正确
 
 * 0.3.0-alpha:
 * 使玩家十字准心的命中结果与十字准心的实际位置相匹配

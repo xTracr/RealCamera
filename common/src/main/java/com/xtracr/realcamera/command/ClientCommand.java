@@ -17,9 +17,13 @@ import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.utils.VirtualRenderer;
 
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.render.Camera;
 import net.minecraft.command.CommandSource;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.Vec3d;
 
 public abstract class ClientCommand<S extends CommandSource> {
 
@@ -84,8 +88,12 @@ public abstract class ClientCommand<S extends CommandSource> {
 
     private int camera(CommandContext<S> context) throws CommandSyntaxException {
         final S source = context.getSource();
-        this.sendFeedback(source, new LiteralText("Camera offset: " + CameraController.getCameraOffset().toString() + "\n")
-            .append("Camera rotation: " + CameraController.getCameraRotation().toString()));
+        final MinecraftClient client = MinecraftClient.getInstance();
+        final Camera camera = client.getEntityRenderDispatcher().camera;
+        final ClientPlayerEntity player = client.player;
+        Vec3d offset = camera.getPos().subtract(player.getCameraPosVec(client.getTickDelta()));
+        this.sendFeedback(source, new LiteralText("Camera offset: " + offset.toString() + "\n")
+            .append("Camera rotation: (" + camera.getPitch() + ", " + camera.getYaw() + ", " + CameraController.cameraRoll));
         
         addnlFeedbackProvider.get(FeedbackType.camera).forEach((provider) -> {
             this.sendFeedback(source, new LiteralText(provider.provide()));
