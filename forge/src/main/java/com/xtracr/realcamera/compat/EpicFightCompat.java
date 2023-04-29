@@ -1,6 +1,6 @@
 package com.xtracr.realcamera.compat;
 
-import com.xtracr.realcamera.utils.VirtualRenderer;
+import com.xtracr.realcamera.api.VirtualRenderer;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;

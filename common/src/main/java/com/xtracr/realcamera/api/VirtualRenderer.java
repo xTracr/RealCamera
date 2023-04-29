@@ -1,4 +1,4 @@
-package com.xtracr.realcamera.utils;
+package com.xtracr.realcamera.api;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -10,11 +10,12 @@ import org.jetbrains.annotations.Nullable;
 
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
+import com.xtracr.realcamera.utils.ClassUtils;
 
 import net.minecraft.client.util.math.MatrixStack;
 
 /**
- * @see com.xtracr.realcamera.compat.CompatExample example
+ * @see com.xtracr.realcamera.api.CompatExample example
  */
 public class VirtualRenderer {
     
@@ -30,7 +31,7 @@ public class VirtualRenderer {
      * @param function  a {@link VirtualRenderFunction} return a boolean
      * @param nameMap   a mapping from the {@link com.xtracr.realcamera.config.ModConfig.Compats#modModelPart name} of {@code ModelPart}
      * to the name of the {@link java.lang.reflect.Field field} of {@code ModelPart} in the code.
-     * {@link com.xtracr.realcamera.compat.CompatExample#nameMap See example}
+     * {@link com.xtracr.realcamera.api.CompatExample#nameMap See example}
      * 
      */
     public static void register(final String modid, final VirtualRenderFunction function, @Nullable final Map<String, String> nameMap) {
@@ -42,7 +43,7 @@ public class VirtualRenderer {
      * 
      * @param rendererClass containing a {@link String} {@code modid}, a {@link Method boolean Method} {@code virtualRender} 
      * and a {@link Map} {@code nameMap} from String to  String.These should all be {@code static}.
-     * {@link com.xtracr.realcamera.compat.CompatExample See example}
+     * {@link com.xtracr.realcamera.api.CompatExample See example}
      * 
      */
     @SuppressWarnings("unchecked")
@@ -59,11 +60,11 @@ public class VirtualRenderer {
      * 
      * @param modid
      * @param rendererClass containing a {@link Method boolean Method} {@code methodName}.
-     * {@link com.xtracr.realcamera.compat.CompatExample See example}
+     * {@link com.xtracr.realcamera.api.CompatExample See example}
      * @param methodName    {@code virtualRender} default
      * @param nameMap       a mapping from the {@link com.xtracr.realcamera.config.ModConfig.Compats#modModelPart name} of {@code ModelPart}
      * to the name of the {@link java.lang.reflect.Field field} of {@code ModelPart} in the code.
-     * {@link com.xtracr.realcamera.compat.CompatExample#nameMap See example}
+     * {@link com.xtracr.realcamera.api.CompatExample#nameMap See example}
      * 
      */
     public static void register(final String modid, final Class<?> rendererClass, String methodName, @Nullable final Map<String, String> nameMap) {

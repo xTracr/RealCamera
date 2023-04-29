@@ -1,7 +1,6 @@
 package com.xtracr.realcamera;
 
-import com.xtracr.realcamera.camera.CameraController;
-import com.xtracr.realcamera.command.ClientCommandForge;
+import com.xtracr.realcamera.command.DebugCommandForge;
 
 import net.minecraftforge.client.event.RegisterClientCommandsEvent;
 import net.minecraftforge.client.event.InputEvent.KeyInputEvent;
@@ -19,18 +18,18 @@ public class EventHandler {
 
     @SubscribeEvent
     public static void onCameraUpdate(CameraSetup event) {
-        if (CameraController.isActive()) {
+        if (RealCameraCore.isActive()) {
             Camera camera = event.getCamera();
-            CameraController.setCameraOffset(camera, event.getRenderer().getClient(), (float)event.getPartialTicks());
+            RealCameraCore.updateCamera(camera, event.getRenderer().getClient(), (float)event.getPartialTicks());
             event.setPitch(camera.getPitch());
             event.setYaw(camera.getYaw());
-            event.setRoll(CameraController.cameraRoll);
+            event.setRoll(RealCameraCore.cameraRoll);
         }
     }
 
     @SubscribeEvent
     public static void onClientCommandRegister(RegisterClientCommandsEvent event) {
-        ClientCommandForge.INSTANCE.register(event.getDispatcher());
+        DebugCommandForge.INSTANCE.register(event.getDispatcher());
     }
 
 }

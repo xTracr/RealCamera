@@ -11,11 +11,11 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.xtracr.realcamera.RealCameraCore;
+import com.xtracr.realcamera.api.VirtualRenderer;
 import com.xtracr.realcamera.RealCamera;
-import com.xtracr.realcamera.camera.CameraController;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
-import com.xtracr.realcamera.utils.VirtualRenderer;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -25,7 +25,7 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 
-public abstract class ClientCommand<S extends CommandSource> {
+public abstract class DebugCommand<S extends CommandSource> {
 
     private static final ModConfig config = ConfigFile.modConfig;
     private static final Map<FeedbackType, List<FeedbackProvider>> addnlFeedbackProvider = new HashMap<>();
@@ -93,7 +93,7 @@ public abstract class ClientCommand<S extends CommandSource> {
         final ClientPlayerEntity player = client.player;
         Vec3d offset = camera.getPos().subtract(player.getCameraPosVec(client.getTickDelta()));
         this.sendFeedback(source, new LiteralText("Camera offset: " + offset.toString() + "\n")
-            .append("Camera rotation: (" + camera.getPitch() + ", " + camera.getYaw() + ", " + CameraController.cameraRoll));
+            .append("Camera rotation: (" + camera.getPitch() + ", " + camera.getYaw() + ", " + RealCameraCore.cameraRoll + ")\n"));
         
         addnlFeedbackProvider.get(FeedbackType.camera).forEach((provider) -> {
             this.sendFeedback(source, new LiteralText(provider.provide()));

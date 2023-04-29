@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import com.xtracr.realcamera.camera.CameraController;
+import com.xtracr.realcamera.RealCameraCore;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
@@ -29,9 +29,9 @@ public abstract class GameRendererEvents {
         )
     )
     private void onCameraUpdate(float tickDelta, long limitTime, MatrixStack matrixStack, CallbackInfo cInfo) {
-        if (CameraController.isActive()) {
-            CameraController.setCameraOffset(this.camera, MinecraftClient.getInstance(), tickDelta);
-            matrixStack.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(CameraController.cameraRoll));
+        if (RealCameraCore.isActive()) {
+            RealCameraCore.updateCamera(this.camera, MinecraftClient.getInstance(), tickDelta);
+            matrixStack.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(RealCameraCore.cameraRoll));
         }
     }
     

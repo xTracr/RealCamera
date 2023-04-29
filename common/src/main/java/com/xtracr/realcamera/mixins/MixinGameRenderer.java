@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import com.xtracr.realcamera.camera.CameraController;
+import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.compat.DoABarrelRollCompat;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.utils.RaycastUtils;
@@ -45,7 +45,7 @@ public abstract class MixinGameRenderer {
 
     @ModifyVariable(method = "updateTargetedEntity", at = @At("STORE"), ordinal = 0)
     private EntityHitResult modifyEntityHitResult(EntityHitResult entityHitResult) {
-        if (CameraController.isActive()) {
+        if (RealCameraCore.isActive()) {
             Vec3d startVec = RaycastUtils.getStartVec();
             Vec3d endVec = RaycastUtils.getEndVec();
             double sqDistance = (this.client.crosshairTarget != null ? 
@@ -66,7 +66,7 @@ public abstract class MixinGameRenderer {
         )
     )
     private void setThirdPerson(CallbackInfo cInfo) {
-        if (ConfigFile.modConfig.isRendering() && CameraController.isActive()) {
+        if (ConfigFile.modConfig.isRendering() && RealCameraCore.isActive()) {
             this.client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
             toggle = true;
         }

@@ -5,7 +5,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.xtracr.realcamera.camera.CameraController;
+import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
 
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -25,7 +25,7 @@ public abstract class MixinEntityRenderer {
         cancellable = true
     )
     private void onBeforeShouldRender(Entity entity, Frustum frustum, double x, double y, double z, CallbackInfoReturnable<Boolean> cInfo) {
-        if (ConfigFile.modConfig.isRendering() && CameraController.isActive() && entity instanceof ClientPlayerEntity) {
+        if (ConfigFile.modConfig.isRendering() && RealCameraCore.isActive() && entity instanceof ClientPlayerEntity) {
             cInfo.setReturnValue(true);
         }
     }
