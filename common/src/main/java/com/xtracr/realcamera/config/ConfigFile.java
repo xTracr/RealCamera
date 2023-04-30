@@ -20,7 +20,7 @@ import com.google.gson.JsonSyntaxException;
 public class ConfigFile {
     
     private static final Path PATH;
-    private static final Gson gson = new GsonBuilder()
+    private static final Gson GSON = new GsonBuilder()
         .setPrettyPrinting()
         .create();
 
@@ -40,7 +40,7 @@ public class ConfigFile {
     
     public static void load() {
         try (BufferedReader reader = Files.newBufferedReader(PATH)){
-            modConfig.set(gson.fromJson(reader, ModConfig.class));
+            modConfig.set(GSON.fromJson(reader, ModConfig.class));
             modConfig.clamp();
             reader.close();
         } catch (IOException | JsonSyntaxException | JsonIOException exception) {
@@ -50,7 +50,7 @@ public class ConfigFile {
 
     public static void save() {
         try (BufferedWriter writer = Files.newBufferedWriter(PATH)) {
-            gson.toJson(modConfig, writer);
+            GSON.toJson(modConfig, writer);
             writer.close();
         } catch (IOException | JsonIOException exception) {
             RealCamera.LOGGER.warn("Failed to save config", exception);
@@ -61,7 +61,7 @@ public class ConfigFile {
     public static void reset() {
         try (BufferedWriter writer = Files.newBufferedWriter(PATH)) {
             modConfig.set(new ModConfig());
-            gson.toJson(modConfig, writer);
+            GSON.toJson(modConfig, writer);
             writer.close();
         } catch (IOException | JsonIOException exception) {
             RealCamera.LOGGER.warn("Failed to reset config", exception);

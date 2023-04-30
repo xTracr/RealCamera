@@ -22,6 +22,8 @@
   * Bug fixes:
     * model sometimes isn't rendered when flying with elytra
     * leash position isn't correct
+  * 0.4.4-alpha:
+  * Added dynamic crosshair function
 
 * 0.3.0-alpha:
 * Made the hit result of the player's crosshair match the actual position of the crosshair
@@ -79,6 +81,8 @@
   * Bug修复:
     * 鞘翅飞行时模型有时不渲染
     * 缰绳位置不正确
+  * 0.4.4-alpha:
+  * 添加了动态十字准心功能
 
 * 0.3.0-alpha:
 * 使玩家十字准心的命中结果与十字准心的实际位置相匹配

@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.compat.DoABarrelRollCompat;
 import com.xtracr.realcamera.config.ConfigFile;
+import com.xtracr.realcamera.utils.CrosshairUtils;
 import com.xtracr.realcamera.utils.RaycastUtils;
 
 import net.minecraft.client.MinecraftClient;
@@ -29,8 +30,7 @@ public abstract class MixinGameRenderer {
     private static boolean toggle = false;
 
     @Shadow
-    @Final
-    MinecraftClient client;
+    @Final MinecraftClient client;
 
     /* 
     @ModifyArgs(...)
@@ -45,7 +45,8 @@ public abstract class MixinGameRenderer {
 
     @ModifyVariable(method = "updateTargetedEntity", at = @At("STORE"), ordinal = 0)
     private EntityHitResult modifyEntityHitResult(EntityHitResult entityHitResult) {
-        if (RealCameraCore.isActive()) {
+        CrosshairUtils.capturedEntityHitResult = entityHitResult;
+        if (!ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
             Vec3d startVec = RaycastUtils.getStartVec();
             Vec3d endVec = RaycastUtils.getEndVec();
             double sqDistance = (this.client.crosshairTarget != null ? 
@@ -53,9 +54,9 @@ public abstract class MixinGameRenderer {
             Entity cameraEntity = this.client.getCameraEntity();
             Box box = cameraEntity.getBoundingBox().stretch(cameraEntity.getRotationVec(this.client.getTickDelta())
                     .multiply(this.client.interactionManager.getReachDistance())).expand(1.0, 1.0, 1.0);
-            return ProjectileUtil.raycast(cameraEntity, startVec, endVec, box, entity -> !entity.isSpectator() && entity.canHit(), sqDistance);
+            CrosshairUtils.capturedEntityHitResult = ProjectileUtil.raycast(cameraEntity, startVec, endVec, box, entity -> !entity.isSpectator() && entity.canHit(), sqDistance);
         }
-        return entityHitResult;
+        return CrosshairUtils.capturedEntityHitResult;
     }
 
     @Inject(
@@ -95,7 +96,7 @@ public abstract class MixinGameRenderer {
             by = -2
         )
     )
-    private void beforeCameraUpdate(float tickDelta, long limitTime, MatrixStack matrixStack, CallbackInfo cInfo) {
+    private void onBeforeCameraUpdate(float tickDelta, long limitTime, MatrixStack matrixStack, CallbackInfo cInfo) {
         if (ConfigFile.modConfig.compatDoABarrelRoll() && DoABarrelRollCompat.modEnabled()) {
             matrixStack.loadIdentity();
         }

@@ -5,8 +5,8 @@ import net.minecraft.util.math.MathHelper;
 
 public class ModConfig {
 
-    public static final double minVALUE = -64.0D;
-    public static final double maxVALUE = 64.0D;
+    public static final double MIN_DOUBLE = -64.0D;
+    public static final double MAX_DOUBLE = 64.0D;
 
     public General general = new General();
     public Binding binding = new Binding();
@@ -18,13 +18,14 @@ public class ModConfig {
 
         public boolean enabled = false;
         public boolean classic = false;
+        public boolean dynamicCrosshair = false;
         public boolean renderModel = true;
         public double adjustStep = 0.25D;
         public double scale = 1.0D;
 
         private void clamp() {
-            adjustStep = MathHelper.clamp(adjustStep, 0.0D, maxVALUE);
-            scale = MathHelper.clamp(scale, 0.0D, maxVALUE);
+            adjustStep = MathHelper.clamp(adjustStep, 0.0D, MAX_DOUBLE);
+            scale = MathHelper.clamp(scale, 0.0D, MAX_DOUBLE);
         }
 
     }
@@ -44,9 +45,9 @@ public class ModConfig {
 
         private void clamp() {
             if (!(vanillaModelPart instanceof VanillaModelPart)) vanillaModelPart = VanillaModelPart.head;
-            cameraX = MathHelper.clamp(cameraX, minVALUE, maxVALUE);
-            cameraY = MathHelper.clamp(cameraY, minVALUE, maxVALUE);
-            cameraZ = MathHelper.clamp(cameraZ, minVALUE, maxVALUE);
+            cameraX = MathHelper.clamp(cameraX, MIN_DOUBLE, MAX_DOUBLE);
+            cameraY = MathHelper.clamp(cameraY, MIN_DOUBLE, MAX_DOUBLE);
+            cameraZ = MathHelper.clamp(cameraZ, MIN_DOUBLE, MAX_DOUBLE);
             pitch = MathHelper.wrapDegrees(pitch);
             yaw = MathHelper.wrapDegrees(yaw);
             roll = MathHelper.wrapDegrees(roll);
@@ -56,7 +57,7 @@ public class ModConfig {
 
     public class Classic {
 
-        public AdjustMode adjustMode = AdjustMode.camera;
+        public AdjustMode adjustMode = AdjustMode.CAMERA;
         public double cameraX = 3.25D;
         public double cameraY = 2.0D;
         public double cameraZ = 0.0D;
@@ -68,22 +69,22 @@ public class ModConfig {
         public float roll = 0.0F;
 
         private void clamp() {
-            if (!(adjustMode instanceof AdjustMode)) adjustMode = AdjustMode.camera;
-            cameraX = MathHelper.clamp(cameraX, minVALUE, maxVALUE);
-            cameraY = MathHelper.clamp(cameraY, minVALUE, maxVALUE);
-            cameraZ = MathHelper.clamp(cameraZ, minVALUE, maxVALUE);
-            centerX = MathHelper.clamp(centerX, minVALUE, maxVALUE);
-            centerY = MathHelper.clamp(centerY, minVALUE, maxVALUE);
-            centerZ = MathHelper.clamp(centerZ, minVALUE, maxVALUE);
+            if (!(adjustMode instanceof AdjustMode)) adjustMode = AdjustMode.CAMERA;
+            cameraX = MathHelper.clamp(cameraX, MIN_DOUBLE, MAX_DOUBLE);
+            cameraY = MathHelper.clamp(cameraY, MIN_DOUBLE, MAX_DOUBLE);
+            cameraZ = MathHelper.clamp(cameraZ, MIN_DOUBLE, MAX_DOUBLE);
+            centerX = MathHelper.clamp(centerX, MIN_DOUBLE, MAX_DOUBLE);
+            centerY = MathHelper.clamp(centerY, MIN_DOUBLE, MAX_DOUBLE);
+            centerZ = MathHelper.clamp(centerZ, MIN_DOUBLE, MAX_DOUBLE);
             pitch = MathHelper.wrapDegrees(pitch);
             yaw = MathHelper.wrapDegrees(yaw);
             roll = MathHelper.wrapDegrees(roll);
         }
 
         public enum AdjustMode {
-            camera,
-            center,
-            rotation;
+            CAMERA,
+            CENTER,
+            ROTATION;
 
             private static final AdjustMode[] VALUES = values();
             
@@ -135,6 +136,9 @@ public class ModConfig {
     public boolean isClassic() {
         return this.general.classic;
     }
+    public boolean isCrosshairDynamic() {
+        return this.general.dynamicCrosshair;
+    }
     public boolean isRendering() {
         return this.general.renderModel;
     }
@@ -165,7 +169,7 @@ public class ModConfig {
     public VanillaModelPart getVanillaModelPart() {
         return this.binding.vanillaModelPart;
     }
-    public boolean isAdjustOffset() {
+    public boolean isAdjustingOffset() {
         return this.binding.adjustOffset;
     }
     public boolean isDirectionBound() {
@@ -230,17 +234,17 @@ public class ModConfig {
 
     public void adjustBindingX(boolean add) {
         int s = add ? 1 : -1;
-        if (this.isAdjustOffset()) setBindingX(getBindingX() + s*getAdjustStep());
+        if (this.isAdjustingOffset()) setBindingX(getBindingX() + s*getAdjustStep());
         else setBindingRoll(getBindingRoll() + s*4*(float)getAdjustStep());
     }
     public void adjustBindingY(boolean add) {
         int s = add ? 1 : -1;
-        if (this.isAdjustOffset()) setBindingY(getBindingY() + s*getAdjustStep());
+        if (this.isAdjustingOffset()) setBindingY(getBindingY() + s*getAdjustStep());
         else setBindingYaw(getBindingYaw() + s*4*(float)getAdjustStep());
     }
     public void adjustBindingZ(boolean add) {
         int s = add ? 1 : -1;
-        if (this.isAdjustOffset()) setBindingZ(getBindingZ() + s*getAdjustStep());
+        if (this.isAdjustingOffset()) setBindingZ(getBindingZ() + s*getAdjustStep());
         else setBindingPitch(getBindingPitch() + s*4*(float)getAdjustStep());
     }
 
@@ -329,10 +333,10 @@ public class ModConfig {
     public void adjustClassicX(boolean add) {
         int s = add ? 1 : -1;
         switch (this.classic.adjustMode) {
-            case center:
+            case CENTER:
                 setCenterX(getCenterX() + s*getAdjustStep());
                 break;
-            case rotation:
+            case ROTATION:
                 setClassicRoll(getClassicRoll() + s*4*(float)getAdjustStep());
                 break;
             default:
@@ -342,10 +346,10 @@ public class ModConfig {
     public void adjustClassicY(boolean add) {
         int s = add ? 1 : -1;
         switch (this.classic.adjustMode) {
-            case center:
+            case CENTER:
                 setCenterY(getCenterY() + s*getAdjustStep());
                 break;
-            case rotation:
+            case ROTATION:
                 setClassicYaw(getClassicYaw() + s*4*(float)getAdjustStep());
                 break;
             default:
@@ -355,10 +359,10 @@ public class ModConfig {
     public void adjustClassicZ(boolean add) {
         int s = add ? 1 : -1;
         switch (this.classic.adjustMode) {
-            case center:
+            case CENTER:
                 setCenterZ(getCenterZ() + s*getAdjustStep());
                 break;
-            case rotation:
+            case ROTATION:
                 setClassicPitch(getClassicPitch() + s*4*(float)getAdjustStep());
                 break;
             default:

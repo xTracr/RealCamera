@@ -19,6 +19,7 @@
 
     "config.option.xtracr_realcamera_enabled": "Mod Enabled",
     "config.option.xtracr_realcamera_classic": "Classic Mode",
+    "config.option.xtracr_realcamera_dynamicCrosshair": "Dynamic Crosshair",
     "config.option.xtracr_realcamera_renderModel": "Render Player Model",
     "config.option.xtracr_realcamera_adjustStep": "Adjust Step",
     "config.option.xtracr_realcamera_scale": "Scale",
@@ -57,6 +58,7 @@
 
     "config.tooltip.xtracr_realcamera_enabled": "Enable the Mod's main feature",
     "config.tooltip.xtracr_realcamera_classic": "Classic mode only changes the Y offset of the rotation center and the offset of camera relative to its rotation center",
+    "config.tooltip.xtracr_realcamera_dynamicCrosshair": "When enabled, the crosshair will follow the player's view, ensuring consistent hit result. When disabled, the player's hit result will be determined by multiple factors including the position and direction of the camera, as well as the player's position and field of view, in order to maintain the position of the crosshair on the screen.",
     "config.tooltip.xtracr_realcamera_renderModel": "Render player model in first-person view",
     "config.tooltip.xtracr_realcamera_adjustStep": "Length of the adjustment per step",
     "config.tooltip.xtracr_realcamera_scale": "Control the size of the config values, 16 = 1 block",
@@ -80,8 +82,8 @@
     "config.tooltip.xtracr_realcamera_centerY": "Rotation center's Y offset from head",
     "config.tooltip.xtracr_realcamera_centerZ": "Rotation center's Z offset from head",
 
-    "config.tooltip.xtracr_realcamera_useModModel": "Binding Mode config is automatically used if data from Mod Model Part isnt available",
-    "config.tooltip.xtracr_realcamera_modelModID": "Please refer to the wiki page of this mod to see the list of supported mods",
+    "config.tooltip.xtracr_realcamera_useModModel": "Binding Mode config is automatically used if failed to find target model part",
+    "config.tooltip.xtracr_realcamera_modelModID": "Please refer to the wiki page of this mod to see the list of supported mods and model part names",
     "config.tooltip.xtracr_realcamera_modModelPart": "Name of the model part to bind camera to",
     "config.tooltip.xtracr_realcamera_doABarrelRoll": "Adapt to its camera rolling",
     "config.tooltip.xtracr_realcamera_pehkui": "Adapt to Pehkui's scaling of model size",

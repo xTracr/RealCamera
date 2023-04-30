@@ -12,9 +12,9 @@ import net.minecraft.text.Text;
 
 public class ConfigScreen {
     
-    public static final String Category = "config.category.xtracr_"+RealCamera.MODID+"_";
-    public static final String Option = "config.option.xtracr_"+RealCamera.MODID+"_";
-    public static final String Tooltip = "config.tooltip.xtracr_"+RealCamera.MODID+"_";
+    public static final String CATEGORY = "config.category.xtracr_"+RealCamera.MODID+"_";
+    public static final String OPTION = "config.option.xtracr_"+RealCamera.MODID+"_";
+    public static final String TOOLTIP = "config.tooltip.xtracr_"+RealCamera.MODID+"_";
     
     public static Screen create(Screen parent) {
 
@@ -26,230 +26,235 @@ public class ConfigScreen {
             .setSavingRunnable(ConfigFile::save)
             .setTitle(Text.translatable("config.title.xtracr_"+RealCamera.MODID));
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
-        ConfigCategory general = builder.getOrCreateCategory(Text.translatable(Category+"general"));
-        ConfigCategory binding = builder.getOrCreateCategory(Text.translatable(Category+"binding"));
-        ConfigCategory classic = builder.getOrCreateCategory(Text.translatable(Category+"classic"));
-        ConfigCategory compats = builder.getOrCreateCategory(Text.translatable(Category+"compats"));
-        ConfigCategory disables = builder.getOrCreateCategory(Text.translatable(Category+"disables"));
+        ConfigCategory general = builder.getOrCreateCategory(Text.translatable(CATEGORY+"general"));
+        ConfigCategory binding = builder.getOrCreateCategory(Text.translatable(CATEGORY+"binding"));
+        ConfigCategory classic = builder.getOrCreateCategory(Text.translatable(CATEGORY+"classic"));
+        ConfigCategory compats = builder.getOrCreateCategory(Text.translatable(CATEGORY+"compats"));
+        ConfigCategory disables = builder.getOrCreateCategory(Text.translatable(CATEGORY+"disables"));
 
-        general.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"enabled"), config.general.enabled)
+        general.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION+"enabled"), config.general.enabled)
             .setDefaultValue(false)
-            .setTooltip(Text.translatable(Tooltip+"enabled"))
+            .setTooltip(Text.translatable(TOOLTIP+"enabled"))
             .setSaveConsumer(b -> config.general.enabled = b)
             .build());
-        general.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"classic"), config.general.classic)
+        general.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION+"classic"), config.general.classic)
             .setDefaultValue(false)
-            .setTooltip(Text.translatable(Tooltip+"classic"))
+            .setTooltip(Text.translatable(TOOLTIP+"classic"))
             .setSaveConsumer(b -> config.general.classic = b)
             .build());
-        general.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"renderModel"), config.general.renderModel)
+        general.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION+"dynamicCrosshair"), config.general.dynamicCrosshair)
+            .setDefaultValue(false)
+            .setTooltip(Text.translatable(TOOLTIP+"dynamicCrosshair"))
+            .setSaveConsumer(b -> config.general.dynamicCrosshair = b)
+            .build());
+        general.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION+"renderModel"), config.general.renderModel)
             .setDefaultValue(true)
-            .setTooltip(Text.translatable(Tooltip+"renderModel"))
+            .setTooltip(Text.translatable(TOOLTIP+"renderModel"))
             .setSaveConsumer(b -> config.general.renderModel = b)
             .build());
-        general.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"adjustStep"), config.general.adjustStep)
+        general.addEntry(entryBuilder.startDoubleField(Text.translatable(OPTION+"adjustStep"), config.general.adjustStep)
             .setDefaultValue(0.25D)
             .setMin(0.0D)
-            .setMax(ModConfig.maxVALUE)
-            .setTooltip(Text.translatable(Tooltip+"adjustStep"))
+            .setMax(ModConfig.MAX_DOUBLE)
+            .setTooltip(Text.translatable(TOOLTIP+"adjustStep"))
             .setSaveConsumer(d -> config.general.adjustStep = d)
             .build());
-        general.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"scale"), config.general.scale)
+        general.addEntry(entryBuilder.startDoubleField(Text.translatable(OPTION+"scale"), config.general.scale)
             .setDefaultValue(1.0D)
             .setMin(0.0D)
-            .setMax(ModConfig.maxVALUE)
-            .setTooltip(Text.translatable(Tooltip+"scale"))
+            .setMax(ModConfig.MAX_DOUBLE)
+            .setTooltip(Text.translatable(TOOLTIP+"scale"))
             .setSaveConsumer(d -> config.general.scale = d)
             .build());
         
-        binding.addEntry(entryBuilder.startEnumSelector(Text.translatable(Option+"vanillaModelPart"), VanillaModelPart.class, config.binding.vanillaModelPart)
+        binding.addEntry(entryBuilder.startEnumSelector(Text.translatable(OPTION+"vanillaModelPart"), VanillaModelPart.class, config.binding.vanillaModelPart)
             .setDefaultValue(VanillaModelPart.head)
-            .setTooltip(Text.translatable(Tooltip+"vanillaModelPart"))
+            .setTooltip(Text.translatable(TOOLTIP+"vanillaModelPart"))
             .setSaveConsumer(e -> config.binding.vanillaModelPart = e)
             .build());
-        binding.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"adjustOffset"), config.binding.adjustOffset)
+        binding.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION+"adjustOffset"), config.binding.adjustOffset)
             .setDefaultValue(true)
-            .setTooltip(Text.translatable(Tooltip+"adjustOffset"))
+            .setTooltip(Text.translatable(TOOLTIP+"adjustOffset"))
             .setSaveConsumer(b -> config.binding.adjustOffset = b)
             .build());
-        binding.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"bindDirection"), config.binding.bindDirection)
+        binding.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION+"bindDirection"), config.binding.bindDirection)
             .setDefaultValue(true)
-            .setTooltip(Text.translatable(Tooltip+"bindDirection"))
+            .setTooltip(Text.translatable(TOOLTIP+"bindDirection"))
             .setSaveConsumer(b -> config.binding.bindDirection = b)
             .build());
-        binding.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"lockRolling"), config.binding.lockRolling)
+        binding.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION+"lockRolling"), config.binding.lockRolling)
             .setDefaultValue(false)
-            .setTooltip(Text.translatable(Tooltip+"lockRolling"))
+            .setTooltip(Text.translatable(TOOLTIP+"lockRolling"))
             .setSaveConsumer(b -> config.binding.lockRolling = b)
             .build());
-        binding.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"bindingX"), config.binding.cameraX)
+        binding.addEntry(entryBuilder.startDoubleField(Text.translatable(OPTION+"bindingX"), config.binding.cameraX)
             .setDefaultValue(3.25D)
-            .setMin(ModConfig.minVALUE)
-            .setMax(ModConfig.maxVALUE)
-            .setTooltip(Text.translatable(Tooltip+"bindingX"))
+            .setMin(ModConfig.MIN_DOUBLE)
+            .setMax(ModConfig.MAX_DOUBLE)
+            .setTooltip(Text.translatable(TOOLTIP+"bindingX"))
             .setSaveConsumer(d -> config.binding.cameraX = d)
             .build());
-        binding.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"bindingY"), config.binding.cameraY)
+        binding.addEntry(entryBuilder.startDoubleField(Text.translatable(OPTION+"bindingY"), config.binding.cameraY)
             .setDefaultValue(2.0D)
-            .setMin(ModConfig.minVALUE)
-            .setMax(ModConfig.maxVALUE)
-            .setTooltip(Text.translatable(Tooltip+"bindingY"))
+            .setMin(ModConfig.MIN_DOUBLE)
+            .setMax(ModConfig.MAX_DOUBLE)
+            .setTooltip(Text.translatable(TOOLTIP+"bindingY"))
             .setSaveConsumer(d -> config.binding.cameraY = d)
             .build());
-        binding.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"bindingZ"), config.binding.cameraZ)
+        binding.addEntry(entryBuilder.startDoubleField(Text.translatable(OPTION+"bindingZ"), config.binding.cameraZ)
             .setDefaultValue(0.0D)
-            .setMin(ModConfig.minVALUE)
-            .setMax(ModConfig.maxVALUE)
-            .setTooltip(Text.translatable(Tooltip+"bindingZ"))
+            .setMin(ModConfig.MIN_DOUBLE)
+            .setMax(ModConfig.MAX_DOUBLE)
+            .setTooltip(Text.translatable(TOOLTIP+"bindingZ"))
             .setSaveConsumer(d -> config.binding.cameraZ = d)
             .build());
-        binding.addEntry(entryBuilder.startFloatField(Text.translatable(Option+"pitch"), config.binding.pitch)
+        binding.addEntry(entryBuilder.startFloatField(Text.translatable(OPTION+"pitch"), config.binding.pitch)
             .setDefaultValue(0.0F)
             .setMin(-180.0F)
             .setMax(180.0F)
-            .setTooltip(Text.translatable(Tooltip+"pitch"))
+            .setTooltip(Text.translatable(TOOLTIP+"pitch"))
             .setSaveConsumer(f -> config.binding.pitch = f)
             .build());
-        binding.addEntry(entryBuilder.startFloatField(Text.translatable(Option+"yaw"), config.binding.yaw)
+        binding.addEntry(entryBuilder.startFloatField(Text.translatable(OPTION+"yaw"), config.binding.yaw)
             .setDefaultValue(0.0F)
             .setMin(-180.0F)
             .setMax(180.0F)
-            .setTooltip(Text.translatable(Tooltip+"yaw"))
+            .setTooltip(Text.translatable(TOOLTIP+"yaw"))
             .setSaveConsumer(f -> config.binding.yaw = f)
             .build());
-        binding.addEntry(entryBuilder.startFloatField(Text.translatable(Option+"roll"), config.binding.roll)
+        binding.addEntry(entryBuilder.startFloatField(Text.translatable(OPTION+"roll"), config.binding.roll)
             .setDefaultValue(0.0F)
             .setMin(-180.0F)
             .setMax(180.0F)
-            .setTooltip(Text.translatable(Tooltip+"roll"))
+            .setTooltip(Text.translatable(TOOLTIP+"roll"))
             .setSaveConsumer(f -> config.binding.roll = f)
             .build());
         
-        classic.addEntry(entryBuilder.startEnumSelector(Text.translatable(Option+"classicAdjustMode"), ModConfig.Classic.AdjustMode.class, config.classic.adjustMode)
-            .setDefaultValue(ModConfig.Classic.AdjustMode.camera)
-            .setTooltip(Text.translatable(Tooltip+"classicAdjustMode"))
+        classic.addEntry(entryBuilder.startEnumSelector(Text.translatable(OPTION+"classicAdjustMode"), ModConfig.Classic.AdjustMode.class, config.classic.adjustMode)
+            .setDefaultValue(ModConfig.Classic.AdjustMode.CAMERA)
+            .setTooltip(Text.translatable(TOOLTIP+"classicAdjustMode"))
             .setSaveConsumer(e -> config.classic.adjustMode = e)
             .build());
-        classic.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"classicX"), config.classic.cameraX)
+        classic.addEntry(entryBuilder.startDoubleField(Text.translatable(OPTION+"classicX"), config.classic.cameraX)
             .setDefaultValue(3.25D)
-            .setMin(ModConfig.minVALUE)
-            .setMax(ModConfig.maxVALUE)
-            .setTooltip(Text.translatable(Tooltip+"classicX"))
+            .setMin(ModConfig.MIN_DOUBLE)
+            .setMax(ModConfig.MAX_DOUBLE)
+            .setTooltip(Text.translatable(TOOLTIP+"classicX"))
             .setSaveConsumer(d -> config.classic.cameraX = d)
             .build());
-        classic.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"classicY"), config.classic.cameraY)
+        classic.addEntry(entryBuilder.startDoubleField(Text.translatable(OPTION+"classicY"), config.classic.cameraY)
             .setDefaultValue(2.0D)
-            .setMin(ModConfig.minVALUE)
-            .setMax(ModConfig.maxVALUE)
-            .setTooltip(Text.translatable(Tooltip+"classicY"))
+            .setMin(ModConfig.MIN_DOUBLE)
+            .setMax(ModConfig.MAX_DOUBLE)
+            .setTooltip(Text.translatable(TOOLTIP+"classicY"))
             .setSaveConsumer(d -> config.classic.cameraY = d)
             .build());
-        classic.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"classicZ"), config.classic.cameraZ)
+        classic.addEntry(entryBuilder.startDoubleField(Text.translatable(OPTION+"classicZ"), config.classic.cameraZ)
             .setDefaultValue(0.0D)
-            .setMin(ModConfig.minVALUE)
-            .setMax(ModConfig.maxVALUE)
-            .setTooltip(Text.translatable(Tooltip+"classicZ"))
+            .setMin(ModConfig.MIN_DOUBLE)
+            .setMax(ModConfig.MAX_DOUBLE)
+            .setTooltip(Text.translatable(TOOLTIP+"classicZ"))
             .setSaveConsumer(d -> config.classic.cameraZ = d)
             .build());
-        classic.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"centerX"), config.classic.centerX)
+        classic.addEntry(entryBuilder.startDoubleField(Text.translatable(OPTION+"centerX"), config.classic.centerX)
             .setDefaultValue(0.0D)
-            .setMin(ModConfig.minVALUE)
-            .setMax(ModConfig.maxVALUE)
-            .setTooltip(Text.translatable(Tooltip+"centerX"))
+            .setMin(ModConfig.MIN_DOUBLE)
+            .setMax(ModConfig.MAX_DOUBLE)
+            .setTooltip(Text.translatable(TOOLTIP+"centerX"))
             .setSaveConsumer(d -> config.classic.centerX = d)
             .build());
-        classic.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"centerY"), config.classic.centerY)
+        classic.addEntry(entryBuilder.startDoubleField(Text.translatable(OPTION+"centerY"), config.classic.centerY)
             .setDefaultValue(-3.4D)
-            .setMin(ModConfig.minVALUE)
-            .setMax(ModConfig.maxVALUE)
-            .setTooltip(Text.translatable(Tooltip+"centerY"))
+            .setMin(ModConfig.MIN_DOUBLE)
+            .setMax(ModConfig.MAX_DOUBLE)
+            .setTooltip(Text.translatable(TOOLTIP+"centerY"))
             .setSaveConsumer(d -> config.classic.centerY = d)
             .build());
-        classic.addEntry(entryBuilder.startDoubleField(Text.translatable(Option+"centerZ"), config.classic.centerZ)
+        classic.addEntry(entryBuilder.startDoubleField(Text.translatable(OPTION+"centerZ"), config.classic.centerZ)
             .setDefaultValue(0.0D)
-            .setMin(ModConfig.minVALUE)
-            .setMax(ModConfig.maxVALUE)
-            .setTooltip(Text.translatable(Tooltip+"centerZ"))
+            .setMin(ModConfig.MIN_DOUBLE)
+            .setMax(ModConfig.MAX_DOUBLE)
+            .setTooltip(Text.translatable(TOOLTIP+"centerZ"))
             .setSaveConsumer(d -> config.classic.centerZ = d)
             .build());
-        classic.addEntry(entryBuilder.startFloatField(Text.translatable(Option+"pitch"), config.classic.pitch)
+        classic.addEntry(entryBuilder.startFloatField(Text.translatable(OPTION+"pitch"), config.classic.pitch)
             .setDefaultValue(0.0F)
             .setMin(-180.0F)
             .setMax(180.0F)
-            .setTooltip(Text.translatable(Tooltip+"pitch"))
+            .setTooltip(Text.translatable(TOOLTIP+"pitch"))
             .setSaveConsumer(f -> config.classic.pitch = f)
             .build());
-        classic.addEntry(entryBuilder.startFloatField(Text.translatable(Option+"yaw"), config.classic.yaw)
+        classic.addEntry(entryBuilder.startFloatField(Text.translatable(OPTION+"yaw"), config.classic.yaw)
             .setDefaultValue(0.0F)
             .setMin(-180.0F)
             .setMax(180.0F)
-            .setTooltip(Text.translatable(Tooltip+"yaw"))
+            .setTooltip(Text.translatable(TOOLTIP+"yaw"))
             .setSaveConsumer(f -> config.classic.yaw = f)
             .build());
-        classic.addEntry(entryBuilder.startFloatField(Text.translatable(Option+"roll"), config.classic.roll)
+        classic.addEntry(entryBuilder.startFloatField(Text.translatable(OPTION+"roll"), config.classic.roll)
             .setDefaultValue(0.0F)
             .setMin(-180.0F)
             .setMax(180.0F)
-            .setTooltip(Text.translatable(Tooltip+"roll"))
+            .setTooltip(Text.translatable(TOOLTIP+"roll"))
             .setSaveConsumer(f -> config.classic.roll = f)
             .build());
         
-        compats.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"useModModel"), config.compats.useModModel)
+        compats.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION+"useModModel"), config.compats.useModModel)
             .setDefaultValue(false)
-            .setTooltip(Text.translatable(Tooltip+"useModModel"))
+            .setTooltip(Text.translatable(TOOLTIP+"useModModel"))
             .setSaveConsumer(b -> config.compats.useModModel = b)
             .build());
-        compats.addEntry(entryBuilder.startStrField(Text.translatable(Option+"modelModID"), config.compats.modelModID)
+        compats.addEntry(entryBuilder.startStrField(Text.translatable(OPTION+"modelModID"), config.compats.modelModID)
             .setDefaultValue("minecraft")
-            .setTooltip(Text.translatable(Tooltip+"modelModID"))
+            .setTooltip(Text.translatable(TOOLTIP+"modelModID"))
             .setSaveConsumer(s -> config.compats.modelModID = s)
             .build());
-        compats.addEntry(entryBuilder.startStrField(Text.translatable(Option+"modModelPart"), config.compats.modModelPart)
+        compats.addEntry(entryBuilder.startStrField(Text.translatable(OPTION+"modModelPart"), config.compats.modModelPart)
             .setDefaultValue("head")
-            .setTooltip(Text.translatable(Tooltip+"modModelPart"))
+            .setTooltip(Text.translatable(TOOLTIP+"modModelPart"))
             .setSaveConsumer(s -> config.compats.modModelPart = s)
             .build());
         if (DoABarrelRollCompat.loaded)
-        compats.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"doABarrelRoll"), config.compats.doABarrelRoll)
+        compats.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION+"doABarrelRoll"), config.compats.doABarrelRoll)
             .setDefaultValue(true)
-            .setTooltip(Text.translatable(Tooltip+"doABarrelRoll"))
+            .setTooltip(Text.translatable(TOOLTIP+"doABarrelRoll"))
             .setSaveConsumer(b -> config.compats.doABarrelRoll = b)
             .build());
         if (PehkuiCompat.loaded)
-        compats.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"pehkui"), config.compats.pehkui)
+        compats.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION+"pehkui"), config.compats.pehkui)
             .setDefaultValue(true)
-            .setTooltip(Text.translatable(Tooltip+"pehkui"))
+            .setTooltip(Text.translatable(TOOLTIP+"pehkui"))
             .setSaveConsumer(b -> config.compats.pehkui = b)
             .build());
         
-        disables.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"fallFlying"), config.disables.fallFlying)
+        disables.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION+"fallFlying"), config.disables.fallFlying)
             .setDefaultValue(true)
-            .setTooltip(Text.translatable(Tooltip+"fallFlying"))
+            .setTooltip(Text.translatable(TOOLTIP+"fallFlying"))
             .setSaveConsumer(b -> config.disables.fallFlying = b)
             .build());
-        disables.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"swiming"), config.disables.swiming)
+        disables.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION+"swiming"), config.disables.swiming)
             .setDefaultValue(false)
-            .setTooltip(Text.translatable(Tooltip+"swiming"))
+            .setTooltip(Text.translatable(TOOLTIP+"swiming"))
             .setSaveConsumer(b -> config.disables.swiming = b)
             .build());
-        disables.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"crawling"), config.disables.crawling)
+        disables.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION+"crawling"), config.disables.crawling)
             .setDefaultValue(false)
-            .setTooltip(Text.translatable(Tooltip+"crawling"))
+            .setTooltip(Text.translatable(TOOLTIP+"crawling"))
             .setSaveConsumer(b -> config.disables.crawling = b)
             .build());
-        disables.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"sneaking"), config.disables.sneaking)
+        disables.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION+"sneaking"), config.disables.sneaking)
             .setDefaultValue(false)
-            .setTooltip(Text.translatable(Tooltip+"sneaking"))
+            .setTooltip(Text.translatable(TOOLTIP+"sneaking"))
             .setSaveConsumer(b -> config.disables.sneaking = b)
             .build());
-        disables.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"sleeping"), config.disables.sleeping)
+        disables.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION+"sleeping"), config.disables.sleeping)
             .setDefaultValue(false)
-            .setTooltip(Text.translatable(Tooltip+"sleeping"))
+            .setTooltip(Text.translatable(TOOLTIP+"sleeping"))
             .setSaveConsumer(b -> config.disables.sleeping = b)
             .build());
-        disables.addEntry(entryBuilder.startBooleanToggle(Text.translatable(Option+"scoping"), config.disables.scoping)
+        disables.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION+"scoping"), config.disables.scoping)
             .setDefaultValue(true)
-            .setTooltip(Text.translatable(Tooltip+"scoping"))
+            .setTooltip(Text.translatable(TOOLTIP+"scoping"))
             .setSaveConsumer(b -> config.disables.scoping = b)
             .build());
 

@@ -28,7 +28,7 @@ public abstract class GameRendererEvents {
             shift = At.Shift.AFTER
         )
     )
-    private void onCameraUpdate(float tickDelta, long limitTime, MatrixStack matrixStack, CallbackInfo cInfo) {
+    private void onAfterCameraUpdate(float tickDelta, long limitTime, MatrixStack matrixStack, CallbackInfo cInfo) {
         if (RealCameraCore.isActive()) {
             RealCameraCore.updateCamera(this.camera, MinecraftClient.getInstance(), tickDelta);
             matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(RealCameraCore.cameraRoll));

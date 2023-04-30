@@ -32,7 +32,7 @@ public class RaycastUtils {
 
     @SuppressWarnings("resource")
     public static void update(Entity entity, double sqDistance, float tickDelta) {
-        final Camera camera = MinecraftClient.getInstance().getEntityRenderDispatcher().camera;
+        final Camera camera = MinecraftClient.getInstance().gameRenderer.getCamera();
         final Vec3d eyePos = entity.getCameraPosVec(tickDelta);
         startVec = camera.getPos();
         direction = Vec3d.fromPolar(camera.getPitch(), camera.getYaw());

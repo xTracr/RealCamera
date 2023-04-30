@@ -34,7 +34,7 @@ public class RealCameraCore {
 
     public static boolean isActive() {
         MinecraftClient client = MinecraftClient.getInstance();
-        return config.isEnabled() && client.options.getPerspective().isFirstPerson() && client.getEntityRenderDispatcher().camera != null 
+        return config.isEnabled() && client.options.getPerspective().isFirstPerson() && client.gameRenderer.getCamera() != null 
             && client.player != null && !config.isDisabledWhen(client.player);
     }
 

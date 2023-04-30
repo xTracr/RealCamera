@@ -1,8 +1,11 @@
 package com.xtracr.realcamera;
 
 import com.xtracr.realcamera.command.DebugCommandForge;
+import com.xtracr.realcamera.config.ConfigFile;
+import com.xtracr.realcamera.utils.CrosshairUtils;
 
 import net.minecraftforge.client.event.RegisterClientCommandsEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.client.event.InputEvent.Key;
 import net.minecraftforge.client.event.ViewportEvent.ComputeCameraAngles;
 import net.minecraft.client.MinecraftClient;
@@ -30,6 +33,15 @@ public class EventHandler {
     @SubscribeEvent
     public static void onClientCommandRegister(RegisterClientCommandsEvent event) {
         DebugCommandForge.INSTANCE.register(event.getDispatcher(), event.getBuildContext());
+    }
+
+    @SubscribeEvent
+    public static void onRenderWorldStage(RenderLevelStageEvent event) {
+        if (RenderLevelStageEvent.Stage.AFTER_SKY.equals(event.getStage()) && ConfigFile.modConfig.isCrosshairDynamic()
+                && RealCameraCore.isActive()) {
+            CrosshairUtils.update(MinecraftClient.getInstance(), event.getCamera(),
+                    event.getPoseStack().peek().getPositionMatrix(), event.getProjectionMatrix());
+        }
     }
 
 }

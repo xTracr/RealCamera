@@ -4,14 +4,14 @@
 
 使第一人称视角下的摄像头更加真实。  
 支持的版本: 1.18-1.19 Forge & Fabric  
-从[Releases](https://github.com/xTracr/RealCamera/releases)页面、[Modrinth](https://modrinth.com/mod/real-camera)或[CurseForge](https://curseforge.com/minecraft/mc-mods/real-camera)下载  
+从[Releases](https://github.com/xTracr/RealCamera/releases)、[Modrinth](https://modrinth.com/mod/real-camera)或[CurseForge](https://curseforge.com/minecraft/mc-mods/real-camera)下载  
 
 ## 特性 ##
 
 * 将摄像头绑定到身体的某个部位
-* 移动摄像头和旋转中心的位置
+* 自定义摄像头的位置和旋转角度
 * 在第一人称视角下渲染玩家模型
-* 按下F6来开关，另外一些键来调整位置
+* 按下F6来开关，另外一些键来调整摄像头
 * 在Config界面配置以上特性（需Cloth Config）
 
 > 详细了解[如何配置](https://github.com/xTracr/RealCamera/wiki/Configuration)
@@ -37,9 +37,11 @@
 * Forge:
   * [Forge Mod Loader](https://files.minecraftforge.net/)
 * Both:
-  * (可选但建议)[Cloth Config](https://modrinth.com/mod/cloth-config)
+  * (可选但建议)[Cloth Config API](https://modrinth.com/mod/cloth-config)
 
 ## 常见问题 ##
+
+* 施工中
 
 ### 兼容性 ###
 
