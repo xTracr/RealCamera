@@ -16,21 +16,21 @@ public final class KeyBindings {
     private static final String KEY_CATEGORY = "key.category.xtracr_"+RealCamera.MODID;
     private static final String KEY_ID = "key.xtracr_"+RealCamera.MODID+"_";
     
-    public static final KeyBinding toggleCamera = new KeyBinding(
+    public static final KeyBinding TOGGLE_CAMERA = new KeyBinding(
         KEY_ID+"toggleCamera", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F6, KEY_CATEGORY);
-    public static final KeyBinding toggleAdjustMode = new KeyBinding(
+    public static final KeyBinding TOGGLE_ADJUST_MODE = new KeyBinding(
         KEY_ID+"toggleAdjust", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
-    public static final KeyBinding adjustUP = new KeyBinding(
+    public static final KeyBinding ADJUST_UP = new KeyBinding(
         KEY_ID+"adjustUP", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
-    public static final KeyBinding adjustDOWN = new KeyBinding(
+    public static final KeyBinding ADJUST_DOWN = new KeyBinding(
         KEY_ID+"adjustDOWN", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
-    public static final KeyBinding adjustFRONT = new KeyBinding(
+    public static final KeyBinding ADJUST_FRONT = new KeyBinding(
         KEY_ID+"adjustFRONT", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
-    public static final KeyBinding adjustBACK = new KeyBinding(
+    public static final KeyBinding ADJUST_BACK = new KeyBinding(
         KEY_ID+"adjustBACK", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
-    public static final KeyBinding adjustLEFT = new KeyBinding(
+    public static final KeyBinding ADJUST_LEFT = new KeyBinding(
         KEY_ID+"adjustLEFT", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
-    public static final KeyBinding adjustRIGHT = new KeyBinding(
+    public static final KeyBinding ADJUST_RIGHT = new KeyBinding(
         KEY_ID+"adjustRIGHT", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
     
     public static void handle(MinecraftClient client) {
@@ -38,36 +38,36 @@ public final class KeyBindings {
             return;
         }
 
-        while (toggleCamera.wasPressed()) {
+        while (TOGGLE_CAMERA.wasPressed()) {
             boolean enabled = config.isEnabled();
             ConfigFile.load();
             config.setEnabled(!enabled);
         }
-        while (toggleAdjustMode.wasPressed()) {
+        while (TOGGLE_ADJUST_MODE.wasPressed()) {
             if (config.isClassic()) config.cycleClassicAdjustMode();
-            else config.setAdjustOffset(!config.isAdjustOffset());
+            else config.setAdjustOffset(!config.isAdjustingOffset());
         }
-        while (adjustLEFT.wasPressed()) {
+        while (ADJUST_LEFT.wasPressed()) {
             if (config.isClassic()) config.adjustClassicZ(true);
             else config.adjustBindingZ(true);
         }
-        while (adjustRIGHT.wasPressed()) {
+        while (ADJUST_RIGHT.wasPressed()) {
             if (config.isClassic()) config.adjustClassicZ(false);
             else config.adjustBindingZ(false);
         }
-        while (adjustUP.wasPressed()) {
+        while (ADJUST_UP.wasPressed()) {
             if (config.isClassic()) config.adjustClassicY(true);
             else config.adjustBindingY(true);
         }
-        while (adjustDOWN.wasPressed()) {
+        while (ADJUST_DOWN.wasPressed()) {
             if (config.isClassic()) config.adjustClassicY(false);
             else config.adjustBindingY(false);
         }
-        while (adjustFRONT.wasPressed()) {
+        while (ADJUST_FRONT.wasPressed()) {
             if (config.isClassic()) config.adjustClassicX(true);
             else config.adjustBindingX(true);
         }
-        while (adjustBACK.wasPressed()) {
+        while (ADJUST_BACK.wasPressed()) {
             if (config.isClassic()) config.adjustClassicX(false);
             else config.adjustBindingX(false);
         }

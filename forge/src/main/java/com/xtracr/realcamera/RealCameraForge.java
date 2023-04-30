@@ -37,15 +37,16 @@ public class RealCameraForge {
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onKeyInput);
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onCameraUpdate);
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onClientCommandRegister);
+        MinecraftForge.EVENT_BUS.addListener(EventHandler::onRenderWorldStage);
         
-        ClientRegistry.registerKeyBinding(KeyBindings.toggleCamera);
-        ClientRegistry.registerKeyBinding(KeyBindings.toggleAdjustMode);
-        ClientRegistry.registerKeyBinding(KeyBindings.adjustUP);
-        ClientRegistry.registerKeyBinding(KeyBindings.adjustDOWN);
-        ClientRegistry.registerKeyBinding(KeyBindings.adjustFRONT);
-        ClientRegistry.registerKeyBinding(KeyBindings.adjustBACK);
-        ClientRegistry.registerKeyBinding(KeyBindings.adjustLEFT);
-        ClientRegistry.registerKeyBinding(KeyBindings.adjustRIGHT);
+        ClientRegistry.registerKeyBinding(KeyBindings.TOGGLE_CAMERA);
+        ClientRegistry.registerKeyBinding(KeyBindings.TOGGLE_ADJUST_MODE);
+        ClientRegistry.registerKeyBinding(KeyBindings.ADJUST_UP);
+        ClientRegistry.registerKeyBinding(KeyBindings.ADJUST_DOWN);
+        ClientRegistry.registerKeyBinding(KeyBindings.ADJUST_FRONT);
+        ClientRegistry.registerKeyBinding(KeyBindings.ADJUST_BACK);
+        ClientRegistry.registerKeyBinding(KeyBindings.ADJUST_LEFT);
+        ClientRegistry.registerKeyBinding(KeyBindings.ADJUST_RIGHT);
     }
     
 }

@@ -19,12 +19,8 @@ public abstract class MixinEntityRenderer {
     /**
      * player.ignoreCameraFrustum = true
      */
-    @Inject(
-        method = "shouldRender(Lnet/minecraft/entity/Entity;Lnet/minecraft/client/render/Frustum;DDD)Z",
-        at = @At("HEAD"),
-        cancellable = true
-    )
-    private void onBeforeShouldRender(Entity entity, Frustum frustum, double x, double y, double z, CallbackInfoReturnable<Boolean> cInfo) {
+    @Inject(method = "shouldRender", at = @At("HEAD"), cancellable = true)
+    private void onShouldRenderHead(Entity entity, Frustum frustum, double x, double y, double z, CallbackInfoReturnable<Boolean> cInfo) {
         if (ConfigFile.modConfig.isRendering() && RealCameraCore.isActive() && entity instanceof ClientPlayerEntity) {
             cInfo.setReturnValue(true);
         }

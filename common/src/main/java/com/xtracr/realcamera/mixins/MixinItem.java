@@ -6,6 +6,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.xtracr.realcamera.RealCameraCore;
+import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.utils.RaycastUtils;
 
 import net.minecraft.entity.player.PlayerEntity;
@@ -19,7 +20,7 @@ public abstract class MixinItem {
     
     @Inject(method = "raycast", at = @At("HEAD"), cancellable = true)
     private static void coverRaycast(World world, PlayerEntity player, RaycastContext.FluidHandling fluidHandling, CallbackInfoReturnable<BlockHitResult> cInfo){
-        if (RealCameraCore.isActive()) {
+        if (!ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
             RaycastUtils.update(player, 25.0D, 1.0F);
             cInfo.setReturnValue(world.raycast(RaycastUtils.getRaycastContext(RaycastContext.ShapeType.OUTLINE, fluidHandling, player)));
         }

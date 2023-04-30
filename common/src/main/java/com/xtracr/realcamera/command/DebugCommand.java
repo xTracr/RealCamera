@@ -89,7 +89,7 @@ public abstract class DebugCommand<S extends CommandSource> {
     private int camera(CommandContext<S> context) throws CommandSyntaxException {
         final S source = context.getSource();
         final MinecraftClient client = MinecraftClient.getInstance();
-        final Camera camera = client.getEntityRenderDispatcher().camera;
+        final Camera camera = client.gameRenderer.getCamera();
         final ClientPlayerEntity player = client.player;
         Vec3d offset = camera.getPos().subtract(player.getCameraPosVec(client.getTickDelta()));
         this.sendFeedback(source, new LiteralText("Camera offset: " + offset.toString() + "\n")
