@@ -1,49 +1,27 @@
 package com.xtracr.realcamera.config;
 
+import java.util.function.Function;
+
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.entity.model.PlayerEntityModel;
 
 public enum VanillaModelPart {
-    head {
-        public ModelPart get(PlayerEntityModel<AbstractClientPlayerEntity> playerModel) {
-            return playerModel.head;
-        }
-    },
-    body {
-        public ModelPart get(PlayerEntityModel<AbstractClientPlayerEntity> playerModel) {
-            return playerModel.body;
-        }
-    },
-    leftArm {
-        public ModelPart get(PlayerEntityModel<AbstractClientPlayerEntity> playerModel) {
-            return playerModel.leftArm;
-        }
-    },
-    rightArm {
-        public ModelPart get(PlayerEntityModel<AbstractClientPlayerEntity> playerModel) {
-            return playerModel.rightArm;
-        }
-    },
-    leftLeg {
-        public ModelPart get(PlayerEntityModel<AbstractClientPlayerEntity> playerModel) {
-            return playerModel.leftLeg;
-        }
-    },
-    rightLeg {
-        public ModelPart get(PlayerEntityModel<AbstractClientPlayerEntity> playerModel) {
-            return playerModel.rightLeg;
-        }
-    };
+    head(model -> model.head),
+    body(model -> model.body),
+    leftArm(model -> model.leftArm),
+    rightArm(model -> model.rightArm),
+    leftLeg(model -> model.leftLeg),
+    rightLeg(model -> model.rightLeg);
 
-    private static final VanillaModelPart[] VALUES = values();
+    private Function<PlayerEntityModel<AbstractClientPlayerEntity>, ModelPart> function;
 
-    private VanillaModelPart() {
-    }
-    
-    public VanillaModelPart cycle() {
-        return VALUES[(this.ordinal() + 1) % VALUES.length];
+    private VanillaModelPart(Function<PlayerEntityModel<AbstractClientPlayerEntity>, ModelPart> function) {
+        this.function = function;
     }
 
-    public abstract ModelPart get(PlayerEntityModel<AbstractClientPlayerEntity> playerModel);
+    public ModelPart get(PlayerEntityModel<AbstractClientPlayerEntity> playerModel) {
+        return this.function.apply(playerModel);
+    }
+
 }

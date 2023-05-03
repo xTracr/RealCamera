@@ -201,51 +201,26 @@ public class ModConfig {
         this.binding.adjustOffset = value;
         ConfigFile.save();
     }
-    public void setBindingX(double value) {
-        this.binding.cameraX = value;
-        this.binding.clamp();
-        ConfigFile.save();
-    }
-    public void setBindingY(double value) {
-        this.binding.cameraY = value;
-        this.binding.clamp();
-        ConfigFile.save();
-    }
-    public void setBindingZ(double value) {
-        this.binding.cameraZ = value;
-        this.binding.clamp();
-        ConfigFile.save();
-    }
-    public void setBindingPitch(float value) {
-        this.binding.pitch = value;
-        this.binding.clamp();
-        ConfigFile.save();
-    }
-    public void setBindingYaw(float value) {
-        this.binding.yaw = value;
-        this.binding.clamp();
-        ConfigFile.save();
-    }
-    public void setBindingRoll(float value) {
-        this.binding.roll = value;
-        this.binding.clamp();
-        ConfigFile.save();
-    }
-
     public void adjustBindingX(boolean add) {
         int s = add ? 1 : -1;
-        if (this.isAdjustingOffset()) setBindingX(getBindingX() + s*getAdjustStep());
-        else setBindingRoll(getBindingRoll() + s*4*(float)getAdjustStep());
+        if (this.isAdjustingOffset()) this.binding.cameraX += s * getAdjustStep();
+        else this.binding.roll += s * 4*(float)getAdjustStep();
+        this.binding.clamp();
+        ConfigFile.save();
     }
     public void adjustBindingY(boolean add) {
         int s = add ? 1 : -1;
-        if (this.isAdjustingOffset()) setBindingY(getBindingY() + s*getAdjustStep());
-        else setBindingYaw(getBindingYaw() + s*4*(float)getAdjustStep());
+        if (this.isAdjustingOffset()) this.binding.cameraY += s * getAdjustStep();
+        else this.binding.yaw += s * 4*(float)getAdjustStep();
+        this.binding.clamp();
+        ConfigFile.save();
     }
     public void adjustBindingZ(boolean add) {
         int s = add ? 1 : -1;
-        if (this.isAdjustingOffset()) setBindingZ(getBindingZ() + s*getAdjustStep());
-        else setBindingPitch(getBindingPitch() + s*4*(float)getAdjustStep());
+        if (this.isAdjustingOffset()) this.binding.cameraZ += s * getAdjustStep();
+        else this.binding.pitch += s * 4*(float)getAdjustStep();
+        this.binding.clamp();
+        ConfigFile.save();
     }
 
     // classic
@@ -284,90 +259,50 @@ public class ModConfig {
         this.classic.adjustMode = this.classic.adjustMode.cycle();
         ConfigFile.save();
     }
-    public void setClassicX(double value) {
-        this.classic.cameraX = value;
-        this.classic.clamp();
-        ConfigFile.save();
-    }
-    public void setClassicY(double value) {
-        this.classic.cameraY = value;
-        this.classic.clamp();
-        ConfigFile.save();
-    }
-    public void setClassicZ(double value) {
-        this.classic.cameraZ = value;
-        this.classic.clamp();
-        ConfigFile.save();
-    }
-    public void setCenterX(double value) {
-        this.classic.centerX = value;
-        this.classic.clamp();
-        ConfigFile.save();
-    }
-    public void setCenterY(double value) {
-        this.classic.centerY = value;
-        this.classic.clamp();
-        ConfigFile.save();
-    }
-    public void setCenterZ(double value) {
-        this.classic.centerZ = value;
-        this.classic.clamp();
-        ConfigFile.save();
-    }
-    public void setClassicPitch(float value) {
-        this.classic.pitch = value;
-        this.classic.clamp();
-        ConfigFile.save();
-    }
-    public void setClassicYaw(float value) {
-        this.classic.yaw = value;
-        this.classic.clamp();
-        ConfigFile.save();
-    }
-    public void setClassicRoll(float value) {
-        this.classic.roll = value;
-        this.classic.clamp();
-        ConfigFile.save();
-    }
-
     public void adjustClassicX(boolean add) {
         int s = add ? 1 : -1;
         switch (this.classic.adjustMode) {
             case CENTER:
-                setCenterX(getCenterX() + s*getAdjustStep());
+                this.classic.centerX += s * getAdjustStep();
                 break;
             case ROTATION:
-                setClassicRoll(getClassicRoll() + s*4*(float)getAdjustStep());
+                this.classic.roll += s * 4*(float)getAdjustStep();
                 break;
             default:
-                setClassicX(getClassicX() + s*getAdjustStep());
+                this.classic.cameraX += s * getAdjustStep();
         }
+        this.classic.clamp();
+        ConfigFile.save();
     }
     public void adjustClassicY(boolean add) {
         int s = add ? 1 : -1;
         switch (this.classic.adjustMode) {
             case CENTER:
-                setCenterY(getCenterY() + s*getAdjustStep());
+                this.classic.centerY += s * getAdjustStep();
                 break;
             case ROTATION:
-                setClassicYaw(getClassicYaw() + s*4*(float)getAdjustStep());
+                this.classic.yaw += s * 4*(float)getAdjustStep();
                 break;
             default:
-                setClassicY(getClassicY() + s*getAdjustStep());
+                this.classic.cameraY += s * getAdjustStep();
         }
+        this.classic.clamp();
+        ConfigFile.save();
     }
     public void adjustClassicZ(boolean add) {
         int s = add ? 1 : -1;
         switch (this.classic.adjustMode) {
             case CENTER:
-                setCenterZ(getCenterZ() + s*getAdjustStep());
+                this.classic.centerZ += s * getAdjustStep();
                 break;
             case ROTATION:
-                setClassicPitch(getClassicPitch() + s*4*(float)getAdjustStep());
+                this.classic.pitch += s * 4*(float)getAdjustStep();
                 break;
             default:
-                setClassicZ(getClassicZ() + s*getAdjustStep());
+                this.classic.cameraZ += s * getAdjustStep();
         }
+        this.classic.clamp();
+        ConfigFile.save();
     }
 
     // compats

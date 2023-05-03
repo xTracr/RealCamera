@@ -3,9 +3,9 @@ package com.xtracr.realcamera.command;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 
-public class DebugCommandForge extends DebugCommand<ServerCommandSource> {
+public class ClientCommandForge extends ClientCommand<ServerCommandSource> {
 
-    public static final DebugCommandForge INSTANCE = new DebugCommandForge();
+    public static final ClientCommandForge INSTANCE = new ClientCommandForge();
 
     @Override
     public void sendFeedback(ServerCommandSource source, Text message) {

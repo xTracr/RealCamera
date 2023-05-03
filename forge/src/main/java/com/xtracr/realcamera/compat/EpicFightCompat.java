@@ -21,11 +21,11 @@ public class EpicFightCompat {
     public static final String modid = "epicfight";
 
     public static void register() {
-        VirtualRenderer.register(modid, EpicFightCompat::virtualRender, null);
+        VirtualRenderer.register(modid, EpicFightCompat::virtualRender);
     }
 
     @SuppressWarnings({"unchecked","null"})
-    public static boolean virtualRender(float partialTicks, MatrixStack poseStack) {
+    public static boolean virtualRender(Float partialTicks, MatrixStack poseStack) {
         // RenderEngine.renderLivingEvent
 		MinecraftClient mc = MinecraftClient.getInstance();
         ClientPlayerEntity entityIn = mc.player;

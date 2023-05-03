@@ -6,15 +6,8 @@ import java.util.Optional;
 
 import org.jetbrains.annotations.Nullable;
 
-public class ClassUtils {
+public class ReflectUtils {
     
-	/**
-	 * 
-	 * You'd better use:
-	 * <p>Fabric: {@code FabricLoader.getInstance().isModLoaded(modid)}
-	 * <p>Forge: {@code ModList.get().isLoaded(modid)}
-	 * 
-	 */
 	public static boolean isLoaded(final String className) {
 		try {
 			Class.forName(className);

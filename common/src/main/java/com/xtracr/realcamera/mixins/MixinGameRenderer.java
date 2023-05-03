@@ -32,17 +32,6 @@ public abstract class MixinGameRenderer {
     @Shadow
     @Final MinecraftClient client;
 
-    /* 
-    @ModifyArgs(...)
-    private void modifyEntityHitResult(Args args) {
-        if (CameraController.isActive()) {
-            Vec3d startVec = RaycastUtils.getStartVec();
-            args.set(1, startVec);
-            args.set(2, RaycastUtils.getEndVec());
-            if (client.crosshairTarget != null) args.set(5, client.crosshairTarget.getPos().squaredDistanceTo(startVec));
-        }
-    }*/
-
     @ModifyVariable(method = "updateTargetedEntity", at = @At("STORE"), ordinal = 0)
     private EntityHitResult modifyEntityHitResult(EntityHitResult entityHitResult) {
         CrosshairUtils.capturedEntityHitResult = entityHitResult;
