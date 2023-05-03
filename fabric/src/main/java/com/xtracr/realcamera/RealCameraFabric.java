@@ -1,6 +1,6 @@
 package com.xtracr.realcamera;
 
-import com.xtracr.realcamera.command.DebugCommandFabric;
+import com.xtracr.realcamera.command.ClientCommandFabric;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
@@ -15,11 +15,12 @@ public class RealCameraFabric implements ClientModInitializer {
 
     @Override
 	public void onInitializeClient() {
+        
 		RealCamera.setup();
 
         ClientTickEvents.END_CLIENT_TICK.register(KeyBindings::handle);
         WorldRenderEvents.START.register(EventHandler::onWorldRenderStart);
-        ClientCommandRegistrationCallback.EVENT.register(DebugCommandFabric.INSTANCE::register);
+        ClientCommandRegistrationCallback.EVENT.register(ClientCommandFabric.INSTANCE::register);
 
         KeyBindingHelper.registerKeyBinding(KeyBindings.TOGGLE_CAMERA);
         KeyBindingHelper.registerKeyBinding(KeyBindings.TOGGLE_ADJUST_MODE);

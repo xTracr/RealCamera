@@ -12,7 +12,7 @@ public class RealCamera {
     public static final Logger LOGGER = LoggerFactory.getLogger(MODID);
 
     public static void setup() {
-        ConfigFile.setup();
+        ConfigFile.load();
         CompatExample.register();
     }
 }

@@ -1,6 +1,6 @@
 package com.xtracr.realcamera;
 
-import com.xtracr.realcamera.command.DebugCommandForge;
+import com.xtracr.realcamera.command.ClientCommandForge;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.utils.CrosshairUtils;
 
@@ -32,7 +32,7 @@ public class EventHandler {
 
     @SubscribeEvent
     public static void onClientCommandRegister(RegisterClientCommandsEvent event) {
-        DebugCommandForge.INSTANCE.register(event.getDispatcher(), event.getBuildContext());
+        ClientCommandForge.INSTANCE.register(event.getDispatcher(), event.getBuildContext());
     }
 
     @SubscribeEvent

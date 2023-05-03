@@ -1,5 +1,6 @@
 package com.xtracr.realcamera.mixins;
 
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,6 +20,8 @@ public abstract class GameRendererEvents {
     
     @Shadow
     private Camera camera;
+    @Shadow
+    @Final MinecraftClient client;
 
     @Inject(
         method = "renderWorld",
@@ -30,7 +33,7 @@ public abstract class GameRendererEvents {
     )
     private void onAfterCameraUpdate(float tickDelta, long limitTime, MatrixStack matrixStack, CallbackInfo cInfo) {
         if (RealCameraCore.isActive()) {
-            RealCameraCore.updateCamera(this.camera, MinecraftClient.getInstance(), tickDelta);
+            RealCameraCore.updateCamera(this.camera, this.client, tickDelta);
             matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(RealCameraCore.cameraRoll));
         }
     }

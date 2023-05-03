@@ -34,10 +34,6 @@ public class ConfigFile {
         PATH = configDir.toPath().resolve(RealCamera.MODID+".json");
     }
 
-    public static void setup() {
-        load();
-    }
-    
     public static void load() {
         try (BufferedReader reader = Files.newBufferedReader(PATH)){
             modConfig.set(GSON.fromJson(reader, ModConfig.class));

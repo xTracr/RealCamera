@@ -4,7 +4,7 @@ import org.joml.Matrix3f;
 import org.joml.Vector4f;
 
 import com.xtracr.realcamera.api.VirtualRenderer;
-import com.xtracr.realcamera.command.DebugCommand;
+import com.xtracr.realcamera.command.ClientCommand;
 import com.xtracr.realcamera.compat.PehkuiCompat;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
@@ -135,7 +135,7 @@ public class RealCameraCore {
 
     private static void virtualRender(AbstractClientPlayerEntity player, PlayerEntityRenderer playerRenderer, float tickDelta, MatrixStack matrixStack) {
         
-        DebugCommand.virtualRenderException = null;
+        ClientCommand.virtualRenderException = null;
         if (config.isUsingModModel()) {
             try {
                 matrixStack.push();
@@ -143,7 +143,7 @@ public class RealCameraCore {
                     return;
                 }
             } catch (Exception exception) {
-                DebugCommand.virtualRenderException = exception;
+                ClientCommand.virtualRenderException = exception;
                 matrixStack.pop();
             }
         }

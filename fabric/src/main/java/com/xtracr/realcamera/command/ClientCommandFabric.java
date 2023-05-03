@@ -3,9 +3,9 @@ package com.xtracr.realcamera.command;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.text.Text;
 
-public class DebugCommandFabric extends DebugCommand<FabricClientCommandSource> {
+public class ClientCommandFabric extends ClientCommand<FabricClientCommandSource> {
 
-    public static final DebugCommandFabric INSTANCE = new DebugCommandFabric();
+    public static final ClientCommandFabric INSTANCE = new ClientCommandFabric();
 
     @Override
     public void sendFeedback(FabricClientCommandSource source, Text message) {

@@ -4,7 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
-import com.xtracr.realcamera.utils.ClassUtils;
+import com.xtracr.realcamera.utils.ReflectUtils;
 
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
@@ -12,7 +12,7 @@ import net.minecraft.util.math.Vec3d;
 
 public class PehkuiCompat {
 
-    public static final boolean loaded = ClassUtils.isLoaded("virtuoel.pehkui.Pehkui");
+    public static final boolean loaded = ReflectUtils.isLoaded("virtuoel.pehkui.Pehkui");
 
     private static final Optional<Class<?>> scaleUtilsClass;
     private static final Optional<Method> getModelWidthScale;
@@ -20,9 +20,9 @@ public class PehkuiCompat {
     
     static {
         if (loaded) {
-            scaleUtilsClass = ClassUtils.getClass("virtuoel.pehkui.util.ScaleUtils");
-            getModelWidthScale = ClassUtils.getMethod(scaleUtilsClass, "getModelWidthScale", Entity.class, float.class);
-            getModelHeightScale = ClassUtils.getMethod(scaleUtilsClass, "getModelHeightScale", Entity.class, float.class);
+            scaleUtilsClass = ReflectUtils.getClass("virtuoel.pehkui.util.ScaleUtils");
+            getModelWidthScale = ReflectUtils.getMethod(scaleUtilsClass, "getModelWidthScale", Entity.class, float.class);
+            getModelHeightScale = ReflectUtils.getMethod(scaleUtilsClass, "getModelHeightScale", Entity.class, float.class);
         } else {
             scaleUtilsClass = Optional.empty();
             getModelWidthScale = Optional.empty();

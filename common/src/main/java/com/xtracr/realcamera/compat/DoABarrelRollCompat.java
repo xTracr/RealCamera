@@ -5,11 +5,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
-import com.xtracr.realcamera.utils.ClassUtils;
+import com.xtracr.realcamera.utils.ReflectUtils;
 
 public class DoABarrelRollCompat {
     
-    public static final boolean loaded = ClassUtils.isLoaded("nl.enjarai.doabarrelroll.DoABarrelRollClient");
+    public static final boolean loaded = ReflectUtils.isLoaded("nl.enjarai.doabarrelroll.DoABarrelRollClient");
 
     private static final Optional<Class<?>> modConfigClass;
     private static final Optional<Object> modConfigInstance;
@@ -17,10 +17,10 @@ public class DoABarrelRollCompat {
 
     static {
         if (loaded) {
-            modConfigClass = ClassUtils.getClass("nl.enjarai.doabarrelroll.config.ModConfig");
-            final Optional<Field> instanceField = ClassUtils.getField(modConfigClass, "INSTANCE");
-            modConfigInstance = ClassUtils.getFieldValue(instanceField, null);
-            getModEnabled = ClassUtils.getMethod(modConfigClass, "getModEnabled");
+            modConfigClass = ReflectUtils.getClass("nl.enjarai.doabarrelroll.config.ModConfig");
+            final Optional<Field> instanceField = ReflectUtils.getField(modConfigClass, "INSTANCE");
+            modConfigInstance = ReflectUtils.getFieldValue(instanceField, null);
+            getModEnabled = ReflectUtils.getMethod(modConfigClass, "getModEnabled");
         } else {
             modConfigClass = Optional.empty();
             modConfigInstance = Optional.empty();
