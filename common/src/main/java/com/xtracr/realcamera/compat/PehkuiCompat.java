@@ -15,17 +15,15 @@ public class PehkuiCompat {
 
     public static final boolean loaded = ReflectUtils.isLoaded("virtuoel.pehkui.Pehkui");
 
-    private static final Optional<Class<?>> scaleUtilsClass;
     private static final Optional<Method> getModelWidthScale;
     private static final Optional<Method> getModelHeightScale;
     
     static {
         if (loaded) {
-            scaleUtilsClass = ReflectUtils.getClass("virtuoel.pehkui.util.ScaleUtils");
+            final Optional<Class<?>> scaleUtilsClass = ReflectUtils.getClass("virtuoel.pehkui.util.ScaleUtils");
             getModelWidthScale = ReflectUtils.getMethod(scaleUtilsClass, "getModelWidthScale", Entity.class, float.class);
             getModelHeightScale = ReflectUtils.getMethod(scaleUtilsClass, "getModelHeightScale", Entity.class, float.class);
         } else {
-            scaleUtilsClass = Optional.empty();
             getModelWidthScale = Optional.empty();
             getModelHeightScale = Optional.empty();
         }

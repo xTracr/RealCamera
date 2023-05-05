@@ -18,6 +18,7 @@ public class ModConfig {
 
         public boolean enabled = false;
         public boolean classic = false;
+        public boolean clipToSpace = true;
         public boolean dynamicCrosshair = false;
         public boolean renderModel = true;
         public double adjustStep = 0.25D;
@@ -39,6 +40,9 @@ public class ModConfig {
         public double cameraX = 3.25D;
         public double cameraY = 2.0D;
         public double cameraZ = 0.0D;
+        public double referX = 3.25D;
+        public double referY = 2.0D;
+        public double referZ = 0.0D;
         public float pitch = 0.0F;
         public float yaw = 0.0F;
         public float roll = 0.0F;
@@ -48,6 +52,9 @@ public class ModConfig {
             cameraX = MathHelper.clamp(cameraX, MIN_DOUBLE, MAX_DOUBLE);
             cameraY = MathHelper.clamp(cameraY, MIN_DOUBLE, MAX_DOUBLE);
             cameraZ = MathHelper.clamp(cameraZ, MIN_DOUBLE, MAX_DOUBLE);
+            referX = MathHelper.clamp(referX, MIN_DOUBLE, MAX_DOUBLE);
+            referY = MathHelper.clamp(referY, MIN_DOUBLE, MAX_DOUBLE);
+            referZ = MathHelper.clamp(referZ, MIN_DOUBLE, MAX_DOUBLE);
             pitch = MathHelper.wrapDegrees(pitch);
             yaw = MathHelper.wrapDegrees(yaw);
             roll = MathHelper.wrapDegrees(roll);
@@ -61,6 +68,9 @@ public class ModConfig {
         public double cameraX = 3.25D;
         public double cameraY = 2.0D;
         public double cameraZ = 0.0D;
+        public double referX = 3.25D;
+        public double referY = 2.0D;
+        public double referZ = 0.0D;
         public double centerX = 0.0D;
         public double centerY = -3.4D;
         public double centerZ = 0.0D;
@@ -73,6 +83,9 @@ public class ModConfig {
             cameraX = MathHelper.clamp(cameraX, MIN_DOUBLE, MAX_DOUBLE);
             cameraY = MathHelper.clamp(cameraY, MIN_DOUBLE, MAX_DOUBLE);
             cameraZ = MathHelper.clamp(cameraZ, MIN_DOUBLE, MAX_DOUBLE);
+            referX = MathHelper.clamp(referX, MIN_DOUBLE, MAX_DOUBLE);
+            referY = MathHelper.clamp(referY, MIN_DOUBLE, MAX_DOUBLE);
+            referZ = MathHelper.clamp(referZ, MIN_DOUBLE, MAX_DOUBLE);
             centerX = MathHelper.clamp(centerX, MIN_DOUBLE, MAX_DOUBLE);
             centerY = MathHelper.clamp(centerY, MIN_DOUBLE, MAX_DOUBLE);
             centerZ = MathHelper.clamp(centerZ, MIN_DOUBLE, MAX_DOUBLE);
@@ -136,6 +149,9 @@ public class ModConfig {
     public boolean isClassic() {
         return this.general.classic;
     }
+    public boolean doClipToSpace() {
+        return this.general.clipToSpace;
+    }
     public boolean isCrosshairDynamic() {
         return this.general.dynamicCrosshair;
     }
@@ -151,7 +167,9 @@ public class ModConfig {
 
     public void setEnabled(boolean value) {
         this.general.enabled = value;
-        ConfigFile.save();
+    }
+    public void setClassic(boolean value) {
+        this.general.classic = value;
     }
 
     public boolean isDisabledWhen(ClientPlayerEntity player) {
@@ -187,6 +205,15 @@ public class ModConfig {
     public double getBindingZ() {
         return this.binding.cameraZ;
     }
+    public double getBindingRX() {
+        return this.binding.referX;
+    }
+    public double getBindingRY() {
+        return this.binding.referY;
+    }
+    public double getBindingRZ() {
+        return this.binding.referZ;
+    }
     public float getBindingPitch() {
         return this.binding.pitch;
     }
@@ -199,28 +226,24 @@ public class ModConfig {
 
     public void setAdjustOffset(boolean value) {
         this.binding.adjustOffset = value;
-        ConfigFile.save();
     }
     public void adjustBindingX(boolean add) {
         int s = add ? 1 : -1;
         if (this.isAdjustingOffset()) this.binding.cameraX += s * getAdjustStep();
         else this.binding.roll += s * 4*(float)getAdjustStep();
         this.binding.clamp();
-        ConfigFile.save();
     }
     public void adjustBindingY(boolean add) {
         int s = add ? 1 : -1;
         if (this.isAdjustingOffset()) this.binding.cameraY += s * getAdjustStep();
         else this.binding.yaw += s * 4*(float)getAdjustStep();
         this.binding.clamp();
-        ConfigFile.save();
     }
     public void adjustBindingZ(boolean add) {
         int s = add ? 1 : -1;
         if (this.isAdjustingOffset()) this.binding.cameraZ += s * getAdjustStep();
         else this.binding.pitch += s * 4*(float)getAdjustStep();
         this.binding.clamp();
-        ConfigFile.save();
     }
 
     // classic
@@ -235,6 +258,15 @@ public class ModConfig {
     }
     public double getClassicZ() {
         return this.classic.cameraZ;
+    }
+    public double getClassicRX() {
+        return this.classic.referX;
+    }
+    public double getClassicRY() {
+        return this.classic.referY;
+    }
+    public double getClassicRZ() {
+        return this.classic.referZ;
     }
     public double getCenterX() {
         return this.classic.centerX;
@@ -257,7 +289,6 @@ public class ModConfig {
     
     public void cycleClassicAdjustMode() {
         this.classic.adjustMode = this.classic.adjustMode.cycle();
-        ConfigFile.save();
     }
     public void adjustClassicX(boolean add) {
         int s = add ? 1 : -1;
@@ -272,7 +303,6 @@ public class ModConfig {
                 this.classic.cameraX += s * getAdjustStep();
         }
         this.classic.clamp();
-        ConfigFile.save();
     }
     public void adjustClassicY(boolean add) {
         int s = add ? 1 : -1;
@@ -287,7 +317,6 @@ public class ModConfig {
                 this.classic.cameraY += s * getAdjustStep();
         }
         this.classic.clamp();
-        ConfigFile.save();
     }
     public void adjustClassicZ(boolean add) {
         int s = add ? 1 : -1;
@@ -302,7 +331,6 @@ public class ModConfig {
                 this.classic.cameraZ += s * getAdjustStep();
         }
         this.classic.clamp();
-        ConfigFile.save();
     }
 
     // compats

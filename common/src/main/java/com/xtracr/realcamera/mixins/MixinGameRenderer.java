@@ -86,7 +86,7 @@ public abstract class MixinGameRenderer {
         )
     )
     private void onBeforeCameraUpdate(float tickDelta, long limitTime, MatrixStack matrixStack, CallbackInfo cInfo) {
-        if (ConfigFile.modConfig.compatDoABarrelRoll() && DoABarrelRollCompat.modEnabled()) {
+        if (ConfigFile.modConfig.compatDoABarrelRoll() && DoABarrelRollCompat.modEnabled() && RealCameraCore.isActive()) {
             matrixStack.loadIdentity();
         }
     }

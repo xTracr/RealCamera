@@ -23,7 +23,7 @@ public class RealCameraForge {
 
         if (ModList.get().isLoaded("cloth_config")) {
             ModLoadingContext.get().registerExtensionPoint(ConfigGuiFactory.class, () -> 
-                new ConfigGuiFactory((mc, screen) -> ConfigScreen.create(screen)
+                new ConfigGuiFactory((client, parent) -> ConfigScreen.create(parent)
             ));
         }
     }
@@ -39,8 +39,9 @@ public class RealCameraForge {
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onClientCommandRegister);
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onRenderWorldStage);
         
-        ClientRegistry.registerKeyBinding(KeyBindings.TOGGLE_CAMERA);
+        ClientRegistry.registerKeyBinding(KeyBindings.TOGGLE_PERSPECTIVE);
         ClientRegistry.registerKeyBinding(KeyBindings.TOGGLE_ADJUST_MODE);
+        ClientRegistry.registerKeyBinding(KeyBindings.TOGGLE_CAMERA_MODE);
         ClientRegistry.registerKeyBinding(KeyBindings.ADJUST_UP);
         ClientRegistry.registerKeyBinding(KeyBindings.ADJUST_DOWN);
         ClientRegistry.registerKeyBinding(KeyBindings.ADJUST_FRONT);

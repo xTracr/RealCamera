@@ -14,7 +14,7 @@ public enum VanillaModelPart {
     leftLeg(model -> model.leftLeg),
     rightLeg(model -> model.rightLeg);
 
-    private Function<PlayerEntityModel<AbstractClientPlayerEntity>, ModelPart> function;
+    private final Function<PlayerEntityModel<AbstractClientPlayerEntity>, ModelPart> function;
 
     private VanillaModelPart(Function<PlayerEntityModel<AbstractClientPlayerEntity>, ModelPart> function) {
         this.function = function;

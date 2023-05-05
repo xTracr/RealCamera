@@ -18,8 +18,9 @@ public class RealCameraFabric implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(KeyBindings::handle);
         WorldRenderEvents.START.register(EventHandler::onWorldRenderStart);
 
-        KeyBindingHelper.registerKeyBinding(KeyBindings.TOGGLE_CAMERA);
+        KeyBindingHelper.registerKeyBinding(KeyBindings.TOGGLE_PERSPECTIVE);
         KeyBindingHelper.registerKeyBinding(KeyBindings.TOGGLE_ADJUST_MODE);
+        KeyBindingHelper.registerKeyBinding(KeyBindings.TOGGLE_CAMERA_MODE);
         KeyBindingHelper.registerKeyBinding(KeyBindings.ADJUST_UP);
         KeyBindingHelper.registerKeyBinding(KeyBindings.ADJUST_DOWN);
         KeyBindingHelper.registerKeyBinding(KeyBindings.ADJUST_BACK);
