@@ -40,23 +40,23 @@ public abstract class ClientCommand<S extends CommandSource> {
     
     private int config(CommandContext<S> context) throws CommandSyntaxException {
         final S source = context.getSource();
-        String interim = "";
+        String s = "";
         this.sendFeedback(source, Text.literal("--[ CONFIG INFO ]-- \n")
             .append("Camera Mode: " + (config.isClassic() ? "[classic]" : "[binding]") + "\n")
             .append("Vanilla Model Part: [" + config.getVanillaModelPart().name() + "]\n")
             .append("Target Mod Model Part: [" + config.getModelModID() + ":" + config.getModModelPartName() + "]"));
         
         for (String modid : VirtualRenderer.getRegisteredMods()) {
-            interim += " [" + modid + "]";
+            s += " [" + modid + "]";
         }
-        this.sendFeedback(source, Text.literal("Mods registered:" + interim));
-        interim = "";
+        this.sendFeedback(source, Text.literal("Mods registered:" + s));
+        s = "";
         
         if (virtualRenderException != null) {
             this.sendFeedback(source, Text.literal("\nFailed to bind camera: " + virtualRenderException.getClass().getSimpleName()));
         }
         
-        this.sendFeedback(source, Text.literal("\nAddtional Feedbacks: "));
+        this.sendFeedback(source, Text.literal("\nAdditional Feedbacks: "));
         feedbackSupplier.forEach(feedback -> this.sendFeedback(source, Text.literal(feedback.get())));
         return 0;
     }

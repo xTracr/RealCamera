@@ -8,7 +8,6 @@ import java.util.function.Supplier;
 
 import com.xtracr.realcamera.command.ClientCommand;
 import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.config.ModConfig;
 
 import net.minecraft.client.util.math.MatrixStack;
 
@@ -17,8 +16,6 @@ import net.minecraft.client.util.math.MatrixStack;
  */
 public class VirtualRenderer {
     
-    private static final ModConfig config = ConfigFile.modConfig;
-
     private static final Map<String, BiPredicate<Float, MatrixStack>> functionProvider = new HashMap<>();
 
     /**
@@ -49,11 +46,11 @@ public class VirtualRenderer {
      * 
      */
     public static String getModelPartName() {
-        return config.getModModelPartName();
+        return ConfigFile.modConfig.getModModelPartName();
     }
 
     public static boolean virtualRender(float tickDelta, MatrixStack matrixStack) {
-        return functionProvider.get(config.getModelModID()).test(tickDelta, matrixStack);
+        return functionProvider.get(ConfigFile.modConfig.getModelModID()).test(tickDelta, matrixStack);
     }
 
     public static Set<String> getRegisteredMods() {

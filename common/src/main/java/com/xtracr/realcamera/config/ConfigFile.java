@@ -28,9 +28,7 @@ public class ConfigFile {
     
     static {
         final File configDir = new File(MinecraftClient.getInstance().runDirectory, "config"); 
-        if (!configDir.exists()) {
-            configDir.mkdirs();
-        }
+        if (!configDir.exists()) configDir.mkdirs();
         PATH = configDir.toPath().resolve(RealCamera.MODID+".json");
     }
 

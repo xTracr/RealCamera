@@ -1,6 +1,5 @@
 package com.xtracr.realcamera.compat;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Optional;
@@ -11,18 +10,15 @@ public class DoABarrelRollCompat {
     
     public static final boolean loaded = ReflectUtils.isLoaded("nl.enjarai.doabarrelroll.DoABarrelRollClient");
 
-    private static final Optional<Class<?>> modConfigClass;
     private static final Optional<Object> modConfigInstance;
     private static final Optional<Method> getModEnabled;
 
     static {
         if (loaded) {
-            modConfigClass = ReflectUtils.getClass("nl.enjarai.doabarrelroll.config.ModConfig");
-            final Optional<Field> instanceField = ReflectUtils.getField(modConfigClass, "INSTANCE");
-            modConfigInstance = ReflectUtils.getFieldValue(instanceField, null);
+            final Optional<Class<?>> modConfigClass = ReflectUtils.getClass("nl.enjarai.doabarrelroll.config.ModConfig");
+            modConfigInstance = ReflectUtils.getFieldValue(ReflectUtils.getField(modConfigClass, "INSTANCE"), null);
             getModEnabled = ReflectUtils.getMethod(modConfigClass, "getModEnabled");
         } else {
-            modConfigClass = Optional.empty();
             modConfigInstance = Optional.empty();
             getModEnabled = Optional.empty();
         }

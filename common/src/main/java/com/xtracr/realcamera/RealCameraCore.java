@@ -21,10 +21,12 @@ import net.minecraft.client.render.entity.model.PlayerEntityModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.RaycastContext;
 
 public class RealCameraCore {
     
@@ -60,17 +62,20 @@ public class RealCameraCore {
         float pitch = camera.getPitch() + config.getClassicPitch();
         float yaw = centerYaw - config.getClassicYaw();
         cameraRoll = config.getClassicRoll();
+        Vec3d refer = new Vec3d(config.getClassicRX(), config.getClassicRY(), config.getClassicRZ()).multiply(config.getScale());
         Vec3d offset = new Vec3d(config.getClassicX(), config.getClassicY(), config.getClassicZ()).multiply(config.getScale());
         Vec3d center = new Vec3d(config.getCenterX(), config.getCenterY(), config.getCenterZ()).multiply(config.getScale());
 
         if (player.isSneaking()) {
-            center = center.add(0.0D, -0.021875, 0.0D);
+            center = center.add(0.0D, -0.021875D, 0.0D);
         }
         if (config.compatPehkui()) {
+            refer = PehkuiCompat.scaleVec3d(refer, player, tickDelta);
             offset = PehkuiCompat.scaleVec3d(offset, player, tickDelta);
             center = PehkuiCompat.scaleVec3d(center, player, tickDelta);
         }
         if (player.isInSwimmingPose()) {
+            refer = refer.rotateZ((float)Math.PI/2);
             offset = offset.rotateZ((float)Math.PI/2);
             center = center.rotateZ((float)Math.PI/2);
         }
@@ -78,7 +83,11 @@ public class RealCameraCore {
         cameraAccessor.invokeSetRotation(centerYaw, 0.0F);
         cameraAccessor.invokeMoveBy(center.getX(), center.getY(), center.getZ());
         cameraAccessor.invokeSetRotation(yaw, pitch);
+        offset = offset.subtract(refer);
+        cameraAccessor.invokeMoveBy(refer.getX(), refer.getY(), refer.getZ());
+        Vec3d referVec = camera.getPos();
         cameraAccessor.invokeMoveBy(offset.getX(), offset.getY(), offset.getZ());
+        clipCameraToSpace(camera, referVec);
     }
 
     private static void bindingModeUpdate(Camera camera, MinecraftClient client, float tickDelta) {
@@ -111,12 +120,20 @@ public class RealCameraCore {
         virtualRender(player, playerRenderer, tickDelta, matrixStack);
         
         // ModelPart$Cuboid.renderCuboid
-        double cameraX = config.getScale() * config.getBindingX();
-        double cameraY = config.getScale() * config.getBindingY();
-        double cameraZ = config.getScale() * config.getBindingZ();
-        Vector4f offset =  matrixStack.peek().getPositionMatrix().transform(new Vector4f((float)cameraZ, -(float)cameraY, -(float)cameraX, 1.0F));
+        Vector4f refer = matrixStack.peek().getPositionMatrix().transform(new Vector4f((float)(config.getBindingRZ() * config.getScale()), 
+            -(float)(config.getBindingRY() * config.getScale()), 
+            -(float)(config.getBindingRX() * config.getScale()), 1.0F
+        ));
+        Vector4f offset = matrixStack.peek().getPositionMatrix().transform(new Vector4f((float)(config.getBindingZ() * config.getScale()), 
+            -(float)(config.getBindingY() * config.getScale()), 
+            -(float)(config.getBindingX() * config.getScale()), 1.0F
+        ));
 
+        offset.add(-refer.x(), -refer.y(), -refer.z(), 0.0F);
+        ((CameraAccessor)camera).invokeMoveBy(-refer.z(), refer.y(), -refer.x());
+        Vec3d referVec = camera.getPos();
         ((CameraAccessor)camera).invokeMoveBy(-offset.z(), offset.y(), -offset.x());
+        clipCameraToSpace(camera, referVec);
 
         if (config.isDirectionBound()) {
             Matrix3f normal = matrixStack.peek().getNormalMatrix().scale(1.0F, -1.0F, -1.0F);
@@ -133,6 +150,25 @@ public class RealCameraCore {
 
     }
 
+    private static void clipCameraToSpace(Camera camera, Vec3d referVec) {
+        if (!config.doClipToSpace()) return;
+        Vec3d offset = camera.getPos().subtract(referVec);
+        final float depth = 0.075f;
+        for (int i = 0; i < 8; ++i) {
+            float f = (i & 1) * 2 - 1;
+            float g = (i >> 1 & 1) * 2 - 1;
+            float h = (i >> 2 & 1) * 2 - 1;
+            Vec3d start = referVec;
+            Vec3d end = referVec.add(offset).add(f *= depth, g *= depth, h *= depth);
+            HitResult hitResult = ((CameraAccessor)camera).getArea().raycast(new RaycastContext(start, end,
+                RaycastContext.ShapeType.VISUAL, RaycastContext.FluidHandling.NONE, camera.getFocusedEntity()));
+            double l = hitResult.getPos().distanceTo(referVec);
+            if (hitResult.getType() == HitResult.Type.MISS || l >= offset.length()) continue;
+            offset = offset.multiply(l/offset.length());
+        }
+        ((CameraAccessor)camera).invokeSetPos(referVec.add(offset));
+    }
+
     private static void virtualRender(AbstractClientPlayerEntity player, PlayerEntityRenderer playerRenderer, float tickDelta, MatrixStack matrixStack) {
         
         ClientCommand.virtualRenderException = null;
@@ -143,6 +179,7 @@ public class RealCameraCore {
                     return;
                 }
             } catch (Exception exception) {
+                RealCamera.LOGGER.warn("Failed to Failed to bind camera,", exception);
                 ClientCommand.virtualRenderException = exception;
                 matrixStack.pop();
             }

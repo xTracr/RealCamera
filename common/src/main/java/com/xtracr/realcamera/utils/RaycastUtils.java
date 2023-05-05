@@ -15,15 +15,15 @@ public class RaycastUtils {
     private static Vec3d endVec = new Vec3d(0, 0, 0);
 
     public static Vec3d getStartVec() {
-        return new Vec3d(startVec.getX(), startVec.getY(), startVec.getZ());
+        return startVec;
     }
 
     public static Vec3d getDirection() {
-        return new Vec3d(direction.getX(), direction.getY(), direction.getZ());
+        return direction;
     }
 
     public static Vec3d getEndVec() {
-        return new Vec3d(endVec.getX(), endVec.getY(), endVec.getZ());
+        return endVec;
     }
 
     public static RaycastContext getRaycastContext(ShapeType shapeType, FluidHandling fluidHandling, Entity entity) {
