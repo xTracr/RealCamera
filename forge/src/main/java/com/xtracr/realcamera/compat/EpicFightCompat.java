@@ -17,20 +17,20 @@ import yesman.epicfight.client.world.capabilites.entitypatch.player.AbstractClie
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 
 public class EpicFightCompat {
-    
+
     public static final String modid = "epicfight";
 
     public static void register() {
         VirtualRenderer.register(modid, EpicFightCompat::virtualRender);
     }
 
-    @SuppressWarnings({"unchecked","null"})
+    @SuppressWarnings({ "unchecked", "null" })
     public static boolean virtualRender(Float partialTicks, MatrixStack poseStack) {
         // RenderEngine.renderLivingEvent
-		MinecraftClient mc = MinecraftClient.getInstance();
+        MinecraftClient mc = MinecraftClient.getInstance();
         ClientPlayerEntity entityIn = mc.player;
-        AbstractClientPlayerPatch<AbstractClientPlayerEntity> entitypatch = (AbstractClientPlayerPatch<AbstractClientPlayerEntity>)
-            entityIn.getCapability(EpicFightCapabilities.CAPABILITY_ENTITY, null).orElse(null);
+        AbstractClientPlayerPatch<AbstractClientPlayerEntity> entitypatch = (AbstractClientPlayerPatch<AbstractClientPlayerEntity>)entityIn
+                .getCapability(EpicFightCapabilities.CAPABILITY_ENTITY, null).orElse(null);
         if (entitypatch == null || entitypatch.shouldSkipRender()) {
             return true;
         }
@@ -38,11 +38,11 @@ public class EpicFightCompat {
         PPlayerRenderer patchedRenderer = (PPlayerRenderer)ClientEngine.instance.renderEngine.getEntityRenderer(entityIn);
 
         // PatchedLivingEntityRenderer.render
-		ClientModel model = entitypatch.getEntityModel(ClientModels.LOGICAL_CLIENT);
-		Armature armature = model.getArmature();
-		patchedRenderer.mulPoseStack(poseStack, armature, entityIn, entitypatch, partialTicks);
-		OpenMatrix4f[] poses = patchedRenderer.getPoseMatrices(entitypatch, armature, partialTicks);
-		
+        ClientModel model = entitypatch.getEntityModel(ClientModels.LOGICAL_CLIENT);
+        Armature armature = model.getArmature();
+        patchedRenderer.mulPoseStack(poseStack, armature, entityIn, entitypatch, partialTicks);
+        OpenMatrix4f[] poses = patchedRenderer.getPoseMatrices(entitypatch, armature, partialTicks);
+
         // ClientModel.drawAnimatedModelNoTexture
         /* Deprecated
         Matrix4f matrix4f = new Matrix4f();
@@ -54,7 +54,7 @@ public class EpicFightCompat {
         Joint[] jointChain = new Joint[path.length()];
         jointChain[0] = root;
         for (int i = 0; i < path.length()-1; i++) {
-            jointChain[i+1] = jointChain[i].getSubJoints().get(path.charAt(path.length()-2-i)-'1');
+            jointChain[i+1] = jointChain[i].getSubJoints().get(path.charAt(path.length()-2-i) - '1');
         }
         for (int i = 1; i < path.length(); i++) {
             matrix4f.multiply(OpenMatrix4f.exportToMojangMatrix(poses[jointChain[i].getId()]));

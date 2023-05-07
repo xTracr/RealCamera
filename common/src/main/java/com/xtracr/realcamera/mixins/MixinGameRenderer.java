@@ -26,7 +26,7 @@ import net.minecraft.util.math.Vec3d;
 
 @Mixin(GameRenderer.class)
 public abstract class MixinGameRenderer {
-    
+
     private static boolean toggle = false;
 
     @Shadow

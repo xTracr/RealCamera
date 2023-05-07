@@ -26,25 +26,28 @@ import net.minecraft.util.math.MathHelper;
  * This example uses {@code reflection} to {@code register} and {@code getModelPartName}
  * 
  * <p>If you don't want to use reflection,  an (optional) dependency should be added to call the methods
- * <p>Don't know how to add a dependency? see {@link https://jitpack.io or https://jitpack.io/#xTracr/RealCamera/} to get information about it
+ * <p>Don't know how to add a dependency? see {@link https://jitpack.io or https://jitpack.io/#xTracr/RealCamera/} 
+ * to get information about it
  * 
  */
 public class CompatExample {
 
     /**
-     * mandatory
+     * <b>mandatory</b>
      * <p>But it's not necessary to use your mod's {@code modid}.
      * 
      */
     public static final String modid = "minecraft";
-    
+
     public static String feedback;
     public static final Map<String, String> nameMap = new HashMap<>();
 
     /**
      * 
      * {@code = VirtualRenderer.class.getDeclaredMethod("getModelPartName")}
-     * <p>return the value of {@link com.xtracr.realcamera.config.ModConfig.Compats#modModelPart modModelPart} option in the config
+     * <p>return the value of {@link com.xtracr.realcamera.config.ModConfig.Compats#modModelPart modModelPart} 
+     * option in the config
+     * 
      * @see #register()
      * @see com.xtracr.realcamera.api.VirtualRenderer#getModelPartName() getModelPartName()
      * 
@@ -87,14 +90,15 @@ public class CompatExample {
             nameMap.put("cloak", "f_103373_");
             nameMap.put("ear", "f_103379_");
         }
-        
+
     }
 
     /**
      * 
      * Your should register before the first time camera setup
      * <p>This method is called in {@link com.xtracr.realcamera.RealCamera#setup()}
-     * @see com.xtracr.realcamera.api.VirtualRenderer#register
+     * 
+     * @see VirtualRenderer#register(String, BiPredicate, Supplier)
      * 
      */
     public static void register() {
@@ -124,12 +128,14 @@ public class CompatExample {
     }
 
     /**
-     * mandatory
-     * <p>This method's code should include as much as possible all parts related to {@code matrixStack} in the code that renders the player model, 
+     * <b>mandatory</b>
+     * <p>This method's code should include as much as possible all parts related to {@code matrixStack} 
+     * in the code that renders the player model, 
      * to ensure that the result of {@code matrixStack} after processing is identical to the actual rendering.
-     * @param tickDelta or particalTick(s) (official mapping)
+     * @param tickDelta   or particalTick(s) (official mapping)
      * @param matrixStack or poseStack (official mapping)
-     * @return {@code boolean} skip rendering if true
+     * @return {@code boolean} turn to vanilla rendering if true
+     * 
      * @see net.minecraft.client.render.entity.EntityRenderDispatcher#render
      * @see net.minecraft.client.render.entity.PlayerEntityRenderer#render
      * @see net.minecraft.client.render.entity.LivingEntityRenderer#render

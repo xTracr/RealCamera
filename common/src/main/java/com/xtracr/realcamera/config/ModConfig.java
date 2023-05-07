@@ -100,7 +100,7 @@ public class ModConfig {
             ROTATION;
 
             private static final AdjustMode[] VALUES = values();
-            
+
             public AdjustMode cycle() {
                 return VALUES[(this.ordinal() + 1) % VALUES.length];
             }
@@ -117,7 +117,7 @@ public class ModConfig {
         public boolean pehkui = true;
 
     }
-    
+
     public class Disables {
 
         public boolean fallFlying = true;
@@ -126,7 +126,7 @@ public class ModConfig {
         public boolean sneaking = false;
         public boolean sleeping = false;
         public boolean scoping = true;
-    
+
     }
 
     public void set(ModConfig modConfig) {
@@ -142,7 +142,7 @@ public class ModConfig {
         this.binding.clamp();
         this.classic.clamp();
     }
-    
+
     public boolean isEnabled() {
         return this.general.enabled;
     }
@@ -286,7 +286,7 @@ public class ModConfig {
     public float getClassicRoll() {
         return this.classic.roll;
     }
-    
+
     public void cycleClassicAdjustMode() {
         this.classic.adjustMode = this.classic.adjustMode.cycle();
     }

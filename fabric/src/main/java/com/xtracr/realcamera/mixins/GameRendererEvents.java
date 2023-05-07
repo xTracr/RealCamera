@@ -17,7 +17,7 @@ import net.minecraft.util.math.Vec3f;
 
 @Mixin(GameRenderer.class)
 public abstract class GameRendererEvents {
-    
+
     @Shadow
     private Camera camera;
     @Shadow
@@ -37,5 +37,5 @@ public abstract class GameRendererEvents {
             matrixStack.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(RealCameraCore.cameraRoll));
         }
     }
-    
+
 }

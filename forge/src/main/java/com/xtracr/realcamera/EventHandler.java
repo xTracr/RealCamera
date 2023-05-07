@@ -13,7 +13,7 @@ import net.minecraftforge.client.event.EntityViewRenderEvent.CameraSetup;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class EventHandler {
-    
+
     @SubscribeEvent
     public static void onKeyInput(KeyInputEvent event) {
         KeyBindings.handle(MinecraftClient.getInstance());

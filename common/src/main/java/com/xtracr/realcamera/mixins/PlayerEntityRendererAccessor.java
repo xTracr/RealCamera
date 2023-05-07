@@ -9,7 +9,7 @@ import net.minecraft.client.util.math.MatrixStack;
 
 @Mixin(PlayerEntityRenderer.class)
 public interface PlayerEntityRendererAccessor {
-    
+
     @Invoker
     void invokeSetModelPose(AbstractClientPlayerEntity player);
 

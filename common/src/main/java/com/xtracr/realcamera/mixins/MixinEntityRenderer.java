@@ -15,15 +15,12 @@ import net.minecraft.entity.Entity;
 
 @Mixin(EntityRenderer.class)
 public abstract class MixinEntityRenderer {
-    
-    /**
-     * player.ignoreCameraFrustum = true
-     */
+
     @Inject(method = "shouldRender", at = @At("HEAD"), cancellable = true)
     private void onShouldRenderHead(Entity entity, Frustum frustum, double x, double y, double z, CallbackInfoReturnable<Boolean> cInfo) {
         if (ConfigFile.modConfig.isRendering() && RealCameraCore.isActive() && entity instanceof ClientPlayerEntity) {
             cInfo.setReturnValue(true);
         }
     }
-    
+
 }

@@ -11,5 +11,5 @@ public class ClientCommandForge extends ClientCommand<ServerCommandSource> {
     public void sendFeedback(ServerCommandSource source, Text message) {
         source.sendFeedback(message, false);
     }
-    
+
 }

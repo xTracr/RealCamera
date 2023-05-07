@@ -17,7 +17,7 @@ public class PehkuiCompat {
 
     private static final Optional<Method> getModelWidthScale;
     private static final Optional<Method> getModelHeightScale;
-    
+
     static {
         if (loaded) {
             final Optional<Class<?>> scaleUtilsClass = ReflectUtils.getClass("virtuoel.pehkui.util.ScaleUtils");
@@ -42,7 +42,7 @@ public class PehkuiCompat {
         final float heightScale = getModelScaleValue(getModelHeightScale, entity, tickDelta);
         return vec3d.multiply(widthScale, heightScale, widthScale);
     }
-    
+
     private static float getModelScaleValue(Optional<Method> method, Entity entity, float tickDelta) {
         return method.map(mtd -> {
             try {

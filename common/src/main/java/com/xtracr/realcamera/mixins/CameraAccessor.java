@@ -10,7 +10,7 @@ import net.minecraft.world.BlockView;
 
 @Mixin(Camera.class)
 public interface CameraAccessor {
-    
+
     @Accessor
     BlockView getArea();
 
@@ -19,7 +19,7 @@ public interface CameraAccessor {
 
     @Invoker
     void invokeMoveBy(double x, double y, double z);
-    
+
     @Invoker
     void invokeSetRotation(float yaw, float pitch);
 
