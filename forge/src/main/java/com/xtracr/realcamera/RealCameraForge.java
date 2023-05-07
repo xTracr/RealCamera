@@ -22,12 +22,11 @@ public class RealCameraForge {
         eventBus.addListener(this::onKeyRegister);
 
         if (ModList.get().isLoaded("cloth_config")) {
-            ModLoadingContext.get().registerExtensionPoint(ConfigScreenFactory.class, () -> 
-                new ConfigScreenFactory((client, parent) -> ConfigScreen.create(parent)
-            ));
+            ModLoadingContext.get().registerExtensionPoint(ConfigScreenFactory.class,
+                    () -> new ConfigScreenFactory((client, parent) -> ConfigScreen.create(parent)));
         }
     }
-    
+
     @SubscribeEvent
     public void clientSetup(FMLClientSetupEvent event) {
 
@@ -40,7 +39,7 @@ public class RealCameraForge {
     }
 
     @SubscribeEvent
-    public void onKeyRegister(RegisterKeyMappingsEvent event) {       
+    public void onKeyRegister(RegisterKeyMappingsEvent event) {
         event.register(KeyBindings.TOGGLE_PERSPECTIVE);
         event.register(KeyBindings.TOGGLE_ADJUST_MODE);
         event.register(KeyBindings.TOGGLE_CAMERA_MODE);
@@ -52,5 +51,4 @@ public class RealCameraForge {
         event.register(KeyBindings.ADJUST_RIGHT);
     }
 
-    
 }

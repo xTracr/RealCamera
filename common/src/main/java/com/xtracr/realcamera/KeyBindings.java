@@ -10,12 +10,12 @@ import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 
 public final class KeyBindings {
-    
+
     private static final ModConfig config = ConfigFile.modConfig; 
 
     private static final String KEY_CATEGORY = "key.category.xtracr_"+RealCamera.MODID;
     private static final String KEY_ID = "key.xtracr_"+RealCamera.MODID+"_";
-    
+
     public static final KeyBinding TOGGLE_PERSPECTIVE = new KeyBinding(
         KEY_ID+"togglePerspective", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F6, KEY_CATEGORY);
     public static final KeyBinding TOGGLE_ADJUST_MODE = new KeyBinding(
@@ -34,7 +34,7 @@ public final class KeyBindings {
         KEY_ID+"adjustLEFT", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
     public static final KeyBinding ADJUST_RIGHT = new KeyBinding(
         KEY_ID+"adjustRIGHT", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
-    
+
     public static void handle(MinecraftClient client) {
         if (client.player == null || client.currentScreen != null) {
             return;

@@ -16,24 +16,24 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 
-@SuppressWarnings("resource")
 public class ConfigFile {
-    
+
     private static final Path PATH;
     private static final Gson GSON = new GsonBuilder()
         .setPrettyPrinting()
         .create();
 
     public static final ModConfig modConfig = new ModConfig();
-    
+
     static {
-        final File configDir = new File(MinecraftClient.getInstance().runDirectory, "config"); 
+        @SuppressWarnings("resource")
+        final File configDir = new File(MinecraftClient.getInstance().runDirectory, "config");
         if (!configDir.exists()) configDir.mkdirs();
         PATH = configDir.toPath().resolve(RealCamera.MODID+".json");
     }
 
     public static void load() {
-        try (BufferedReader reader = Files.newBufferedReader(PATH)){
+        try (BufferedReader reader = Files.newBufferedReader(PATH)) {
             modConfig.set(GSON.fromJson(reader, ModConfig.class));
             modConfig.clamp();
             reader.close();
@@ -61,5 +61,5 @@ public class ConfigFile {
             RealCamera.LOGGER.warn("Failed to reset config", exception);
         }
     }
-    
+
 }

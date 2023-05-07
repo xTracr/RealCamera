@@ -11,5 +11,5 @@ public class ClientCommandFabric extends ClientCommand<FabricClientCommandSource
     public void sendFeedback(FabricClientCommandSource source, Text message) {
         source.sendFeedback(message);
     }
-    
+
 }

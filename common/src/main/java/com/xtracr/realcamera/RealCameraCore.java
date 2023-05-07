@@ -29,7 +29,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 
 public class RealCameraCore {
-    
+
     private static final ModConfig config = ConfigFile.modConfig;
 
     public static float cameraRoll = 0.0F;
@@ -57,7 +57,7 @@ public class RealCameraCore {
     private static void classicModeUpdate(Camera camera, MinecraftClient client, float tickDelta) {
         CameraAccessor cameraAccessor = (CameraAccessor)camera;
         ClientPlayerEntity player = client.player;
-        
+
         float centerYaw = camera.getYaw();
         float pitch = camera.getPitch() + config.getClassicPitch();
         float yaw = centerYaw - config.getClassicYaw();
@@ -91,7 +91,7 @@ public class RealCameraCore {
     }
 
     private static void bindingModeUpdate(Camera camera, MinecraftClient client, float tickDelta) {
-        
+
         // GameRenderer.render
         MatrixStack matrixStack = new MatrixStack();
         // GameRenderer.renderWorld
@@ -108,26 +108,24 @@ public class RealCameraCore {
         // WorldRenderer.renderEntity
         Vec3d renderOffset = new Vec3d(MathHelper.lerp(tickDelta, player.lastRenderX, player.getX()), 
             MathHelper.lerp(tickDelta, player.lastRenderY, player.getY()), 
-            MathHelper.lerp(tickDelta, player.lastRenderZ, player.getZ())
-        ).subtract(camera.getPos());
+            MathHelper.lerp(tickDelta, player.lastRenderZ, player.getZ()))
+            .subtract(camera.getPos());
         // EntityRenderDispatcher.render
         PlayerEntityRenderer playerRenderer = (PlayerEntityRenderer)client.getEntityRenderDispatcher().getRenderer(player);
         renderOffset = renderOffset.add(playerRenderer.getPositionOffset(player, tickDelta));
         matrixStack.translate(renderOffset.getX(), renderOffset.getY(), renderOffset.getZ());
 
         if (config.compatPehkui()) PehkuiCompat.scaleMatrices(matrixStack, player, tickDelta);
-        
+
         virtualRender(player, playerRenderer, tickDelta, matrixStack);
-        
+
         // ModelPart$Cuboid.renderCuboid
         Vector4f refer = matrixStack.peek().getPositionMatrix().transform(new Vector4f((float)(config.getBindingRZ() * config.getScale()), 
             -(float)(config.getBindingRY() * config.getScale()), 
-            -(float)(config.getBindingRX() * config.getScale()), 1.0F
-        ));
+            -(float)(config.getBindingRX() * config.getScale()), 1.0F));
         Vector4f offset = matrixStack.peek().getPositionMatrix().transform(new Vector4f((float)(config.getBindingZ() * config.getScale()), 
             -(float)(config.getBindingY() * config.getScale()), 
-            -(float)(config.getBindingX() * config.getScale()), 1.0F
-        ));
+            -(float)(config.getBindingX() * config.getScale()), 1.0F));
 
         offset.add(-refer.x(), -refer.y(), -refer.z(), 0.0F);
         ((CameraAccessor)camera).invokeMoveBy(-refer.z(), refer.y(), -refer.x());
@@ -169,8 +167,9 @@ public class RealCameraCore {
         ((CameraAccessor)camera).invokeSetPos(referVec.add(offset));
     }
 
-    private static void virtualRender(AbstractClientPlayerEntity player, PlayerEntityRenderer playerRenderer, float tickDelta, MatrixStack matrixStack) {
-        
+    private static void virtualRender(AbstractClientPlayerEntity player, PlayerEntityRenderer playerRenderer, 
+        float tickDelta, MatrixStack matrixStack) {
+
         ClientCommand.virtualRenderException = null;
         if (config.isUsingModModel()) {
             try {

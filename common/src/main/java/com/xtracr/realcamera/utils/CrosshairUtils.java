@@ -15,7 +15,7 @@ public class CrosshairUtils {
     public static EntityHitResult capturedEntityHitResult;
 
     private static Vec3d offset = new Vec3d(0, 0, 0);
-    
+
     public static void translateMatrices(MatrixStack matrixStack) {
         matrixStack.translate(offset.getX(), -offset.getY(), 0.0D);
     }

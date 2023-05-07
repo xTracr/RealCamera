@@ -7,7 +7,7 @@ import org.joml.Vector4f;
 import net.minecraft.util.math.Vec3d;
 
 public class MathUtils {
-    
+
     public static Vec3d getEulerAngleYXZ(Matrix3f normal) {
         if (normal.m21 <= -1.0D) {
             return new Vec3d(Math.PI/2, Math.atan2(normal.m10, normal.m00), 0.0D);

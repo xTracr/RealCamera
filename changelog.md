@@ -6,6 +6,9 @@
 
 ### Test Versions ###
 
+* 0.5.0-beta:
+*
+
 * 0.4.0-alpha:
 * Fixed an issue where the camera would not follow the model action when the player started/ended sneaking
 * Compatible with Pehkui
@@ -65,6 +68,9 @@
 ### 正式版 ###
 
 ### 测试版 ###
+
+* 0.5.0-beta:
+*
 
 * 0.4.0-alpha:
 * 修复了玩家开始/结束潜行时摄像头未跟上模型动作的问题

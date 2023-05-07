@@ -14,9 +14,9 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 public class RealCameraFabric implements ClientModInitializer {
 
     @Override
-	public void onInitializeClient() {
-        
-		RealCamera.setup();
+    public void onInitializeClient() {
+
+        RealCamera.setup();
 
         ClientTickEvents.END_CLIENT_TICK.register(KeyBindings::handle);
         WorldRenderEvents.START.register(EventHandler::onWorldRenderStart);
@@ -31,6 +31,6 @@ public class RealCameraFabric implements ClientModInitializer {
         KeyBindingHelper.registerKeyBinding(KeyBindings.ADJUST_FRONT);
         KeyBindingHelper.registerKeyBinding(KeyBindings.ADJUST_LEFT);
         KeyBindingHelper.registerKeyBinding(KeyBindings.ADJUST_RIGHT);
-	}
+    }
 
 }

@@ -7,7 +7,7 @@ import java.util.Optional;
 import com.xtracr.realcamera.utils.ReflectUtils;
 
 public class DoABarrelRollCompat {
-    
+
     public static final boolean loaded = ReflectUtils.isLoaded("nl.enjarai.doabarrelroll.DoABarrelRollClient");
 
     private static final Optional<Object> modConfigInstance;
@@ -31,7 +31,7 @@ public class DoABarrelRollCompat {
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException exception) {
                 return null;
             }
-        }).orElse(false); 
+        }).orElse(false);
     }
 
 }

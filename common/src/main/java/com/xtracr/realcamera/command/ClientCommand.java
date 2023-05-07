@@ -26,7 +26,7 @@ public abstract class ClientCommand<S extends CommandSource> {
 
     @Nullable
     public static Exception virtualRenderException = null;
-    
+
     public static void registerFeedback(Supplier<String> feedback) {
         feedbackSupplier.add(feedback);
     }
@@ -37,7 +37,7 @@ public abstract class ClientCommand<S extends CommandSource> {
 
         dispatcher.register(builder);
     }
-    
+
     private int config(CommandContext<S> context) throws CommandSyntaxException {
         final S source = context.getSource();
         String s = "";
@@ -45,24 +45,25 @@ public abstract class ClientCommand<S extends CommandSource> {
             .append("Camera Mode: " + (config.isClassic() ? "[classic]" : "[binding]") + "\n")
             .append("Vanilla Model Part: [" + config.getVanillaModelPart().name() + "]\n")
             .append("Target Mod Model Part: [" + config.getModelModID() + ":" + config.getModModelPartName() + "]"));
-        
+
         for (String modid : VirtualRenderer.getRegisteredMods()) {
             s += " [" + modid + "]";
         }
         this.sendFeedback(source, Text.literal("Mods registered:" + s));
         s = "";
-        
+
         if (virtualRenderException != null) {
-            this.sendFeedback(source, Text.literal("\nFailed to bind camera: " + virtualRenderException.getClass().getSimpleName()));
+            this.sendFeedback(source, Text.literal(
+                "\nFailed to bind to mod model part: " + virtualRenderException.getClass().getSimpleName()));
         }
-        
+
         this.sendFeedback(source, Text.literal("\nAdditional Feedbacks: "));
         feedbackSupplier.forEach(feedback -> this.sendFeedback(source, Text.literal(feedback.get())));
         return 0;
     }
 
     protected abstract void sendFeedback(S source, Text message);
-    
+
     private LiteralArgumentBuilder<S> literal(final String name) {
         return LiteralArgumentBuilder.literal(name);
     }
