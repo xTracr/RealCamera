@@ -17,7 +17,7 @@ import net.minecraft.entity.Entity;
 public abstract class MixinEntityRenderer {
 
     @Inject(method = "shouldRender", at = @At("HEAD"), cancellable = true)
-    private void onShouldRenderHead(Entity entity, Frustum frustum, double x, double y, double z, CallbackInfoReturnable<Boolean> cInfo) {
+    private void onShouldRenderHEAD(Entity entity, Frustum frustum, double x, double y, double z, CallbackInfoReturnable<Boolean> cInfo) {
         if (ConfigFile.modConfig.isRendering() && RealCameraCore.isActive() && entity instanceof ClientPlayerEntity) {
             cInfo.setReturnValue(true);
         }

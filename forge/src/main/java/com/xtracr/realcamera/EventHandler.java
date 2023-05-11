@@ -26,7 +26,7 @@ public class EventHandler {
             RealCameraCore.updateCamera(camera, event.getRenderer().getClient(), (float)event.getPartialTick());
             event.setPitch(camera.getPitch());
             event.setYaw(camera.getYaw());
-            event.setRoll(RealCameraCore.cameraRoll);
+            event.setRoll(RealCameraCore.getRoll());
         }
     }
 

@@ -20,11 +20,6 @@ public class RealCameraForge {
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
         eventBus.addListener(this::clientSetup);
         eventBus.addListener(this::onKeyRegister);
-
-        if (ModList.get().isLoaded("cloth_config")) {
-            ModLoadingContext.get().registerExtensionPoint(ConfigScreenFactory.class,
-                    () -> new ConfigScreenFactory((client, parent) -> ConfigScreen.create(parent)));
-        }
     }
 
     @SubscribeEvent
@@ -36,6 +31,11 @@ public class RealCameraForge {
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onCameraUpdate);
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onClientCommandRegister);
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onRenderWorldStage);
+
+        if (ModList.get().isLoaded("cloth_config")) {
+            ModLoadingContext.get().registerExtensionPoint(ConfigScreenFactory.class,
+                    () -> new ConfigScreenFactory((client, parent) -> ConfigScreen.create(parent)));
+        }
     }
 
     @SubscribeEvent

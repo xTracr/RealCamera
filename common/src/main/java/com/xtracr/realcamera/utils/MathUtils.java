@@ -31,7 +31,7 @@ public class MathUtils {
         for (Matrix4f matrix4f : projectionMatrices) {
             vector4f.mul(matrix4f);
         }
-        if (vector4f.w() == 0.0D) return new Vec3d(0, 0, 0);
+        if (vector4f.w() == 0.0D) return Vec3d.ZERO;
         return new Vec3d((double)vector4f.x(), (double)vector4f.y(), 0).multiply(1/(double)vector4f.w());
     }
 

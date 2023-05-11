@@ -58,7 +58,7 @@ public class ConfigFile {
             GSON.toJson(modConfig, writer);
             writer.close();
         } catch (IOException | JsonIOException exception) {
-            RealCamera.LOGGER.warn("Failed to reset config", exception);
+            RealCamera.LOGGER.warn("Failed to reset config");
         }
     }
 

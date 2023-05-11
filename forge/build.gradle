@@ -23,7 +23,7 @@ loom {
 
 configurations {
     common
-    shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
+    shadowCommon // Don't use shadow from the shadow plugin since it *excludes* files.
     compileClasspath.extendsFrom common
     runtimeClasspath.extendsFrom common
     developmentForge.extendsFrom common
@@ -32,10 +32,8 @@ configurations {
 dependencies {
     forge "net.minecraftforge:forge:${rootProject.forge_version}"
 
-    // Architectury
-    //modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
     // Cloth Config
-    //modImplementation "me.shedaniel.cloth:cloth-config-forge:${rootProject.cloth_config_version}"
+    //modRuntimeOnly "me.shedaniel.cloth:cloth-config-forge:${rootProject.cloth_config_version}"
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }

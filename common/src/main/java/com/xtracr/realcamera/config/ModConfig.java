@@ -12,7 +12,7 @@ public class ModConfig {
     public Binding binding = new Binding();
     public Classic classic = new Classic();
     public Compats compats = new Compats();
-    public Disables disables = new Disables();
+    public Disable disable = new Disable();
 
     public class General {
 
@@ -35,7 +35,7 @@ public class ModConfig {
 
         public VanillaModelPart vanillaModelPart = VanillaModelPart.head;
         public boolean adjustOffset = true;
-        public boolean bindDirection = true;
+        public boolean bindRotation = true;
         public boolean lockRolling = false;
         public double cameraX = 3.25D;
         public double cameraY = 2.0D;
@@ -118,7 +118,7 @@ public class ModConfig {
 
     }
 
-    public class Disables {
+    public class Disable {
 
         public boolean fallFlying = true;
         public boolean swiming = false;
@@ -134,7 +134,7 @@ public class ModConfig {
         this.binding = modConfig.binding;
         this.classic = modConfig.classic;
         this.compats = modConfig.compats;
-        this.disables = modConfig.disables;
+        this.disable = modConfig.disable;
     }
 
     public void clamp() {
@@ -173,14 +173,14 @@ public class ModConfig {
     }
 
     public boolean isDisabledWhen(ClientPlayerEntity player) {
-        return (player.isFallFlying() && this.disables.fallFlying)
-            || (player.isSwimming() && this.disables.swiming)
-            || (player.isCrawling() && this.disables.crawling)
-            || (player.isSneaking() && this.disables.sneaking)
-            || (player.isSleeping() && this.disables.sleeping);
+        return (player.isFallFlying() && this.disable.fallFlying)
+            || (player.isSwimming() && this.disable.swiming)
+            || (player.isCrawling() && this.disable.crawling)
+            || (player.isSneaking() && this.disable.sneaking)
+            || (player.isSleeping() && this.disable.sleeping);
     }
     public boolean onlyDisableRenderingWhen(ClientPlayerEntity player) {
-        return player.isUsingSpyglass() && this.disables.scoping;
+        return player.isUsingSpyglass() && this.disable.scoping;
     }
 
     // binding
@@ -190,8 +190,8 @@ public class ModConfig {
     public boolean isAdjustingOffset() {
         return this.binding.adjustOffset;
     }
-    public boolean isDirectionBound() {
-        return this.binding.bindDirection;
+    public boolean isRotationBound() {
+        return this.binding.bindRotation;
     }
     public boolean isRollingLocked() {
         return this.binding.lockRolling;

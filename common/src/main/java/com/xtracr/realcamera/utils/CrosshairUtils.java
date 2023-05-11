@@ -14,7 +14,7 @@ public class CrosshairUtils {
 
     public static EntityHitResult capturedEntityHitResult;
 
-    private static Vec3d offset = new Vec3d(0, 0, 0);
+    private static Vec3d offset = Vec3d.ZERO;
 
     public static void translateMatrices(MatrixStack matrixStack) {
         matrixStack.translate(offset.getX(), -offset.getY(), 0.0D);
@@ -26,12 +26,12 @@ public class CrosshairUtils {
             hitResult = capturedEntityHitResult;
         }
         if (hitResult == null) {
-            offset = new Vec3d(0, 0, 0);
+            offset = Vec3d.ZERO;
             return;
         }
-        offset = MathUtils.projectToVec2d(hitResult.getPos().subtract(camera.getPos()), projectionMatrices);
         Window window = client.getWindow();
-        offset = offset.multiply(0.5*window.getScaledWidth(), 0.5*window.getScaledHeight(), 0.0D);
+        offset = MathUtils.projectToVec2d(hitResult.getPos().subtract(camera.getPos()), projectionMatrices)
+            .multiply(0.5*window.getScaledWidth(), 0.5*window.getScaledHeight(), 0.0D);
     }
 
 }

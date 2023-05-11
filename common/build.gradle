@@ -10,15 +10,10 @@ dependencies {
     
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
 
-    // Architectury
-    //modApi "dev.architectury:architectury:${rootProject.architectury_version}"
 	// Cloth Config
     modImplementation("me.shedaniel.cloth:cloth-config:${rootProject.cloth_config_version}") {
         exclude(group: "net.fabricmc.fabric-api")
     }
-
-    // GeckoLib
-    //modImplementation "software.bernie.geckolib:geckolib-fabric-${rootProject.geckolib_version}"
 }
 
 publishing {

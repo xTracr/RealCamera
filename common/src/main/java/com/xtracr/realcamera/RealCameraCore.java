@@ -4,7 +4,6 @@ import org.joml.Matrix3f;
 import org.joml.Vector4f;
 
 import com.xtracr.realcamera.api.VirtualRenderer;
-import com.xtracr.realcamera.command.ClientCommand;
 import com.xtracr.realcamera.compat.PehkuiCompat;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
@@ -32,7 +31,11 @@ public class RealCameraCore {
 
     private static final ModConfig config = ConfigFile.modConfig;
 
-    public static float cameraRoll = 0.0F;
+    private static float cameraRoll = 0.0F;
+
+    public static float getRoll() {
+        return cameraRoll;
+    }
 
     public static boolean isActive() {
         MinecraftClient client = MinecraftClient.getInstance();
@@ -127,17 +130,17 @@ public class RealCameraCore {
             -(float)(config.getBindingY() * config.getScale()), 
             -(float)(config.getBindingX() * config.getScale()), 1.0F));
 
-        offset.add(-refer.x(), -refer.y(), -refer.z(), 0.0F);
+        offset.sub(refer);
         ((CameraAccessor)camera).invokeMoveBy(-refer.z(), refer.y(), -refer.x());
         Vec3d referVec = camera.getPos();
         ((CameraAccessor)camera).invokeMoveBy(-offset.z(), offset.y(), -offset.x());
         clipCameraToSpace(camera, referVec);
 
-        if (config.isDirectionBound()) {
+        if (config.isRotationBound()) {
             Matrix3f normal = matrixStack.peek().getNormalMatrix().scale(1.0F, -1.0F, -1.0F);
-            normal.rotateLocal(config.getBindingYaw()*(float)Math.PI/180.0F, normal.m10, normal.m11, normal.m12);
-            normal.rotateLocal(config.getBindingPitch()*(float)Math.PI/180.0F, normal.m00, normal.m01, normal.m02);
-            normal.rotateLocal(config.getBindingRoll()*(float)Math.PI/180.0F, normal.m20, normal.m21, normal.m22);
+            normal.rotateLocal((float)Math.toRadians(config.getBindingYaw()), normal.m10, normal.m11, normal.m12);
+            normal.rotateLocal((float)Math.toRadians(config.getBindingPitch()), normal.m00, normal.m01, normal.m02);
+            normal.rotateLocal((float)Math.toRadians(config.getBindingRoll()), normal.m20, normal.m21, normal.m22);
             Vec3d eulerAngle = MathUtils.getEulerAngleYXZ(normal).multiply(180.0D/Math.PI);
 
             ((CameraAccessor)camera).invokeSetRotation((float)-eulerAngle.getY(), (float)eulerAngle.getX());
@@ -153,11 +156,11 @@ public class RealCameraCore {
         Vec3d offset = camera.getPos().subtract(referVec);
         final float depth = 0.075f;
         for (int i = 0; i < 8; ++i) {
-            float f = (i & 1) * 2 - 1;
-            float g = (i >> 1 & 1) * 2 - 1;
-            float h = (i >> 2 & 1) * 2 - 1;
+            float f = depth * ((i & 1) * 2 - 1);
+            float g = depth * ((i >> 1 & 1) * 2 - 1);
+            float h = depth * ((i >> 2 & 1) * 2 - 1);
             Vec3d start = referVec;
-            Vec3d end = referVec.add(offset).add(f *= depth, g *= depth, h *= depth);
+            Vec3d end = referVec.add(offset).add(f, g, h);
             HitResult hitResult = ((CameraAccessor)camera).getArea().raycast(new RaycastContext(start, end,
                 RaycastContext.ShapeType.VISUAL, RaycastContext.FluidHandling.NONE, camera.getFocusedEntity()));
             double l = hitResult.getPos().distanceTo(referVec);
@@ -170,7 +173,6 @@ public class RealCameraCore {
     private static void virtualRender(AbstractClientPlayerEntity player, PlayerEntityRenderer playerRenderer, 
         float tickDelta, MatrixStack matrixStack) {
 
-        ClientCommand.virtualRenderException = null;
         if (config.isUsingModModel()) {
             try {
                 matrixStack.push();
@@ -178,8 +180,6 @@ public class RealCameraCore {
                     return;
                 }
             } catch (Exception exception) {
-                RealCamera.LOGGER.warn("Failed to Failed to bind camera,", exception);
-                ClientCommand.virtualRenderException = exception;
                 matrixStack.pop();
             }
         }
