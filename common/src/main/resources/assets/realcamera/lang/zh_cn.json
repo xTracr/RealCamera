@@ -9,6 +9,7 @@
     "key.xtracr_realcamera_adjustBACK": "向后调整",
     "key.xtracr_realcamera_adjustLEFT": "向左调整",
     "key.xtracr_realcamera_adjustRIGHT": "向右调整",
+    "modmenu.descriptionTranslation.realcamera": "使第一人称视角下的摄像头更加真实。",
 
 
     "config.title.xtracr_realcamera": "Real Camera",
@@ -16,7 +17,23 @@
     "config.category.xtracr_realcamera_binding": "绑定模式",
     "config.category.xtracr_realcamera_classic": "经典模式",
     "config.category.xtracr_realcamera_compats": "兼容设置",
-    "config.category.xtracr_realcamera_disables": "禁用条件",
+    "config.category.xtracr_realcamera_disable": "禁用设置",
+    "config.category.xtracr_realcamera_cameraOffset": "摄像头偏移",
+    "config.category.xtracr_realcamera_centerOffset": "旋转中心偏移",
+    "config.category.xtracr_realcamera_cameraRotation": "摄像头旋转",
+    "config.category.xtracr_realcamera_compatSwitches": "兼容性开关",
+    "config.category.xtracr_realcamera_disableModWhen": "当...时禁用本模组",
+    "config.category.xtracr_realcamera_disableRenderWhen": "当...时禁用渲染",
+
+    "config.tooltip.xtracr_realcamera_bindingOffset": "摄像头相对模型部位的偏移值",
+    "config.tooltip.xtracr_realcamera_bindingOffset_n": "注: 摄像头的前方、上方和左方分别为X、Y和Z轴",
+    "config.tooltip.xtracr_realcamera_classicOffset": "摄像头相对旋转中心的偏移值",
+    "config.tooltip.xtracr_realcamera_classicOffset_n": "注: 玩家的的前方、上方和左方分别为X、Y和Z轴",
+    "config.tooltip.xtracr_realcamera_referOffset": "以及参照点的偏移值, 用于限制摄像头位置以防止其进入方块内部",
+    "config.tooltip.xtracr_realcamera_centerOffset": "旋转中心相对头部的偏移值",
+    "config.tooltip.xtracr_realcamera_compatSwitches": "这些选项只会在安装了对应模组的情况下显示",
+    "config.tooltip.xtracr_realcamera_cameraRotation_1": "额外的摄像头旋转，以度数为单位",
+    "config.tooltip.xtracr_realcamera_cameraRotation_2": "俯仰、偏航和翻滚分别是以左方、上方和前方为轴的旋转",
 
     "config.option.xtracr_realcamera_enabled": "开启功能",
     "config.option.xtracr_realcamera_classic": "经典模式",
@@ -25,32 +42,28 @@
     "config.option.xtracr_realcamera_renderModel": "渲染玩家模型",
     "config.option.xtracr_realcamera_adjustStep": "调整步长",
     "config.option.xtracr_realcamera_scale": "缩放比例",
-    
+
     "config.option.xtracr_realcamera_vanillaModelPart": "原版模型部位",
     "config.option.xtracr_realcamera_adjustOffset": "调整摄像头偏移",
-    "config.option.xtracr_realcamera_bindDirection": "绑定方向",
-    "config.option.xtracr_realcamera_lockRolling": "锁定滚动",
-    "config.option.xtracr_realcamera_cameraX": "摄像头X偏移",
-    "config.option.xtracr_realcamera_cameraY": "摄像头Y偏移",
-    "config.option.xtracr_realcamera_cameraZ": "摄像头Z偏移",
-    "config.option.xtracr_realcamera_referX": "参照点X偏移",
-    "config.option.xtracr_realcamera_referY": "参照点Y偏移",
-    "config.option.xtracr_realcamera_referZ": "参照点Z偏移",
+    "config.option.xtracr_realcamera_bindRotation": "绑定旋转",
+    "config.option.xtracr_realcamera_lockRolling": "锁定翻滚",
+    "config.option.xtracr_realcamera_cameraOffset": "摄像头%s偏移",
+    "config.option.xtracr_realcamera_referOffset": "参照点%s偏移",
     "config.option.xtracr_realcamera_pitch": "俯仰角",
     "config.option.xtracr_realcamera_yaw": "偏航角",
     "config.option.xtracr_realcamera_roll": "翻滚角",
-    
-    "config.option.xtracr_realcamera_classicAdjustMode": "调整模式",
-    "config.option.xtracr_realcamera_centerX": "旋转中心X偏移",
-    "config.option.xtracr_realcamera_centerY": "旋转中心Y偏移",
-    "config.option.xtracr_realcamera_centerZ": "旋转中心Z偏移",
 
+    "config.option.xtracr_realcamera_classicAdjustMode": "调整模式",
+    "config.option.xtracr_realcamera_centerOffset": "旋转中心%s偏移",
+
+    "config.option.xtracr_realcamera_compatsText_1": "请到本模组的%s查看支持的模组和模型部位名称的列表",
+    "config.option.xtracr_realcamera_compatsText_2": "wiki页面",
     "config.option.xtracr_realcamera_useModModel": "模组模型兼容",
     "config.option.xtracr_realcamera_modelModID": "模型模组ID",
     "config.option.xtracr_realcamera_modModelPart": "模组模型部位",
     "config.option.xtracr_realcamera_doABarrelRoll": "Do A Barrel Roll",
     "config.option.xtracr_realcamera_pehkui": "Pehkui",
-    
+
     "config.option.xtracr_realcamera_fallFlying": "鞘翅飞行",
     "config.option.xtracr_realcamera_swiming": "游泳",
     "config.option.xtracr_realcamera_crawling": "爬行",
@@ -58,47 +71,22 @@
     "config.option.xtracr_realcamera_sleeping": "睡觉",
     "config.option.xtracr_realcamera_scoping": "使用望远镜",
 
-    "config.tooltip.xtracr_realcamera_enabled": "开启Mod的主要功能",
     "config.tooltip.xtracr_realcamera_classic": "经典模式只对摄像头的位置和旋转做简单的修改",
     "config.tooltip.xtracr_realcamera_clipToSpace": "限制摄像头位置以防止其进入方块内部",
     "config.tooltip.xtracr_realcamera_dynamicCrosshair": "在开启状态下，十字准心会随着玩家的视线移动，确保命中结果不受影响",
     "config.tooltip.xtracr_realcamera_renderModel": "在第一人称视角下渲染玩家模型",
     "config.tooltip.xtracr_realcamera_adjustStep": "每一步调整位置的长度",
     "config.tooltip.xtracr_realcamera_scale": "控制配置数值的大小, 16 = 1 格",
-    
+
     "config.tooltip.xtracr_realcamera_vanillaModelPart": "摄像头绑定的模型部位",
     "config.tooltip.xtracr_realcamera_adjustOffset": "当前按下调整键时是调整摄像头的偏移还是旋转",
-    "config.tooltip.xtracr_realcamera_bindDirection": "让摄像头跟随模型旋转",
+    "config.tooltip.xtracr_realcamera_bindRotation": "让摄像头跟随模型部位的旋转",
     "config.tooltip.xtracr_realcamera_lockRolling": "锁定摄像头的翻滚",
-    "config.tooltip.xtracr_realcamera_bindingX": "摄像头相对模型部位的X偏移值",
-    "config.tooltip.xtracr_realcamera_bindingY": "摄像头相对模型部位的Y偏移值",
-    "config.tooltip.xtracr_realcamera_bindingZ": "摄像头相对模型部位的Z偏移值",
-    "config.tooltip.xtracr_realcamera_referX": "参照点的X偏移值, 用于限制摄像头位置以防止其进入方块内部",
-    "config.tooltip.xtracr_realcamera_referY": "参照点的Y偏移值, 用于限制摄像头位置以防止其进入方块内部",
-    "config.tooltip.xtracr_realcamera_referZ": "参照点的Z偏移值, 用于限制摄像头位置以防止其进入方块内部",
-    "config.tooltip.xtracr_realcamera_pitch": "额外的俯仰角, 即额外的以左方为轴旋转的角度",
-    "config.tooltip.xtracr_realcamera_yaw": "额外的偏航角, 即额外的以上方为轴旋转的角度",
-    "config.tooltip.xtracr_realcamera_roll": "额外的翻滚角, 即额外的以前方为轴旋转的角度",
-    
+
     "config.tooltip.xtracr_realcamera_classicAdjustMode": "决定当前按下调整键时是调整哪一个",
-    "config.tooltip.xtracr_realcamera_classicX": "摄像头相对旋转中心的X偏移值",
-    "config.tooltip.xtracr_realcamera_classicY": "摄像头相对旋转中心的Y偏移值",
-    "config.tooltip.xtracr_realcamera_classicZ": "摄像头相对旋转中心的Z偏移值",
-    "config.tooltip.xtracr_realcamera_centerX": "旋转中心相对头部的X偏移值",
-    "config.tooltip.xtracr_realcamera_centerY": "旋转中心相对头部的Y偏移值",
-    "config.tooltip.xtracr_realcamera_centerZ": "旋转中心相对头部的Z偏移值",
 
     "config.tooltip.xtracr_realcamera_useModModel": "如果无法找到目标模型部位, 会自动使用绑定模式设置",
-    "config.tooltip.xtracr_realcamera_modelModID": "请到本mod的wiki页面查看支持的mod和模型部位名称的列表",
     "config.tooltip.xtracr_realcamera_modModelPart": "摄像头绑定的模型部位的名称",
     "config.tooltip.xtracr_realcamera_doABarrelRoll": "适配它的摄像头翻滚",
-    "config.tooltip.xtracr_realcamera_pehkui": "适配Pehkui对模型尺寸的缩放",
-    
-    "config.tooltip.xtracr_realcamera_fallFlying": " ",
-    "config.tooltip.xtracr_realcamera_swiming": " ",
-    "config.tooltip.xtracr_realcamera_crawling": " ",
-    "config.tooltip.xtracr_realcamera_sneaking": " ",
-    "config.tooltip.xtracr_realcamera_sleeping": " ",
-    "config.tooltip.xtracr_realcamera_scoping": "仅禁用玩家模型渲染"
-
+    "config.tooltip.xtracr_realcamera_pehkui": "适配Pehkui对模型尺寸的缩放"
 }

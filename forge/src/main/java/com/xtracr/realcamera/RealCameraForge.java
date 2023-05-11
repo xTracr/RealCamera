@@ -20,11 +20,6 @@ public class RealCameraForge {
     public RealCameraForge() {
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
         eventBus.addListener(this::clientSetup);
-
-        if (ModList.get().isLoaded("cloth_config")) {
-            ModLoadingContext.get().registerExtensionPoint(ConfigGuiFactory.class,
-                    () -> new ConfigGuiFactory((client, parent) -> ConfigScreen.create(parent)));
-        }
     }
 
     @SubscribeEvent
@@ -37,6 +32,11 @@ public class RealCameraForge {
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onCameraUpdate);
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onClientCommandRegister);
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onRenderWorldStage);
+
+        if (ModList.get().isLoaded("cloth_config")) {
+            ModLoadingContext.get().registerExtensionPoint(ConfigGuiFactory.class,
+                    () -> new ConfigGuiFactory((client, parent) -> ConfigScreen.create(parent)));
+        }
 
         ClientRegistry.registerKeyBinding(KeyBindings.TOGGLE_PERSPECTIVE);
         ClientRegistry.registerKeyBinding(KeyBindings.TOGGLE_ADJUST_MODE);

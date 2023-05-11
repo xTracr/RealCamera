@@ -46,6 +46,7 @@ Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases),
 ### Compatibility ###
 
 * Compatible:
+  * most camera mods
   * Player Animation Lib
   * Not Enough Animations
   * First Person Model
@@ -55,6 +56,7 @@ Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases),
   * Yes Steve Model(GeckoLib?)
   * Customizable Player Models
 * Cause crash:
+  * OptiFine
 
 ## [More Information](https://github.com/xTracr/RealCamera/wiki) ##
 

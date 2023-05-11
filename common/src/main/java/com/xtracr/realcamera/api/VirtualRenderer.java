@@ -2,7 +2,6 @@ package com.xtracr.realcamera.api;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 
@@ -12,7 +11,7 @@ import com.xtracr.realcamera.config.ConfigFile;
 import net.minecraft.client.util.math.MatrixStack;
 
 /**
- * @see com.xtracr.realcamera.api.CompatExample example
+ * @see CompatExample
  */
 public class VirtualRenderer {
 
@@ -26,9 +25,9 @@ public class VirtualRenderer {
      * 
      * @param modid    {@code mandatory}
      * @param function {@code mandatory} turn to vanilla rendering if return true.
-     *                 {@link com.xtracr.realcamera.api.CompatExample#virtualRender See example here}
+     *                 {@link CompatExample#virtualRender See example here}
      * @param feedback {@code optional}
-     *                 sent when command {@code \realcamera config} is executed
+     *                 sent when command {@code \realcamera feedback} is executed
      * 
      */
     public static void register(String modid, BiPredicate<Float, MatrixStack> function, Supplier<String> feedback) {
@@ -50,8 +49,8 @@ public class VirtualRenderer {
         return functionProvider.get(ConfigFile.modConfig.getModelModID()).test(tickDelta, matrixStack);
     }
 
-    public static Set<String> getRegisteredMods() {
-        return functionProvider.keySet();
+    public static String[] getModidList() {
+        return functionProvider.keySet().toArray(new String[functionProvider.size()]);
     }
 
 }

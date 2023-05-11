@@ -42,7 +42,7 @@ public abstract class MixinGameRenderer {
                 this.client.crosshairTarget.getPos().squaredDistanceTo(startVec) : endVec.squaredDistanceTo(startVec));
             Entity cameraEntity = this.client.getCameraEntity();
             Box box = cameraEntity.getBoundingBox().stretch(cameraEntity.getRotationVec(this.client.getTickDelta())
-                    .multiply(this.client.interactionManager.getReachDistance())).expand(1.0, 1.0, 1.0);
+                .multiply(this.client.interactionManager.getReachDistance())).expand(1.0, 1.0, 1.0);
             CrosshairUtils.capturedEntityHitResult = ProjectileUtil.raycast(cameraEntity, startVec, endVec, box, entity -> !entity.isSpectator() && entity.collides(), sqDistance);
         }
         return CrosshairUtils.capturedEntityHitResult;

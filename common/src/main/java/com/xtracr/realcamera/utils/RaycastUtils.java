@@ -10,9 +10,9 @@ import net.minecraft.world.RaycastContext.ShapeType;
 
 public class RaycastUtils {
 
-    private static Vec3d startVec = new Vec3d(0, 0, 0);
-    private static Vec3d direction = new Vec3d(0, 0, 0);
-    private static Vec3d endVec = new Vec3d(0, 0, 0);
+    private static Vec3d startVec = Vec3d.ZERO;
+    private static Vec3d direction = Vec3d.ZERO;
+    private static Vec3d endVec = Vec3d.ZERO;
 
     public static Vec3d getStartVec() {
         return startVec;

@@ -46,6 +46,7 @@
 ### 兼容性 ###
 
 * 兼容:
+  * 大多数摄像头模组
   * Player Animation Lib
   * Not Enough Animations
   * First Person Model
@@ -55,6 +56,7 @@
   * Yes Steve Model(GeckoLib?)
   * Customizable Player Models
 * 引起崩溃:
+  * OptiFine
 
 ## [更多信息](https://github.com/xTracr/RealCamera/wiki) ##
 

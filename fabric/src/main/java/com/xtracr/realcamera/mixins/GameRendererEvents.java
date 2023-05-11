@@ -34,7 +34,7 @@ public abstract class GameRendererEvents {
     private void onAfterCameraUpdate(float tickDelta, long limitTime, MatrixStack matrixStack, CallbackInfo cInfo) {
         if (RealCameraCore.isActive()) {
             RealCameraCore.updateCamera(this.camera, this.client, tickDelta);
-            matrixStack.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(RealCameraCore.cameraRoll));
+            matrixStack.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(RealCameraCore.getRoll()));
         }
     }
 

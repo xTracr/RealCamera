@@ -21,7 +21,7 @@ public class MathUtils {
 
     public static Vec3d getIntersectionPoint(Vec3d planePoint, Vec3d planeNormal, Vec3d linePoint, Vec3d lineNormal) {
         double distance = planeNormal.dotProduct(planePoint.subtract(linePoint)) / planeNormal.dotProduct(lineNormal);
-		return linePoint.add(lineNormal.multiply(distance));
+        return linePoint.add(lineNormal.multiply(distance));
     }
 
     public static Vec3d projectToVec2d(Vec3d vec3d, Matrix4f... projectionMatrices) {
@@ -29,7 +29,7 @@ public class MathUtils {
         for (Matrix4f matrix4f : projectionMatrices) {
             vector4f.transform(matrix4f);
         }
-        if (vector4f.getW() == 0.0D) return new Vec3d(0, 0, 0);
+        if (vector4f.getW() == 0.0D) return Vec3d.ZERO;
         return new Vec3d((double)vector4f.getX(), (double)vector4f.getY(), 0).multiply(1/(double)vector4f.getW());
     }
 
