@@ -32,8 +32,8 @@
     "config.tooltip.xtracr_realcamera_referOffset": "And reference point's offset used to prevent camera from clipping into blocks",
     "config.tooltip.xtracr_realcamera_centerOffset": "Rotation center's offset from head",
     "config.tooltip.xtracr_realcamera_compatSwitches": "These options will only appear if the corresponding mod is installed",
-    "config.tooltip.xtracr_realcamera_cameraRotation_1": "Additional camera rotation in degrees",
-    "config.tooltip.xtracr_realcamera_cameraRotation_2": "Pitch, yaw and roll are rotations on the left, up and front axes respectively",
+    "config.tooltip.xtracr_realcamera_cameraRotation": "Additional camera rotation in degrees",
+    "config.tooltip.xtracr_realcamera_cameraRotation_n": "Note: Pitch, yaw and roll are rotations on the left, up and front axes respectively",
 
     "config.option.xtracr_realcamera_enabled": "Mod Enabled",
     "config.option.xtracr_realcamera_classic": "Classic Mode",
@@ -64,6 +64,8 @@
     "config.option.xtracr_realcamera_doABarrelRoll": "Do A Barrel Roll",
     "config.option.xtracr_realcamera_pehkui": "Pehkui",
 
+    "config.option.xtracr_realcamera_renderModelPart": "Disable Rendering Partial Model",
+    "config.option.xtracr_realcamera_disabledModelParts": "Model Parts With Rendering Disabled",
     "config.option.xtracr_realcamera_fallFlying": "Elytra Flying",
     "config.option.xtracr_realcamera_swiming": "Swiming",
     "config.option.xtracr_realcamera_crawling": "Crawling",
@@ -73,9 +75,9 @@
 
     "config.tooltip.xtracr_realcamera_classic": "Classic mode only makes simple changes to the position and rotation of camera",
     "config.tooltip.xtracr_realcamera_clipToSpace": "Prevent camera from clipping into blocks",
-    "config.tooltip.xtracr_realcamera_dynamicCrosshair": "When enabled, the crosshair will follow the player's view, ensuring consistent hit result",
+    "config.tooltip.xtracr_realcamera_dynamicCrosshair": "When enabled, the crosshair will follow the player's view, ensuring consistent hit result\nRecommended to enable when Jade, WTHIT or similar mods are installed",
     "config.tooltip.xtracr_realcamera_renderModel": "Render player model in first-person perspective",
-    "config.tooltip.xtracr_realcamera_adjustStep": "Length of the adjustment per step",
+    "config.tooltip.xtracr_realcamera_adjustStep": "Length or 1/4 of the angle of the adjustment per step",
     "config.tooltip.xtracr_realcamera_scale": "Control the size of the config values, 16 = 1 block",
 
     "config.tooltip.xtracr_realcamera_vanillaModelPart": "Model part to bind camera to",
@@ -85,7 +87,7 @@
 
     "config.tooltip.xtracr_realcamera_classicAdjustMode": "Determine which to adjust when pressing the adjustment key",
 
-    "config.tooltip.xtracr_realcamera_useModModel": "Binding Mode config is automatically used if failed to find target model part",
+    "config.tooltip.xtracr_realcamera_useModModel": "Binding Mode config is automatically used if failed to find target model part\nStatus: %s \n(To refresh the status, you need to reload the config screen)",
     "config.tooltip.xtracr_realcamera_modModelPart": "Name of the model part to bind camera to",
     "config.tooltip.xtracr_realcamera_doABarrelRoll": "Adapt to its camera rolling",
     "config.tooltip.xtracr_realcamera_pehkui": "Adapt to Pehkui's scaling of model size"

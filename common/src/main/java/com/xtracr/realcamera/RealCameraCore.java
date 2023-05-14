@@ -32,6 +32,9 @@ public class RealCameraCore {
 
     private static float cameraRoll = 0.0F;
 
+    public static String status = "Successful";
+    public static boolean isRenderingWorld = false;
+
     public static float getRoll() {
         return cameraRoll;
     }
@@ -172,15 +175,17 @@ public class RealCameraCore {
     }
 
     private static void virtualRender(AbstractClientPlayerEntity player, PlayerEntityRenderer playerRenderer, 
-        float tickDelta, MatrixStack matrixStack) {
+            float tickDelta, MatrixStack matrixStack) {
 
         if (config.isUsingModModel()) {
+            status = "Successful";
             try {
                 matrixStack.push();
                 if (!VirtualRenderer.virtualRender(tickDelta, matrixStack)) {
                     return;
                 }
             } catch (Exception exception) {
+                status = exception.getMessage();
                 matrixStack.pop();
             }
         }

@@ -33,7 +33,8 @@ public class ReflectUtils {
         }
     }
 
-    public static Optional<Class<?>> getClass(final String className, final String... classNames) { Optional<Class<?>> ret = getClass(className);
+    public static Optional<Class<?>> getClass(final String className, final String... classNames) {
+        Optional<Class<?>> ret = getClass(className);
         for (final String name : classNames) {
             if (ret.isPresent())
                 return ret;

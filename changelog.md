@@ -7,7 +7,9 @@
 ### Test Versions ###
 
 * 0.5.0-beta:
-*
+* Redesigned config screen
+* Removed commands because it's no longer useful
+* Allowed disabling rendering partial model
 
 * 0.4.0-alpha:
 * Fixed an issue where the camera would not follow the model action when the player started/ended sneaking
@@ -70,7 +72,9 @@
 ### 测试版 ###
 
 * 0.5.0-beta:
-*
+* 重新设计了配置屏幕
+* 删除了命令，因为它不再有用
+* 允许禁用渲染部分模型
 
 * 0.4.0-alpha:
 * 修复了玩家开始/结束潜行时摄像头未跟上模型动作的问题

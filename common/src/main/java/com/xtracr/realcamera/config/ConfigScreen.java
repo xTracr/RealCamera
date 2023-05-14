@@ -1,6 +1,7 @@
 package com.xtracr.realcamera.config;
 
 import com.xtracr.realcamera.RealCamera;
+import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.api.VirtualRenderer;
 import com.xtracr.realcamera.compat.DoABarrelRollCompat;
 import com.xtracr.realcamera.compat.PehkuiCompat;
@@ -138,7 +139,7 @@ public class ConfigScreen {
             .build());
         binding.addEntry(bindingCameraOffset.build());
         SubCategoryBuilder bindingCameraRotation = entryBuilder.startSubCategory(new TranslatableText(CATEGORY+"cameraRotation"))
-            .setTooltip(new TranslatableText(TOOLTIP+"cameraRotation_1"), new TranslatableText(TOOLTIP+"cameraRotation_2"));
+            .setTooltip(new TranslatableText(TOOLTIP+"cameraRotation"), new TranslatableText(TOOLTIP+"cameraRotation_n"));
         bindingCameraRotation.add(entryBuilder.startFloatField(new TranslatableText(OPTION+"pitch"), config.binding.pitch)
             .setDefaultValue(0.0F)
             .setMin(-180.0F)
@@ -167,7 +168,7 @@ public class ConfigScreen {
         SubCategoryBuilder classicCameraOffset = entryBuilder.startSubCategory(new TranslatableText(CATEGORY+"cameraOffset"))
             .setTooltip(new TranslatableText(TOOLTIP+"classicOffset"), new TranslatableText(TOOLTIP+"referOffset"), new TranslatableText(TOOLTIP+"classicOffset_n"));
         classicCameraOffset.add(entryBuilder.startDoubleField(new TranslatableText(OPTION+"cameraOffset", "X"), config.classic.cameraX)
-            .setDefaultValue(3.25D)
+            .setDefaultValue(-60.0D)
             .setMin(ModConfig.MIN_DOUBLE)
             .setMax(ModConfig.MAX_DOUBLE)
             .setSaveConsumer(d -> config.classic.cameraX = d)
@@ -179,7 +180,7 @@ public class ConfigScreen {
             .setSaveConsumer(d -> config.classic.cameraY = d)
             .build());
         classicCameraOffset.add(entryBuilder.startDoubleField(new TranslatableText(OPTION+"cameraOffset", "Z"), config.classic.cameraZ)
-            .setDefaultValue(0.0D)
+            .setDefaultValue(-16.0D)
             .setMin(ModConfig.MIN_DOUBLE)
             .setMax(ModConfig.MAX_DOUBLE)
             .setSaveConsumer(d -> config.classic.cameraZ = d)
@@ -225,7 +226,7 @@ public class ConfigScreen {
             .build());
         classic.addEntry(classicCenterOffset.build());
         SubCategoryBuilder classicCameraRotation = entryBuilder.startSubCategory(new TranslatableText(CATEGORY+"cameraRotation"))
-            .setTooltip(new TranslatableText(TOOLTIP+"cameraRotation_1"), new TranslatableText(TOOLTIP+"cameraRotation_2"));
+            .setTooltip(new TranslatableText(TOOLTIP+"cameraRotation"), new TranslatableText(TOOLTIP+"cameraRotation_n"));
         classicCameraRotation.add(entryBuilder.startFloatField(new TranslatableText(OPTION+"pitch"), config.classic.pitch)
             .setDefaultValue(0.0F)
             .setMin(-180.0F)
@@ -233,7 +234,7 @@ public class ConfigScreen {
             .setSaveConsumer(f -> config.classic.pitch = f)
             .build());
         classicCameraRotation.add(entryBuilder.startFloatField(new TranslatableText(OPTION+"yaw"), config.classic.yaw)
-            .setDefaultValue(0.0F)
+            .setDefaultValue(18.0F)
             .setMin(-180.0F)
             .setMax(180.0F)
             .setSaveConsumer(f -> config.classic.yaw = f)
@@ -253,7 +254,8 @@ public class ConfigScreen {
             .build());
         compats.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(OPTION+"useModModel"), config.compats.useModModel)
             .setDefaultValue(false)
-            .setTooltip(new TranslatableText(TOOLTIP+"useModModel"))
+            .setTooltip(new TranslatableText(TOOLTIP+"useModModel", new LiteralText((config.compats.useModModel ? RealCameraCore.status : "Disabled")).styled(
+                s -> s.withColor((config.compats.useModModel ? (RealCameraCore.status == "Successful" ? Formatting.GREEN : Formatting.RED) : Formatting.YELLOW)))))
             .setSaveConsumer(b -> config.compats.useModModel = b)
             .build());
         compats.addEntry(entryBuilder.startSelector(new TranslatableText(OPTION+"modelModID"), VirtualRenderer.getModidList(), config.compats.modelModID)
@@ -281,6 +283,15 @@ public class ConfigScreen {
             .build());
         compats.addEntry(compatSwitches.build());
 
+        disable.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(OPTION+"renderModelPart"), config.disable.renderModelPart)
+            .setDefaultValue(false)
+            .setTooltip(new LiteralText("EXPERIMENTAL FEATURE").styled(s -> s.withColor(Formatting.YELLOW)))
+            .setSaveConsumer(b -> config.disable.renderModelPart = b)
+            .build());
+        disable.addEntry(entryBuilder.startStrList(new TranslatableText(OPTION+"disabledModelParts"), config.disable.disabledModelParts)
+            .setDefaultValue(ModConfig.Disable.defaultParts)
+            .setSaveConsumer(l -> config.disable.disabledModelParts = l)
+            .build());
         SubCategoryBuilder disableModWhen = entryBuilder.startSubCategory(new TranslatableText(CATEGORY+"disableModWhen"));
         disableModWhen.add(entryBuilder.startBooleanToggle(new TranslatableText(OPTION+"fallFlying"), config.disable.fallFlying)
             .setDefaultValue(true)

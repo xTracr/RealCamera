@@ -32,8 +32,8 @@
     "config.tooltip.xtracr_realcamera_referOffset": "以及参照点的偏移值, 用于限制摄像头位置以防止其进入方块内部",
     "config.tooltip.xtracr_realcamera_centerOffset": "旋转中心相对头部的偏移值",
     "config.tooltip.xtracr_realcamera_compatSwitches": "这些选项只会在安装了对应模组的情况下显示",
-    "config.tooltip.xtracr_realcamera_cameraRotation_1": "额外的摄像头旋转，以度数为单位",
-    "config.tooltip.xtracr_realcamera_cameraRotation_2": "俯仰、偏航和翻滚分别是以左方、上方和前方为轴的旋转",
+    "config.tooltip.xtracr_realcamera_cameraRotation": "额外的摄像头旋转，以度数为单位",
+    "config.tooltip.xtracr_realcamera_cameraRotation_n": "注: 俯仰、偏航和翻滚分别是以左方、上方和前方为轴的旋转",
 
     "config.option.xtracr_realcamera_enabled": "开启功能",
     "config.option.xtracr_realcamera_classic": "经典模式",
@@ -64,6 +64,8 @@
     "config.option.xtracr_realcamera_doABarrelRoll": "Do A Barrel Roll",
     "config.option.xtracr_realcamera_pehkui": "Pehkui",
 
+    "config.option.xtracr_realcamera_renderModelPart": "禁止渲染部分模型",
+    "config.option.xtracr_realcamera_disabledModelParts": "禁用渲染的模型部位",
     "config.option.xtracr_realcamera_fallFlying": "鞘翅飞行",
     "config.option.xtracr_realcamera_swiming": "游泳",
     "config.option.xtracr_realcamera_crawling": "爬行",
@@ -73,9 +75,9 @@
 
     "config.tooltip.xtracr_realcamera_classic": "经典模式只对摄像头的位置和旋转做简单的修改",
     "config.tooltip.xtracr_realcamera_clipToSpace": "限制摄像头位置以防止其进入方块内部",
-    "config.tooltip.xtracr_realcamera_dynamicCrosshair": "在开启状态下，十字准心会随着玩家的视线移动，确保命中结果不受影响",
+    "config.tooltip.xtracr_realcamera_dynamicCrosshair": "在开启状态下，十字准心会随着玩家的视线移动，确保命中结果不受影响\n在安装了Jade、WTHIT或类似模组时建议启用",
     "config.tooltip.xtracr_realcamera_renderModel": "在第一人称视角下渲染玩家模型",
-    "config.tooltip.xtracr_realcamera_adjustStep": "每一步调整位置的长度",
+    "config.tooltip.xtracr_realcamera_adjustStep": "每步调整的角度的1/4或长度",
     "config.tooltip.xtracr_realcamera_scale": "控制配置数值的大小, 16 = 1 格",
 
     "config.tooltip.xtracr_realcamera_vanillaModelPart": "摄像头绑定的模型部位",
@@ -83,9 +85,9 @@
     "config.tooltip.xtracr_realcamera_bindRotation": "让摄像头跟随模型部位的旋转",
     "config.tooltip.xtracr_realcamera_lockRolling": "锁定摄像头的翻滚",
 
-    "config.tooltip.xtracr_realcamera_classicAdjustMode": "决定当前按下调整键时是调整哪一个",
+    "config.tooltip.xtracr_realcamera_classicAdjustMode": "决定当前按下调整键时调整哪一个",
 
-    "config.tooltip.xtracr_realcamera_useModModel": "如果无法找到目标模型部位, 会自动使用绑定模式设置",
+    "config.tooltip.xtracr_realcamera_useModModel": "如果无法找到目标模型部位, 会自动使用绑定模式设置\n状态: %s \n(你需要重新加载配置屏幕来刷新状态)",
     "config.tooltip.xtracr_realcamera_modModelPart": "摄像头绑定的模型部位的名称",
     "config.tooltip.xtracr_realcamera_doABarrelRoll": "适配它的摄像头翻滚",
     "config.tooltip.xtracr_realcamera_pehkui": "适配Pehkui对模型尺寸的缩放"

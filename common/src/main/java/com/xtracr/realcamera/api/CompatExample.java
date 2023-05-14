@@ -5,7 +5,6 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiPredicate;
-import java.util.function.Supplier;
 
 import com.xtracr.realcamera.mixins.PlayerEntityRendererAccessor;
 
@@ -40,7 +39,6 @@ public class CompatExample {
      */
     public static final String modid = "minecraft";
 
-    public static String feedback;
     public static final Map<String, String> nameMap = new HashMap<>();
 
     /**
@@ -101,7 +99,7 @@ public class CompatExample {
      * 
      * <p>This method is called in {@link com.xtracr.realcamera.RealCamera#setup()}.</p>
      * 
-     * @see VirtualRenderer#register(String, BiPredicate, Supplier)
+     * @see VirtualRenderer#register(String, BiPredicate)
      * 
      */
     public static void register() {
@@ -110,14 +108,10 @@ public class CompatExample {
             final Class<?> virtualRendererClass = Class.forName("com.xtracr.realcamera.api.VirtualRenderer");
             getModelPartNameMethod = virtualRendererClass.getDeclaredMethod("getModelPartName");
 
-            final Method registerMethod = virtualRendererClass.getDeclaredMethod("register", String.class, BiPredicate.class, Supplier.class);
+            final Method registerMethod = virtualRendererClass.getDeclaredMethod("register", String.class, BiPredicate.class);
             final BiPredicate<Float, MatrixStack> function = CompatExample::virtualRender;
-            final Supplier<String> supplier = () -> feedback; //optional
-            registerMethod.invoke(null, modid, function, supplier);
+            registerMethod.invoke(null, modid, function);
 
-            // without feedback
-            //final Method registerMethod = virtualRendererClass.getDeclaredMethod("register", String.class, BiPredicate.class);
-            //registerMethod.invoke(null, modid, function);
         } catch (Exception exception) {
             // handle exception
         }
@@ -142,8 +136,6 @@ public class CompatExample {
      * 
      */
     public static boolean virtualRender(float tickDelta, MatrixStack matrixStack) {
-        matrixStack.push();
-        feedback = "";
         MinecraftClient client = MinecraftClient.getInstance();
         ClientPlayerEntity player = client.player;
         PlayerEntityRenderer renderer = (PlayerEntityRenderer) client.getEntityRenderDispatcher().getRenderer(player);
@@ -204,40 +196,37 @@ public class CompatExample {
         }
         playerModel.animateModel(player, o, n, tickDelta);
         playerModel.setAngles(player, o, n, l, k, m);
-        try {
-            ModelPart modelPart = getModelPart(playerModel);
-            // AnimalModel.render
-            /*
-            if (playerModel.child) {
-                float f;
-                if (...) {
-                    if (playerModel.headScaled) {
-                        f = 1.5f / playerModel.invertedChildHeadScale;
-                        matrixStack.scale(f, f, f);
-                    }
-                    matrixStack.translate(0.0f, playerModel.childHeadYOffset / 16.0f, playerModel.childHeadZOffset / 16.0f);
-                } else {
-                    f = 1.0f / playerModel.invertedChildBodyScale;
+        ModelPart modelPart = getModelPart(playerModel);
+        // AnimalModel.render
+        /*
+        if (playerModel.child) {
+            float f;
+            if (...) {
+                if (playerModel.headScaled) {
+                    f = 1.5f / playerModel.invertedChildHeadScale;
                     matrixStack.scale(f, f, f);
-                    matrixStack.translate(0.0f, playerModel.childBodyYOffset / 16.0f, 0.0f);
                 }
+                matrixStack.translate(0.0f, playerModel.childHeadYOffset / 16.0f, playerModel.childHeadZOffset / 16.0f);
+            } else {
+                f = 1.0f / playerModel.invertedChildBodyScale;
+                matrixStack.scale(f, f, f);
+                matrixStack.translate(0.0f, playerModel.childBodyYOffset / 16.0f, 0.0f);
             }
-             */
-            // ModelPart.render
-            modelPart.rotate(matrixStack);
-            return false;
-        } catch (Exception exception) {
-            if (exception instanceof NullPointerException) feedback += "Invaild model part name: ";
-            feedback += exception.getClass().getSimpleName();
-            matrixStack.pop();
-            return true;
         }
+         */
+        // ModelPart.render
+        modelPart.rotate(matrixStack);
+        return false;
     }
 
-    private static ModelPart getModelPart(PlayerEntityModel<AbstractClientPlayerEntity> playerModel) throws Exception {
-        final String fieldName = nameMap.get((String)getModelPartNameMethod.invoke(null));
-        final Field modelPartField = playerModel.getClass().getField(fieldName);
-        return (ModelPart)modelPartField.get(playerModel);
+    private static ModelPart getModelPart(PlayerEntityModel<AbstractClientPlayerEntity> playerModel) {
+        try {
+            final String fieldName = nameMap.get((String)getModelPartNameMethod.invoke(null));
+            final Field modelPartField = playerModel.getClass().getField(fieldName);
+            return (ModelPart)modelPartField.get(playerModel);
+        } catch (Exception exception) {
+            throw new RuntimeException(exception);
+        }
     }
 
 }

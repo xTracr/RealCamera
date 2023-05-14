@@ -3,7 +3,6 @@ package com.xtracr.realcamera.config;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -13,8 +12,6 @@ import net.minecraft.client.MinecraftClient;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonSyntaxException;
 
 public class ConfigFile {
 
@@ -36,8 +33,8 @@ public class ConfigFile {
         try (BufferedReader reader = Files.newBufferedReader(PATH)) {
             modConfig.set(GSON.fromJson(reader, ModConfig.class));
             modConfig.clamp();
-            reader.close();
-        } catch (IOException | JsonSyntaxException | JsonIOException exception) {
+        } catch (Exception exception) {
+            RealCamera.LOGGER.warn("Failed to load realcamera.json", exception);
             save();
         }
     }
@@ -45,9 +42,8 @@ public class ConfigFile {
     public static void save() {
         try (BufferedWriter writer = Files.newBufferedWriter(PATH)) {
             GSON.toJson(modConfig, writer);
-            writer.close();
-        } catch (IOException | JsonIOException exception) {
-            RealCamera.LOGGER.warn("Failed to save config", exception);
+        } catch (Exception exception) {
+            RealCamera.LOGGER.warn("Failed to save realcamera.json", exception);
             reset();
         }
     }
@@ -56,9 +52,8 @@ public class ConfigFile {
         try (BufferedWriter writer = Files.newBufferedWriter(PATH)) {
             modConfig.set(new ModConfig());
             GSON.toJson(modConfig, writer);
-            writer.close();
-        } catch (IOException | JsonIOException exception) {
-            RealCamera.LOGGER.warn("Failed to reset config");
+        } catch (Exception exception) {
+            RealCamera.LOGGER.warn("Failed to reset realcamera.json", exception);
         }
     }
 
