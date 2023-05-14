@@ -4,6 +4,7 @@ import org.joml.Matrix3f;
 import org.joml.Vector4f;
 
 import com.xtracr.realcamera.api.VirtualRenderer;
+import com.xtracr.realcamera.compat.MC1193Compat;
 import com.xtracr.realcamera.compat.PehkuiCompat;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
@@ -32,6 +33,9 @@ public class RealCameraCore {
     private static final ModConfig config = ConfigFile.modConfig;
 
     private static float cameraRoll = 0.0F;
+
+    public static String status = "Successful";
+    public static boolean isRenderingWorld = false;
 
     public static float getRoll() {
         return cameraRoll;
@@ -76,11 +80,6 @@ public class RealCameraCore {
             refer = PehkuiCompat.scaleVec3d(refer, player, tickDelta);
             offset = PehkuiCompat.scaleVec3d(offset, player, tickDelta);
             center = PehkuiCompat.scaleVec3d(center, player, tickDelta);
-        }
-        if (player.isInSwimmingPose()) {
-            refer = refer.rotateZ((float)Math.PI/2);
-            offset = offset.rotateZ((float)Math.PI/2);
-            center = center.rotateZ((float)Math.PI/2);
         }
 
         cameraAccessor.invokeSetRotation(centerYaw, 0.0F);
@@ -171,15 +170,17 @@ public class RealCameraCore {
     }
 
     private static void virtualRender(AbstractClientPlayerEntity player, PlayerEntityRenderer playerRenderer, 
-        float tickDelta, MatrixStack matrixStack) {
+            float tickDelta, MatrixStack matrixStack) {
 
         if (config.isUsingModModel()) {
+            status = "Successful";
             try {
                 matrixStack.push();
                 if (!VirtualRenderer.virtualRender(tickDelta, matrixStack)) {
                     return;
                 }
-            } catch (Exception exception) {
+            } catch (Throwable throwable) {
+                status = throwable.getMessage();
                 matrixStack.pop();
             }
         }
@@ -230,8 +231,13 @@ public class RealCameraCore {
         n = 0.0f;
         float o = 0.0f;
         if (!player.hasVehicle() && player.isAlive()) {
-            n = player.limbAnimator.getSpeed(tickDelta);
-            o = player.limbAnimator.getPos(tickDelta);
+            if (MC1193Compat.is1193) {
+                n = MC1193Compat.getLimbAnimatorSpeed(tickDelta, player);
+                o = MC1193Compat.getLimbAnimatorPos(tickDelta, player);
+            } else {
+                n = player.limbAnimator.getSpeed(tickDelta);
+                o = player.limbAnimator.getPos(tickDelta);
+            }
             if (player.isBaby()) {
                 o *= 3.0f;
             }

@@ -1,11 +1,8 @@
 package com.xtracr.realcamera;
 
-import com.xtracr.realcamera.command.ClientCommandFabric;
-
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -20,7 +17,7 @@ public class RealCameraFabric implements ClientModInitializer {
 
         ClientTickEvents.END_CLIENT_TICK.register(KeyBindings::handle);
         WorldRenderEvents.START.register(EventHandler::onWorldRenderStart);
-        ClientCommandRegistrationCallback.EVENT.register(ClientCommandFabric.INSTANCE::register);
+        WorldRenderEvents.END.register(context -> RealCameraCore.isRenderingWorld = false);
 
         KeyBindingHelper.registerKeyBinding(KeyBindings.TOGGLE_PERSPECTIVE);
         KeyBindingHelper.registerKeyBinding(KeyBindings.TOGGLE_ADJUST_MODE);

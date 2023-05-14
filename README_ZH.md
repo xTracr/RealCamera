@@ -19,7 +19,7 @@
 ### 支持的游戏版本 ###
 
 * Fabric:
-  * `realcamera-1.19.4-fabric`: 1.19.4
+  * `realcamera-1.19.4-fabric`: 1.19.4, 1.19.3
   * `realcamera-1.18.2-fabric`: 1.18.2, 1.19.2[^1]
 * Forge:
   * `realcamera-1.19.4-forge`: 1.19.4

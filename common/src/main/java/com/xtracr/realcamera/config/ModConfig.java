@@ -1,5 +1,8 @@
 package com.xtracr.realcamera.config;
 
+import java.util.Arrays;
+import java.util.List;
+
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.util.math.MathHelper;
 
@@ -65,9 +68,9 @@ public class ModConfig {
     public class Classic {
 
         public AdjustMode adjustMode = AdjustMode.CAMERA;
-        public double cameraX = 3.25D;
+        public double cameraX = -60.0D;
         public double cameraY = 2.0D;
-        public double cameraZ = 0.0D;
+        public double cameraZ = -16.0D;
         public double referX = 3.25D;
         public double referY = 2.0D;
         public double referZ = 0.0D;
@@ -75,7 +78,7 @@ public class ModConfig {
         public double centerY = -3.4D;
         public double centerZ = 0.0D;
         public float pitch = 0.0F;
-        public float yaw = 0.0F;
+        public float yaw = 18.0F;
         public float roll = 0.0F;
 
         private void clamp() {
@@ -120,6 +123,10 @@ public class ModConfig {
 
     public class Disable {
 
+        public static final List<String> defaultParts = Arrays.asList("head", "hat", "helmet");
+
+        public boolean renderModelPart = false;
+        public List<String> disabledModelParts = defaultParts;
         public boolean fallFlying = true;
         public boolean swiming = false;
         public boolean crawling = false;
@@ -141,6 +148,7 @@ public class ModConfig {
         this.general.clamp();
         this.binding.clamp();
         this.classic.clamp();
+        if (this.disable.disabledModelParts == null) this.disable.disabledModelParts = Disable.defaultParts;
     }
 
     public boolean isEnabled() {
@@ -170,17 +178,6 @@ public class ModConfig {
     }
     public void setClassic(boolean value) {
         this.general.classic = value;
-    }
-
-    public boolean isDisabledWhen(ClientPlayerEntity player) {
-        return (player.isFallFlying() && this.disable.fallFlying)
-            || (player.isSwimming() && this.disable.swiming)
-            || (player.isCrawling() && this.disable.crawling)
-            || (player.isSneaking() && this.disable.sneaking)
-            || (player.isSleeping() && this.disable.sleeping);
-    }
-    public boolean onlyDisableRenderingWhen(ClientPlayerEntity player) {
-        return player.isUsingSpyglass() && this.disable.scoping;
     }
 
     // binding
@@ -348,6 +345,21 @@ public class ModConfig {
     }
     public boolean compatPehkui() {
         return this.compats.pehkui;
+    }
+
+    // disable
+    public boolean shouldDisableRender(String modelPartName) {
+        return this.disable.renderModelPart && this.disable.disabledModelParts.contains(modelPartName);
+    }
+    public boolean isDisabledWhen(ClientPlayerEntity player) {
+        return (player.isFallFlying() && this.disable.fallFlying)
+            || (player.isSwimming() && this.disable.swiming)
+            || (player.isCrawling() && this.disable.crawling)
+            || (player.isSneaking() && this.disable.sneaking)
+            || (player.isSleeping() && this.disable.sleeping);
+    }
+    public boolean onlyDisableRenderingWhen(ClientPlayerEntity player) {
+        return player.isUsingSpyglass() && this.disable.scoping;
     }
 
 }

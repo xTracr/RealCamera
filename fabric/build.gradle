@@ -25,12 +25,12 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
 
-	// Cloth Config
-	modRuntimeOnly "me.shedaniel.cloth:cloth-config-fabric:${rootProject.cloth_config_version}"
-	// Modmenu
-	modImplementation("com.terraformersmc:modmenu:${rootProject.modmenu_version}") {
-	    exclude(group: "net.fabricmc.fabric-api")
-	}
+    // Cloth Config
+    modRuntimeOnly "me.shedaniel.cloth:cloth-config-fabric:${rootProject.cloth_config_version}"
+    // Modmenu
+    modImplementation("com.terraformersmc:modmenu:${rootProject.modmenu_version}") {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }

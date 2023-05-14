@@ -9,6 +9,7 @@ import net.minecraft.client.MinecraftClient;
 public class EventHandler {
 
     public static void onWorldRenderStart(WorldRenderContext context) {
+        RealCameraCore.isRenderingWorld = true;
         if (ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
             CrosshairUtils.update(MinecraftClient.getInstance(), context.camera(),
                     context.matrixStack().peek().getPositionMatrix(), context.projectionMatrix());

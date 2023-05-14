@@ -23,7 +23,7 @@ public class MathUtils {
 
     public static Vec3d getIntersectionPoint(Vec3d planePoint, Vec3d planeNormal, Vec3d linePoint, Vec3d lineNormal) {
         double distance = planeNormal.dotProduct(planePoint.subtract(linePoint)) / planeNormal.dotProduct(lineNormal);
-		return linePoint.add(lineNormal.multiply(distance));
+        return linePoint.add(lineNormal.multiply(distance));
     }
 
     public static Vec3d projectToVec2d(Vec3d vec3d, Matrix4f... projectionMatrices) {
