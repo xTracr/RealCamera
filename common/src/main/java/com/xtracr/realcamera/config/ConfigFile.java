@@ -34,7 +34,7 @@ public class ConfigFile {
             modConfig.set(GSON.fromJson(reader, ModConfig.class));
             modConfig.clamp();
         } catch (Exception exception) {
-            RealCamera.LOGGER.warn("Failed to load realcamera.json", exception);
+            RealCamera.LOGGER.warn("Failed to load realcamera.json");
             save();
         }
     }

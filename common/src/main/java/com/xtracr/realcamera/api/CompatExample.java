@@ -39,7 +39,7 @@ public class CompatExample {
      */
     public static final String modid = "minecraft";
 
-    public static final Map<String, String> nameMap = new HashMap<>();
+    private static final Map<String, String> nameMap = new HashMap<>();
 
     /**
      * 
