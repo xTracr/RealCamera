@@ -4,11 +4,11 @@ import net.minecraft.util.math.Matrix3f;
 import net.minecraft.util.math.Vec3f;
 
 public class Matrix3fc {
-    
+
     public float m00, m10, m20;
     public float m01, m11, m21;
     public float m02, m12, m22;
-    
+
     public Matrix3fc() {
     }
 

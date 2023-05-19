@@ -20,7 +20,10 @@ public abstract class MixinArmorFeatureRenderer {
     @Inject(method = "renderArmor", at = @At("HEAD"), cancellable = true)
     private void onRenderArmorHEAD(MatrixStack matrices, VertexConsumerProvider vertexConsumers, LivingEntity entity,
             EquipmentSlot armorSlot, int light, BipedEntityModel<? extends LivingEntity> model, CallbackInfo cInfo) {
-        if (VirtualRenderer.shouldDisableRender("helmet") && armorSlot == EquipmentSlot.HEAD) {
+        if ((VirtualRenderer.shouldDisableRender("helmet") && armorSlot == EquipmentSlot.HEAD) || 
+                (VirtualRenderer.shouldDisableRender("chestplate") && armorSlot == EquipmentSlot.CHEST) || 
+                (VirtualRenderer.shouldDisableRender("leggings") && armorSlot == EquipmentSlot.LEGS) || 
+                (VirtualRenderer.shouldDisableRender("boots") && armorSlot == EquipmentSlot.FEET)) {
             cInfo.cancel();
         }
     }

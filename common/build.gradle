@@ -7,7 +7,7 @@ loom {
 }
 
 dependencies {
-    
+
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
 
     // Cloth Config

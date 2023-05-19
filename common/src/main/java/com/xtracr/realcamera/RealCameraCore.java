@@ -79,11 +79,6 @@ public class RealCameraCore {
             offset = PehkuiCompat.scaleVec3d(offset, player, tickDelta);
             center = PehkuiCompat.scaleVec3d(center, player, tickDelta);
         }
-        if (player.isInSwimmingPose()) {
-            refer = refer.rotateZ((float)Math.PI/2);
-            offset = offset.rotateZ((float)Math.PI/2);
-            center = center.rotateZ((float)Math.PI/2);
-        }
 
         cameraAccessor.invokeSetRotation(centerYaw, 0.0F);
         cameraAccessor.invokeMoveBy(center.getX(), center.getY(), center.getZ());
@@ -184,8 +179,8 @@ public class RealCameraCore {
                 if (!VirtualRenderer.virtualRender(tickDelta, matrixStack)) {
                     return;
                 }
-            } catch (Exception exception) {
-                status = exception.getMessage();
+            } catch (Throwable throwable) {
+                status = throwable.getMessage();
                 matrixStack.pop();
             }
         }

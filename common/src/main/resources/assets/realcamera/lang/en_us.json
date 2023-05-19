@@ -90,5 +90,7 @@
     "config.tooltip.xtracr_realcamera_useModModel": "Binding Mode config is automatically used if failed to find target model part\nStatus: %s \n(To refresh the status, you need to reload the config screen)",
     "config.tooltip.xtracr_realcamera_modModelPart": "Name of the model part to bind camera to",
     "config.tooltip.xtracr_realcamera_doABarrelRoll": "Adapt to its camera rolling",
-    "config.tooltip.xtracr_realcamera_pehkui": "Adapt to Pehkui's scaling of model size"
+    "config.tooltip.xtracr_realcamera_pehkui": "Adapt to Pehkui's scaling of model size",
+
+    "config.tooltip.xtracr_realcamera_disabledModelParts": "Possible options(There may be other options not listed here): %s"
 }

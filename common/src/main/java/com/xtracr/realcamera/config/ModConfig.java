@@ -1,15 +1,17 @@
 package com.xtracr.realcamera.config;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.util.math.MathHelper;
 
 public class ModConfig {
 
-    public static final double MIN_DOUBLE = -64.0D;
-    public static final double MAX_DOUBLE = 64.0D;
+    protected static final double MIN_DOUBLE = -64.0D;
+    protected static final double MAX_DOUBLE = 64.0D;
 
     public General general = new General();
     public Binding binding = new Binding();
@@ -98,9 +100,7 @@ public class ModConfig {
         }
 
         public enum AdjustMode {
-            CAMERA,
-            CENTER,
-            ROTATION;
+            CAMERA, CENTER, ROTATION;
 
             private static final AdjustMode[] VALUES = values();
 
@@ -123,7 +123,8 @@ public class ModConfig {
 
     public class Disable {
 
-        public static final List<String> defaultParts = Arrays.asList("head", "hat", "helmet");
+        protected static final List<String> defaultParts = Arrays.asList("head", "hat", "helmet");
+        public static final Set<String> optionalParts = new HashSet<>(Set.of("head", "hat", "helmet"));
 
         public boolean renderModelPart = false;
         public List<String> disabledModelParts = defaultParts;

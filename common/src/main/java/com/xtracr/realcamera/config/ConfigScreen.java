@@ -19,9 +19,9 @@ import net.minecraft.util.Formatting;
 
 public class ConfigScreen {
 
-    public static final String CATEGORY = "config.category.xtracr_"+RealCamera.MODID+"_";
-    public static final String OPTION = "config.option.xtracr_"+RealCamera.MODID+"_";
-    public static final String TOOLTIP = "config.tooltip.xtracr_"+RealCamera.MODID+"_";
+    private static final String CATEGORY = "config.category.xtracr_"+RealCamera.MODID+"_";
+    private static final String OPTION = "config.option.xtracr_"+RealCamera.MODID+"_";
+    private static final String TOOLTIP = "config.tooltip.xtracr_"+RealCamera.MODID+"_";
 
     public static Screen create(Screen parent) {
 
@@ -285,11 +285,11 @@ public class ConfigScreen {
 
         disable.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(OPTION+"renderModelPart"), config.disable.renderModelPart)
             .setDefaultValue(false)
-            .setTooltip(new LiteralText("EXPERIMENTAL FEATURE").styled(s -> s.withColor(Formatting.YELLOW)))
             .setSaveConsumer(b -> config.disable.renderModelPart = b)
             .build());
         disable.addEntry(entryBuilder.startStrList(new TranslatableText(OPTION+"disabledModelParts"), config.disable.disabledModelParts)
             .setDefaultValue(ModConfig.Disable.defaultParts)
+            .setTooltip(new TranslatableText(TOOLTIP+"disabledModelParts", ModConfig.Disable.optionalParts))
             .setSaveConsumer(l -> config.disable.disabledModelParts = l)
             .build());
         SubCategoryBuilder disableModWhen = entryBuilder.startSubCategory(new TranslatableText(CATEGORY+"disableModWhen"));
