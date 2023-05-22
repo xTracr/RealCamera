@@ -40,6 +40,12 @@ public class VirtualRenderer {
         return config.getModModelPartName();
     }
 
+    /**
+     * 
+     * @see com.xtracr.realcamera.mixins.MixinPlayerEntityRenderer#onSetModelPoseRETURN 
+     *      MixinPlayerEntityRenderer.onSetModelPoseRETURN
+     * 
+     */
     public static boolean shouldDisableRender(String modelPartName) {
         ModConfig.Disable.optionalParts.add(modelPartName);
         return RealCameraCore.isRenderingWorld && config.shouldDisableRender(modelPartName) && RealCameraCore.isActive();

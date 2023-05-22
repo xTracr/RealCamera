@@ -124,6 +124,9 @@ public class CompatExample {
      * in the code that renders the player model, to ensure that the result of {@code matrixStack} 
      * after processing is identical to the actual rendering.</p>
      * 
+     * <p>When you need to handle a {@code Throwable} that makes it impossible for the method to continue running, 
+     * simply wrap it in a {@link RuntimeException} and throw it, just like in {@link #getModelPart} here.</p>
+     * 
      * @param tickDelta   or particalTick(s) (official mapping)
      * @param matrixStack or poseStack (official mapping)
      * @return {@code boolean} turn to vanilla rendering if true

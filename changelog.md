@@ -10,6 +10,8 @@
 * Redesigned config screen
 * Removed commands because it's no longer useful
 * Allowed disabling rendering partial model
+  * 0.5.1-beta:
+  * Divided `Bind Rotation` option into three options
 
 * 0.4.0-alpha:
 * Fixed an issue where the camera would not follow the model action when the player started/ended sneaking
@@ -53,7 +55,7 @@
   * Allowed to disable in specfic conditions
   * 0.3.6-alpha:
   * Optimized code logic
-  * Updated to 1.19.4
+  * Upgraded to 1.19.4
   * Supported Fabric
 
 * 0.2.0-alpha:
@@ -75,6 +77,8 @@
 * 重新设计了配置屏幕
 * 删除了命令，因为它不再有用
 * 允许禁用渲染部分模型
+  * 0.5.1-beta:
+  * 把`绑定旋转`选项分为了三个选项
 
 * 0.4.0-alpha:
 * 修复了玩家开始/结束潜行时摄像头未跟上模型动作的问题

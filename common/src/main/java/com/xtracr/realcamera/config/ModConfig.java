@@ -40,14 +40,15 @@ public class ModConfig {
 
         public VanillaModelPart vanillaModelPart = VanillaModelPart.head;
         public boolean adjustOffset = true;
-        public boolean bindRotation = true;
-        public boolean lockRolling = false;
         public double cameraX = 3.25D;
         public double cameraY = 2.0D;
         public double cameraZ = 0.0D;
         public double referX = 3.25D;
         public double referY = 2.0D;
         public double referZ = 0.0D;
+        public boolean bindPitching = true;
+        public boolean bindYawing = true;
+        public boolean bindRolling = true;
         public float pitch = 0.0F;
         public float yaw = 0.0F;
         public float roll = 0.0F;
@@ -188,12 +189,6 @@ public class ModConfig {
     public boolean isAdjustingOffset() {
         return this.binding.adjustOffset;
     }
-    public boolean isRotationBound() {
-        return this.binding.bindRotation;
-    }
-    public boolean isRollingLocked() {
-        return this.binding.lockRolling;
-    }
     public double getBindingX() {
         return this.binding.cameraX;
     }
@@ -211,6 +206,15 @@ public class ModConfig {
     }
     public double getBindingRZ() {
         return this.binding.referZ;
+    }
+    public boolean isPitchingBound() {
+        return this.binding.bindPitching;
+    }
+    public boolean isYawingBound() {
+        return this.binding.bindYawing;
+    }
+    public boolean isRollingBound() {
+        return this.binding.bindRolling;
     }
     public float getBindingPitch() {
         return this.binding.pitch;
