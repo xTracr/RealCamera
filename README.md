@@ -32,7 +32,7 @@ Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases),
 #### (latest versions recommended) ####
 
 * Fabric:
-  * [Fabric Mod Loader](https://fabricmc.net/use/installer/)
+  * [Fabric Loader](https://fabricmc.net/use/installer/)
   * [Fabric API](https://modrinth.com/mod/fabric-api)
 * Forge:
   * [Forge Mod Loader](https://files.minecraftforge.net/)
@@ -41,7 +41,8 @@ Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases),
 
 ## FAQ ##
 
-* WIP
+* 1.19.2 Forge?...
+* For each major version, we will only maintain one minor version. If in the future the majority of players are using 1.19.2, we will discontinue maintenance for 1.19.4 and instead provide support for 1.19.2.
 
 ### Compatibility ###
 

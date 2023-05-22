@@ -15,6 +15,7 @@ import com.google.gson.GsonBuilder;
 
 public class ConfigFile {
 
+    private static final String FILE_NAME = RealCamera.MODID + ".json";
     private static final Path PATH;
     private static final Gson GSON = new GsonBuilder()
         .setPrettyPrinting()
@@ -26,7 +27,7 @@ public class ConfigFile {
         @SuppressWarnings("resource")
         final File configDir = new File(MinecraftClient.getInstance().runDirectory, "config");
         if (!configDir.exists()) configDir.mkdirs();
-        PATH = configDir.toPath().resolve(RealCamera.MODID+".json");
+        PATH = configDir.toPath().resolve(FILE_NAME);
     }
 
     public static void load() {
@@ -34,7 +35,7 @@ public class ConfigFile {
             modConfig.set(GSON.fromJson(reader, ModConfig.class));
             modConfig.clamp();
         } catch (Exception exception) {
-            RealCamera.LOGGER.warn("Failed to load realcamera.json");
+            RealCamera.LOGGER.warn("Failed to load " + FILE_NAME);
             save();
         }
     }
@@ -43,7 +44,7 @@ public class ConfigFile {
         try (BufferedWriter writer = Files.newBufferedWriter(PATH)) {
             GSON.toJson(modConfig, writer);
         } catch (Exception exception) {
-            RealCamera.LOGGER.warn("Failed to save realcamera.json", exception);
+            RealCamera.LOGGER.warn("Failed to save " + FILE_NAME, exception);
             reset();
         }
     }
@@ -53,7 +54,7 @@ public class ConfigFile {
             modConfig.set(new ModConfig());
             GSON.toJson(modConfig, writer);
         } catch (Exception exception) {
-            RealCamera.LOGGER.warn("Failed to reset realcamera.json", exception);
+            RealCamera.LOGGER.warn("Failed to reset " + FILE_NAME, exception);
         }
     }
 

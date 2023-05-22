@@ -89,16 +89,6 @@ public class ConfigScreen {
             .setTooltip(new TranslatableText(TOOLTIP+"adjustOffset"))
             .setSaveConsumer(b -> config.binding.adjustOffset = b)
             .build());
-        binding.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(OPTION+"bindRotation"), config.binding.bindRotation)
-            .setDefaultValue(true)
-            .setTooltip(new TranslatableText(TOOLTIP+"bindRotation"))
-            .setSaveConsumer(b -> config.binding.bindRotation = b)
-            .build());
-        binding.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(OPTION+"lockRolling"), config.binding.lockRolling)
-            .setDefaultValue(false)
-            .setTooltip(new TranslatableText(TOOLTIP+"lockRolling"))
-            .setSaveConsumer(b -> config.binding.lockRolling = b)
-            .build());
         SubCategoryBuilder bindingCameraOffset = entryBuilder.startSubCategory(new TranslatableText(CATEGORY+"cameraOffset"))
             .setTooltip(new TranslatableText(TOOLTIP+"bindingOffset"), new TranslatableText(TOOLTIP+"referOffset"), new TranslatableText(TOOLTIP+"bindingOffset_n"));
         bindingCameraOffset.add(entryBuilder.startDoubleField(new TranslatableText(OPTION+"cameraOffset", "X"), config.binding.cameraX)
@@ -140,6 +130,18 @@ public class ConfigScreen {
         binding.addEntry(bindingCameraOffset.build());
         SubCategoryBuilder bindingCameraRotation = entryBuilder.startSubCategory(new TranslatableText(CATEGORY+"cameraRotation"))
             .setTooltip(new TranslatableText(TOOLTIP+"cameraRotation"), new TranslatableText(TOOLTIP+"cameraRotation_n"));
+        bindingCameraRotation.add(entryBuilder.startBooleanToggle(new TranslatableText(OPTION+"bindPitching"), config.binding.bindPitching)
+            .setDefaultValue(true)
+            .setSaveConsumer(b -> config.binding.bindPitching = b)
+            .build());
+        bindingCameraRotation.add(entryBuilder.startBooleanToggle(new TranslatableText(OPTION+"bindYawing"), config.binding.bindYawing)
+            .setDefaultValue(true)
+            .setSaveConsumer(b -> config.binding.bindYawing = b)
+            .build());
+        bindingCameraRotation.add(entryBuilder.startBooleanToggle(new TranslatableText(OPTION+"bindRolling"), config.binding.bindRolling)
+            .setDefaultValue(true)
+            .setSaveConsumer(b -> config.binding.bindRolling = b)
+            .build());
         bindingCameraRotation.add(entryBuilder.startFloatField(new TranslatableText(OPTION+"pitch"), config.binding.pitch)
             .setDefaultValue(0.0F)
             .setMin(-180.0F)

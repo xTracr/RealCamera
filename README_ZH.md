@@ -32,7 +32,7 @@
 #### (建议使用最新版本) ####
 
 * Fabric:
-  * [Fabric Mod Loader](https://fabricmc.net/use/installer/)
+  * [Fabric Loader](https://fabricmc.net/use/installer/)
   * [Fabric API](https://modrinth.com/mod/fabric-api)
 * Forge:
   * [Forge Mod Loader](https://files.minecraftforge.net/)
@@ -41,7 +41,8 @@
 
 ## 常见问题 ##
 
-* 施工中
+* 1.19.2 Forge?...
+* 对于每个主要版本，我们只会对一个小型版本进行维护。如果未来玩家群体主要使用1.19.2，我们将停止对1.19.4版本的维护，并转而支持1.19.2。
 
 ### 兼容性 ###
 

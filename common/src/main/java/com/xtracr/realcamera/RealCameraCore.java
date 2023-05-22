@@ -135,19 +135,16 @@ public class RealCameraCore {
         ((CameraAccessor)camera).invokeMoveBy(-offset.getZ(), offset.getY(), -offset.getX());
         clipCameraToSpace(camera, referVec);
 
-        if (config.isRotationBound()) {
-            Matrix3fc normal = new Matrix3fc(matrixStack.peek().getNormalMatrix()).scale(1.0F, -1.0F, -1.0F);
-            normal.rotateLocal((float)Math.toRadians(config.getBindingYaw()), normal.m10, normal.m11, normal.m12);
-            normal.rotateLocal((float)Math.toRadians(config.getBindingPitch()), normal.m00, normal.m01, normal.m02);
-            normal.rotateLocal((float)Math.toRadians(config.getBindingRoll()), normal.m20, normal.m21, normal.m22);
-            Vec3d eulerAngle = MathUtils.getEulerAngleYXZ(normal).multiply(180.0D/Math.PI);
+        Matrix3fc normal = new Matrix3fc(matrixStack.peek().getNormalMatrix()).scale(1.0F, -1.0F, -1.0F);
+        normal.rotateLocal((float)Math.toRadians(config.getBindingYaw()), normal.m10, normal.m11, normal.m12);
+        normal.rotateLocal((float)Math.toRadians(config.getBindingPitch()), normal.m00, normal.m01, normal.m02);
+        normal.rotateLocal((float)Math.toRadians(config.getBindingRoll()), normal.m20, normal.m21, normal.m22);
+        Vec3d eulerAngle = MathUtils.getEulerAngleYXZ(normal).multiply(180.0D/Math.PI);
 
-            ((CameraAccessor)camera).invokeSetRotation((float)-eulerAngle.getY(), (float)eulerAngle.getX());
-            if (!config.isRollingLocked()) {
-                cameraRoll = (float)eulerAngle.getZ();
-            }
-        }
-
+        float pitch = config.isPitchingBound() ? (float)eulerAngle.getX() : camera.getPitch()+config.getBindingPitch();
+        float yaw = config.isYawingBound() ? (float)eulerAngle.getY() : -camera.getYaw()+config.getBindingYaw();
+        cameraRoll = config.isRollingBound() ? (float)eulerAngle.getZ() : config.getBindingRoll();
+        ((CameraAccessor)camera).invokeSetRotation(-yaw, pitch);
     }
 
     private static void clipCameraToSpace(Camera camera, Vec3d referVec) {

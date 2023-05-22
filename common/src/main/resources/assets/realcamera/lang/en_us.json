@@ -45,8 +45,9 @@
 
     "config.option.xtracr_realcamera_vanillaModelPart": "Vanilla Model part",
     "config.option.xtracr_realcamera_adjustOffset": "Adjust Camera Offset",
-    "config.option.xtracr_realcamera_bindRotation": "Bind Rotation",
-    "config.option.xtracr_realcamera_lockRolling": "Lock Rolling",
+    "config.option.xtracr_realcamera_bindPitching": "Bind Pitching",
+    "config.option.xtracr_realcamera_bindYawing": "Bind Yawing",
+    "config.option.xtracr_realcamera_bindRolling": "Bind Rolling",
     "config.option.xtracr_realcamera_cameraOffset": "Camera %s Offset",
     "config.option.xtracr_realcamera_referOffset": "Reference Point %s Offset",
     "config.option.xtracr_realcamera_pitch": "Pitch",
@@ -82,8 +83,6 @@
 
     "config.tooltip.xtracr_realcamera_vanillaModelPart": "Model part to bind camera to",
     "config.tooltip.xtracr_realcamera_adjustOffset": "When pressing the adjustment key, adjust the offset or rotation of camera",
-    "config.tooltip.xtracr_realcamera_bindRotation": "Let camera follow the model part's rotation",
-    "config.tooltip.xtracr_realcamera_lockRolling": "Lock camera rolling",
 
     "config.tooltip.xtracr_realcamera_classicAdjustMode": "Determine which to adjust when pressing the adjustment key",
 
