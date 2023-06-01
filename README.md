@@ -42,7 +42,7 @@ Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases),
 ## FAQ ##
 
 * 1.19.2 Forge?...
-* For each major version, we will only maintain one minor version. If in the future the majority of players are using 1.19.2, we will discontinue maintenance for 1.19.4 and instead provide support for 1.19.2.
+* For each major version, we will only maintain one minor version. If when 1.20 is released the majority of players are using 1.19.2, we will discontinue maintenance for 1.19.4 and instead provide support for 1.19.2.
 
 ### Compatibility ###
 

@@ -150,16 +150,16 @@ public class RealCameraCore {
     private static void clipCameraToSpace(Camera camera, Vec3d referVec) {
         if (!config.doClipToSpace()) return;
         Vec3d offset = camera.getPos().subtract(referVec);
-        final float depth = 0.075f;
+        final float depth = 0.065F;
         for (int i = 0; i < 8; ++i) {
             float f = depth * ((i & 1) * 2 - 1);
             float g = depth * ((i >> 1 & 1) * 2 - 1);
             float h = depth * ((i >> 2 & 1) * 2 - 1);
-            Vec3d start = referVec;
+            Vec3d start = referVec.add(f, g, h);
             Vec3d end = referVec.add(offset).add(f, g, h);
             HitResult hitResult = ((CameraAccessor)camera).getArea().raycast(new RaycastContext(start, end,
                 RaycastContext.ShapeType.VISUAL, RaycastContext.FluidHandling.NONE, camera.getFocusedEntity()));
-            double l = hitResult.getPos().distanceTo(referVec);
+            double l = hitResult.getPos().distanceTo(start);
             if (hitResult.getType() == HitResult.Type.MISS || l >= offset.length()) continue;
             offset = offset.multiply(l/offset.length());
         }
@@ -177,7 +177,7 @@ public class RealCameraCore {
                     return;
                 }
             } catch (Throwable throwable) {
-                status = throwable.getMessage();
+                status = throwable.getMessage() != null ? throwable.getMessage() : throwable.getClass().getName();
                 matrixStack.pop();
             }
         }
