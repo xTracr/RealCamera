@@ -33,7 +33,6 @@ public class ModConfig {
             adjustStep = MathHelper.clamp(adjustStep, 0.0D, MAX_DOUBLE);
             scale = MathHelper.clamp(scale, 0.0D, MAX_DOUBLE);
         }
-
     }
 
     public class Binding {
@@ -65,7 +64,6 @@ public class ModConfig {
             yaw = MathHelper.wrapDegrees(yaw);
             roll = MathHelper.wrapDegrees(roll);
         }
-
     }
 
     public class Classic {
@@ -109,7 +107,6 @@ public class ModConfig {
                 return VALUES[(this.ordinal() + 1) % VALUES.length];
             }
         }
-
     }
 
     public class Compats {
@@ -119,7 +116,7 @@ public class ModConfig {
         public String modModelPart = "head";
         public boolean doABarrelRoll = true;
         public boolean pehkui = true;
-
+        public boolean physicsMod = true;
     }
 
     public class Disable {
@@ -135,7 +132,6 @@ public class ModConfig {
         public boolean sneaking = false;
         public boolean sleeping = false;
         public boolean scoping = true;
-
     }
 
     public void set(ModConfig modConfig) {
@@ -350,6 +346,9 @@ public class ModConfig {
     }
     public boolean compatPehkui() {
         return this.compats.pehkui;
+    }
+    public boolean compatPhysicsMod() {
+        return this.compats.physicsMod;
     }
 
     // disable

@@ -64,6 +64,7 @@
     "config.option.xtracr_realcamera_modModelPart": "Mod Model Part",
     "config.option.xtracr_realcamera_doABarrelRoll": "Do A Barrel Roll",
     "config.option.xtracr_realcamera_pehkui": "Pehkui",
+    "config.option.xtracr_realcamera_physicsMod": "Physics Mod",
 
     "config.option.xtracr_realcamera_renderModelPart": "Disable Rendering Partial Model",
     "config.option.xtracr_realcamera_disabledModelParts": "Model Parts With Rendering Disabled",
@@ -88,8 +89,6 @@
 
     "config.tooltip.xtracr_realcamera_useModModel": "Binding Mode config is automatically used if failed to find target model part\nStatus: %s \n(To refresh the status, you need to reload the config screen)",
     "config.tooltip.xtracr_realcamera_modModelPart": "Name of the model part to bind camera to",
-    "config.tooltip.xtracr_realcamera_doABarrelRoll": "Adapt to its camera rolling",
-    "config.tooltip.xtracr_realcamera_pehkui": "Adapt to Pehkui's scaling of model size",
 
     "config.tooltip.xtracr_realcamera_disabledModelParts": "Possible options(There may be other options not listed here): %s"
 }

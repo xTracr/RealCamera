@@ -1,6 +1,5 @@
 package com.xtracr.realcamera.compat;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
@@ -25,13 +24,7 @@ public class DoABarrelRollCompat {
     }
 
     public static boolean modEnabled() {
-        return loaded && getModEnabled.map(mtd -> {
-            try {
-                return (boolean)mtd.invoke(modConfigInstance.get());
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException exception) {
-                return null;
-            }
-        }).orElse(false);
+        return loaded && (boolean)ReflectUtils.invokeMethod(getModEnabled, modConfigInstance.get()).orElse(false);
     }
 
 }

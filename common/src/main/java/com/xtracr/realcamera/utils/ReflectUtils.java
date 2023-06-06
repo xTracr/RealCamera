@@ -1,6 +1,7 @@
 package com.xtracr.realcamera.utils;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
@@ -111,4 +112,13 @@ public class ReflectUtils {
         });
     }
 
+    public static Optional<Object> invokeMethod(final Optional<Method> method, @Nullable Object object, Object... args) {
+        return method.map(mtd -> {
+            try {
+                return mtd.invoke(object, args);
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException exception) {
+                return null;
+            }
+        });
+    }
 }
