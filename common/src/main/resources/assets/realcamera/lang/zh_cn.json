@@ -64,6 +64,7 @@
     "config.option.xtracr_realcamera_modModelPart": "模组模型部位",
     "config.option.xtracr_realcamera_doABarrelRoll": "Do A Barrel Roll",
     "config.option.xtracr_realcamera_pehkui": "Pehkui",
+    "config.option.xtracr_realcamera_physicsMod": "Physics Mod",
 
     "config.option.xtracr_realcamera_renderModelPart": "禁止渲染部分模型",
     "config.option.xtracr_realcamera_disabledModelParts": "禁用渲染的模型部位",
@@ -88,8 +89,6 @@
 
     "config.tooltip.xtracr_realcamera_useModModel": "如果无法找到目标模型部位, 会自动使用绑定模式设置\n状态: %s \n(你需要重新加载配置屏幕来刷新状态)",
     "config.tooltip.xtracr_realcamera_modModelPart": "摄像头绑定的模型部位的名称",
-    "config.tooltip.xtracr_realcamera_doABarrelRoll": "适配它的摄像头翻滚",
-    "config.tooltip.xtracr_realcamera_pehkui": "适配Pehkui对模型尺寸的缩放",
 
     "config.tooltip.xtracr_realcamera_disabledModelParts": "可能的选项(可能还有其它选项未被列举): %s"
 }

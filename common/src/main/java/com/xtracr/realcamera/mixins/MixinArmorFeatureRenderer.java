@@ -19,8 +19,8 @@ import net.minecraft.entity.LivingEntity;
 public abstract class MixinArmorFeatureRenderer {
 
     @Inject(method = "renderArmor", at = @At("HEAD"), cancellable = true)
-    private void onRenderArmorHEAD(MatrixStack matrices, VertexConsumerProvider vertexConsumers, LivingEntity entity,
-            EquipmentSlot armorSlot, int light, BipedEntityModel<? extends LivingEntity> model, CallbackInfo cInfo) {
+    private <T extends LivingEntity, A extends BipedEntityModel<T>> void onRenderArmorHEAD(MatrixStack matrices, 
+            VertexConsumerProvider vertexConsumers, T entity, EquipmentSlot armorSlot, int light, A model, CallbackInfo cInfo) {
         if (!(entity instanceof ClientPlayerEntity)) return;
         if ((VirtualRenderer.shouldDisableRender("helmet") && armorSlot == EquipmentSlot.HEAD) || 
                 (VirtualRenderer.shouldDisableRender("chestplate") && armorSlot == EquipmentSlot.CHEST) || 

@@ -2,6 +2,7 @@ package com.xtracr.realcamera;
 
 import com.xtracr.realcamera.api.VirtualRenderer;
 import com.xtracr.realcamera.compat.PehkuiCompat;
+import com.xtracr.realcamera.compat.PhysicsModCompat;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.mixins.CameraAccessor;
@@ -55,7 +56,8 @@ public class RealCameraCore {
         if (config.isClassic()) {
             classicModeUpdate(camera, client, tickDelta);
         } else {
-            bindingModeUpdate(camera, client, tickDelta);
+            // GameRenderer.render
+            bindingModeUpdate(camera, client, tickDelta, new MatrixStack());
         }
     }
 
@@ -90,10 +92,8 @@ public class RealCameraCore {
         clipCameraToSpace(camera, referVec);
     }
 
-    private static void bindingModeUpdate(Camera camera, MinecraftClient client, float tickDelta) {
+    private static void bindingModeUpdate(Camera camera, MinecraftClient client, float tickDelta, MatrixStack matrixStack) {
 
-        // GameRenderer.render
-        MatrixStack matrixStack = new MatrixStack();
         // GameRenderer.renderWorld
         matrixStack.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(camera.getPitch()));
         matrixStack.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(camera.getYaw() + 180.0F));
@@ -111,6 +111,9 @@ public class RealCameraCore {
             MathHelper.lerp(tickDelta, player.lastRenderZ, player.getZ()))
             .subtract(camera.getPos());
         // EntityRenderDispatcher.render
+        if (config.compatPhysicsMod()) PhysicsModCompat.renderStart(client.getEntityRenderDispatcher(), player, renderOffset.getX(), 
+            renderOffset.getY(), renderOffset.getZ(), MathHelper.lerp(tickDelta, player.prevYaw, player.getYaw()), tickDelta, matrixStack);
+
         PlayerEntityRenderer playerRenderer = (PlayerEntityRenderer)client.getEntityRenderDispatcher().getRenderer(player);
         renderOffset = renderOffset.add(playerRenderer.getPositionOffset(player, tickDelta));
         matrixStack.translate(renderOffset.getX(), renderOffset.getY(), renderOffset.getZ());

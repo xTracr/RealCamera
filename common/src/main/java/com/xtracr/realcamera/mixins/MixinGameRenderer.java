@@ -3,6 +3,7 @@ package com.xtracr.realcamera.mixins;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -27,7 +28,8 @@ import net.minecraft.util.math.Vec3d;
 @Mixin(GameRenderer.class)
 public abstract class MixinGameRenderer {
 
-    private static boolean toggle = false;
+    @Unique
+    private static boolean toggled = false;
 
     @Shadow
     @Final MinecraftClient client;
@@ -58,7 +60,7 @@ public abstract class MixinGameRenderer {
     private void setThirdPerson(CallbackInfo cInfo) {
         if (ConfigFile.modConfig.isRendering() && RealCameraCore.isActive()) {
             this.client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
-            toggle = true;
+            toggled = true;
         }
     }
 
@@ -70,9 +72,9 @@ public abstract class MixinGameRenderer {
         )
     )
     private void setFirstPerson(CallbackInfo cInfo) {
-        if (toggle) {
+        if (toggled) {
             this.client.options.setPerspective(Perspective.FIRST_PERSON);
-            toggle = false;
+            toggled = false;
         }
     }
 

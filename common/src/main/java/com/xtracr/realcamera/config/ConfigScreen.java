@@ -5,6 +5,7 @@ import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.api.VirtualRenderer;
 import com.xtracr.realcamera.compat.DoABarrelRollCompat;
 import com.xtracr.realcamera.compat.PehkuiCompat;
+import com.xtracr.realcamera.compat.PhysicsModCompat;
 
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
@@ -274,14 +275,17 @@ public class ConfigScreen {
         if (DoABarrelRollCompat.loaded)
         compatSwitches.add(entryBuilder.startBooleanToggle(new TranslatableText(OPTION+"doABarrelRoll"), config.compats.doABarrelRoll)
             .setDefaultValue(true)
-            .setTooltip(new TranslatableText(TOOLTIP+"doABarrelRoll"))
             .setSaveConsumer(b -> config.compats.doABarrelRoll = b)
             .build());
         if (PehkuiCompat.loaded)
         compatSwitches.add(entryBuilder.startBooleanToggle(new TranslatableText(OPTION+"pehkui"), config.compats.pehkui)
             .setDefaultValue(true)
-            .setTooltip(new TranslatableText(TOOLTIP+"pehkui"))
             .setSaveConsumer(b -> config.compats.pehkui = b)
+            .build());
+        if (PhysicsModCompat.loaded)
+        compatSwitches.add(entryBuilder.startBooleanToggle(new TranslatableText(OPTION+"physicsMod"), config.compats.physicsMod)
+            .setDefaultValue(true)
+            .setSaveConsumer(b -> config.compats.physicsMod = b)
             .build());
         compats.addEntry(compatSwitches.build());
 
