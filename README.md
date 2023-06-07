@@ -3,7 +3,7 @@
 ## [中文](README_ZH.md) ##
 
 Make the camera more realistic in the first-person view.  
-Supported versions: 1.18-1.19 Forge & Fabric  
+Supported versions: 1.18-1.20 Forge & Fabric  
 Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases), [Modrinth](https://modrinth.com/mod/real-camera) or [CurseForge](https://curseforge.com/minecraft/mc-mods/real-camera)  
 
 ## Features ##
@@ -15,17 +15,6 @@ Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases),
 * Configure these features in the config screen(Cloth Config required)
 
 > Learn more about [Configuration](https://github.com/xTracr/RealCamera/wiki/Configuration)
-
-### Supported Minecraft Versions ###
-
-* Fabric:
-  * `realcamera-1.19.4-fabric`: 1.19.4, 1.19.3
-  * `realcamera-1.18.2-fabric`: 1.18.2, 1.19.2[^1]
-* Forge:
-  * `realcamera-1.19.4-forge`: 1.19.4
-  * `realcamera-1.18.2-forge`: 1.18.2
-
-[^1]:The 1.18.2-fabric version of this mod has been tested and supports 1.19.2(though config screen doesnt work), but we do not guarantee full compatibility with it, nor will we actively maintain support for it.
 
 ### Dependencies ###
 
@@ -41,8 +30,7 @@ Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases),
 
 ## FAQ ##
 
-* 1.19.2 Forge?...
-* For each major version, we will only maintain one minor version. If when 1.20 is released the majority of players are using 1.19.2, we will discontinue maintenance for 1.19.4 and instead provide support for 1.19.2.
+* WIP
 
 ### Compatibility ###
 
@@ -61,4 +49,4 @@ Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases),
 
 ## [More Information](https://github.com/xTracr/RealCamera/wiki) ##
 
-## [Change Log](changelog.md) ##
+## [Change Log](changelog.md#English) ##
