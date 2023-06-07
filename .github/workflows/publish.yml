@@ -1,4 +1,5 @@
 name: Publish on Modrinth & CurseForge
+
 on:
   release:
     types: [published]
@@ -34,19 +35,6 @@ jobs:
       - name: Build
         run: ./gradlew clean build
 
-      - name: Publish Fabric
-        uses: Kir-Antipov/mc-publish@v3.3
-        with:
-          modrinth-id: ${{ env.MODRINTH_ID }}
-          modrinth-token: ${{ env.MODRINTH_TOKEN }}
-          curseforge-id: ${{ env.CURSEFORGE_ID }}
-          curseforge-token: ${{ env.CURSEFORGE_TOKEN }}
-          loaders: fabric
-          name: '[Fabric] v${{github.ref_name}}'
-          version-type: beta
-          changelog-file: changelog.md
-          files: 'fabric/build/libs/!(*-@(shadow|dev|sources|javadoc|all)).jar'
-
       - name: Publish Forge
         uses: Kir-Antipov/mc-publish@v3.3
         with:
@@ -57,5 +45,16 @@ jobs:
           loaders: forge
           name: '[Forge] v${{github.ref_name}}'
           version-type: beta
-          changelog-file: changelog.md
-          files: 'forge/build/libs/!(*-@(shadow|dev|sources|javadoc|all)).jar'
+          files: forge/build/libs/!(*-@(shadow|dev|sources|javadoc|all)).jar
+
+      - name: Publish Fabric
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          modrinth-id: ${{ env.MODRINTH_ID }}
+          modrinth-token: ${{ env.MODRINTH_TOKEN }}
+          curseforge-id: ${{ env.CURSEFORGE_ID }}
+          curseforge-token: ${{ env.CURSEFORGE_TOKEN }}
+          loaders: fabric
+          name: '[Fabric] v${{github.ref_name}}'
+          version-type: beta
+          files: fabric/build/libs/!(*-@(shadow|dev|sources|javadoc|all)).jar

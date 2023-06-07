@@ -47,3 +47,7 @@ Make the camera more realistic in the first-person view.
     versionRange="[10.0.96,)"
     ordering="NONE"
     side="CLIENT"
+    [dependencies.realcamera.mc-publish]
+        ignore=false
+        modrinth="cloth-config"
+        curseforge="cloth-config"

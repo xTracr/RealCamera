@@ -38,6 +38,7 @@
     "java": ">=17"
   },
   "recommends": {
+    "modmenu": "*",
     "cloth-config": "*"
   }
 }
