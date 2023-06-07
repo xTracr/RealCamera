@@ -12,6 +12,12 @@
 * Allowed disabling rendering partial model
   * 0.5.1-beta:
   * Divided `Bind Rotation` option into three options
+  * 0.5.2-beta:
+  * Fixed #7, #8 and clipping issue
+  * 0.5.3-beta:
+  * Compatible with Physics Mod ocean physics (#6)
+  * Added support for 1.19.2
+  * Upgraded to 1.20
 
 * 0.4.0-alpha:
 * Fixed an issue where the camera would not follow the model action when the player started/ended sneaking
@@ -79,6 +85,12 @@
 * 允许禁用渲染部分模型
   * 0.5.1-beta:
   * 把`绑定旋转`选项分为了三个选项
+  * 0.5.2-beta:
+  * 修复了#7, #8以及clip的问题
+  * 0.5.3-beta:
+  * 兼容Physics Mod的海洋物理 (#6)
+  * 添加了对1.19.2的支持
+  * 更新至1.20
 
 * 0.4.0-alpha:
 * 修复了玩家开始/结束潜行时摄像头未跟上模型动作的问题
@@ -98,7 +110,7 @@
     * 缰绳位置不正确
   * 0.4.4-alpha:
   * 添加了动态十字准心功能
-  * 添加了限制摄像头范围(Clip to space)的功能
+  * 添加了防止摄像头进入方块内部(Clip to space)的功能
 
 * 0.3.0-alpha:
 * 使玩家十字准心的命中结果与十字准心的实际位置相匹配
