@@ -9,24 +9,24 @@ import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.utils.CrosshairUtils;
 
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
-import net.minecraft.client.util.math.MatrixStack;
 
 @Mixin(InGameHud.class)
 public abstract class MixinInGameHud {
 
-    @Inject(method = "renderCrosshair(Lnet/minecraft/client/util/math/MatrixStack;)V", at = @At("HEAD"))
-    private void onRenderCrosshairHEAD(MatrixStack matrixStack, CallbackInfo cInfo) {
+    @Inject(method = "renderCrosshair(Lnet/minecraft/client/gui/DrawContext;)V", at = @At("HEAD"))
+    private void onRenderCrosshairHEAD(DrawContext context, CallbackInfo cInfo) {
         if (ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
-            matrixStack.push();
-            CrosshairUtils.translateMatrices(matrixStack);
+            context.getMatrices().push();
+            CrosshairUtils.translateMatrices(context.getMatrices());
         }
     }
 
-    @Inject(method = "renderCrosshair(Lnet/minecraft/client/util/math/MatrixStack;)V", at = @At("RETURN"))
-    private void onRenderCrosshairRETURN(MatrixStack matrixStack, CallbackInfo cInfo) {
+    @Inject(method = "renderCrosshair(Lnet/minecraft/client/gui/DrawContext;)V", at = @At("RETURN"))
+    private void onRenderCrosshairRETURN(DrawContext context, CallbackInfo cInfo) {
         if (ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
-            matrixStack.pop();
+            context.getMatrices().pop();
         }
     }
 

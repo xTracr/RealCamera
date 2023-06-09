@@ -40,7 +40,6 @@ public class ConfigScreen {
             .transparentBackground()
             .setSavingRunnable(ConfigFile::save)
             .setTitle(Text.translatable("config.title.xtracr_"+RealCamera.MODID));
-        builder.setGlobalized(true);
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
         ConfigCategory general = builder.getOrCreateCategory(Text.translatable(CATEGORY+"general"));
         ConfigCategory binding = builder.getOrCreateCategory(Text.translatable(CATEGORY+"binding"));
