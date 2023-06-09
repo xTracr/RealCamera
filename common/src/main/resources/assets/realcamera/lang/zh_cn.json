@@ -66,14 +66,18 @@
     "config.option.xtracr_realcamera_pehkui": "Pehkui",
     "config.option.xtracr_realcamera_physicsMod": "Physics Mod",
 
+    "config.option.xtracr_realcamera_onlyInBinding": "仅在绑定模式下禁用",
     "config.option.xtracr_realcamera_renderModelPart": "禁止渲染部分模型",
     "config.option.xtracr_realcamera_disabledModelParts": "禁用渲染的模型部位",
+    "config.option.xtracr_realcamera_customConditions": "自定义禁用条件",
+    "config.option.xtracr_realcamera_customConditions_id": "物品ID",
+    "config.option.xtracr_realcamera_customConditions_behavior": "玩家行为",
+    "config.option.xtracr_realcamera_customConditions_actions": "执行的动作",
     "config.option.xtracr_realcamera_fallFlying": "鞘翅飞行",
     "config.option.xtracr_realcamera_swiming": "游泳",
     "config.option.xtracr_realcamera_crawling": "爬行",
     "config.option.xtracr_realcamera_sneaking": "潜行",
     "config.option.xtracr_realcamera_sleeping": "睡觉",
-    "config.option.xtracr_realcamera_scoping": "使用望远镜",
 
     "config.tooltip.xtracr_realcamera_classic": "经典模式只对摄像头的位置和旋转做简单的修改",
     "config.tooltip.xtracr_realcamera_clipToSpace": "限制摄像头位置以防止其进入方块内部",
@@ -90,5 +94,6 @@
     "config.tooltip.xtracr_realcamera_useModModel": "如果无法找到目标模型部位, 会自动使用绑定模式设置\n状态: %s \n(你需要重新加载配置屏幕来刷新状态)",
     "config.tooltip.xtracr_realcamera_modModelPart": "摄像头绑定的模型部位的名称",
 
-    "config.tooltip.xtracr_realcamera_disabledModelParts": "可能的选项(可能还有其它选项未被列举): %s"
+    "config.tooltip.xtracr_realcamera_disabledModelParts": "可能的选项(可能还有其它选项未被列举): %s",
+    "config.tooltip.xtracr_realcamera_customConditions_actions": "可用选项: [disable_mod, disable_rendering, allow_rendering_hand] 以及 模型部位的名称"
 }

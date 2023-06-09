@@ -66,14 +66,18 @@
     "config.option.xtracr_realcamera_pehkui": "Pehkui",
     "config.option.xtracr_realcamera_physicsMod": "Physics Mod",
 
+    "config.option.xtracr_realcamera_onlyInBinding": "Only Disable In Binding Mode",
     "config.option.xtracr_realcamera_renderModelPart": "Disable Rendering Partial Model",
     "config.option.xtracr_realcamera_disabledModelParts": "Model Parts With Rendering Disabled",
+    "config.option.xtracr_realcamera_customConditions": "Custom Disabling Conditions",
+    "config.option.xtracr_realcamera_customConditions_id": "Item ID",
+    "config.option.xtracr_realcamera_customConditions_behavior": "Player behavior",
+    "config.option.xtracr_realcamera_customConditions_actions": "Actions executed",
     "config.option.xtracr_realcamera_fallFlying": "Elytra Flying",
     "config.option.xtracr_realcamera_swiming": "Swiming",
     "config.option.xtracr_realcamera_crawling": "Crawling",
     "config.option.xtracr_realcamera_sneaking": "Sneaking",
     "config.option.xtracr_realcamera_sleeping": "Sleeping",
-    "config.option.xtracr_realcamera_scoping": "Using Spyglass",
 
     "config.tooltip.xtracr_realcamera_classic": "Classic mode only makes simple changes to the position and rotation of camera",
     "config.tooltip.xtracr_realcamera_clipToSpace": "Prevent camera from clipping into blocks",
@@ -90,5 +94,6 @@
     "config.tooltip.xtracr_realcamera_useModModel": "Binding Mode config is automatically used if failed to find target model part\nStatus: %s \n(To refresh the status, you need to reload the config screen)",
     "config.tooltip.xtracr_realcamera_modModelPart": "Name of the model part to bind camera to",
 
-    "config.tooltip.xtracr_realcamera_disabledModelParts": "Possible options(There may be other options not listed here): %s"
+    "config.tooltip.xtracr_realcamera_disabledModelParts": "Possible options(There may be other options not listed here): %s",
+    "config.tooltip.xtracr_realcamera_customConditions_actions": "Available options: [disable_mod, disable_rendering, allow_rendering_hand] and Model Part Names"
 }

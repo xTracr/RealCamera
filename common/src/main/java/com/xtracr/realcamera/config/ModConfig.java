@@ -5,7 +5,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.registry.Registries;
+import net.minecraft.util.Pair;
 import net.minecraft.util.math.MathHelper;
 
 public class ModConfig {
@@ -122,16 +125,28 @@ public class ModConfig {
     public class Disable {
 
         protected static final List<String> defaultParts = Arrays.asList("head", "hat", "helmet");
+        protected static final List<Pair<Pair<String, String>, List<String>>> defaultConditions = Arrays.asList(
+            new Pair<>(new Pair<>("minecraft:spyglass", "using"), Arrays.asList("disable_rendering")), 
+            new Pair<>(new Pair<>("Example--minecraft:filled_map", "holding"), Arrays.asList(
+                "allow_rendering_hand", "leftArm", "rightArm", "leftSleeve", "rightSleeve", "heldItem")));
+        protected static final String[] behaviors = {"holding", "using"};
+
         public static final Set<String> optionalParts = new HashSet<>(Set.of("head", "hat", "helmet"));
 
+        public boolean onlyInBinding = true;
         public boolean renderModelPart = false;
         public List<String> disabledModelParts = defaultParts;
+        public List<Pair<Pair<String, String>, List<String>>> customConditions = defaultConditions;
         public boolean fallFlying = true;
         public boolean swiming = false;
         public boolean crawling = false;
         public boolean sneaking = false;
         public boolean sleeping = false;
-        public boolean scoping = true;
+
+        private void clamp() {
+            if (this.disabledModelParts == null) this.disabledModelParts = defaultParts;
+            if (this.customConditions == null) this.customConditions = defaultConditions;
+        }
     }
 
     public void set(ModConfig modConfig) {
@@ -146,7 +161,7 @@ public class ModConfig {
         this.general.clamp();
         this.binding.clamp();
         this.classic.clamp();
-        if (this.disable.disabledModelParts == null) this.disable.disabledModelParts = Disable.defaultParts;
+        this.disable.clamp();
     }
 
     public boolean isEnabled() {
@@ -352,18 +367,41 @@ public class ModConfig {
     }
 
     // disable
-    public boolean shouldDisableRender(String modelPartName) {
-        return this.disable.renderModelPart && this.disable.disabledModelParts.contains(modelPartName);
+    private boolean shouldDisable(ClientPlayerEntity player, String action) {
+        Set<Boolean> set = new HashSet<>();
+        this.disable.customConditions.forEach(pair -> {
+            if (!pair.getRight().contains(action)) return;
+            String left = pair.getLeft().getLeft();
+            String middle = pair.getLeft().getRight();
+            if (middle.equals("using") && player.isUsingItem()) {
+                set.add(left.equals(Registries.ITEM.getId(player.getActiveItem().getItem()).toString()));
+            } else if (middle.equals("holding")) {
+                set.add(player.isHolding(stack -> left.equals(Registries.ITEM.getId(stack.getItem()).toString())));
+            }
+        });
+        return set.contains(true);
     }
-    public boolean isDisabledWhen(ClientPlayerEntity player) {
+    public boolean shouldDisableRender(String modelPartName) {
+        if (this.disable.onlyInBinding && this.general.classic) return false;
+        return (this.disable.renderModelPart && this.disable.disabledModelParts.contains(modelPartName))
+            || this.shouldDisable(MinecraftClient.getInstance().player, modelPartName);
+    }
+    public boolean allowRenderingHandWhen(ClientPlayerEntity player) {
+        if (this.disable.onlyInBinding && this.general.classic) return false;
+        return this.shouldDisable(player, "allow_rendering_hand");
+    }
+    public boolean disableModWhen(ClientPlayerEntity player) {
+        if (this.disable.onlyInBinding && this.general.classic) return false;
         return (player.isFallFlying() && this.disable.fallFlying)
             || (player.isSwimming() && this.disable.swiming)
             || (player.isCrawling() && this.disable.crawling)
             || (player.isSneaking() && this.disable.sneaking)
-            || (player.isSleeping() && this.disable.sleeping);
+            || (player.isSleeping() && this.disable.sleeping)
+            || this.shouldDisable(player, "disable_mod");
     }
-    public boolean onlyDisableRenderingWhen(ClientPlayerEntity player) {
-        return player.isUsingSpyglass() && this.disable.scoping;
+    public boolean disableRenderingWhen(ClientPlayerEntity player) {
+        if (this.disable.onlyInBinding && this.general.classic) return false;
+        return this.shouldDisable(player, "disable_rendering");
     }
 
 }
