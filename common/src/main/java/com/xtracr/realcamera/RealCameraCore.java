@@ -4,7 +4,6 @@ import org.joml.Matrix3f;
 import org.joml.Vector4f;
 
 import com.xtracr.realcamera.api.VirtualRenderer;
-import com.xtracr.realcamera.compat.MC1193Compat;
 import com.xtracr.realcamera.compat.PehkuiCompat;
 import com.xtracr.realcamera.compat.PhysicsModCompat;
 import com.xtracr.realcamera.config.ConfigFile;
@@ -231,13 +230,8 @@ public class RealCameraCore {
         n = 0.0f;
         float o = 0.0f;
         if (!player.hasVehicle() && player.isAlive()) {
-            if (MC1193Compat.is1193) {
-                n = MC1193Compat.getLimbAnimatorSpeed(tickDelta, player);
-                o = MC1193Compat.getLimbAnimatorPos(tickDelta, player);
-            } else {
-                n = player.limbAnimator.getSpeed(tickDelta);
-                o = player.limbAnimator.getPos(tickDelta);
-            }
+            n = player.limbAnimator.getSpeed(tickDelta);
+            o = player.limbAnimator.getPos(tickDelta);
             if (player.isBaby()) {
                 o *= 3.0f;
             }
