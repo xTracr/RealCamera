@@ -17,6 +17,7 @@ import com.xtracr.realcamera.utils.RaycastUtils;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.Perspective;
+import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
@@ -57,8 +58,9 @@ public abstract class MixinGameRenderer {
             target = "Lnet/minecraft/client/util/math/MatrixStack;push()V"
         )
     )
-    private void setThirdPerson(CallbackInfo cInfo) {
-        if (ConfigFile.modConfig.isRendering() && RealCameraCore.isActive()) {
+    private void setThirdPerson(MatrixStack matrices, Camera camera, float tickDelta, CallbackInfo cInfo) {
+        if (ConfigFile.modConfig.isRendering() && camera.isThirdPerson() && RealCameraCore.isActive() && 
+                !ConfigFile.modConfig.allowRenderingHandWhen(client.player)) {
             this.client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
             toggled = true;
         }

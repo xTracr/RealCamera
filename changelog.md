@@ -16,6 +16,7 @@
   * Fixed #7, #8 and clipping issue
   * 0.5.3-beta:
   * Compatible with Physics Mod ocean physics (#6)
+  * Allowed disabling when holding a specific item
   * Added support for 1.19.2
   * Upgraded to 1.20
 
@@ -89,6 +90,7 @@
   * 修复了#7, #8以及clip的问题
   * 0.5.3-beta:
   * 兼容Physics Mod的海洋物理 (#6)
+  * 允许在手持特定物品时禁用
   * 添加了对1.19.2的支持
   * 更新至1.20
 

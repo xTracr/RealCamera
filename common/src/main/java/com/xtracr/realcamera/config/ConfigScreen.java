@@ -1,5 +1,9 @@
 package com.xtracr.realcamera.config;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
 import com.xtracr.realcamera.RealCamera;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.api.VirtualRenderer;
@@ -10,6 +14,8 @@ import com.xtracr.realcamera.compat.PhysicsModCompat;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
+import me.shedaniel.clothconfig2.gui.entries.MultiElementListEntry;
+import me.shedaniel.clothconfig2.gui.entries.NestedListListEntry;
 import me.shedaniel.clothconfig2.impl.builders.SubCategoryBuilder;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.ClickEvent;
@@ -17,6 +23,7 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Pair;
 
 public class ConfigScreen {
 
@@ -258,7 +265,7 @@ public class ConfigScreen {
         compats.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(OPTION+"useModModel"), config.compats.useModModel)
             .setDefaultValue(false)
             .setTooltip(new TranslatableText(TOOLTIP+"useModModel", new LiteralText((config.compats.useModModel ? RealCameraCore.status : "Disabled")).styled(
-                s -> s.withColor((config.compats.useModModel ? (RealCameraCore.status == "Successful" ? Formatting.GREEN : Formatting.RED) : Formatting.YELLOW)))))
+                s -> s.withColor((config.compats.useModModel ? (RealCameraCore.status.equals("Successful") ? Formatting.GREEN : Formatting.RED) : Formatting.YELLOW)))))
             .setSaveConsumer(b -> config.compats.useModModel = b)
             .build());
         compats.addEntry(entryBuilder.startSelector(new TranslatableText(OPTION+"modelModID"), VirtualRenderer.getModidList(), config.compats.modelModID)
@@ -289,6 +296,10 @@ public class ConfigScreen {
             .build());
         compats.addEntry(compatSwitches.build());
 
+        disable.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(OPTION+"onlyInBinding"), config.disable.onlyInBinding)
+            .setDefaultValue(true)
+            .setSaveConsumer(b -> config.disable.onlyInBinding = b)
+            .build());
         disable.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(OPTION+"renderModelPart"), config.disable.renderModelPart)
             .setDefaultValue(false)
             .setSaveConsumer(b -> config.disable.renderModelPart = b)
@@ -298,6 +309,33 @@ public class ConfigScreen {
             .setTooltip(new TranslatableText(TOOLTIP+"disabledModelParts", ModConfig.Disable.optionalParts))
             .setSaveConsumer(l -> config.disable.disabledModelParts = l)
             .build());
+        disable.addEntry(new NestedListListEntry<Pair<Pair<String, String>, List<String>>, MultiElementListEntry<Pair<Pair<String, String>, List<String>>>>(
+            new TranslatableText(OPTION+"customConditions"), 
+            config.disable.customConditions, 
+            false, 
+            () -> Optional.empty(), 
+            l -> config.disable.customConditions = l, 
+            () -> ModConfig.Disable.defaultConditions, 
+            entryBuilder.getResetButtonKey(), 
+            true, 
+            false, 
+            (element, entry) -> {
+                if (element == null) {
+                    element = new Pair<>(new Pair<>("new item id", "holding"), Arrays.asList("new action"));
+                }
+                return new MultiElementListEntry<Pair<Pair<String, String>,List<String>>>(new LiteralText(element.getLeft().getLeft()), element, 
+                    Arrays.asList(entryBuilder.startStrField(new TranslatableText(OPTION+"customConditions_id"), element.getLeft().getLeft())
+                            .setSaveConsumer(element.getLeft()::setLeft)
+                            .build(), 
+                        entryBuilder.startSelector(new TranslatableText(OPTION+"customConditions_behavior"), ModConfig.Disable.behaviors, element.getLeft().getRight())
+                            .setSaveConsumer(element.getLeft()::setRight)
+                            .build(), 
+                        entryBuilder.startStrList(new TranslatableText(OPTION+"customConditions_actions"), element.getRight())
+                            .setTooltip(new TranslatableText(TOOLTIP+"customConditions_actions"))
+                            .setSaveConsumer(element::setRight)
+                            .build()), 
+                        false);
+            }));
         SubCategoryBuilder disableModWhen = entryBuilder.startSubCategory(new TranslatableText(CATEGORY+"disableModWhen"));
         disableModWhen.add(entryBuilder.startBooleanToggle(new TranslatableText(OPTION+"fallFlying"), config.disable.fallFlying)
             .setDefaultValue(true)
@@ -320,12 +358,6 @@ public class ConfigScreen {
             .setSaveConsumer(b -> config.disable.sleeping = b)
             .build());
         disable.addEntry(disableModWhen.build());
-        SubCategoryBuilder disableRenderWhen = entryBuilder.startSubCategory(new TranslatableText(CATEGORY+"disableRenderWhen"));
-        disableRenderWhen.add(entryBuilder.startBooleanToggle(new TranslatableText(OPTION+"scoping"), config.disable.scoping)
-            .setDefaultValue(true)
-            .setSaveConsumer(b -> config.disable.scoping = b)
-            .build());
-        disable.addEntry(disableRenderWhen.build());
 
         return builder.build();
     }
