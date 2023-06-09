@@ -4,15 +4,14 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
-import org.joml.Matrix3f;
-import org.joml.Matrix4f;
-
 import com.xtracr.realcamera.utils.ReflectUtils;
 
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.math.Matrix3f;
+import net.minecraft.util.math.Matrix4f;
 import net.minecraft.world.World;
 
 public class PhysicsModCompat {

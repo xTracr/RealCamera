@@ -7,9 +7,9 @@ import java.util.Set;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.registry.Registries;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.registry.Registry;
 
 public class ModConfig {
 
@@ -374,9 +374,9 @@ public class ModConfig {
             String left = pair.getLeft().getLeft();
             String middle = pair.getLeft().getRight();
             if (middle.equals("using") && player.isUsingItem()) {
-                set.add(left.equals(Registries.ITEM.getId(player.getActiveItem().getItem()).toString()));
+                set.add(left.equals(Registry.ITEM.getId(player.getActiveItem().getItem()).toString()));
             } else if (middle.equals("holding")) {
-                set.add(player.isHolding(stack -> left.equals(Registries.ITEM.getId(stack.getItem()).toString())));
+                set.add(player.isHolding(stack -> left.equals(Registry.ITEM.getId(stack.getItem()).toString())));
             }
         });
         return set.contains(true);

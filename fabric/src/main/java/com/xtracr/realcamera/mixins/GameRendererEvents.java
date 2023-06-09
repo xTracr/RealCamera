@@ -13,7 +13,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.RotationAxis;
+import net.minecraft.util.math.Vec3f;
 
 @Mixin(GameRenderer.class)
 public abstract class GameRendererEvents {
@@ -34,7 +34,7 @@ public abstract class GameRendererEvents {
     private void onAfterCameraUpdate(float tickDelta, long limitTime, MatrixStack matrixStack, CallbackInfo cInfo) {
         if (RealCameraCore.isActive()) {
             RealCameraCore.updateCamera(this.camera, this.client, tickDelta);
-            matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(RealCameraCore.getRoll()));
+            matrixStack.multiply(Vec3f.POSITIVE_Z.getDegreesQuaternion(RealCameraCore.getRoll()));
         }
     }
 

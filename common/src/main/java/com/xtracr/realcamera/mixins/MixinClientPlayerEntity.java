@@ -13,14 +13,15 @@ import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.option.Perspective;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.network.encryption.PlayerPublicKey;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.world.RaycastContext;
 
 @Mixin(ClientPlayerEntity.class)
 public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
 
-    public MixinClientPlayerEntity(ClientWorld world, GameProfile profile) {
-        super(world, profile);
+    public MixinClientPlayerEntity(ClientWorld world, GameProfile profile, PlayerPublicKey publicKey) {
+        super(world, profile, publicKey);
     }
 
     @Redirect(

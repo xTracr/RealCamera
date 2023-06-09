@@ -1,10 +1,6 @@
 package com.xtracr.realcamera;
 
-import org.joml.Matrix3f;
-import org.joml.Vector4f;
-
 import com.xtracr.realcamera.api.VirtualRenderer;
-import com.xtracr.realcamera.compat.MC1193Compat;
 import com.xtracr.realcamera.compat.PehkuiCompat;
 import com.xtracr.realcamera.compat.PhysicsModCompat;
 import com.xtracr.realcamera.config.ConfigFile;
@@ -12,6 +8,7 @@ import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.mixins.CameraAccessor;
 import com.xtracr.realcamera.mixins.PlayerEntityRendererAccessor;
 import com.xtracr.realcamera.utils.MathUtils;
+import com.xtracr.realcamera.utils.Matrix3fc;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
@@ -25,8 +22,9 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3f;
+import net.minecraft.util.math.Vector4f;
 import net.minecraft.world.RaycastContext;
 
 public class RealCameraCore {
@@ -97,9 +95,9 @@ public class RealCameraCore {
     private static void bindingModeUpdate(Camera camera, MinecraftClient client, float tickDelta, MatrixStack matrixStack) {
 
         // GameRenderer.renderWorld
-        matrixStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(camera.getPitch()));
-        matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(camera.getYaw() + 180.0F));
-        matrixStack.peek().getNormalMatrix().identity();
+        matrixStack.multiply(Vec3f.POSITIVE_X.getDegreesQuaternion(camera.getPitch()));
+        matrixStack.multiply(Vec3f.POSITIVE_Y.getDegreesQuaternion(camera.getYaw() + 180.0F));
+        matrixStack.peek().getNormalMatrix().loadIdentity();
         // WorldRenderer.render
         ClientPlayerEntity player = client.player;
         if (player.age == 0) {
@@ -125,20 +123,22 @@ public class RealCameraCore {
         virtualRender(player, playerRenderer, tickDelta, matrixStack);
 
         // ModelPart$Cuboid.renderCuboid
-        Vector4f refer = matrixStack.peek().getPositionMatrix().transform(new Vector4f((float)(config.getBindingRZ() * config.getScale()), 
+        Vector4f refer = new Vector4f((float)(config.getBindingRZ() * config.getScale()), 
             -(float)(config.getBindingRY() * config.getScale()), 
-            -(float)(config.getBindingRX() * config.getScale()), 1.0F));
-        Vector4f offset = matrixStack.peek().getPositionMatrix().transform(new Vector4f((float)(config.getBindingZ() * config.getScale()), 
+            -(float)(config.getBindingRX() * config.getScale()), 1.0F);
+        Vector4f offset = new Vector4f((float)(config.getBindingZ() * config.getScale()), 
             -(float)(config.getBindingY() * config.getScale()), 
-            -(float)(config.getBindingX() * config.getScale()), 1.0F));
+            -(float)(config.getBindingX() * config.getScale()), 1.0F);
+        refer.transform(matrixStack.peek().getPositionMatrix());
+        offset.transform(matrixStack.peek().getPositionMatrix());
 
-        offset.sub(refer);
-        ((CameraAccessor)camera).invokeMoveBy(-refer.z(), refer.y(), -refer.x());
+        offset.add(-refer.getX(), -refer.getY(), -refer.getZ(), 0.0F);
+        ((CameraAccessor)camera).invokeMoveBy(-refer.getZ(), refer.getY(), -refer.getX());
         Vec3d referVec = camera.getPos();
-        ((CameraAccessor)camera).invokeMoveBy(-offset.z(), offset.y(), -offset.x());
+        ((CameraAccessor)camera).invokeMoveBy(-offset.getZ(), offset.getY(), -offset.getX());
         clipCameraToSpace(camera, referVec);
 
-        Matrix3f normal = matrixStack.peek().getNormalMatrix().scale(1.0F, -1.0F, -1.0F);
+        Matrix3fc normal = new Matrix3fc(matrixStack.peek().getNormalMatrix()).scale(1.0F, -1.0F, -1.0F);
         normal.rotateLocal((float)Math.toRadians(config.getBindingYaw()), normal.m10, normal.m11, normal.m12);
         normal.rotateLocal((float)Math.toRadians(config.getBindingPitch()), normal.m00, normal.m01, normal.m02);
         normal.rotateLocal((float)Math.toRadians(config.getBindingRoll()), normal.m20, normal.m21, normal.m22);
@@ -219,7 +219,7 @@ public class RealCameraCore {
             m *= -1.0f;
             k *= -1.0f;
         }
-        if (player.isInPose(EntityPose.SLEEPING) && (direction = player.getSleepingDirection()) != null) {
+        if (player.getPose() == EntityPose.SLEEPING && (direction = player.getSleepingDirection()) != null) {
             n = player.getEyeHeight(EntityPose.STANDING) - 0.1f;
             matrixStack.translate((float)(-direction.getOffsetX()) * n, 0.0f, (float)(-direction.getOffsetZ()) * n);
         }
@@ -231,13 +231,8 @@ public class RealCameraCore {
         n = 0.0f;
         float o = 0.0f;
         if (!player.hasVehicle() && player.isAlive()) {
-            if (MC1193Compat.is1193) {
-                n = MC1193Compat.getLimbAnimatorSpeed(tickDelta, player);
-                o = MC1193Compat.getLimbAnimatorPos(tickDelta, player);
-            } else {
-                n = player.limbAnimator.getSpeed(tickDelta);
-                o = player.limbAnimator.getPos(tickDelta);
-            }
+            n = MathHelper.lerp(tickDelta, player.lastLimbDistance, player.limbDistance);
+            o = player.limbAngle - player.limbDistance * (1.0f - tickDelta);
             if (player.isBaby()) {
                 o *= 3.0f;
             }

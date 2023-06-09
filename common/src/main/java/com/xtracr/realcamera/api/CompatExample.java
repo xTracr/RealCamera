@@ -123,7 +123,7 @@ public class CompatExample {
      * <p>This method's code should include as much as possible all parts related to {@code matrixStack} 
      * in the code that renders the player model, to ensure that the result of {@code matrixStack} 
      * after processing is identical to the actual rendering.</p>
-     * 
+     *  
      * <p>When you need to handle a {@code Throwable} that makes it impossible for the method to continue running, 
      * simply wrap it in a {@link RuntimeException} and throw it, just like in {@link #getModelPart} here.</p>
      * 
@@ -176,7 +176,7 @@ public class CompatExample {
             m *= -1.0f;
             k *= -1.0f;
         }
-        if (player.isInPose(EntityPose.SLEEPING) && (direction = player.getSleepingDirection()) != null) {
+        if (player.getPose() == EntityPose.SLEEPING && (direction = player.getSleepingDirection()) != null) {
             n = player.getEyeHeight(EntityPose.STANDING) - 0.1f;
             matrixStack.translate((float) (-direction.getOffsetX()) * n, 0.0f, (float) (-direction.getOffsetZ()) * n);
         }
@@ -188,8 +188,8 @@ public class CompatExample {
         n = 0.0f;
         float o = 0.0f;
         if (!player.hasVehicle() && player.isAlive()) {
-            n = player.limbAnimator.getSpeed(tickDelta);
-            o = player.limbAnimator.getPos(tickDelta);
+            n = MathHelper.lerp(tickDelta, player.lastLimbDistance, player.limbDistance);
+            o = player.limbAngle - player.limbDistance * (1.0f - tickDelta);
             if (player.isBaby()) {
                 o *= 3.0f;
             }
