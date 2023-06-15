@@ -47,5 +47,4 @@ public class RealCameraForge {
         ClientRegistry.registerKeyBinding(KeyBindings.ADJUST_LEFT);
         ClientRegistry.registerKeyBinding(KeyBindings.ADJUST_RIGHT);
     }
-
 }

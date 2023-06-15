@@ -10,6 +10,7 @@ import com.xtracr.realcamera.api.VirtualRenderer;
 import com.xtracr.realcamera.compat.DoABarrelRollCompat;
 import com.xtracr.realcamera.compat.PehkuiCompat;
 import com.xtracr.realcamera.compat.PhysicsModCompat;
+import com.xtracr.realcamera.utils.Triple;
 
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
@@ -23,7 +24,6 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.Pair;
 
 public class ConfigScreen {
 
@@ -309,7 +309,7 @@ public class ConfigScreen {
             .setTooltip(new TranslatableText(TOOLTIP+"disabledModelParts", ModConfig.Disable.optionalParts))
             .setSaveConsumer(l -> config.disable.disabledModelParts = l)
             .build());
-        disable.addEntry(new NestedListListEntry<Pair<Pair<String, String>, List<String>>, MultiElementListEntry<Pair<Pair<String, String>, List<String>>>>(
+        disable.addEntry(new NestedListListEntry<Triple<String, List<String>, List<String>>, MultiElementListEntry<Triple<String, List<String>, List<String>>>>(
             new TranslatableText(OPTION+"customConditions"), 
             config.disable.customConditions, 
             false, 
@@ -320,21 +320,19 @@ public class ConfigScreen {
             true, 
             false, 
             (element, entry) -> {
-                if (element == null) {
-                    element = new Pair<>(new Pair<>("new item id", "holding"), Arrays.asList("new action"));
-                }
-                return new MultiElementListEntry<Pair<Pair<String, String>,List<String>>>(new LiteralText(element.getLeft().getLeft()), element, 
-                    Arrays.asList(entryBuilder.startStrField(new TranslatableText(OPTION+"customConditions_id"), element.getLeft().getLeft())
-                            .setSaveConsumer(element.getLeft()::setLeft)
-                            .build(), 
-                        entryBuilder.startSelector(new TranslatableText(OPTION+"customConditions_behavior"), ModConfig.Disable.behaviors, element.getLeft().getRight())
-                            .setSaveConsumer(element.getLeft()::setRight)
-                            .build(), 
-                        entryBuilder.startStrList(new TranslatableText(OPTION+"customConditions_actions"), element.getRight())
-                            .setTooltip(new TranslatableText(TOOLTIP+"customConditions_actions"))
-                            .setSaveConsumer(element::setRight)
-                            .build()), 
-                        false);
+                ModConfig.resetTripleIfNull(element, ModConfig.Disable.defaultTriple);
+                return new MultiElementListEntry<>(new LiteralText(element.getMiddle().get(0)), element, Arrays.asList(
+                    entryBuilder.startSelector(new TranslatableText(OPTION+"customConditions_behavior"), ModConfig.Disable.behaviors, element.getLeft())
+                        .setSaveConsumer(element::setLeft)
+                        .build(), 
+                    entryBuilder.startStrList(new TranslatableText(OPTION+"customConditions_id"), element.getMiddle())
+                        .setSaveConsumer(element::setMiddle)
+                        .build(), 
+                    entryBuilder.startStrList(new TranslatableText(OPTION+"customConditions_actions"), element.getRight())
+                        .setTooltip(new TranslatableText(TOOLTIP+"customConditions_actions"))
+                        .setSaveConsumer(element::setRight)
+                        .build()), 
+                    false);
             }));
         SubCategoryBuilder disableModWhen = entryBuilder.startSubCategory(new TranslatableText(CATEGORY+"disableModWhen"));
         disableModWhen.add(entryBuilder.startBooleanToggle(new TranslatableText(OPTION+"fallFlying"), config.disable.fallFlying)

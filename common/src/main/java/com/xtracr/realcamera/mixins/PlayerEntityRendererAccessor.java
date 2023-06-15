@@ -17,5 +17,6 @@ public interface PlayerEntityRendererAccessor {
     void invokeScale(AbstractClientPlayerEntity abstractClientPlayerEntity, MatrixStack matrixStack, float tickDelta);
 
     @Invoker
-    void invokeSetupTransforms(AbstractClientPlayerEntity abstractClientPlayerEntity, MatrixStack matrixStack, float f, float bodyYaw, float tickDelta);
+    void invokeSetupTransforms(AbstractClientPlayerEntity abstractClientPlayerEntity, MatrixStack matrixStack, 
+            float f, float bodyYaw, float tickDelta);
 }

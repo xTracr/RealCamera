@@ -37,7 +37,7 @@
 * 兼容:
   * 大多数摄像头模组
   * Player Animation Lib
-  * Not Enough Animations
+  * Not Enough Animations[^1]
   * First Person Model
   * Pehkui
   * Epic Fight
@@ -46,6 +46,8 @@
   * Customizable Player Models
 * 引起崩溃:
   * OptiFine
+
+[^1]:建议在 *更多动画* 的配置内禁用`Animation Smoothing`选项。
 
 ## [更多信息](https://github.com/xTracr/RealCamera/wiki) ##
 

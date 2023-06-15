@@ -49,5 +49,4 @@ public class RaycastUtils {
         }
         endVec = eyePos.add(footPoint.add(direction.multiply(Math.sqrt(sqDistance-footPoint.lengthSquared()))));
     }
-
 }

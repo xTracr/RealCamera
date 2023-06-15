@@ -32,5 +32,4 @@ public class CrosshairUtils {
         offset = MathUtils.projectToVec2d(hitResult.getPos().subtract(camera.getPos()), projectionMatrices)
             .multiply(0.5*window.getScaledWidth(), 0.5*window.getScaledHeight(), 0.0D);
     }
-
 }
