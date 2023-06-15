@@ -34,5 +34,4 @@ public class MathUtils {
         if (vector4f.w() == 0.0D) return Vec3d.ZERO;
         return new Vec3d((double)vector4f.x(), (double)vector4f.y(), 0).multiply(1/(double)vector4f.w());
     }
-
 }

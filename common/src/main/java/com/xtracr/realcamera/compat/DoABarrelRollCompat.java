@@ -26,5 +26,4 @@ public class DoABarrelRollCompat {
     public static boolean modEnabled() {
         return loaded && (boolean)ReflectUtils.invokeMethod(getModEnabled, modConfigInstance.get()).orElse(false);
     }
-
 }

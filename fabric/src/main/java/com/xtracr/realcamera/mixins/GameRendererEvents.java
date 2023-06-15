@@ -23,19 +23,13 @@ public abstract class GameRendererEvents {
     @Shadow
     @Final MinecraftClient client;
 
-    @Inject(
-        method = "renderWorld",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/client/render/Camera;update(Lnet/minecraft/world/BlockView;Lnet/minecraft/entity/Entity;ZZF)V",
-            shift = At.Shift.AFTER
-        )
-    )
+    @Inject(method = "renderWorld", at = @At(value = "INVOKE",
+        target = "Lnet/minecraft/client/render/Camera;update(Lnet/minecraft/world/BlockView;Lnet/minecraft/entity/Entity;ZZF)V",
+        shift = At.Shift.AFTER))
     private void onAfterCameraUpdate(float tickDelta, long limitTime, MatrixStack matrixStack, CallbackInfo cInfo) {
         if (RealCameraCore.isActive()) {
             RealCameraCore.updateCamera(this.camera, this.client, tickDelta);
             matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(RealCameraCore.getRoll()));
         }
     }
-
 }

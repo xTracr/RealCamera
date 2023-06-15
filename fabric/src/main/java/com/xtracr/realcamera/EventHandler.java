@@ -15,5 +15,4 @@ public class EventHandler {
                     context.matrixStack().peek().getPositionMatrix(), context.projectionMatrix());
         }
     }
-
 }

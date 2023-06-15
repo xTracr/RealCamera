@@ -37,7 +37,7 @@ Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases),
 * Compatible:
   * most camera mods
   * Player Animation Lib
-  * Not Enough Animations
+  * Not Enough Animations[^1]
   * First Person Model
   * Pehkui
   * Epic Fight
@@ -46,6 +46,8 @@ Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases),
   * Customizable Player Models
 * Cause crash:
   * OptiFine
+
+[^1]:It is suggested to disable `Animation Smoothing` option in the config of *Not Enough Animations*.
 
 ## [More Information](https://github.com/xTracr/RealCamera/wiki) ##
 

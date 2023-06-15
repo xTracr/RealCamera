@@ -29,5 +29,4 @@ public abstract class MixinInGameHud {
             matrixStack.pop();
         }
     }
-
 }
