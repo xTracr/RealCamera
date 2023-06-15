@@ -19,6 +19,7 @@
   * Allowed disabling when holding a specific item
   * Added support for 1.19.2
   * Upgraded to 1.20
+  * 0.5.4-beta:
 
 * 0.4.0-alpha:
 * Fixed an issue where the camera would not follow the model action when the player started/ended sneaking
@@ -93,6 +94,7 @@
   * 允许在手持特定物品时禁用
   * 添加了对1.19.2的支持
   * 更新至1.20
+  * 0.5.4-beta:
 
 * 0.4.0-alpha:
 * 修复了玩家开始/结束潜行时摄像头未跟上模型动作的问题

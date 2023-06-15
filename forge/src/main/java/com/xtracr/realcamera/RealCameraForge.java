@@ -49,5 +49,4 @@ public class RealCameraForge {
         event.register(KeyBindings.ADJUST_LEFT);
         event.register(KeyBindings.ADJUST_RIGHT);
     }
-
 }

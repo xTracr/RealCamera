@@ -1,9 +1,8 @@
 {
     "pack": {
         "description": {
-            "text": "RealCamera resources"
-          },
-        "forge:server_data_pack_format": 12,
-        "pack_format": 13
+            "text": "${mod_id} resources"
+        },
+        "pack_format": 15
     }
 }

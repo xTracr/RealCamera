@@ -29,5 +29,4 @@ public class RealCameraFabric implements ClientModInitializer {
         KeyBindingHelper.registerKeyBinding(KeyBindings.ADJUST_LEFT);
         KeyBindingHelper.registerKeyBinding(KeyBindings.ADJUST_RIGHT);
     }
-
 }

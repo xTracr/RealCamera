@@ -9,5 +9,4 @@ public class RealCameraMenu implements ModMenuApi {
     public ConfigScreenFactory<?> getModConfigScreenFactory() {
         return ConfigScreen::create;
     }
-
 }
