@@ -6,8 +6,6 @@ issueTrackerURL="https://github.com/xTracr/RealCamera/issues"
 modId="realcamera"
 version="${version}"
 displayName="Real Camera"
-# A URL to query for updates for this mod. See the JSON update specification https://docs.minecraftforge.net/en/latest/misc/updatechecker/
-#updateJSONURL="https://change.me.example.invalid/updates.json" #optional
 displayURL="https://modrinth.com/mod/real-camera"
 logoFile="icon.png"
 credits=""

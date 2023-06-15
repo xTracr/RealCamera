@@ -41,5 +41,4 @@ public class PehkuiCompat {
         final float heightScale = (float)ReflectUtils.invokeMethod(getModelHeightScale, null, entity, tickDelta).orElse(1.0F);
         return vec3d.multiply(widthScale, heightScale, widthScale);
     }
-
 }

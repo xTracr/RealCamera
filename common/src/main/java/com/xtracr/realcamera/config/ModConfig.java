@@ -5,9 +5,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.xtracr.realcamera.utils.Triple;
+
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.util.Pair;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.registry.Registry;
 
@@ -125,18 +126,20 @@ public class ModConfig {
     public class Disable {
 
         protected static final List<String> defaultParts = Arrays.asList("head", "hat", "helmet");
-        protected static final List<Pair<Pair<String, String>, List<String>>> defaultConditions = Arrays.asList(
-            new Pair<>(new Pair<>("minecraft:spyglass", "using"), Arrays.asList("disable_rendering")), 
-            new Pair<>(new Pair<>("Example--minecraft:filled_map", "holding"), Arrays.asList(
+        protected static final Triple<String, List<String>, List<String>> defaultTriple = new Triple<>
+            ("holding", Arrays.asList("new item id"), Arrays.asList("new action"));
+        protected static final List<Triple<String, List<String>, List<String>>> defaultConditions = Arrays.asList(
+            new Triple<>("using", Arrays.asList("minecraft:spyglass"), Arrays.asList("disable_rendering")), 
+            new Triple<>("holding", Arrays.asList("Example--minecraft:filled_map"), Arrays.asList(
                 "allow_rendering_hand", "leftArm", "rightArm", "leftSleeve", "rightSleeve", "heldItem")));
-        protected static final String[] behaviors = {"holding", "using"};
+        protected static final String[] behaviors = {"holding", "attacking", "using"};
 
         public static final Set<String> optionalParts = new HashSet<>(Set.of("head", "hat", "helmet"));
 
         public boolean onlyInBinding = true;
         public boolean renderModelPart = false;
         public List<String> disabledModelParts = defaultParts;
-        public List<Pair<Pair<String, String>, List<String>>> customConditions = defaultConditions;
+        public List<Triple<String, List<String>, List<String>>> customConditions = defaultConditions;
         public boolean fallFlying = true;
         public boolean swiming = false;
         public boolean crawling = false;
@@ -146,7 +149,15 @@ public class ModConfig {
         private void clamp() {
             if (this.disabledModelParts == null) this.disabledModelParts = defaultParts;
             if (this.customConditions == null) this.customConditions = defaultConditions;
+            customConditions.forEach(triple -> resetTripleIfNull(triple, defaultTriple));
         }
+    }
+
+    public static <L, M, R> void resetTripleIfNull(Triple<L, M, R> triple, Triple<L, M, R> source) {
+        if (triple == null) triple = source;
+        if (triple.getLeft() == null) triple.setLeft(source.getLeft());
+        if (triple.getMiddle() == null) triple.setMiddle(source.getMiddle());
+        if (triple.getRight() == null) triple.setRight(source.getRight());
     }
 
     public void set(ModConfig modConfig) {
@@ -368,18 +379,18 @@ public class ModConfig {
 
     // disable
     private boolean shouldDisable(ClientPlayerEntity player, String action) {
-        Set<Boolean> set = new HashSet<>();
-        this.disable.customConditions.forEach(pair -> {
-            if (!pair.getRight().contains(action)) return;
-            String left = pair.getLeft().getLeft();
-            String middle = pair.getLeft().getRight();
-            if (middle.equals("using") && player.isUsingItem()) {
-                set.add(left.equals(Registry.ITEM.getId(player.getActiveItem().getItem()).toString()));
-            } else if (middle.equals("holding")) {
-                set.add(player.isHolding(stack -> left.equals(Registry.ITEM.getId(stack.getItem()).toString())));
-            }
-        });
-        return set.contains(true);
+        boolean b = false;
+        MinecraftClient client = MinecraftClient.getInstance();
+        for (Triple<String, List<String>, List<String>> triple : this.disable.customConditions) {
+            if (!triple.getRight().contains(action)) continue;
+            String behavior = triple.getLeft();
+            List<String> ids = triple.getMiddle();
+            b = b || (player.isHolding(stack -> ids.contains(Registry.ITEM.getId(stack.getItem()).toString())) &&
+                    (behavior.equals("holding")
+                     || (behavior.equals("attacking") && client.options.attackKey.isPressed())
+                     || (behavior.equals("using") && client.options.useKey.isPressed())));
+        }
+        return b;
     }
     public boolean shouldDisableRender(String modelPartName) {
         if (this.disable.onlyInBinding && this.general.classic) return false;
@@ -403,5 +414,4 @@ public class ModConfig {
         if (this.disable.onlyInBinding && this.general.classic) return false;
         return this.shouldDisable(player, "disable_rendering");
     }
-
 }

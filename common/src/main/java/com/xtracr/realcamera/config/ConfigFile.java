@@ -57,5 +57,4 @@ public class ConfigFile {
             RealCamera.LOGGER.warn("Failed to reset " + FILE_NAME, exception);
         }
     }
-
 }

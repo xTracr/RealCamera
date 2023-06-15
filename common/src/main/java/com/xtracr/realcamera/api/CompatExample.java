@@ -90,7 +90,6 @@ public class CompatExample {
             nameMap.put("cloak", "f_103373_");
             nameMap.put("ear", "f_103379_");
         }
-
     }
 
     /**
@@ -127,7 +126,7 @@ public class CompatExample {
      * <p>When you need to handle a {@code Throwable} that makes it impossible for the method to continue running, 
      * simply wrap it in a {@link RuntimeException} and throw it, just like in {@link #getModelPart} here.</p>
      * 
-     * @param tickDelta   or particalTick(s) (official mapping)
+     * @param tickDelta   or partialTick(s) (official mapping)
      * @param matrixStack or poseStack (official mapping)
      * @return {@code boolean} turn to vanilla rendering if true
      * 
@@ -231,5 +230,4 @@ public class CompatExample {
             throw new RuntimeException(exception);
         }
     }
-
 }
