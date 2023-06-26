@@ -33,7 +33,7 @@ public class RealCameraForge {
 
         if (ModList.get().isLoaded("cloth_config")) {
             ModLoadingContext.get().registerExtensionPoint(ConfigScreenFactory.class,
-                    () -> new ConfigScreenFactory((client, parent) -> ConfigScreen.create(parent)));
+                () -> new ConfigScreenFactory((client, parent) -> ConfigScreen.create(parent)));
         }
     }
 

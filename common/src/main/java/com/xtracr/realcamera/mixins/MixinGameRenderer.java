@@ -55,7 +55,7 @@ public abstract class MixinGameRenderer {
         target = "Lnet/minecraft/client/util/math/MatrixStack;push()V"))
     private void setThirdPerson(MatrixStack matrices, Camera camera, float tickDelta, CallbackInfo cInfo) {
         if (ConfigFile.modConfig.isRendering() && camera.isThirdPerson() && RealCameraCore.isActive() && 
-                !ConfigFile.modConfig.allowRenderingHandWhen(client.player)) {
+                !ConfigFile.modConfig.allowRenderingHandWhen(client)) {
             this.client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
             toggled = true;
         }

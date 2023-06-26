@@ -78,6 +78,7 @@
     "config.option.xtracr_realcamera_crawling": "爬行",
     "config.option.xtracr_realcamera_sneaking": "潜行",
     "config.option.xtracr_realcamera_sleeping": "睡觉",
+    "config.option.xtracr_realcamera_screenOpened": "界面开启",
 
     "config.tooltip.xtracr_realcamera_classic": "经典模式只对摄像头的位置和旋转做简单的修改",
     "config.tooltip.xtracr_realcamera_clipToSpace": "限制摄像头位置以防止其进入方块内部",

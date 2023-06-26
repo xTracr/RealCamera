@@ -44,13 +44,13 @@ public class RealCameraCore {
     public static boolean isActive() {
         MinecraftClient client = MinecraftClient.getInstance();
         return config.isEnabled() && client.options.getPerspective().isFirstPerson() && client.gameRenderer.getCamera() != null 
-            && client.player != null && !config.disableModWhen(client.player);
+            && client.player != null && !config.disableModWhen(client);
     }
 
     public static void updateCamera(Camera camera, MinecraftClient client, float tickDelta) {
         cameraRoll = 0.0F;
 
-        if (config.isRendering() && !config.disableRenderingWhen(client.player)) {
+        if (config.isRendering() && !config.disableRenderingWhen(client)) {
             ((CameraAccessor)camera).setThirdPerson(true);
         }
 

@@ -78,6 +78,7 @@
     "config.option.xtracr_realcamera_crawling": "Crawling",
     "config.option.xtracr_realcamera_sneaking": "Sneaking",
     "config.option.xtracr_realcamera_sleeping": "Sleeping",
+    "config.option.xtracr_realcamera_screenOpened": "Screen is Opened",
 
     "config.tooltip.xtracr_realcamera_classic": "Classic mode only makes simple changes to the position and rotation of camera",
     "config.tooltip.xtracr_realcamera_clipToSpace": "Prevent camera from clipping into blocks",

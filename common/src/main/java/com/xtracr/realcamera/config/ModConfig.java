@@ -8,7 +8,6 @@ import java.util.Set;
 import com.xtracr.realcamera.utils.Triple;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.math.MathHelper;
 
@@ -145,6 +144,7 @@ public class ModConfig {
         public boolean crawling = false;
         public boolean sneaking = false;
         public boolean sleeping = false;
+        public boolean screenOpened = false;
 
         private void clamp() {
             if (this.disabledModelParts == null) this.disabledModelParts = defaultParts;
@@ -378,40 +378,40 @@ public class ModConfig {
     }
 
     // disable
-    private boolean shouldDisable(ClientPlayerEntity player, String action) {
+    private boolean shouldDisable(MinecraftClient client, String action) {
         boolean b = false;
-        MinecraftClient client = MinecraftClient.getInstance();
         for (Triple<String, List<String>, List<String>> triple : this.disable.customConditions) {
             if (!triple.getRight().contains(action)) continue;
             String behavior = triple.getLeft();
-            List<String> ids = triple.getMiddle();
-            b = b || (player.isHolding(stack -> ids.contains(Registries.ITEM.getId(stack.getItem()).toString())) &&
-                    (behavior.equals("holding")
-                     || (behavior.equals("attacking") && client.options.attackKey.isPressed())
-                     || (behavior.equals("using") && client.options.useKey.isPressed())));
+            b = b || (client.player.isHolding(stack -> 
+                    triple.getMiddle().contains(Registries.ITEM.getId(stack.getItem()).toString())) &&
+                (behavior.equals("holding")
+                 || (behavior.equals("attacking") && client.options.attackKey.isPressed())
+                 || (behavior.equals("using") && client.options.useKey.isPressed())));
         }
         return b;
     }
     public boolean shouldDisableRender(String modelPartName) {
         if (this.disable.onlyInBinding && this.general.classic) return false;
         return (this.disable.renderModelPart && this.disable.disabledModelParts.contains(modelPartName))
-            || this.shouldDisable(MinecraftClient.getInstance().player, modelPartName);
+            || this.shouldDisable(MinecraftClient.getInstance(), modelPartName);
     }
-    public boolean allowRenderingHandWhen(ClientPlayerEntity player) {
+    public boolean allowRenderingHandWhen(MinecraftClient client) {
         if (this.disable.onlyInBinding && this.general.classic) return false;
-        return this.shouldDisable(player, "allow_rendering_hand");
+        return this.shouldDisable(client, "allow_rendering_hand");
     }
-    public boolean disableModWhen(ClientPlayerEntity player) {
+    public boolean disableModWhen(MinecraftClient client) {
         if (this.disable.onlyInBinding && this.general.classic) return false;
-        return (player.isFallFlying() && this.disable.fallFlying)
-            || (player.isSwimming() && this.disable.swiming)
-            || (player.isCrawling() && this.disable.crawling)
-            || (player.isSneaking() && this.disable.sneaking)
-            || (player.isSleeping() && this.disable.sleeping)
-            || this.shouldDisable(player, "disable_mod");
+        return this.shouldDisable(client, "disable_mod")
+            || (client.player.isFallFlying() && this.disable.fallFlying)
+            || (client.player.isSwimming() && this.disable.swiming)
+            || (client.player.isCrawling() && this.disable.crawling)
+            || (client.player.isSneaking() && this.disable.sneaking)
+            || (client.player.isSleeping() && this.disable.sleeping)
+            || (client.currentScreen != null && this.disable.screenOpened);
     }
-    public boolean disableRenderingWhen(ClientPlayerEntity player) {
+    public boolean disableRenderingWhen(MinecraftClient client) {
         if (this.disable.onlyInBinding && this.general.classic) return false;
-        return this.shouldDisable(player, "disable_rendering");
+        return this.shouldDisable(client, "disable_rendering");
     }
 }
