@@ -1,7 +1,6 @@
 package com.xtracr.realcamera;
 
 import com.xtracr.realcamera.config.ConfigScreen;
-
 import net.minecraftforge.client.ConfigScreenHandler.ConfigScreenFactory;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -33,7 +32,7 @@ public class RealCameraForge {
 
         if (ModList.get().isLoaded("cloth_config")) {
             ModLoadingContext.get().registerExtensionPoint(ConfigScreenFactory.class,
-                () -> new ConfigScreenFactory((client, parent) -> ConfigScreen.create(parent)));
+                    () -> new ConfigScreenFactory((client, parent) -> ConfigScreen.create(parent)));
         }
     }
 

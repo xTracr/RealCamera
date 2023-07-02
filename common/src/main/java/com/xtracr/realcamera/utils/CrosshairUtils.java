@@ -1,7 +1,5 @@
 package com.xtracr.realcamera.utils;
 
-import org.joml.Matrix4f;
-
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.util.Window;
@@ -9,6 +7,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Vec3d;
+import org.joml.Matrix4f;
 
 public class CrosshairUtils {
 
@@ -31,6 +30,6 @@ public class CrosshairUtils {
         }
         Window window = client.getWindow();
         offset = MathUtils.projectToVec2d(hitResult.getPos().subtract(camera.getPos()), projectionMatrices)
-            .multiply(0.5*window.getScaledWidth(), 0.5*window.getScaledHeight(), 0.0D);
+                .multiply(0.5 * window.getScaledWidth(), 0.5 * window.getScaledHeight(), 0.0D);
     }
 }

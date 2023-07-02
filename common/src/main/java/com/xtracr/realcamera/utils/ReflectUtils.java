@@ -1,11 +1,11 @@
 package com.xtracr.realcamera.utils;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Optional;
-
-import org.jetbrains.annotations.Nullable;
 
 public class ReflectUtils {
 
