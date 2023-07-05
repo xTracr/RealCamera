@@ -40,7 +40,7 @@
 	"config.option.xtracr_realcamera_clipToSpace": "Clipper dans l'espace",
 	"config.option.xtracr_realcamera_dynamicCrosshair": "Réticule dynamique",
 	"config.option.xtracr_realcamera_renderModel": "Afficher le modèle du joueur",
-	"config.option.xtracr_realcamera_adjustStep": "Pas d'ajustement",
+	"config.option.xtracr_realcamera_adjustStep": "Ajuster le pas",
 	"config.option.xtracr_realcamera_scale": "Échelle",
 
 	"config.option.xtracr_realcamera_vanillaModelPart": "Partie du modèle vanilla",
@@ -62,7 +62,7 @@
 	"config.option.xtracr_realcamera_useModModel": "Compatibilité avec le modèle du mod",
 	"config.option.xtracr_realcamera_modelModID": "ID du mod du modèle",
 	"config.option.xtracr_realcamera_modModelPart": "Partie du modèle du mod",
-	"config.option.xtracr_realcamera_doABarrelRoll": "Faire un barrel roll",
+	"config.option.xtracr_realcamera_doABarrelRoll": "Faire un tonneau",
 	"config.option.xtracr_realcamera_pehkui": "Pehkui",
 	"config.option.xtracr_realcamera_physicsMod": "Mod de physique",
 
@@ -75,7 +75,7 @@
 	"config.option.xtracr_realcamera_customConditions_actions": "Actions exécutées",
 	"config.option.xtracr_realcamera_fallFlying": "Vol avec l'Élytre",
 	"config.option.xtracr_realcamera_swiming": "Nager",
-	"config.option.xtracr_realcamera_crawling": "Rampage",
+	"config.option.xtracr_realcamera_crawling": "Ramper",
 	"config.option.xtracr_realcamera_sneaking": "S'accroupir",
 	"config.option.xtracr_realcamera_sleeping": "Dormir",
 	"config.option.xtracr_realcamera_screenOpened": "Écran ouvert",
@@ -84,7 +84,7 @@
 	"config.tooltip.xtracr_realcamera_clipToSpace": "Empêche la caméra de traverser les blocs",
 	"config.tooltip.xtracr_realcamera_dynamicCrosshair": "Lorsqu'il est activé, le réticule suit la vue du joueur, assurant un résultat de visée cohérent\nRecommandé de l'activer lorsque Jade, WTHIT ou des mods similaires sont installés",
 	"config.tooltip.xtracr_realcamera_renderModel": "Affiche le modèle du joueur en vue subjective",
-	"config.tooltip.xtracr_realcamera_adjustStep": "Longueur ou 1/4 de l'angle de l'ajustement par étape",
+	"config.tooltip.xtracr_realcamera_adjustStep": "1/4 de l'angle ou de la longueur de l'ajustement par pas",
 	"config.tooltip.xtracr_realcamera_scale": "Contrôle la taille des valeurs de configuration, 16 = 1 bloc",
 
 	"config.tooltip.xtracr_realcamera_vanillaModelPart": "Partie du modèle à lier à la caméra",
