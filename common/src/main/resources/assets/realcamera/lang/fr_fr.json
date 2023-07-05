@@ -33,7 +33,7 @@
 	"config.tooltip.xtracr_realcamera_centerOffset": "Décalage du centre de rotation par rapport à la tête",
 	"config.tooltip.xtracr_realcamera_compatSwitches": "Ces options n'apparaissent que si le mod correspondant est installé",
 	"config.tooltip.xtracr_realcamera_cameraRotation": "Rotation supplémentaire de la caméra en degrés",
-	"config.tooltip.xtracr_realcamera_cameraRotation_n": "Note : Le lacet, le tangage et le roulis sont des rotations respectivement autour des axes de gauche, de haut et d'avant",
+	"config.tooltip.xtracr_realcamera_cameraRotation_n": "Note : Le tangage, le lacet et le roulis sont des rotations respectivement autour des axes de gauche, de haut et d'avant",
 
 	"config.option.xtracr_realcamera_enabled": "Mod activé",
 	"config.option.xtracr_realcamera_classic": "Mode classique",
@@ -45,13 +45,13 @@
 
 	"config.option.xtracr_realcamera_vanillaModelPart": "Partie du modèle vanilla",
 	"config.option.xtracr_realcamera_adjustOffset": "Ajuster le décalage de la caméra",
-	"config.option.xtracr_realcamera_bindPitching": "Lier le lacet",
-	"config.option.xtracr_realcamera_bindYawing": "Lier le tangage",
+	"config.option.xtracr_realcamera_bindPitching": "Lier le tangage",
+	"config.option.xtracr_realcamera_bindYawing": "Lier le lacet",
 	"config.option.xtracr_realcamera_bindRolling": "Lier le roulis",
 	"config.option.xtracr_realcamera_cameraOffset": "Décalage %s de la caméra",
 	"config.option.xtracr_realcamera_referOffset": "Décalage %s du point de référence",
-	"config.option.xtracr_realcamera_pitch": "Lacet",
-	"config.option.xtracr_realcamera_yaw": "Tangage",
+	"config.option.xtracr_realcamera_pitch": "Tangage",
+	"config.option.xtracr_realcamera_yaw": "Lacet",
 	"config.option.xtracr_realcamera_roll": "Roulis",
 
 	"config.option.xtracr_realcamera_classicAdjustMode": "Mode d'ajustement",
