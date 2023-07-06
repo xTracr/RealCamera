@@ -15,7 +15,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GameRenderer.class)
 public abstract class GameRendererEvents {
-
     @Shadow
     @Final MinecraftClient client;
     @Shadow
@@ -26,7 +25,7 @@ public abstract class GameRendererEvents {
             shift = At.Shift.AFTER))
     private void onAfterCameraUpdate(float tickDelta, long limitTime, MatrixStack matrixStack, CallbackInfo cInfo) {
         if (RealCameraCore.isActive()) {
-            RealCameraCore.updateCamera(this.camera, this.client, tickDelta);
+            RealCameraCore.updateCamera(camera, client, tickDelta);
             matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(RealCameraCore.getRoll()));
         }
     }

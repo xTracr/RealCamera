@@ -8,9 +8,7 @@ import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
 
 public final class KeyBindings {
-
     private static final ModConfig config = ConfigFile.modConfig;
-
     private static final String KEY_CATEGORY = "key.category.xtracr_" + RealCamera.MODID;
     private static final String KEY_ID = "key.xtracr_" + RealCamera.MODID + "_";
 
@@ -34,9 +32,7 @@ public final class KeyBindings {
             KEY_ID + "adjustRIGHT", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
 
     public static void handle(MinecraftClient client) {
-        if (client.player == null || client.currentScreen != null) {
-            return;
-        }
+        if (client.player == null || client.currentScreen != null) return;
 
         while (TOGGLE_PERSPECTIVE.wasPressed()) {
             boolean enabled = config.isEnabled();

@@ -15,7 +15,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(PlayerEntityRenderer.class)
 public abstract class MixinPlayerEntityRenderer
         extends LivingEntityRenderer<AbstractClientPlayerEntity, PlayerEntityModel<AbstractClientPlayerEntity>> {
-
     public MixinPlayerEntityRenderer(Context ctx, PlayerEntityModel<AbstractClientPlayerEntity> model,
             float shadowRadius) {
         super(ctx, model, shadowRadius);
@@ -24,17 +23,17 @@ public abstract class MixinPlayerEntityRenderer
     @Inject(method = "setModelPose", at = @At("RETURN"))
     private void onSetModelPoseRETURN(AbstractClientPlayerEntity player, CallbackInfo cInfo) {
         if (!(player instanceof ClientPlayerEntity)) return;
-        if (VirtualRenderer.shouldDisableRender("head")) this.getModel().head.visible = false;
-        if (VirtualRenderer.shouldDisableRender("hat")) this.getModel().hat.visible = false;
-        if (VirtualRenderer.shouldDisableRender("body")) this.getModel().body.visible = false;
-        if (VirtualRenderer.shouldDisableRender("rightArm")) this.getModel().rightArm.visible = false;
-        if (VirtualRenderer.shouldDisableRender("leftArm")) this.getModel().leftArm.visible = false;
-        if (VirtualRenderer.shouldDisableRender("rightLeg")) this.getModel().rightLeg.visible = false;
-        if (VirtualRenderer.shouldDisableRender("leftLeg")) this.getModel().leftLeg.visible = false;
-        if (VirtualRenderer.shouldDisableRender("leftSleeve")) this.getModel().leftSleeve.visible = false;
-        if (VirtualRenderer.shouldDisableRender("rightSleeve")) this.getModel().rightSleeve.visible = false;
-        if (VirtualRenderer.shouldDisableRender("leftPants")) this.getModel().leftPants.visible = false;
-        if (VirtualRenderer.shouldDisableRender("rightPants")) this.getModel().rightPants.visible = false;
-        if (VirtualRenderer.shouldDisableRender("jacket")) this.getModel().jacket.visible = false;
+        if (VirtualRenderer.shouldDisableRender("head")) model.head.visible = false;
+        if (VirtualRenderer.shouldDisableRender("hat")) model.hat.visible = false;
+        if (VirtualRenderer.shouldDisableRender("body")) model.body.visible = false;
+        if (VirtualRenderer.shouldDisableRender("rightArm")) model.rightArm.visible = false;
+        if (VirtualRenderer.shouldDisableRender("leftArm")) model.leftArm.visible = false;
+        if (VirtualRenderer.shouldDisableRender("rightLeg")) model.rightLeg.visible = false;
+        if (VirtualRenderer.shouldDisableRender("leftLeg")) model.leftLeg.visible = false;
+        if (VirtualRenderer.shouldDisableRender("leftSleeve")) model.leftSleeve.visible = false;
+        if (VirtualRenderer.shouldDisableRender("rightSleeve")) model.rightSleeve.visible = false;
+        if (VirtualRenderer.shouldDisableRender("leftPants")) model.leftPants.visible = false;
+        if (VirtualRenderer.shouldDisableRender("rightPants")) model.rightPants.visible = false;
+        if (VirtualRenderer.shouldDisableRender("jacket")) model.jacket.visible = false;
     }
 }

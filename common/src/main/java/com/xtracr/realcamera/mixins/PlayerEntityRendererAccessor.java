@@ -8,7 +8,6 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(PlayerEntityRenderer.class)
 public interface PlayerEntityRendererAccessor {
-
     @Invoker
     void invokeSetModelPose(AbstractClientPlayerEntity player);
 

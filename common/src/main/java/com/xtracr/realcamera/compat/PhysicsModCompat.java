@@ -14,7 +14,6 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 
 public class PhysicsModCompat {
-
     public static final boolean loaded = ReflectUtils.isLoaded("net.diebuddies.physics.PhysicsMod");
 
     private static final Optional<Field> EntityRenderDispatcher_worldField;

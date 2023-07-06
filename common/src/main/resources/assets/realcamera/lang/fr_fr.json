@@ -74,7 +74,7 @@
 	"config.option.xtracr_realcamera_customConditions_behavior": "Comportement du joueur",
 	"config.option.xtracr_realcamera_customConditions_actions": "Actions exécutées",
 	"config.option.xtracr_realcamera_fallFlying": "Vol avec l'Élytre",
-	"config.option.xtracr_realcamera_swiming": "Nager",
+	"config.option.xtracr_realcamera_swimming": "Nager",
 	"config.option.xtracr_realcamera_crawling": "Ramper",
 	"config.option.xtracr_realcamera_sneaking": "S'accroupir",
 	"config.option.xtracr_realcamera_sleeping": "Dormir",

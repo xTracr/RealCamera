@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Set;
 
 public class ModConfig {
-
     protected static final double MIN_DOUBLE = -64.0D;
     protected static final double MAX_DOUBLE = 64.0D;
 
@@ -29,258 +28,258 @@ public class ModConfig {
     }
 
     public void set(ModConfig modConfig) {
-        this.general = modConfig.general;
-        this.binding = modConfig.binding;
-        this.classic = modConfig.classic;
-        this.compats = modConfig.compats;
-        this.disable = modConfig.disable;
+        general = modConfig.general;
+        binding = modConfig.binding;
+        classic = modConfig.classic;
+        compats = modConfig.compats;
+        disable = modConfig.disable;
     }
 
     public void clamp() {
-        this.general.clamp();
-        this.binding.clamp();
-        this.classic.clamp();
-        this.disable.clamp();
+        general.clamp();
+        binding.clamp();
+        classic.clamp();
+        disable.clamp();
     }
 
     public boolean isEnabled() {
-        return this.general.enabled;
+        return general.enabled;
     }
 
     public void setEnabled(boolean value) {
-        this.general.enabled = value;
+        general.enabled = value;
     }
 
     public boolean isClassic() {
-        return this.general.classic;
+        return general.classic;
     }
 
     public void setClassic(boolean value) {
-        this.general.classic = value;
+        general.classic = value;
     }
 
     public boolean doClipToSpace() {
-        return this.general.clipToSpace;
+        return general.clipToSpace;
     }
 
     public boolean isCrosshairDynamic() {
-        return this.general.dynamicCrosshair;
+        return general.dynamicCrosshair;
     }
 
     public boolean isRendering() {
-        return this.general.renderModel;
+        return general.renderModel;
     }
 
     public double getAdjustStep() {
-        return this.general.adjustStep;
+        return general.adjustStep;
     }
 
     public double getScale() {
-        return this.general.scale * 0.0625D;
+        return general.scale * 0.0625D;
     }
 
     // binding
     public VanillaModelPart getVanillaModelPart() {
-        return this.binding.vanillaModelPart;
+        return binding.vanillaModelPart;
     }
 
     public boolean isAdjustingOffset() {
-        return this.binding.adjustOffset;
+        return binding.adjustOffset;
     }
 
     public double getBindingX() {
-        return this.binding.cameraX;
+        return binding.cameraX;
     }
 
     public double getBindingY() {
-        return this.binding.cameraY;
+        return binding.cameraY;
     }
 
     public double getBindingZ() {
-        return this.binding.cameraZ;
+        return binding.cameraZ;
     }
 
     public double getBindingRX() {
-        return this.binding.referX;
+        return binding.referX;
     }
 
     public double getBindingRY() {
-        return this.binding.referY;
+        return binding.referY;
     }
 
     public double getBindingRZ() {
-        return this.binding.referZ;
+        return binding.referZ;
     }
 
     public boolean isPitchingBound() {
-        return this.binding.bindPitching;
+        return binding.bindPitching;
     }
 
     public boolean isYawingBound() {
-        return this.binding.bindYawing;
+        return binding.bindYawing;
     }
 
     public boolean isRollingBound() {
-        return this.binding.bindRolling;
+        return binding.bindRolling;
     }
 
     public float getBindingPitch() {
-        return this.binding.pitch;
+        return binding.pitch;
     }
 
     public float getBindingYaw() {
-        return this.binding.yaw;
+        return binding.yaw;
     }
 
     public float getBindingRoll() {
-        return this.binding.roll;
+        return binding.roll;
     }
 
     public void setAdjustOffset(boolean value) {
-        this.binding.adjustOffset = value;
+        binding.adjustOffset = value;
     }
 
     public void adjustBindingX(boolean add) {
         int s = add ? 1 : -1;
-        if (this.isAdjustingOffset()) this.binding.cameraX += s * getAdjustStep();
-        else this.binding.roll += s * 4 * (float) getAdjustStep();
-        this.binding.clamp();
+        if (isAdjustingOffset()) binding.cameraX += s * getAdjustStep();
+        else binding.roll += s * 4 * (float) getAdjustStep();
+        binding.clamp();
     }
 
     public void adjustBindingY(boolean add) {
         int s = add ? 1 : -1;
-        if (this.isAdjustingOffset()) this.binding.cameraY += s * getAdjustStep();
-        else this.binding.yaw += s * 4 * (float) getAdjustStep();
-        this.binding.clamp();
+        if (isAdjustingOffset()) binding.cameraY += s * getAdjustStep();
+        else binding.yaw += s * 4 * (float) getAdjustStep();
+        binding.clamp();
     }
 
     public void adjustBindingZ(boolean add) {
         int s = add ? 1 : -1;
-        if (this.isAdjustingOffset()) this.binding.cameraZ += s * getAdjustStep();
-        else this.binding.pitch += s * 4 * (float) getAdjustStep();
-        this.binding.clamp();
+        if (isAdjustingOffset()) binding.cameraZ += s * getAdjustStep();
+        else binding.pitch += s * 4 * (float) getAdjustStep();
+        binding.clamp();
     }
 
     // classic
     public Classic.AdjustMode getClassicAdjustMode() {
-        return this.classic.adjustMode;
+        return classic.adjustMode;
     }
 
     public double getClassicX() {
-        return this.classic.cameraX;
+        return classic.cameraX;
     }
 
     public double getClassicY() {
-        return this.classic.cameraY;
+        return classic.cameraY;
     }
 
     public double getClassicZ() {
-        return this.classic.cameraZ;
+        return classic.cameraZ;
     }
 
     public double getClassicRX() {
-        return this.classic.referX;
+        return classic.referX;
     }
 
     public double getClassicRY() {
-        return this.classic.referY;
+        return classic.referY;
     }
 
     public double getClassicRZ() {
-        return this.classic.referZ;
+        return classic.referZ;
     }
 
     public double getCenterX() {
-        return this.classic.centerX;
+        return classic.centerX;
     }
 
     public double getCenterY() {
-        return this.classic.centerY;
+        return classic.centerY;
     }
 
     public double getCenterZ() {
-        return this.classic.centerZ;
+        return classic.centerZ;
     }
 
     public float getClassicPitch() {
-        return this.classic.pitch;
+        return classic.pitch;
     }
 
     public float getClassicYaw() {
-        return this.classic.yaw;
+        return classic.yaw;
     }
 
     public float getClassicRoll() {
-        return this.classic.roll;
+        return classic.roll;
     }
 
     public void cycleClassicAdjustMode() {
-        this.classic.adjustMode = this.classic.adjustMode.cycle();
+        classic.adjustMode = classic.adjustMode.cycle();
     }
 
     public void adjustClassicX(boolean add) {
         int s = add ? 1 : -1;
-        switch (this.classic.adjustMode) {
-            case CENTER -> this.classic.centerX += s * getAdjustStep();
-            case ROTATION -> this.classic.roll += s * 4 * (float) getAdjustStep();
-            default -> this.classic.cameraX += s * getAdjustStep();
+        switch (classic.adjustMode) {
+            case CENTER -> classic.centerX += s * getAdjustStep();
+            case ROTATION -> classic.roll += s * 4 * (float) getAdjustStep();
+            default -> classic.cameraX += s * getAdjustStep();
         }
-        this.classic.clamp();
+        classic.clamp();
     }
 
     public void adjustClassicY(boolean add) {
         int s = add ? 1 : -1;
-        switch (this.classic.adjustMode) {
-            case CENTER -> this.classic.centerY += s * getAdjustStep();
-            case ROTATION -> this.classic.yaw += s * 4 * (float) getAdjustStep();
-            default -> this.classic.cameraY += s * getAdjustStep();
+        switch (classic.adjustMode) {
+            case CENTER -> classic.centerY += s * getAdjustStep();
+            case ROTATION -> classic.yaw += s * 4 * (float) getAdjustStep();
+            default -> classic.cameraY += s * getAdjustStep();
         }
-        this.classic.clamp();
+        classic.clamp();
     }
 
     public void adjustClassicZ(boolean add) {
         int s = add ? 1 : -1;
-        switch (this.classic.adjustMode) {
-            case CENTER -> this.classic.centerZ += s * getAdjustStep();
-            case ROTATION -> this.classic.pitch += s * 4 * (float) getAdjustStep();
-            default -> this.classic.cameraZ += s * getAdjustStep();
+        switch (classic.adjustMode) {
+            case CENTER -> classic.centerZ += s * getAdjustStep();
+            case ROTATION -> classic.pitch += s * 4 * (float) getAdjustStep();
+            default -> classic.cameraZ += s * getAdjustStep();
         }
-        this.classic.clamp();
+        classic.clamp();
     }
 
     // compats
     public boolean isUsingModModel() {
-        return this.compats.useModModel;
+        return compats.useModModel;
     }
 
     public String getModelModID() {
-        return this.compats.modelModID;
+        return compats.modelModID;
     }
 
     public String getModModelPartName() {
-        return this.compats.modModelPart;
+        return compats.modModelPart;
     }
 
     public boolean compatDoABarrelRoll() {
-        return this.compats.doABarrelRoll;
+        return compats.doABarrelRoll;
     }
 
     public boolean compatPehkui() {
-        return this.compats.pehkui;
+        return compats.pehkui;
     }
 
     public boolean compatPhysicsMod() {
-        return this.compats.physicsMod;
+        return compats.physicsMod;
     }
 
     // disable
     private boolean shouldDisable(MinecraftClient client, String action) {
         boolean b = false;
-        for (Triple<String, List<String>, List<String>> triple : this.disable.customConditions) {
+        for (Triple<String, List<String>, List<String>> triple : disable.customConditions) {
             if (!triple.getRight().contains(action)) continue;
             String behavior = triple.getLeft();
             b = b || (client.player.isHolding(stack ->
-                    triple.getMiddle().contains(Registries.ITEM.getId(stack.getItem()).toString())) &&
+                            triple.getMiddle().contains(Registries.ITEM.getId(stack.getItem()).toString())) &&
                     (behavior.equals("holding") ||
                             (behavior.equals("attacking") && client.options.attackKey.isPressed()) ||
                             (behavior.equals("using") && client.options.useKey.isPressed())));
@@ -289,34 +288,33 @@ public class ModConfig {
     }
 
     public boolean shouldDisableRender(String modelPartName) {
-        if (this.disable.onlyInBinding && this.general.classic) return false;
-        return (this.disable.renderModelPart && this.disable.disabledModelParts.contains(modelPartName)) ||
-                this.shouldDisable(MinecraftClient.getInstance(), modelPartName);
+        if (disable.onlyInBinding && general.classic) return false;
+        return (disable.renderModelPart && disable.disabledModelParts.contains(modelPartName)) ||
+                shouldDisable(MinecraftClient.getInstance(), modelPartName);
     }
 
     public boolean allowRenderingHandWhen(MinecraftClient client) {
-        if (this.disable.onlyInBinding && this.general.classic) return false;
-        return this.shouldDisable(client, "allow_rendering_hand");
+        if (disable.onlyInBinding && general.classic) return false;
+        return shouldDisable(client, "allow_rendering_hand");
     }
 
     public boolean disableModWhen(MinecraftClient client) {
-        if (this.disable.onlyInBinding && this.general.classic) return false;
-        return this.shouldDisable(client, "disable_mod") ||
-                (client.player.isFallFlying() && this.disable.fallFlying) ||
-                (client.player.isSwimming() && this.disable.swiming) ||
-                (client.player.isCrawling() && this.disable.crawling) ||
-                (client.player.isSneaking() && this.disable.sneaking) ||
-                (client.player.isSleeping() && this.disable.sleeping) ||
-                (client.currentScreen != null && this.disable.screenOpened);
+        if (disable.onlyInBinding && general.classic) return false;
+        return shouldDisable(client, "disable_mod") ||
+                (client.player.isFallFlying() && disable.fallFlying) ||
+                (client.player.isSwimming() && disable.swimming) ||
+                (client.player.isCrawling() && disable.crawling) ||
+                (client.player.isSneaking() && disable.sneaking) ||
+                (client.player.isSleeping() && disable.sleeping) ||
+                (client.currentScreen != null && disable.screenOpened);
     }
 
     public boolean disableRenderingWhen(MinecraftClient client) {
-        if (this.disable.onlyInBinding && this.general.classic) return false;
-        return this.shouldDisable(client, "disable_rendering");
+        if (disable.onlyInBinding && general.classic) return false;
+        return shouldDisable(client, "disable_rendering");
     }
 
     public static class General {
-
         public boolean enabled = false;
         public boolean classic = false;
         public boolean clipToSpace = true;
@@ -332,7 +330,6 @@ public class ModConfig {
     }
 
     public static class Binding {
-
         public VanillaModelPart vanillaModelPart = VanillaModelPart.head;
         public boolean adjustOffset = true;
         public double cameraX = 3.25D;
@@ -363,7 +360,6 @@ public class ModConfig {
     }
 
     public static class Classic {
-
         public AdjustMode adjustMode = AdjustMode.CAMERA;
         public double cameraX = -60.0D;
         public double cameraY = 2.0D;
@@ -400,13 +396,12 @@ public class ModConfig {
             private static final AdjustMode[] VALUES = values();
 
             public AdjustMode cycle() {
-                return VALUES[(this.ordinal() + 1) % VALUES.length];
+                return VALUES[(ordinal() + 1) % VALUES.length];
             }
         }
     }
 
     public static class Compats {
-
         public boolean useModModel = false;
         public String modelModID = "minecraft";
         public String modModelPart = "head";
@@ -416,7 +411,6 @@ public class ModConfig {
     }
 
     public static class Disable {
-
         public static final Set<String> optionalParts = new HashSet<>(Set.of("head", "hat", "helmet"));
         protected static final List<String> defaultParts = Arrays.asList("head", "hat", "helmet");
         protected static final Triple<String, List<String>, List<String>> defaultTriple = new Triple<>
@@ -431,15 +425,15 @@ public class ModConfig {
         public List<String> disabledModelParts = defaultParts;
         public List<Triple<String, List<String>, List<String>>> customConditions = defaultConditions;
         public boolean fallFlying = true;
-        public boolean swiming = false;
+        public boolean swimming = false;
         public boolean crawling = false;
         public boolean sneaking = false;
         public boolean sleeping = false;
         public boolean screenOpened = false;
 
         private void clamp() {
-            if (this.disabledModelParts == null) this.disabledModelParts = defaultParts;
-            if (this.customConditions == null) this.customConditions = defaultConditions;
+            if (disabledModelParts == null) disabledModelParts = defaultParts;
+            if (customConditions == null) customConditions = defaultConditions;
             customConditions.forEach(triple -> resetTripleIfNull(triple, defaultTriple));
         }
     }

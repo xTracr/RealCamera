@@ -34,6 +34,11 @@
 
 ### 兼容性 ###
 
+* 引起崩溃:
+  * OptiFine
+* 不兼容:
+  * Yes Steve Model(GeckoLib?)
+  * Customizable Player Models
 * 兼容:
   * 大多数摄像头模组
   * Player Animation Lib
@@ -41,11 +46,6 @@
   * First Person Model
   * Pehkui
   * Epic Fight
-* 不兼容:
-  * Yes Steve Model(GeckoLib?)
-  * Customizable Player Models
-* 引起崩溃:
-  * OptiFine
 
 [^1]:建议在 *更多动画* 的配置内禁用`Animation Smoothing`选项。
 

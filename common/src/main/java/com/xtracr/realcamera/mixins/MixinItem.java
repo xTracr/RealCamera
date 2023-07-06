@@ -15,7 +15,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Item.class)
 public abstract class MixinItem {
-
     @Inject(method = "raycast", at = @At("HEAD"), cancellable = true)
     private static void coverRaycast(World world, PlayerEntity player, RaycastContext.FluidHandling fluidHandling,
             CallbackInfoReturnable<BlockHitResult> cInfo) {

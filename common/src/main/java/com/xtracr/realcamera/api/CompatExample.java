@@ -28,16 +28,12 @@ import java.util.function.BiPredicate;
  * for information about it.</p>
  */
 public class CompatExample {
-
     /**
      * <b>mandatory</b>
-     *
-     * <p>But it's not necessary to use your mod's {@code modid}.</p>
      */
     public static final String modid = "minecraft";
 
     private static final Map<String, String> nameMap = new HashMap<>();
-
     /**
      * {@code = VirtualRenderer.class.getDeclaredMethod("getModelPartName")}
      *

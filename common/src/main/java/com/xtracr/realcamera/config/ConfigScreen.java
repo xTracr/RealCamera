@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class ConfigScreen {
-
     private static final String CATEGORY = "config.category.xtracr_" + RealCamera.MODID + "_";
     private static final String OPTION = "config.option.xtracr_" + RealCamera.MODID + "_";
     private static final String TOOLTIP = "config.tooltip.xtracr_" + RealCamera.MODID + "_";
@@ -261,8 +260,8 @@ public class ConfigScreen {
                 .build());
         compats.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "useModModel"), config.compats.useModModel)
                 .setDefaultValue(false)
-                .setTooltip(Text.translatable(TOOLTIP + "useModModel", Text.literal((config.compats.useModModel ? RealCameraCore.status : "Disabled")).styled(
-                        s -> s.withColor((config.compats.useModModel ? (RealCameraCore.status.equals("Successful") ? Formatting.GREEN : Formatting.RED) : Formatting.YELLOW)))))
+                .setTooltip(Text.translatable(TOOLTIP + "useModModel", Text.literal((config.compats.useModModel ? RealCameraCore.getStatus() : "Disabled")).styled(
+                        s -> s.withColor((config.compats.useModModel ? (RealCameraCore.getStatus().equals("Successful") ? Formatting.GREEN : Formatting.RED) : Formatting.YELLOW)))))
                 .setSaveConsumer(b -> config.compats.useModModel = b)
                 .build());
         compats.addEntry(entryBuilder.startSelector(Text.translatable(OPTION + "modelModID"), VirtualRenderer.getModidList(), config.compats.modelModID)
@@ -336,9 +335,9 @@ public class ConfigScreen {
                 .setDefaultValue(true)
                 .setSaveConsumer(b -> config.disable.fallFlying = b)
                 .build());
-        disableModWhen.add(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "swiming"), config.disable.swiming)
+        disableModWhen.add(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "swimming"), config.disable.swimming)
                 .setDefaultValue(false)
-                .setSaveConsumer(b -> config.disable.swiming = b)
+                .setSaveConsumer(b -> config.disable.swimming = b)
                 .build());
         disableModWhen.add(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "crawling"), config.disable.crawling)
                 .setDefaultValue(false)

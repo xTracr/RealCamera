@@ -9,7 +9,6 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 
 public class PehkuiCompat {
-
     public static final boolean loaded = ReflectUtils.isLoaded("virtuoel.pehkui.Pehkui");
 
     private static final Optional<Method> getModelWidthScale;

@@ -21,6 +21,6 @@ public enum VanillaModelPart {
     }
 
     public ModelPart get(PlayerEntityModel<AbstractClientPlayerEntity> playerModel) {
-        return this.function.apply(playerModel);
+        return function.apply(playerModel);
     }
 }

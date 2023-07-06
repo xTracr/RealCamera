@@ -26,7 +26,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GameRenderer.class)
 public abstract class MixinGameRenderer {
-
     @Unique
     private static boolean toggled = false;
 
@@ -39,11 +38,11 @@ public abstract class MixinGameRenderer {
         if (!ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
             Vec3d startVec = RaycastUtils.getStartVec();
             Vec3d endVec = RaycastUtils.getEndVec();
-            double sqDistance = (this.client.crosshairTarget != null ?
-                    this.client.crosshairTarget.getPos().squaredDistanceTo(startVec) : endVec.squaredDistanceTo(startVec));
-            Entity cameraEntity = this.client.getCameraEntity();
-            Box box = cameraEntity.getBoundingBox().stretch(cameraEntity.getRotationVec(this.client.getTickDelta())
-                    .multiply(this.client.interactionManager.getReachDistance())).expand(1.0, 1.0, 1.0);
+            double sqDistance = (client.crosshairTarget != null ?
+                    client.crosshairTarget.getPos().squaredDistanceTo(startVec) : endVec.squaredDistanceTo(startVec));
+            Entity cameraEntity = client.getCameraEntity();
+            Box box = cameraEntity.getBoundingBox().stretch(cameraEntity.getRotationVec(client.getTickDelta())
+                    .multiply(client.interactionManager.getReachDistance())).expand(1.0, 1.0, 1.0);
             CrosshairUtils.capturedEntityHitResult = ProjectileUtil.raycast(cameraEntity, startVec, endVec, box, entity -> !entity.isSpectator() && entity.canHit(), sqDistance);
         }
         return CrosshairUtils.capturedEntityHitResult;
@@ -54,7 +53,7 @@ public abstract class MixinGameRenderer {
     private void setThirdPerson(MatrixStack matrices, Camera camera, float tickDelta, CallbackInfo cInfo) {
         if (ConfigFile.modConfig.isRendering() && camera.isThirdPerson() && RealCameraCore.isActive() &&
                 !ConfigFile.modConfig.allowRenderingHandWhen(client)) {
-            this.client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
+            client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
             toggled = true;
         }
     }
@@ -63,7 +62,7 @@ public abstract class MixinGameRenderer {
             target = "Lnet/minecraft/client/util/math/MatrixStack;pop()V"))
     private void setFirstPerson(CallbackInfo cInfo) {
         if (toggled) {
-            this.client.options.setPerspective(Perspective.FIRST_PERSON);
+            client.options.setPerspective(Perspective.FIRST_PERSON);
             toggled = false;
         }
     }

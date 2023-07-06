@@ -6,7 +6,6 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 
 public class DoABarrelRollCompat {
-
     public static final boolean loaded = ReflectUtils.isLoaded("nl.enjarai.doabarrelroll.DoABarrelRollClient");
 
     private static final Optional<Object> modConfigInstance;

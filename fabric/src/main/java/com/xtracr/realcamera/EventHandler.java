@@ -6,7 +6,6 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
 
 public class EventHandler {
-
     public static void onWorldRenderStart(WorldRenderContext context) {
         RealCameraCore.isRenderingWorld = true;
         if (ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {

@@ -10,7 +10,6 @@ import net.minecraftforge.client.event.ViewportEvent.ComputeCameraAngles;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class EventHandler {
-
     @SubscribeEvent
     public static void onKeyInput(Key event) {
         KeyBindings.handle(MinecraftClient.getInstance());

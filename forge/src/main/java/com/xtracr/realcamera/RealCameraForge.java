@@ -14,7 +14,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 @Mod(RealCamera.MODID)
 public class RealCameraForge {
-
     public RealCameraForge() {
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
         eventBus.addListener(this::clientSetup);
@@ -23,7 +22,6 @@ public class RealCameraForge {
 
     @SubscribeEvent
     public void clientSetup(FMLClientSetupEvent event) {
-
         RealCamera.setup();
 
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onKeyInput);

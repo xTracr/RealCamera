@@ -74,7 +74,7 @@
     "config.option.xtracr_realcamera_customConditions_behavior": "玩家行为",
     "config.option.xtracr_realcamera_customConditions_actions": "执行的动作",
     "config.option.xtracr_realcamera_fallFlying": "鞘翅飞行",
-    "config.option.xtracr_realcamera_swiming": "游泳",
+    "config.option.xtracr_realcamera_swimming": "游泳",
     "config.option.xtracr_realcamera_crawling": "爬行",
     "config.option.xtracr_realcamera_sneaking": "潜行",
     "config.option.xtracr_realcamera_sleeping": "睡觉",

@@ -12,7 +12,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(InGameHud.class)
 public abstract class MixinInGameHud {
-
     @Inject(method = "renderCrosshair(Lnet/minecraft/client/gui/DrawContext;)V", at = @At("HEAD"))
     private void onRenderCrosshairHEAD(DrawContext context, CallbackInfo cInfo) {
         if (ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {

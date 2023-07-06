@@ -16,7 +16,6 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(ClientPlayerEntity.class)
 public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity {
-
     public MixinClientPlayerEntity(ClientWorld world, GameProfile profile) {
         super(world, profile);
     }
@@ -32,7 +31,7 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
     public HitResult raycast(double maxDistance, float tickDelta, boolean includeFluids) {
         if (!ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
             RaycastUtils.update(this, maxDistance * maxDistance, tickDelta);
-            return this.getWorld().raycast(RaycastUtils.getRaycastContext(RaycastContext.ShapeType.OUTLINE,
+            return getWorld().raycast(RaycastUtils.getRaycastContext(RaycastContext.ShapeType.OUTLINE,
                     includeFluids ? RaycastContext.FluidHandling.ANY : RaycastContext.FluidHandling.NONE, this));
         }
         return super.raycast(maxDistance, tickDelta, includeFluids);

@@ -27,11 +27,15 @@ import org.joml.Matrix3f;
 import org.joml.Vector4f;
 
 public class RealCameraCore {
-
     private static final ModConfig config = ConfigFile.modConfig;
-    public static String status = "Successful";
+
     public static boolean isRenderingWorld = false;
+    private static String status = "Successful";
     private static float cameraRoll = 0.0F;
+
+    public static String getStatus() {
+        return status;
+    }
 
     public static float getRoll() {
         return cameraRoll;
@@ -59,7 +63,6 @@ public class RealCameraCore {
     }
 
     private static void classicModeUpdate(Camera camera, MinecraftClient client, float tickDelta) {
-        CameraAccessor cameraAccessor = (CameraAccessor) camera;
         ClientPlayerEntity player = client.player;
 
         float centerYaw = camera.getYaw();
@@ -79,13 +82,13 @@ public class RealCameraCore {
             center = PehkuiCompat.scaleVec3d(center, player, tickDelta);
         }
 
-        cameraAccessor.invokeSetRotation(centerYaw, 0.0F);
-        cameraAccessor.invokeMoveBy(center.getX(), center.getY(), center.getZ());
-        cameraAccessor.invokeSetRotation(yaw, pitch);
+        ((CameraAccessor) camera).invokeSetRotation(centerYaw, 0.0F);
+        ((CameraAccessor) camera).invokeMoveBy(center.getX(), center.getY(), center.getZ());
+        ((CameraAccessor) camera).invokeSetRotation(yaw, pitch);
         offset = offset.subtract(refer);
-        cameraAccessor.invokeMoveBy(refer.getX(), refer.getY(), refer.getZ());
+        ((CameraAccessor) camera).invokeMoveBy(refer.getX(), refer.getY(), refer.getZ());
         Vec3d referVec = camera.getPos();
-        cameraAccessor.invokeMoveBy(offset.getX(), offset.getY(), offset.getZ());
+        ((CameraAccessor) camera).invokeMoveBy(offset.getX(), offset.getY(), offset.getZ());
         clipCameraToSpace(camera, referVec);
     }
 
@@ -193,21 +196,14 @@ public class RealCameraCore {
         float h = MathHelper.lerpAngleDegrees(tickDelta, player.prevBodyYaw, player.bodyYaw);
         float j = MathHelper.lerpAngleDegrees(tickDelta, player.prevHeadYaw, player.headYaw);
         float k = j - h;
-        if (player.hasVehicle() && player.getVehicle() instanceof LivingEntity) {
-            LivingEntity vehicle = (LivingEntity) player.getVehicle();
+        if (player.hasVehicle() && player.getVehicle() instanceof LivingEntity vehicle) {
             h = MathHelper.lerpAngleDegrees(tickDelta, vehicle.prevBodyYaw, vehicle.bodyYaw);
             k = j - h;
             float l = MathHelper.wrapDegrees(k);
-            if (l < -85.0f) {
-                l = -85.0f;
-            }
-            if (l >= 85.0f) {
-                l = 85.0f;
-            }
+            if (l < -85.0f) l = -85.0f;
+            else if (l >= 85.0f) l = 85.0f;
             h = j - l;
-            if (l * l > 2500.0f) {
-                h += l * 0.2f;
-            }
+            if (l * l > 2500.0f) h += l * 0.2f;
             k = j - h;
         }
         float m = MathHelper.lerp(tickDelta, player.prevPitch, player.getPitch());
@@ -229,12 +225,8 @@ public class RealCameraCore {
         if (!player.hasVehicle() && player.isAlive()) {
             n = player.limbAnimator.getSpeed(tickDelta);
             o = player.limbAnimator.getPos(tickDelta);
-            if (player.isBaby()) {
-                o *= 3.0f;
-            }
-            if (n > 1.0f) {
-                n = 1.0f;
-            }
+            if (player.isBaby()) o *= 3.0f;
+            if (n > 1.0f) n = 1.0f;
         }
         playerModel.animateModel(player, o, n, tickDelta);
         playerModel.setAngles(player, o, n, l, k, m);

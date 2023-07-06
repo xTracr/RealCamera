@@ -13,8 +13,8 @@ import java.util.function.BiPredicate;
  * @see CompatExample
  */
 public class VirtualRenderer {
-
     public static final ModConfig config = ConfigFile.modConfig;
+
     private static final Map<String, BiPredicate<Float, MatrixStack>> functionProvider = new HashMap<>();
 
     /**

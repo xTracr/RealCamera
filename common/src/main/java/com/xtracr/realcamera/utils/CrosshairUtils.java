@@ -10,9 +10,7 @@ import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 
 public class CrosshairUtils {
-
     public static EntityHitResult capturedEntityHitResult;
-
     private static Vec3d offset = Vec3d.ZERO;
 
     public static void translateMatrices(MatrixStack matrixStack) {
