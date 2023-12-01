@@ -113,24 +113,6 @@ public class ConfigScreen {
                 .setMax(ModConfig.MAX_DOUBLE)
                 .setSaveConsumer(d -> config.binding.cameraZ = d)
                 .build());
-        bindingCameraOffset.add(entryBuilder.startDoubleField(Text.translatable(OPTION + "referOffset", "X"), config.binding.referX)
-                .setDefaultValue(3.25D)
-                .setMin(ModConfig.MIN_DOUBLE)
-                .setMax(ModConfig.MAX_DOUBLE)
-                .setSaveConsumer(d -> config.binding.referX = d)
-                .build());
-        bindingCameraOffset.add(entryBuilder.startDoubleField(Text.translatable(OPTION + "referOffset", "Y"), config.binding.referY)
-                .setDefaultValue(2.0D)
-                .setMin(ModConfig.MIN_DOUBLE)
-                .setMax(ModConfig.MAX_DOUBLE)
-                .setSaveConsumer(d -> config.binding.referY = d)
-                .build());
-        bindingCameraOffset.add(entryBuilder.startDoubleField(Text.translatable(OPTION + "referOffset", "Z"), config.binding.referZ)
-                .setDefaultValue(0.0D)
-                .setMin(ModConfig.MIN_DOUBLE)
-                .setMax(ModConfig.MAX_DOUBLE)
-                .setSaveConsumer(d -> config.binding.referZ = d)
-                .build());
         binding.addEntry(bindingCameraOffset.build());
         SubCategoryBuilder bindingCameraRotation = entryBuilder.startSubCategory(Text.translatable(CATEGORY + "cameraRotation"))
                 .setTooltip(Text.translatable(TOOLTIP + "cameraRotation"), Text.translatable(TOOLTIP + "cameraRotation_n"));
@@ -190,24 +172,6 @@ public class ConfigScreen {
                 .setMin(ModConfig.MIN_DOUBLE)
                 .setMax(ModConfig.MAX_DOUBLE)
                 .setSaveConsumer(d -> config.classic.cameraZ = d)
-                .build());
-        classicCameraOffset.add(entryBuilder.startDoubleField(Text.translatable(OPTION + "referOffset", "X"), config.classic.referX)
-                .setDefaultValue(3.25D)
-                .setMin(ModConfig.MIN_DOUBLE)
-                .setMax(ModConfig.MAX_DOUBLE)
-                .setSaveConsumer(d -> config.classic.referX = d)
-                .build());
-        classicCameraOffset.add(entryBuilder.startDoubleField(Text.translatable(OPTION + "referOffset", "Y"), config.classic.referY)
-                .setDefaultValue(2.0D)
-                .setMin(ModConfig.MIN_DOUBLE)
-                .setMax(ModConfig.MAX_DOUBLE)
-                .setSaveConsumer(d -> config.classic.referY = d)
-                .build());
-        classicCameraOffset.add(entryBuilder.startDoubleField(Text.translatable(OPTION + "referOffset", "Z"), config.classic.referZ)
-                .setDefaultValue(0.0D)
-                .setMin(ModConfig.MIN_DOUBLE)
-                .setMax(ModConfig.MAX_DOUBLE)
-                .setSaveConsumer(d -> config.classic.referZ = d)
                 .build());
         classic.addEntry(classicCameraOffset.build());
         SubCategoryBuilder classicCenterOffset = entryBuilder.startSubCategory(Text.translatable(CATEGORY + "centerOffset"))

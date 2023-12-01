@@ -21,7 +21,7 @@
   * Upgraded to 1.20
   * 0.5.4-beta:
   * Added feature #15
-  * Made item-related disabling settings more flexible
+  * Change the way of clipping to space to avoid #23 and #32
 
 * 0.4.0-alpha:
 * Fixed an issue where the camera would not follow the model action when the player started/ended sneaking
@@ -98,7 +98,7 @@
   * 更新至1.20
   * 0.5.4-beta:
   * 添加了功能#15
-  * 使物品相关的禁用设置更加灵活
+  * 修改了clip to space的方式来避免#23 and #32
 
 * 0.4.0-alpha:
 * 修复了玩家开始/结束潜行时摄像头未跟上模型动作的问题

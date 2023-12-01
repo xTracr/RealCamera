@@ -49,7 +49,6 @@
     "config.option.xtracr_realcamera_bindYawing": "绑定偏航",
     "config.option.xtracr_realcamera_bindRolling": "绑定翻滚",
     "config.option.xtracr_realcamera_cameraOffset": "摄像头%s偏移",
-    "config.option.xtracr_realcamera_referOffset": "参照点%s偏移",
     "config.option.xtracr_realcamera_pitch": "俯仰角",
     "config.option.xtracr_realcamera_yaw": "偏航角",
     "config.option.xtracr_realcamera_roll": "翻滚角",

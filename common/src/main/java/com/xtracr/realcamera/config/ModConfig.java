@@ -99,18 +99,6 @@ public class ModConfig {
         return binding.cameraZ;
     }
 
-    public double getBindingRX() {
-        return binding.referX;
-    }
-
-    public double getBindingRY() {
-        return binding.referY;
-    }
-
-    public double getBindingRZ() {
-        return binding.referZ;
-    }
-
     public boolean isPitchingBound() {
         return binding.bindPitching;
     }
@@ -175,18 +163,6 @@ public class ModConfig {
 
     public double getClassicZ() {
         return classic.cameraZ;
-    }
-
-    public double getClassicRX() {
-        return classic.referX;
-    }
-
-    public double getClassicRY() {
-        return classic.referY;
-    }
-
-    public double getClassicRZ() {
-        return classic.referZ;
     }
 
     public double getCenterX() {
@@ -335,9 +311,6 @@ public class ModConfig {
         public double cameraX = 3.25D;
         public double cameraY = 2.0D;
         public double cameraZ = 0.0D;
-        public double referX = 3.25D;
-        public double referY = 2.0D;
-        public double referZ = 0.0D;
         public boolean bindPitching = true;
         public boolean bindYawing = true;
         public boolean bindRolling = true;
@@ -350,9 +323,6 @@ public class ModConfig {
             cameraX = MathHelper.clamp(cameraX, MIN_DOUBLE, MAX_DOUBLE);
             cameraY = MathHelper.clamp(cameraY, MIN_DOUBLE, MAX_DOUBLE);
             cameraZ = MathHelper.clamp(cameraZ, MIN_DOUBLE, MAX_DOUBLE);
-            referX = MathHelper.clamp(referX, MIN_DOUBLE, MAX_DOUBLE);
-            referY = MathHelper.clamp(referY, MIN_DOUBLE, MAX_DOUBLE);
-            referZ = MathHelper.clamp(referZ, MIN_DOUBLE, MAX_DOUBLE);
             pitch = MathHelper.wrapDegrees(pitch);
             yaw = MathHelper.wrapDegrees(yaw);
             roll = MathHelper.wrapDegrees(roll);
@@ -364,9 +334,6 @@ public class ModConfig {
         public double cameraX = -60.0D;
         public double cameraY = 2.0D;
         public double cameraZ = -16.0D;
-        public double referX = 3.25D;
-        public double referY = 2.0D;
-        public double referZ = 0.0D;
         public double centerX = 0.0D;
         public double centerY = -3.4D;
         public double centerZ = 0.0D;
@@ -379,9 +346,6 @@ public class ModConfig {
             cameraX = MathHelper.clamp(cameraX, MIN_DOUBLE, MAX_DOUBLE);
             cameraY = MathHelper.clamp(cameraY, MIN_DOUBLE, MAX_DOUBLE);
             cameraZ = MathHelper.clamp(cameraZ, MIN_DOUBLE, MAX_DOUBLE);
-            referX = MathHelper.clamp(referX, MIN_DOUBLE, MAX_DOUBLE);
-            referY = MathHelper.clamp(referY, MIN_DOUBLE, MAX_DOUBLE);
-            referZ = MathHelper.clamp(referZ, MIN_DOUBLE, MAX_DOUBLE);
             centerX = MathHelper.clamp(centerX, MIN_DOUBLE, MAX_DOUBLE);
             centerY = MathHelper.clamp(centerY, MIN_DOUBLE, MAX_DOUBLE);
             centerZ = MathHelper.clamp(centerZ, MIN_DOUBLE, MAX_DOUBLE);
@@ -420,6 +384,7 @@ public class ModConfig {
                 new Triple<>("holding", List.of("Example--minecraft:filled_map"), Arrays.asList(
                         "allow_rendering_hand", "leftArm", "rightArm", "leftSleeve", "rightSleeve", "heldItem")));
         protected static final String[] behaviors = {"holding", "attacking", "using"};
+
         public boolean onlyInBinding = true;
         public boolean renderModelPart = false;
         public List<String> disabledModelParts = defaultParts;

@@ -69,7 +69,6 @@ public class RealCameraCore {
         float pitch = camera.getPitch() + config.getClassicPitch();
         float yaw = centerYaw - config.getClassicYaw();
         cameraRoll = config.getClassicRoll();
-        Vec3d refer = new Vec3d(config.getClassicRX(), config.getClassicRY(), config.getClassicRZ()).multiply(config.getScale());
         Vec3d offset = new Vec3d(config.getClassicX(), config.getClassicY(), config.getClassicZ()).multiply(config.getScale());
         Vec3d center = new Vec3d(config.getCenterX(), config.getCenterY(), config.getCenterZ()).multiply(config.getScale());
 
@@ -77,7 +76,6 @@ public class RealCameraCore {
             center = center.add(0.0D, -0.021875D, 0.0D);
         }
         if (config.compatPehkui()) {
-            refer = PehkuiCompat.scaleVec3d(refer, player, tickDelta);
             offset = PehkuiCompat.scaleVec3d(offset, player, tickDelta);
             center = PehkuiCompat.scaleVec3d(center, player, tickDelta);
         }
@@ -85,8 +83,6 @@ public class RealCameraCore {
         ((CameraAccessor) camera).invokeSetRotation(centerYaw, 0.0F);
         ((CameraAccessor) camera).invokeMoveBy(center.getX(), center.getY(), center.getZ());
         ((CameraAccessor) camera).invokeSetRotation(yaw, pitch);
-        offset = offset.subtract(refer);
-        ((CameraAccessor) camera).invokeMoveBy(refer.getX(), refer.getY(), refer.getZ());
         Vec3d referVec = camera.getPos();
         ((CameraAccessor) camera).invokeMoveBy(offset.getX(), offset.getY(), offset.getZ());
         clipCameraToSpace(camera, referVec);
@@ -124,15 +120,10 @@ public class RealCameraCore {
         virtualRender(player, playerRenderer, tickDelta, matrixStack);
 
         // ModelPart$Cuboid.renderCuboid
-        Vector4f refer = matrixStack.peek().getPositionMatrix().transform(new Vector4f((float) (config.getBindingRZ() * config.getScale()),
-                -(float) (config.getBindingRY() * config.getScale()),
-                -(float) (config.getBindingRX() * config.getScale()), 1.0F));
         Vector4f offset = matrixStack.peek().getPositionMatrix().transform(new Vector4f((float) (config.getBindingZ() * config.getScale()),
                 -(float) (config.getBindingY() * config.getScale()),
                 -(float) (config.getBindingX() * config.getScale()), 1.0F));
 
-        offset.sub(refer);
-        ((CameraAccessor) camera).invokeMoveBy(-refer.z(), refer.y(), -refer.x());
         Vec3d referVec = camera.getPos();
         ((CameraAccessor) camera).invokeMoveBy(-offset.z(), offset.y(), -offset.x());
         clipCameraToSpace(camera, referVec);
@@ -152,7 +143,8 @@ public class RealCameraCore {
     private static void clipCameraToSpace(Camera camera, Vec3d referVec) {
         if (!config.doClipToSpace()) return;
         Vec3d offset = camera.getPos().subtract(referVec);
-        final float depth = 0.065F;
+        boolean hitted = false;
+        final float depth = 0.1F;
         for (int i = 0; i < 8; ++i) {
             float f = depth * ((i & 1) * 2 - 1);
             float g = depth * ((i >> 1 & 1) * 2 - 1);
@@ -164,8 +156,10 @@ public class RealCameraCore {
             double l = hitResult.getPos().distanceTo(start);
             if (hitResult.getType() == HitResult.Type.MISS || l >= offset.length()) continue;
             offset = offset.multiply(l / offset.length());
+            hitted = true;
         }
         ((CameraAccessor) camera).invokeSetPos(referVec.add(offset));
+        if (hitted) ((CameraAccessor) camera).setThirdPerson(false);
     }
 
     private static void virtualRender(AbstractClientPlayerEntity player, PlayerEntityRenderer playerRenderer,

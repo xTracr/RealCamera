@@ -49,7 +49,6 @@
     "config.option.xtracr_realcamera_bindYawing": "Bind Yawing",
     "config.option.xtracr_realcamera_bindRolling": "Bind Rolling",
     "config.option.xtracr_realcamera_cameraOffset": "Camera %s Offset",
-    "config.option.xtracr_realcamera_referOffset": "Reference Point %s Offset",
     "config.option.xtracr_realcamera_pitch": "Pitch",
     "config.option.xtracr_realcamera_yaw": "Yaw",
     "config.option.xtracr_realcamera_roll": "Roll",

@@ -49,7 +49,6 @@
 	"config.option.xtracr_realcamera_bindYawing": "Lier le lacet",
 	"config.option.xtracr_realcamera_bindRolling": "Lier le roulis",
 	"config.option.xtracr_realcamera_cameraOffset": "Décalage %s de la caméra",
-	"config.option.xtracr_realcamera_referOffset": "Décalage %s du point de référence",
 	"config.option.xtracr_realcamera_pitch": "Tangage",
 	"config.option.xtracr_realcamera_yaw": "Lacet",
 	"config.option.xtracr_realcamera_roll": "Roulis",
