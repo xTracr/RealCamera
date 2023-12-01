@@ -159,7 +159,7 @@ public class RealCameraCore {
             hitted = true;
         }
         ((CameraAccessor) camera).invokeSetPos(referVec.add(offset));
-        if (hitted) ((CameraAccessor) camera).setThirdPerson(false);
+        if (hitted && offset.length() <= 0.8F) ((CameraAccessor) camera).setThirdPerson(false);
     }
 
     private static void virtualRender(AbstractClientPlayerEntity player, PlayerEntityRenderer playerRenderer,

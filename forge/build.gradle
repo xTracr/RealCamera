@@ -33,7 +33,10 @@ dependencies {
     forge "net.minecraftforge:forge:${rootProject.forge_version}"
 
     // Cloth Config
-    //modRuntimeOnly "me.shedaniel.cloth:cloth-config-forge:${rootProject.cloth_config_version}"
+    modRuntimeOnly "me.shedaniel.cloth:cloth-config-forge:${rootProject.cloth_config_version}"
+
+    // Epic Fight
+    modCompileOnly "curse.maven:epic-fight-mod-405076:4902504"
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }

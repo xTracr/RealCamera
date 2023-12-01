@@ -29,7 +29,6 @@
     "config.tooltip.xtracr_realcamera_bindingOffset_n": "Note: camera's front, up and left are the X, Y and Z axes respectively",
     "config.tooltip.xtracr_realcamera_classicOffset": "Camera's offset from its rotation center",
     "config.tooltip.xtracr_realcamera_classicOffset_n": "Note: player's front, up and left are the X, Y and Z axes respectively",
-    "config.tooltip.xtracr_realcamera_referOffset": "And reference point's offset used to prevent camera from clipping into blocks",
     "config.tooltip.xtracr_realcamera_centerOffset": "Rotation center's offset from head",
     "config.tooltip.xtracr_realcamera_compatSwitches": "These options will only appear if the corresponding mod is installed",
     "config.tooltip.xtracr_realcamera_cameraRotation": "Additional camera rotation in degrees",

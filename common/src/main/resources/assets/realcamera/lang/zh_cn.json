@@ -29,7 +29,6 @@
     "config.tooltip.xtracr_realcamera_bindingOffset_n": "注: 摄像头的前方、上方和左方分别为X、Y和Z轴",
     "config.tooltip.xtracr_realcamera_classicOffset": "摄像头相对旋转中心的偏移值",
     "config.tooltip.xtracr_realcamera_classicOffset_n": "注: 玩家的的前方、上方和左方分别为X、Y和Z轴",
-    "config.tooltip.xtracr_realcamera_referOffset": "以及参照点的偏移值, 用于限制摄像头位置以防止其进入方块内部",
     "config.tooltip.xtracr_realcamera_centerOffset": "旋转中心相对头部的偏移值",
     "config.tooltip.xtracr_realcamera_compatSwitches": "这些选项只会在安装了对应模组的情况下显示",
     "config.tooltip.xtracr_realcamera_cameraRotation": "额外的摄像头旋转，以度数为单位",

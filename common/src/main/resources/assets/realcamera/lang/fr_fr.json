@@ -29,7 +29,6 @@
 	"config.tooltip.xtracr_realcamera_bindingOffset_n": "Note : l'avant, le haut et la gauche de la caméra correspondent respectivement aux axes X, Y et Z",
 	"config.tooltip.xtracr_realcamera_classicOffset": "Décalage de la caméra par rapport à son centre de rotation",
 	"config.tooltip.xtracr_realcamera_classicOffset_n": "Note : l'avant, le haut et la gauche du joueur correspondent respectivement aux axes X, Y et Z",
-	"config.tooltip.xtracr_realcamera_referOffset": "Décalage du point de référence utilisé pour éviter que la caméra ne traverse les blocs",
 	"config.tooltip.xtracr_realcamera_centerOffset": "Décalage du centre de rotation par rapport à la tête",
 	"config.tooltip.xtracr_realcamera_compatSwitches": "Ces options n'apparaissent que si le mod correspondant est installé",
 	"config.tooltip.xtracr_realcamera_cameraRotation": "Rotation supplémentaire de la caméra en degrés",

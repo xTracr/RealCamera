@@ -94,7 +94,7 @@ public class ConfigScreen {
                 .setSaveConsumer(b -> config.binding.adjustOffset = b)
                 .build());
         SubCategoryBuilder bindingCameraOffset = entryBuilder.startSubCategory(Text.translatable(CATEGORY + "cameraOffset"))
-                .setTooltip(Text.translatable(TOOLTIP + "bindingOffset"), Text.translatable(TOOLTIP + "referOffset"), Text.translatable(TOOLTIP + "bindingOffset_n"));
+                .setTooltip(Text.translatable(TOOLTIP + "bindingOffset"), Text.translatable(TOOLTIP + "bindingOffset_n"));
         bindingCameraOffset.add(entryBuilder.startDoubleField(Text.translatable(OPTION + "cameraOffset", "X"), config.binding.cameraX)
                 .setDefaultValue(3.25D)
                 .setMin(ModConfig.MIN_DOUBLE)
@@ -154,7 +154,7 @@ public class ConfigScreen {
                 .setSaveConsumer(e -> config.classic.adjustMode = e)
                 .build());
         SubCategoryBuilder classicCameraOffset = entryBuilder.startSubCategory(Text.translatable(CATEGORY + "cameraOffset"))
-                .setTooltip(Text.translatable(TOOLTIP + "classicOffset"), Text.translatable(TOOLTIP + "referOffset"), Text.translatable(TOOLTIP + "classicOffset_n"));
+                .setTooltip(Text.translatable(TOOLTIP + "classicOffset"), Text.translatable(TOOLTIP + "classicOffset_n"));
         classicCameraOffset.add(entryBuilder.startDoubleField(Text.translatable(OPTION + "cameraOffset", "X"), config.classic.cameraX)
                 .setDefaultValue(-60.0D)
                 .setMin(ModConfig.MIN_DOUBLE)
