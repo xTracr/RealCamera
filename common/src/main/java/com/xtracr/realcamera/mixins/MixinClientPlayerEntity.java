@@ -22,7 +22,7 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
 
     @Redirect(method = "getLeashPos", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/client/option/Perspective;isFirstPerson()Z"))
-    private boolean returnFalse(Perspective perspective) {
+    private boolean realCamera$returnFalse(Perspective perspective) {
         if (ConfigFile.modConfig.isRendering() && RealCameraCore.isActive()) return false;
         return perspective.isFirstPerson();
     }

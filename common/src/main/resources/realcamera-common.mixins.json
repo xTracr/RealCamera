@@ -7,12 +7,12 @@
   ],
   "client": [
     "CameraAccessor",
-    "MixinArmorFeatureRenderer",
     "MixinClientPlayerEntity",
     "MixinEntityRenderer",
     "MixinGameRenderer",
     "MixinInGameHud",
     "MixinItem",
+    "MixinPlayerEntity",
     "MixinPlayerEntityRenderer",
     "MixinPlayerHeldItemFeatureRenderer",
     "PlayerEntityRendererAccessor"

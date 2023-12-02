@@ -3,6 +3,7 @@ package com.xtracr.realcamera.api;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
+import com.xtracr.realcamera.utils.Flags;
 import net.minecraft.client.util.math.MatrixStack;
 
 import java.util.HashMap;
@@ -35,12 +36,11 @@ public class VirtualRenderer {
     }
 
     /**
-     * @see com.xtracr.realcamera.mixins.MixinPlayerEntityRenderer#onSetModelPoseRETURN
-     * MixinPlayerEntityRenderer.onSetModelPoseRETURN
+     * mixins.MixinPlayerEntityRenderer.realCamera$onSetModelPoseRETURN
      */
     public static boolean shouldDisableRender(String modelPartName) {
         ModConfig.Disable.optionalParts.add(modelPartName);
-        return RealCameraCore.isRenderingWorld && config.shouldDisableRender(modelPartName) && RealCameraCore.isActive();
+        return Flags.isRenderingWorld && config.shouldDisableRender(modelPartName) && RealCameraCore.isActive();
     }
 
     public static boolean virtualRender(float tickDelta, MatrixStack matrixStack) {
@@ -48,6 +48,6 @@ public class VirtualRenderer {
     }
 
     public static String[] getModidList() {
-        return functionProvider.keySet().toArray(new String[functionProvider.size()]);
+        return functionProvider.keySet().toArray(new String[0]);
     }
 }

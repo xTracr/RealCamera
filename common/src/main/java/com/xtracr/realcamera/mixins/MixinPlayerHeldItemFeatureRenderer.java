@@ -1,7 +1,7 @@
 package com.xtracr.realcamera.mixins;
 
 import com.xtracr.realcamera.api.VirtualRenderer;
-import net.minecraft.client.network.ClientPlayerEntity;
+import com.xtracr.realcamera.utils.Flags;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.feature.PlayerHeldItemFeatureRenderer;
 import net.minecraft.client.render.model.json.ModelTransformationMode;
@@ -17,9 +17,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(PlayerHeldItemFeatureRenderer.class)
 public abstract class MixinPlayerHeldItemFeatureRenderer {
     @Inject(method = "renderItem", at = @At("HEAD"), cancellable = true)
-    private void onRenderItemHEAD(LivingEntity entity, ItemStack stack, ModelTransformationMode transformationMode,
+    private void realCamera$onRenderItemHEAD(LivingEntity entity, ItemStack stack, ModelTransformationMode transformationMode,
             Arm arm, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo cInfo) {
-        if (!(entity instanceof ClientPlayerEntity)) return;
+        if (!Flags.isRenderingClientPlayer) return;
         if (VirtualRenderer.shouldDisableRender("heldItem")) cInfo.cancel();
     }
 }

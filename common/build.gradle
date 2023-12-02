@@ -11,7 +11,7 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
 
     // Cloth Config
-    modImplementation("me.shedaniel.cloth:cloth-config:${rootProject.cloth_config_version}") {
+    modCompileOnly("me.shedaniel.cloth:cloth-config:${rootProject.cloth_config_version}") {
         exclude(group: "net.fabricmc.fabric-api")
     }
 }

@@ -2,6 +2,7 @@ package com.xtracr.realcamera;
 
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.utils.CrosshairUtils;
+import com.xtracr.realcamera.utils.Flags;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraftforge.client.event.InputEvent.Key;
@@ -29,13 +30,13 @@ public class EventHandler {
     @SubscribeEvent
     public static void onRenderWorldStage(RenderLevelStageEvent event) {
         if (RenderLevelStageEvent.Stage.AFTER_SKY.equals(event.getStage())) {
-            RealCameraCore.isRenderingWorld = true;
+            Flags.isRenderingWorld = true;
             if (ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
                 CrosshairUtils.update(MinecraftClient.getInstance(), event.getCamera(),
                         event.getPoseStack().peek().getPositionMatrix(), event.getProjectionMatrix());
             }
         } else if (RenderLevelStageEvent.Stage.AFTER_WEATHER.equals(event.getStage())) {
-            RealCameraCore.isRenderingWorld = false;
+            Flags.isRenderingWorld = false;
         }
     }
 }

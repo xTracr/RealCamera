@@ -27,13 +27,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(GameRenderer.class)
 public abstract class MixinGameRenderer {
     @Unique
-    private static boolean toggled = false;
+    private static boolean realCamera$toggled = false;
 
     @Shadow
     @Final MinecraftClient client;
 
     @ModifyVariable(method = "updateTargetedEntity", at = @At("STORE"), ordinal = 0)
-    private EntityHitResult modifyEntityHitResult(EntityHitResult entityHitResult) {
+    private EntityHitResult realCamera$modifyEntityHitResult(EntityHitResult entityHitResult) {
         CrosshairUtils.capturedEntityHitResult = entityHitResult;
         if (!ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
             Vec3d startVec = RaycastUtils.getStartVec();
@@ -50,27 +50,27 @@ public abstract class MixinGameRenderer {
 
     @Inject(method = "renderHand", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/client/util/math/MatrixStack;push()V"))
-    private void setThirdPerson(MatrixStack matrices, Camera camera, float tickDelta, CallbackInfo cInfo) {
+    private void realCamera$setThirdPerson(MatrixStack matrices, Camera camera, float tickDelta, CallbackInfo cInfo) {
         if (ConfigFile.modConfig.isRendering() && !ConfigFile.modConfig.disableRenderingWhen(client) && RealCameraCore.isActive() &&
                 !ConfigFile.modConfig.allowRenderingHandWhen(client)) {
             client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
-            toggled = true;
+            realCamera$toggled = true;
         }
     }
 
     @Inject(method = "renderHand", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/client/util/math/MatrixStack;pop()V"))
-    private void setFirstPerson(CallbackInfo cInfo) {
-        if (toggled) {
+    private void realCamera$setFirstPerson(CallbackInfo cInfo) {
+        if (realCamera$toggled) {
             client.options.setPerspective(Perspective.FIRST_PERSON);
-            toggled = false;
+            realCamera$toggled = false;
         }
     }
 
     @Inject(method = "renderWorld", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/client/render/Camera;update(Lnet/minecraft/world/BlockView;Lnet/minecraft/entity/Entity;ZZF)V",
             shift = At.Shift.BY, by = -2))
-    private void onBeforeCameraUpdate(float tickDelta, long limitTime, MatrixStack matrixStack, CallbackInfo cInfo) {
+    private void realCamera$onBeforeCameraUpdate(float tickDelta, long limitTime, MatrixStack matrixStack, CallbackInfo cInfo) {
         if (ConfigFile.modConfig.compatDoABarrelRoll() && DoABarrelRollCompat.modEnabled() && RealCameraCore.isActive()) {
             matrixStack.loadIdentity();
         }

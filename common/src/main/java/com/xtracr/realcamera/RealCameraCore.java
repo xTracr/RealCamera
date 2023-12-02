@@ -29,7 +29,6 @@ import org.joml.Vector4f;
 public class RealCameraCore {
     private static final ModConfig config = ConfigFile.modConfig;
 
-    public static boolean isRenderingWorld = false;
     private static String status = "Successful";
     private static float cameraRoll = 0.0F;
 
