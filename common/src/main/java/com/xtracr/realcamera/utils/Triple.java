@@ -1,7 +1,6 @@
 package com.xtracr.realcamera.utils;
 
 public class Triple<L, M, R> {
-
     private L left;
     private M middle;
     private R right;
@@ -13,7 +12,7 @@ public class Triple<L, M, R> {
     }
 
     public L getLeft() {
-        return this.left;
+        return left;
     }
 
     public void setLeft(L left) {
@@ -21,7 +20,7 @@ public class Triple<L, M, R> {
     }
 
     public M getMiddle() {
-        return this.middle;
+        return middle;
     }
 
     public void setMiddle(M middle) {
@@ -29,7 +28,7 @@ public class Triple<L, M, R> {
     }
 
     public R getRight() {
-        return this.right;
+        return right;
     }
 
     public void setRight(R right) {

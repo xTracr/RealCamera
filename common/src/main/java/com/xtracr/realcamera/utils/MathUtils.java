@@ -13,9 +13,8 @@ public class MathUtils {
             return new Vec3d(-Math.PI/2, -Math.atan2(normal.m10, normal.m00), 0.0D);
         }
         double xRot = Math.asin(-normal.m21);
-        double cos = Math.cos(xRot);
-        double yRot = Math.atan2(normal.m20/cos, normal.m22/cos);
-        double zRot = Math.atan2(normal.m01/cos, normal.m11/cos);
+        double yRot = Math.atan2(normal.m20, normal.m22);
+        double zRot = Math.atan2(normal.m01, normal.m11);
         return new Vec3d(xRot, yRot, zRot);
     }
 
@@ -26,10 +25,8 @@ public class MathUtils {
 
     public static Vec3d projectToVec2d(Vec3d vec3d, Matrix4f... projectionMatrices) {
         Vector4f vector4f = new Vector4f((float)vec3d.getX(), (float)vec3d.getY(), (float)vec3d.getZ(), 1.0F);
-        for (Matrix4f matrix4f : projectionMatrices) {
-            vector4f.transform(matrix4f);
-        }
+        for (Matrix4f matrix4f : projectionMatrices) vector4f.transform(matrix4f);
         if (vector4f.getW() == 0.0D) return Vec3d.ZERO;
-        return new Vec3d((double)vector4f.getX(), (double)vector4f.getY(), 0).multiply(1/(double)vector4f.getW());
+        return new Vec3d(vector4f.getX(), vector4f.getY(), 0).multiply(1/(double)vector4f.getW());
     }
 }

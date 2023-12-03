@@ -2,7 +2,6 @@ package com.xtracr.realcamera;
 
 import com.xtracr.realcamera.compat.EpicFightCompat;
 import com.xtracr.realcamera.config.ConfigScreen;
-
 import net.minecraftforge.client.ClientRegistry;
 import net.minecraftforge.client.ConfigGuiHandler.ConfigGuiFactory;
 import net.minecraftforge.common.MinecraftForge;
@@ -16,7 +15,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 @Mod(RealCamera.MODID)
 public class RealCameraForge {
-
     public RealCameraForge() {
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
         eventBus.addListener(this::clientSetup);
@@ -24,7 +22,6 @@ public class RealCameraForge {
 
     @SubscribeEvent
     public void clientSetup(FMLClientSetupEvent event) {
-
         RealCamera.setup();
         if (ModList.get().isLoaded("epicfight")) EpicFightCompat.register();
 

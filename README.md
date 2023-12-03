@@ -5,6 +5,7 @@
 Make the camera more realistic in the first-person view.  
 Supported versions: 1.18-1.20 Forge & Fabric  
 Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases), [Modrinth](https://modrinth.com/mod/real-camera) or [CurseForge](https://curseforge.com/minecraft/mc-mods/real-camera)  
+Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/build.yml)  
 
 ## Features ##
 
@@ -34,6 +35,11 @@ Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases),
 
 ### Compatibility ###
 
+* Cause crash:
+  * OptiFine
+* Incompatible:
+  * Yes Steve Model(GeckoLib?)
+  * Customizable Player Models
 * Compatible:
   * most camera mods
   * Player Animation Lib
@@ -41,11 +47,6 @@ Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases),
   * First Person Model
   * Pehkui
   * Epic Fight
-* Incompatible:
-  * Yes Steve Model(GeckoLib?)
-  * Customizable Player Models
-* Cause crash:
-  * OptiFine
 
 [^1]:It is suggested to disable `Animation Smoothing` option in the config of *Not Enough Animations*.
 

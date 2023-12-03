@@ -9,8 +9,6 @@ public class Matrix3fc {
     public float m01, m11, m21;
     public float m02, m12, m22;
 
-    public Matrix3fc() {
-    }
 
     public Matrix3fc(Matrix3f matrix3f) {
         Vec3f column0 = new Vec3f(1.0F, 0.0F, 0.0F);
@@ -79,5 +77,4 @@ public class Matrix3fc {
         this.m22 = nm22;
         return this;
     }
-
 }
