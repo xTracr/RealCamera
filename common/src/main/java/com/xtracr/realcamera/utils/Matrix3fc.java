@@ -79,5 +79,4 @@ public class Matrix3fc {
         this.m22 = nm22;
         return this;
     }
-
 }

@@ -5,6 +5,7 @@
 使第一人称视角下的摄像头更加真实。  
 支持的版本: 1.18-1.20 Forge & Fabric  
 从[Releases](https://github.com/xTracr/RealCamera/releases)、[Modrinth](https://modrinth.com/mod/real-camera)或[CurseForge](https://curseforge.com/minecraft/mc-mods/real-camera)下载  
+快照版在[这里](https://github.com/xTracr/RealCamera/actions/workflows/build.yml)  
 
 ## 特性 ##
 
@@ -34,6 +35,11 @@
 
 ### 兼容性 ###
 
+* 引起崩溃:
+  * OptiFine
+* 不兼容:
+  * Yes Steve Model(GeckoLib?)
+  * Customizable Player Models
 * 兼容:
   * 大多数摄像头模组
   * Player Animation Lib
@@ -41,11 +47,6 @@
   * First Person Model
   * Pehkui
   * Epic Fight
-* 不兼容:
-  * Yes Steve Model(GeckoLib?)
-  * Customizable Player Models
-* 引起崩溃:
-  * OptiFine
 
 [^1]:建议在 *更多动画* 的配置内禁用`Animation Smoothing`选项。
 

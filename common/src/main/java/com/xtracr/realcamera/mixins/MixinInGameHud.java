@@ -16,7 +16,7 @@ import net.minecraft.client.util.math.MatrixStack;
 public abstract class MixinInGameHud {
 
     @Inject(method = "renderCrosshair(Lnet/minecraft/client/util/math/MatrixStack;)V", at = @At("HEAD"))
-    private void onRenderCrosshairHEAD(MatrixStack matrixStack, CallbackInfo cInfo) {
+    private void realCamera$onRenderCrosshairHEAD(MatrixStack matrixStack, CallbackInfo cInfo) {
         if (ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
             matrixStack.push();
             CrosshairUtils.translateMatrices(matrixStack);
@@ -24,7 +24,7 @@ public abstract class MixinInGameHud {
     }
 
     @Inject(method = "renderCrosshair(Lnet/minecraft/client/util/math/MatrixStack;)V", at = @At("RETURN"))
-    private void onRenderCrosshairRETURN(MatrixStack matrixStack, CallbackInfo cInfo) {
+    private void realCamera$onRenderCrosshairRETURN(MatrixStack matrixStack, CallbackInfo cInfo) {
         if (ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
             matrixStack.pop();
         }
