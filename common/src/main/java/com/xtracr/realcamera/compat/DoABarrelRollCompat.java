@@ -1,12 +1,11 @@
 package com.xtracr.realcamera.compat;
 
+import com.xtracr.realcamera.utils.ReflectUtils;
+
 import java.lang.reflect.Method;
 import java.util.Optional;
 
-import com.xtracr.realcamera.utils.ReflectUtils;
-
 public class DoABarrelRollCompat {
-
     public static final boolean loaded = ReflectUtils.isLoaded("nl.enjarai.doabarrelroll.DoABarrelRollClient");
 
     private static final Optional<Object> modConfigInstance;
@@ -24,6 +23,6 @@ public class DoABarrelRollCompat {
     }
 
     public static boolean modEnabled() {
-        return loaded && (boolean)ReflectUtils.invokeMethod(getModEnabled, modConfigInstance.get()).orElse(false);
+        return loaded && (boolean) ReflectUtils.invokeMethod(getModEnabled, modConfigInstance.get()).orElse(false);
     }
 }

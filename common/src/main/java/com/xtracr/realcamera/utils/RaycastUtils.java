@@ -9,7 +9,6 @@ import net.minecraft.world.RaycastContext.FluidHandling;
 import net.minecraft.world.RaycastContext.ShapeType;
 
 public class RaycastUtils {
-
     private static Vec3d startVec = Vec3d.ZERO;
     private static Vec3d direction = Vec3d.ZERO;
     private static Vec3d endVec = Vec3d.ZERO;
@@ -30,7 +29,6 @@ public class RaycastUtils {
         return new RaycastContext(startVec, endVec, shapeType, fluidHandling, entity);
     }
 
-    @SuppressWarnings("resource")
     public static void update(Entity entity, double sqDistance, float tickDelta) {
         final Camera camera = MinecraftClient.getInstance().gameRenderer.getCamera();
         final Vec3d eyePos = entity.getCameraPosVec(tickDelta);
@@ -45,8 +43,8 @@ public class RaycastUtils {
             endVec = startVec.add(direction.multiply(Math.sqrt(sqDistance)));
             return;
         } else if (offset.lengthSquared() > sqDistance) {
-            startVec = startVec.add(direction.multiply(offset.distanceTo(footPoint) - Math.sqrt(sqDistance-footPoint.lengthSquared())));
+            startVec = startVec.add(direction.multiply(offset.distanceTo(footPoint) - Math.sqrt(sqDistance - footPoint.lengthSquared())));
         }
-        endVec = eyePos.add(footPoint.add(direction.multiply(Math.sqrt(sqDistance-footPoint.lengthSquared()))));
+        endVec = eyePos.add(footPoint.add(direction.multiply(Math.sqrt(sqDistance - footPoint.lengthSquared()))));
     }
 }

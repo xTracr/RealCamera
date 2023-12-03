@@ -33,7 +33,7 @@ dependencies {
     forge "net.minecraftforge:forge:${rootProject.forge_version}"
 
     // Cloth Config
-    //modRuntimeOnly "me.shedaniel.cloth:cloth-config-forge:${rootProject.cloth_config_version}"
+    modRuntimeOnly "me.shedaniel.cloth:cloth-config-forge:${rootProject.cloth_config_version}"
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }

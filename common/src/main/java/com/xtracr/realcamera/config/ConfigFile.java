@@ -1,30 +1,26 @@
 package com.xtracr.realcamera.config;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.xtracr.realcamera.RealCamera;
+import net.minecraft.client.MinecraftClient;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import com.xtracr.realcamera.RealCamera;
-
-import net.minecraft.client.MinecraftClient;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 public class ConfigFile {
+    public static final ModConfig modConfig = new ModConfig();
 
     private static final String FILE_NAME = RealCamera.MODID + ".json";
     private static final Path PATH;
     private static final Gson GSON = new GsonBuilder()
-        .setPrettyPrinting()
-        .create();
-
-    public static final ModConfig modConfig = new ModConfig();
+            .setPrettyPrinting()
+            .create();
 
     static {
-        @SuppressWarnings("resource")
         final File configDir = new File(MinecraftClient.getInstance().runDirectory, "config");
         if (!configDir.exists()) configDir.mkdirs();
         PATH = configDir.toPath().resolve(FILE_NAME);

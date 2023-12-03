@@ -1,13 +1,6 @@
 package com.xtracr.realcamera.api;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.BiPredicate;
-
 import com.xtracr.realcamera.mixins.PlayerEntityRendererAccessor;
-
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
@@ -20,37 +13,35 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiPredicate;
+
 /**
- * 
  * This example uses {@code reflection} to {@code register} and {@code getModelPartName}.
- * 
+ *
  * <p>If you don't want to use reflection, an (optional) dependency should be added to call the methods.
- * Don't know how to add a dependency? see {@link https://jitpack.io or https://jitpack.io/#xTracr/RealCamera/} 
- * to get information about it.</p>
- * 
+ * Don't know how to add a dependency? Go to <a href="https://jitpack.io">jitpack.io</a>
+ * or <a href="https://jitpack.io/#xTracr/RealCamera/">jitpack.io/#xTracr/RealCamera/</a>
+ * for information about it.</p>
  */
 public class CompatExample {
-
     /**
      * <b>mandatory</b>
-     * 
-     * <p>But it's not necessary to use your mod's {@code modid}.</p>
-     * 
      */
     public static final String modid = "minecraft";
 
     private static final Map<String, String> nameMap = new HashMap<>();
-
     /**
-     * 
      * {@code = VirtualRenderer.class.getDeclaredMethod("getModelPartName")}
-     * 
-     * <p>return the value of {@link com.xtracr.realcamera.config.ModConfig.Compats#modModelPart modModelPart} 
+     *
+     * <p>return the value of {@link com.xtracr.realcamera.config.ModConfig.Compats#modModelPart modModelPart}
      * option in the config.</p>
-     * 
+     *
      * @see #register()
      * @see VirtualRenderer#getModelPartName() getModelPartName()
-     * 
      */
     private static Method getModelPartNameMethod;
 
@@ -93,13 +84,11 @@ public class CompatExample {
     }
 
     /**
-     * 
      * Your should register before the first time camera setup.
-     * 
+     *
      * <p>This method is called in {@link com.xtracr.realcamera.RealCamera#setup()}.</p>
-     * 
+     *
      * @see VirtualRenderer#register(String, BiPredicate)
-     * 
      */
     public static void register() {
         //if ( Real Camera isn't loaded ) return;
@@ -118,24 +107,22 @@ public class CompatExample {
 
     /**
      * <b>mandatory</b>
-     * 
-     * <p>This method's code should include as much as possible all parts related to {@code matrixStack} 
-     * in the code that renders the player model, to ensure that the result of {@code matrixStack} 
+     *
+     * <p>This method's code should include as much as possible all parts related to {@code matrixStack}
+     * in the code that renders the player model, to ensure that the result of {@code matrixStack}
      * after processing is identical to the actual rendering.</p>
-     * 
-     * <p>When you need to handle a {@code Throwable} that makes it impossible for the method to continue running, 
+     *
+     * <p>When you need to handle a {@code Throwable} that makes it impossible for the method to continue running,
      * simply wrap it in a {@link RuntimeException} and throw it, just like in {@link #getModelPart} here.</p>
-     * 
+     *
      * @param tickDelta   or partialTick(s) (official mapping)
      * @param matrixStack or poseStack (official mapping)
      * @return {@code boolean} turn to vanilla rendering if true
-     * 
      * @see net.minecraft.client.render.entity.EntityRenderDispatcher#render
      * @see net.minecraft.client.render.entity.PlayerEntityRenderer#render
      * @see net.minecraft.client.render.entity.LivingEntityRenderer#render
      * @see net.minecraft.client.render.entity.model.AnimalModel#render
      * @see net.minecraft.client.model.ModelPart#render
-     * 
      */
     public static boolean virtualRender(float tickDelta, MatrixStack matrixStack) {
         MinecraftClient client = MinecraftClient.getInstance();
@@ -223,9 +210,9 @@ public class CompatExample {
 
     private static ModelPart getModelPart(PlayerEntityModel<AbstractClientPlayerEntity> playerModel) {
         try {
-            final String fieldName = nameMap.get((String)getModelPartNameMethod.invoke(null));
+            final String fieldName = nameMap.get((String) getModelPartNameMethod.invoke(null));
             final Field modelPartField = playerModel.getClass().getField(fieldName);
-            return (ModelPart)modelPartField.get(playerModel);
+            return (ModelPart) modelPartField.get(playerModel);
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }

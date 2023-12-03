@@ -1,14 +1,13 @@
 package com.xtracr.realcamera.utils;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
-import org.jetbrains.annotations.Nullable;
-
 public class ReflectUtils {
-
     public static boolean isLoaded(final String className) {
         try {
             Class.forName(className);
@@ -20,9 +19,7 @@ public class ReflectUtils {
 
     public static boolean isLoaded(final String className, final String... classNames) {
         boolean ret = isLoaded(className);
-        for (final String name : classNames) {
-            ret = ret || isLoaded(name);
-        }
+        for (final String name : classNames) ret = ret || isLoaded(name);
         return ret;
     }
 
@@ -37,8 +34,7 @@ public class ReflectUtils {
     public static Optional<Class<?>> getClass(final String className, final String... classNames) {
         Optional<Class<?>> ret = getClass(className);
         for (final String name : classNames) {
-            if (ret.isPresent())
-                return ret;
+            if (ret.isPresent()) return ret;
             ret = getClass(name);
         }
         return ret;
@@ -50,7 +46,7 @@ public class ReflectUtils {
                 final Field fld = cls.getField(fieldName);
                 fld.setAccessible(true);
                 return fld;
-            } catch (NoSuchFieldException | SecurityException exception) {
+            } catch (NoSuchFieldException | SecurityException ignored) {
                 return null;
             }
         });
@@ -62,7 +58,7 @@ public class ReflectUtils {
                 final Field fld = cls.getDeclaredField(fieldName);
                 fld.setAccessible(true);
                 return fld;
-            } catch (NoSuchFieldException | SecurityException exception) {
+            } catch (NoSuchFieldException | SecurityException ignored) {
                 return null;
             }
         });
@@ -72,7 +68,7 @@ public class ReflectUtils {
         return field.map(fld -> {
             try {
                 return fld.get(object);
-            } catch (IllegalArgumentException | IllegalAccessException exception) {
+            } catch (IllegalArgumentException | IllegalAccessException ignored) {
                 return null;
             }
         });
@@ -82,8 +78,7 @@ public class ReflectUtils {
         field.ifPresent(fld -> {
             try {
                 fld.set(object, value);
-            } catch (IllegalArgumentException | IllegalAccessException exception) {
-
+            } catch (IllegalArgumentException | IllegalAccessException ignored) {
             }
         });
     }
@@ -94,7 +89,7 @@ public class ReflectUtils {
                 final Method mtd = cls.getMethod(methodName, args);
                 mtd.setAccessible(true);
                 return mtd;
-            } catch (NoSuchMethodException | SecurityException exception) {
+            } catch (NoSuchMethodException | SecurityException ignored) {
                 return null;
             }
         });
@@ -106,7 +101,7 @@ public class ReflectUtils {
                 final Method mtd = cls.getDeclaredMethod(methodName, args);
                 mtd.setAccessible(true);
                 return mtd;
-            } catch (NoSuchMethodException | SecurityException exception) {
+            } catch (NoSuchMethodException | SecurityException ignored) {
                 return null;
             }
         });
@@ -116,7 +111,7 @@ public class ReflectUtils {
         return method.map(mtd -> {
             try {
                 return mtd.invoke(object, args);
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException exception) {
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ignored) {
                 return null;
             }
         });
