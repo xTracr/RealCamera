@@ -18,10 +18,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RotationAxis;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.*;
 import net.minecraft.world.RaycastContext;
 import org.joml.Matrix3f;
 import org.joml.Vector4f;
@@ -31,6 +28,7 @@ public class RealCameraCore {
 
     private static String status = "Successful";
     private static float cameraRoll = 0.0F;
+    private static Vec3d modelOffset = Vec3d.ZERO;
 
     public static String getStatus() {
         return status;
@@ -38,6 +36,10 @@ public class RealCameraCore {
 
     public static float getRoll() {
         return cameraRoll;
+    }
+
+    public static Vec3d getModelOffset() {
+        return modelOffset;
     }
 
     public static boolean isActive() {
@@ -48,6 +50,7 @@ public class RealCameraCore {
 
     public static void updateCamera(Camera camera, MinecraftClient client, float tickDelta) {
         cameraRoll = 0.0F;
+        modelOffset = Vec3d.ZERO;
 
         if (config.isRendering() && !config.disableRenderingWhen(client)) {
             ((CameraAccessor) camera).setThirdPerson(true);
@@ -125,7 +128,12 @@ public class RealCameraCore {
 
         Vec3d referVec = camera.getPos();
         ((CameraAccessor) camera).invokeMoveBy(-offset.z(), offset.y(), -offset.x());
+        Vec3d prevPos = camera.getPos();
+        Box box = player.getBoundingBox();
+        double restrictedY = MathHelper.clamp(camera.getPos().getY(), box.minY + 0.1D, box.maxY - 0.1D);
+        referVec = new Vec3d(referVec.getX(), restrictedY, referVec.getZ());
         clipCameraToSpace(camera, referVec);
+        modelOffset = camera.getPos().subtract(prevPos);
 
         Matrix3f normal = matrixStack.peek().getNormalMatrix().scale(1.0F, -1.0F, -1.0F);
         normal.rotateLocal((float) Math.toRadians(config.getBindingYaw()), normal.m10, normal.m11, normal.m12);
@@ -142,8 +150,7 @@ public class RealCameraCore {
     private static void clipCameraToSpace(Camera camera, Vec3d referVec) {
         if (!config.doClipToSpace()) return;
         Vec3d offset = camera.getPos().subtract(referVec);
-        boolean hitted = false;
-        final float depth = 0.1F;
+        final float depth = 0.08F;
         for (int i = 0; i < 8; ++i) {
             float f = depth * ((i & 1) * 2 - 1);
             float g = depth * ((i >> 1 & 1) * 2 - 1);
@@ -155,10 +162,8 @@ public class RealCameraCore {
             double l = hitResult.getPos().distanceTo(start);
             if (hitResult.getType() == HitResult.Type.MISS || l >= offset.length()) continue;
             offset = offset.multiply(l / offset.length());
-            hitted = true;
         }
         ((CameraAccessor) camera).invokeSetPos(referVec.add(offset));
-        if (hitted && offset.length() <= 0.8F) ((CameraAccessor) camera).setThirdPerson(false);
     }
 
     private static void virtualRender(AbstractClientPlayerEntity player, PlayerEntityRenderer playerRenderer,

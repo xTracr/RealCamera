@@ -149,10 +149,6 @@ public class ModConfig {
     }
 
     // classic
-    public Classic.AdjustMode getClassicAdjustMode() {
-        return classic.adjustMode;
-    }
-
     public double getClassicX() {
         return classic.cameraX;
     }
@@ -375,8 +371,8 @@ public class ModConfig {
     }
 
     public static class Disable {
-        public static final Set<String> optionalParts = new HashSet<>(Set.of("head", "hat", "helmet"));
-        protected static final List<String> defaultParts = Arrays.asList("head", "hat", "helmet");
+        public static final Set<String> optionalParts = new HashSet<>(Set.of("head", "hat", "slot_head"));
+        protected static final List<String> defaultParts = Arrays.asList("head", "hat", "slot_head");
         protected static final Triple<String, List<String>, List<String>> defaultTriple = new Triple<>
                 ("holding", List.of("new item id"), List.of("new action"));
         protected static final List<Triple<String, List<String>, List<String>>> defaultConditions = Arrays.asList(

@@ -22,6 +22,7 @@
   * 0.5.4-beta:
   * Added feature #15, fixed #35
   * Changed the way of clipping to space to avoid #23 and #32
+  * 0.5.5-beta:
 
 * 0.4.0-alpha:
 * Fixed an issue where the camera would not follow the model action when the player started/ended sneaking
@@ -99,6 +100,7 @@
   * 0.5.4-beta:
   * 添加了功能#15, 修复#35
   * 修改了clip to space的方式来避免#23和#32
+  * 0.5.5-beta:
 
 * 0.4.0-alpha:
 * 修复了玩家开始/结束潜行时摄像头未跟上模型动作的问题

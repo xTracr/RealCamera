@@ -2,7 +2,7 @@ plugins {
     id "com.github.johnrengelman.shadow" version "7.1.2"
 }
 
-archivesBaseName = rootProject.archivesBaseName + "-forge"
+archivesBaseName = rootProject.archives_base_name + "-" + rootProject.minecraft_version + "-forge"
 
 architectury {
     platformSetupLoomIde()
@@ -36,7 +36,7 @@ dependencies {
     modRuntimeOnly "me.shedaniel.cloth:cloth-config-forge:${rootProject.cloth_config_version}"
 
     // Epic Fight
-    modCompileOnly "curse.maven:epic-fight-mod-405076:4902504"
+    //modCompileOnly "curse.maven:epic-fight-mod-405076:4902504"
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
@@ -55,17 +55,12 @@ shadowJar {
     exclude "architectury.common.json"
 
     configurations = [project.configurations.shadowCommon]
-    archiveClassifier.set("dev-shadow")
+    archiveClassifier = "dev-shadow"
 }
 
 remapJar {
     inputFile.set shadowJar.archiveFile
     dependsOn shadowJar
-    archiveClassifier.set(null)
-}
-
-jar {
-    archiveClassifier.set("dev")
 }
 
 sourcesJar {

@@ -30,13 +30,10 @@ public class EventHandler {
     @SubscribeEvent
     public static void onRenderWorldStage(RenderLevelStageEvent event) {
         if (RenderLevelStageEvent.Stage.AFTER_SKY.equals(event.getStage())) {
-            Flags.isRenderingWorld = true;
             if (ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
                 CrosshairUtils.update(MinecraftClient.getInstance(), event.getCamera(),
                         event.getPoseStack().peek().getPositionMatrix(), event.getProjectionMatrix());
             }
-        } else if (RenderLevelStageEvent.Stage.AFTER_WEATHER.equals(event.getStage())) {
-            Flags.isRenderingWorld = false;
         }
     }
 }
