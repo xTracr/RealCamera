@@ -37,7 +37,7 @@ allprojects {
         maven { url "https://maven.shedaniel.me/" }
         maven { url "https://maven.terraformersmc.com/releases/" }
         maven { url "https://cursemaven.com" }
-        //maven { url "https://jitpack.io" }
+        //maven { url "https://www.jitpack.io" }
     }
 
     tasks.withType(JavaCompile) {

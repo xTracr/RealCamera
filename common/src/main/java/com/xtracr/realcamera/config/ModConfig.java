@@ -232,10 +232,6 @@ public class ModConfig {
         return compats.modModelPart;
     }
 
-    public boolean compatDoABarrelRoll() {
-        return compats.doABarrelRoll;
-    }
-
     public boolean compatPehkui() {
         return compats.pehkui;
     }
@@ -259,18 +255,18 @@ public class ModConfig {
         return b;
     }
 
-    public boolean shouldDisableRender(String modelPartName) {
+    public boolean shouldDisableModelPart(String modelPartName) {
         if (disable.onlyInBinding && general.classic) return false;
         return (disable.renderModelPart && disable.disabledModelParts.contains(modelPartName)) ||
                 shouldDisable(MinecraftClient.getInstance(), modelPartName);
     }
 
-    public boolean allowRenderingHandWhen(MinecraftClient client) {
+    public boolean allowRenderingHand(MinecraftClient client) {
         if (disable.onlyInBinding && general.classic) return false;
         return shouldDisable(client, "allow_rendering_hand");
     }
 
-    public boolean disableModWhen(MinecraftClient client) {
+    public boolean shouldDisableMod(MinecraftClient client) {
         if (disable.onlyInBinding && general.classic) return false;
         return shouldDisable(client, "disable_mod") ||
                 (client.player.isFallFlying() && disable.fallFlying) ||
@@ -281,7 +277,7 @@ public class ModConfig {
                 (client.currentScreen != null && disable.screenOpened);
     }
 
-    public boolean disableRenderingWhen(MinecraftClient client) {
+    public boolean shouldDisableRendering(MinecraftClient client) {
         if (disable.onlyInBinding && general.classic) return false;
         return shouldDisable(client, "disable_rendering");
     }
@@ -365,7 +361,6 @@ public class ModConfig {
         public boolean useModModel = false;
         public String modelModID = "minecraft";
         public String modModelPart = "head";
-        public boolean doABarrelRoll = true;
         public boolean pehkui = true;
         public boolean physicsMod = true;
     }

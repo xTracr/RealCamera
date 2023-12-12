@@ -3,7 +3,6 @@ package com.xtracr.realcamera.config;
 import com.xtracr.realcamera.RealCamera;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.api.VirtualRenderer;
-import com.xtracr.realcamera.compat.DoABarrelRollCompat;
 import com.xtracr.realcamera.compat.PehkuiCompat;
 import com.xtracr.realcamera.compat.PhysicsModCompat;
 import com.xtracr.realcamera.utils.Triple;
@@ -239,11 +238,6 @@ public class ConfigScreen {
                 .build());
         SubCategoryBuilder compatSwitches = entryBuilder.startSubCategory(Text.translatable(CATEGORY + "compatSwitches"))
                 .setTooltip(Text.translatable(TOOLTIP + "compatSwitches"));
-        if (DoABarrelRollCompat.loaded)
-            compatSwitches.add(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "doABarrelRoll"), config.compats.doABarrelRoll)
-                    .setDefaultValue(true)
-                    .setSaveConsumer(b -> config.compats.doABarrelRoll = b)
-                    .build());
         if (PehkuiCompat.loaded)
             compatSwitches.add(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "pehkui"), config.compats.pehkui)
                     .setDefaultValue(true)

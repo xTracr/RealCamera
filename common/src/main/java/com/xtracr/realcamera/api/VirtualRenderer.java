@@ -40,7 +40,7 @@ public class VirtualRenderer {
      */
     public static boolean shouldDisableRender(String modelPartName) {
         ModConfig.Disable.optionalParts.add(modelPartName);
-        return Flags.isRenderingClientPlayer && config.shouldDisableRender(modelPartName) && RealCameraCore.isActive();
+        return Flags.isRenderingClientPlayer && config.shouldDisableModelPart(modelPartName) && RealCameraCore.isActive();
     }
 
     public static boolean virtualRender(float tickDelta, MatrixStack matrixStack) {

@@ -1,7 +1,6 @@
 package com.xtracr.realcamera.mixins;
 
 import com.xtracr.realcamera.RealCameraCore;
-import com.xtracr.realcamera.compat.DoABarrelRollCompat;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.utils.CrosshairUtils;
 import com.xtracr.realcamera.utils.RaycastUtils;
@@ -51,8 +50,8 @@ public abstract class MixinGameRenderer {
     @Inject(method = "renderHand", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/client/util/math/MatrixStack;push()V"))
     private void realCamera$setThirdPerson(MatrixStack matrices, Camera camera, float tickDelta, CallbackInfo cInfo) {
-        if (ConfigFile.modConfig.isRendering() && !ConfigFile.modConfig.disableRenderingWhen(client) && RealCameraCore.isActive() &&
-                !ConfigFile.modConfig.allowRenderingHandWhen(client)) {
+        if (ConfigFile.modConfig.isRendering() && !ConfigFile.modConfig.shouldDisableRendering(client) && RealCameraCore.isActive() &&
+                !ConfigFile.modConfig.allowRenderingHand(client)) {
             client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
             realCamera$toggled = true;
         }
@@ -68,11 +67,15 @@ public abstract class MixinGameRenderer {
     }
 
     @Inject(method = "renderWorld", at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/client/render/Camera;update(Lnet/minecraft/world/BlockView;Lnet/minecraft/entity/Entity;ZZF)V",
-            shift = At.Shift.BY, by = -2))
+            target = "Lnet/minecraft/client/render/Camera;update(Lnet/minecraft/world/BlockView;Lnet/minecraft/entity/Entity;ZZF)V"))
     private void realCamera$onBeforeCameraUpdate(float tickDelta, long limitTime, MatrixStack matrixStack, CallbackInfo cInfo) {
-        if (ConfigFile.modConfig.compatDoABarrelRoll() && DoABarrelRollCompat.modEnabled() && RealCameraCore.isActive()) {
-            matrixStack.loadIdentity();
+        if (RealCameraCore.isActive()) {
+            RealCameraCore.computeCamera(client, tickDelta);
         }
+    }
+
+    @Inject(method = "bobView", at = @At("HEAD"), cancellable = true)
+    private void realCamera$cancelBobview(CallbackInfo cInfo) {
+        if (RealCameraCore.isActive()) cInfo.cancel();
     }
 }
