@@ -92,6 +92,11 @@ public class ConfigScreen {
                 .setTooltip(Text.translatable(TOOLTIP + "adjustOffset"))
                 .setSaveConsumer(b -> config.binding.adjustOffset = b)
                 .build());
+        binding.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "offsetModel"), config.binding.offsetModel)
+                .setDefaultValue(false)
+                .setTooltip(Text.translatable(TOOLTIP + "offsetModel"))
+                .setSaveConsumer(b -> config.binding.offsetModel = b)
+                .build());
         SubCategoryBuilder bindingCameraOffset = entryBuilder.startSubCategory(Text.translatable(CATEGORY + "cameraOffset"))
                 .setTooltip(Text.translatable(TOOLTIP + "bindingOffset"), Text.translatable(TOOLTIP + "bindingOffset_n"));
         bindingCameraOffset.add(entryBuilder.startDoubleField(Text.translatable(OPTION + "cameraOffset", "X"), config.binding.cameraX)

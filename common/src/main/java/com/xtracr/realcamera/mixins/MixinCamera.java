@@ -67,8 +67,10 @@ public abstract class MixinCamera {
                 Box box = focusedEntity.getBoundingBox();
                 double restrictedY = MathHelper.clamp(prevPos.getY(), box.minY + 0.1D, box.maxY - 0.1D);
                 startVec = new Vec3d(pos.getX(), restrictedY, pos.getZ());
-                setPos(prevPos);
-                realCamera$clipToSpace(startVec);
+                if (!config.doOffsetModel()) {
+                    setPos(prevPos);
+                    realCamera$clipToSpace(startVec);
+                }
                 RealCameraCore.setModelOffset(pos.subtract(prevPos));
                 setRotation(config.isYawingBound() ? RealCameraCore.getYaw() : yaw - config.getBindingYaw(),
                         config.isPitchingBound() ? RealCameraCore.getPitch() : pitch + config.getBindingPitch());

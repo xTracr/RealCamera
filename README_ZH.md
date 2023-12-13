@@ -42,6 +42,7 @@
   * Customizable Player Models
 * 兼容:
   * 大多数摄像头模组
+  * Player Animation Lib
   * Not Enough Animations[^1]
   * First Person Model
   * Pehkui

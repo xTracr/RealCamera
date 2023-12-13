@@ -87,6 +87,10 @@ public class ModConfig {
         return binding.adjustOffset;
     }
 
+    public boolean doOffsetModel() {
+        return binding.offsetModel;
+    }
+
     public double getBindingX() {
         return binding.cameraX;
     }
@@ -300,6 +304,7 @@ public class ModConfig {
     public static class Binding {
         public VanillaModelPart vanillaModelPart = VanillaModelPart.head;
         public boolean adjustOffset = true;
+        public boolean offsetModel = false;
         public double cameraX = 3.25D;
         public double cameraY = 2.0D;
         public double cameraZ = 0.0D;

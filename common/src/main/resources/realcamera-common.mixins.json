@@ -8,6 +8,7 @@
   "client": [
     "MixinCamera",
     "MixinClientPlayerEntity",
+    "MixinEntityRenderDispatcher",
     "MixinEntityRenderer",
     "MixinGameRenderer",
     "MixinInGameHud",

@@ -70,8 +70,8 @@ public class RealCameraCore {
     }
 
     public static void computeCamera(MinecraftClient client, float tickDelta) {
-        if (config.isClassic()) return;
         modelOffset = Vec3d.ZERO;
+        if (config.isClassic()) return;
 
         // GameRenderer.renderWorld
         MatrixStack matrixStack = new MatrixStack();
