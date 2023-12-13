@@ -52,11 +52,6 @@ public class ConfigScreen {
                 .setTooltip(Text.translatable(TOOLTIP + "classic"))
                 .setSaveConsumer(b -> config.general.classic = b)
                 .build());
-        general.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "clipToSpace"), config.general.clipToSpace)
-                .setDefaultValue(true)
-                .setTooltip(Text.translatable(TOOLTIP + "clipToSpace"))
-                .setSaveConsumer(b -> config.general.clipToSpace = b)
-                .build());
         general.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "dynamicCrosshair"), config.general.dynamicCrosshair)
                 .setDefaultValue(false)
                 .setTooltip(Text.translatable(TOOLTIP + "dynamicCrosshair"))
@@ -91,6 +86,11 @@ public class ConfigScreen {
                 .setDefaultValue(true)
                 .setTooltip(Text.translatable(TOOLTIP + "adjustOffset"))
                 .setSaveConsumer(b -> config.binding.adjustOffset = b)
+                .build());
+        binding.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "offsetModel"), config.binding.offsetModel)
+                .setDefaultValue(false)
+                .setTooltip(Text.translatable(TOOLTIP + "offsetModel"))
+                .setSaveConsumer(b -> config.binding.offsetModel = b)
                 .build());
         SubCategoryBuilder bindingCameraOffset = entryBuilder.startSubCategory(Text.translatable(CATEGORY + "cameraOffset"))
                 .setTooltip(Text.translatable(TOOLTIP + "bindingOffset"), Text.translatable(TOOLTIP + "bindingOffset_n"));

@@ -47,10 +47,6 @@ public class RealCameraCore {
         return roll;
     }
 
-    public static void setRoll(float roll) {
-        RealCameraCore.roll = roll;
-    }
-
     public static Vec3d getPos() {
         return pos;
     }
@@ -70,8 +66,9 @@ public class RealCameraCore {
     }
 
     public static void computeCamera(MinecraftClient client, float tickDelta) {
-        if (config.isClassic()) return;
         modelOffset = Vec3d.ZERO;
+        roll = config.getClassicRoll();
+        if (config.isClassic()) return;
 
         // GameRenderer.renderWorld
         MatrixStack matrixStack = new MatrixStack();

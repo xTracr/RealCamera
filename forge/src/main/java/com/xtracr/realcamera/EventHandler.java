@@ -17,6 +17,8 @@ public class EventHandler {
     @SubscribeEvent
     public static void onCameraUpdate(ComputeCameraAngles event) {
         if (RealCameraCore.isActive()) {
+            event.setPitch(RealCameraCore.getPitch());
+            event.setYaw(RealCameraCore.getYaw());
             event.setRoll(RealCameraCore.getRoll());
         }
     }

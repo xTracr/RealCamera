@@ -42,6 +42,7 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
   * Customizable Player Models
 * Compatible:
   * most camera mods
+  * Player Animation Lib
   * Not Enough Animations[^1]
   * First Person Model
   * Pehkui

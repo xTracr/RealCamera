@@ -59,7 +59,6 @@ public abstract class MixinCamera {
                 setRotation(yaw, 0.0F);
                 moveBy(center.getX(), center.getY(), center.getZ());
                 setRotation(newYaw, newPitch);
-                RealCameraCore.setRoll(config.getClassicRoll());
                 moveBy(offset.getX(), offset.getY(), offset.getZ());
                 realCamera$clipToSpace(startVec);
             } else {
@@ -67,8 +66,10 @@ public abstract class MixinCamera {
                 Box box = focusedEntity.getBoundingBox();
                 double restrictedY = MathHelper.clamp(prevPos.getY(), box.minY + 0.1D, box.maxY - 0.1D);
                 startVec = new Vec3d(pos.getX(), restrictedY, pos.getZ());
-                setPos(prevPos);
-                realCamera$clipToSpace(startVec);
+                if (!config.doOffsetModel()) {
+                    setPos(prevPos);
+                    realCamera$clipToSpace(startVec);
+                }
                 RealCameraCore.setModelOffset(pos.subtract(prevPos));
                 setRotation(config.isYawingBound() ? RealCameraCore.getYaw() : yaw - config.getBindingYaw(),
                         config.isPitchingBound() ? RealCameraCore.getPitch() : pitch + config.getBindingPitch());
@@ -78,7 +79,6 @@ public abstract class MixinCamera {
 
     @Unique
     private void realCamera$clipToSpace(Vec3d startVec) {
-        if (!ConfigFile.modConfig.doClipToSpace()) return;
         Vec3d offset = pos.subtract(startVec);
         final float depth = 0.085F;
         for (int i = 0; i < 8; ++i) {

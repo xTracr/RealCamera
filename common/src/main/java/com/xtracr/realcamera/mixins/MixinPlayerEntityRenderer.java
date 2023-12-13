@@ -1,6 +1,5 @@
 package com.xtracr.realcamera.mixins;
 
-import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.api.VirtualRenderer;
 import com.xtracr.realcamera.utils.Flags;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
@@ -11,12 +10,10 @@ import net.minecraft.client.render.entity.LivingEntityRenderer;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.client.render.entity.model.PlayerEntityModel;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PlayerEntityRenderer.class)
 public abstract class MixinPlayerEntityRenderer
@@ -36,14 +33,6 @@ public abstract class MixinPlayerEntityRenderer
     private void realCamera$onRenderRETURN(AbstractClientPlayerEntity abstractClientPlayerEntity, float f, float g,
             MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, CallbackInfo cInfo) {
         Flags.isRenderingClientPlayer = false;
-    }
-
-    @Inject(method = "getPositionOffset*", at = @At("RETURN"), cancellable = true)
-    private void realCamera$translateModel(AbstractClientPlayerEntity abstractClientPlayerEntity, float f, CallbackInfoReturnable<Vec3d> cInfo) {
-        if (RealCameraCore.isActive() && abstractClientPlayerEntity instanceof ClientPlayerEntity) {
-            Vec3d returnVec = cInfo.getReturnValue().add(RealCameraCore.getModelOffset());
-            cInfo.setReturnValue(returnVec);
-        }
     }
 
     @Inject(method = "setModelPose", at = @At("RETURN"))
