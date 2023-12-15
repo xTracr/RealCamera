@@ -36,7 +36,6 @@
 
     "config.option.xtracr_realcamera_enabled": "开启功能",
     "config.option.xtracr_realcamera_classic": "经典模式",
-    "config.option.xtracr_realcamera_clipToSpace": "限制摄像头范围",
     "config.option.xtracr_realcamera_dynamicCrosshair": "动态十字准心",
     "config.option.xtracr_realcamera_renderModel": "渲染玩家模型",
     "config.option.xtracr_realcamera_adjustStep": "调整步长",
@@ -79,7 +78,6 @@
     "config.option.xtracr_realcamera_screenOpened": "界面开启",
 
     "config.tooltip.xtracr_realcamera_classic": "经典模式只对摄像头的位置和旋转做简单的修改",
-    "config.tooltip.xtracr_realcamera_clipToSpace": "限制摄像头位置以防止其进入方块内部",
     "config.tooltip.xtracr_realcamera_dynamicCrosshair": "在开启状态下，十字准心会随着玩家的视线移动，确保命中结果不受影响\n在安装了Jade、WTHIT或类似模组时建议启用",
     "config.tooltip.xtracr_realcamera_renderModel": "在第一人称视角下渲染玩家模型",
     "config.tooltip.xtracr_realcamera_adjustStep": "每步调整的角度的1/4或长度",

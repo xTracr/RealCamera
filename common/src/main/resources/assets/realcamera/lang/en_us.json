@@ -36,7 +36,6 @@
 
     "config.option.xtracr_realcamera_enabled": "Mod Enabled",
     "config.option.xtracr_realcamera_classic": "Classic Mode",
-    "config.option.xtracr_realcamera_clipToSpace": "Clip To Space",
     "config.option.xtracr_realcamera_dynamicCrosshair": "Dynamic Crosshair",
     "config.option.xtracr_realcamera_renderModel": "Render Player Model",
     "config.option.xtracr_realcamera_adjustStep": "Adjust Step",
@@ -79,7 +78,6 @@
     "config.option.xtracr_realcamera_screenOpened": "Screen is Opened",
 
     "config.tooltip.xtracr_realcamera_classic": "Classic mode only makes simple changes to the position and rotation of camera",
-    "config.tooltip.xtracr_realcamera_clipToSpace": "Prevent camera from clipping into blocks",
     "config.tooltip.xtracr_realcamera_dynamicCrosshair": "When enabled, the crosshair will follow the player's view, ensuring consistent hit result\nRecommended to enable when Jade, WTHIT or similar mods are installed",
     "config.tooltip.xtracr_realcamera_renderModel": "Render player model in first-person perspective",
     "config.tooltip.xtracr_realcamera_adjustStep": "Length or 1/4 of the angle of the adjustment per step",
@@ -95,5 +93,15 @@
     "config.tooltip.xtracr_realcamera_modModelPart": "Name of the model part to bind camera to",
 
     "config.tooltip.xtracr_realcamera_disabledModelParts": "Possible options(There may be other options not listed here): %s",
-    "config.tooltip.xtracr_realcamera_customConditions_actions": "Available options: [disable_mod, disable_rendering, allow_rendering_hand] and Model Part Names"
+    "config.tooltip.xtracr_realcamera_customConditions_actions": "Available options: [disable_mod, disable_rendering, allow_rendering_hand] and Model Part Names",
+
+    "message.xtracr_realcamera_analyser_start": "------Start Analysis------",
+    "message.xtracr_realcamera_analyser_showResult": "------Analysis Result------",
+    "message.xtracr_realcamera_analyser_byFrequency": "Sort by frequency: %s",
+    "message.xtracr_realcamera_analyser_byCorrelation": "Sort by Correlation: %s",
+    "message.xtracr_realcamera_analyser_orthogonalVectors": "Indexes whose vector orthogonal to the given vector: %s",
+    "message.xtracr_realcamera_analyser_showResultEnd": "Total number of results displayed: %d / %d",
+    "message.xtracr_realcamera_analyser_autoModeResult": "Run %s command again in %s to bind to: (front)[%d], (up)[%d] and (left)[%d]",
+    "message.xtracr_realcamera_analyser_autoBind": "Bound successfully: (front)[%d], (up)[%d] and (left)[%d]",
+    "message.xtracr_realcamera_analyser_willNotBind": "Running 'autoBind' command now will restart analysis"
 }

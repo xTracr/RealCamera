@@ -80,7 +80,6 @@ public abstract class MixinCamera {
 
     @Unique
     private void realCamera$clipToSpace(Vec3d startVec) {
-        if (!ConfigFile.modConfig.doClipToSpace()) return;
         Vec3d offset = pos.subtract(startVec);
         final float depth = 0.085F;
         for (int i = 0; i < 8; ++i) {

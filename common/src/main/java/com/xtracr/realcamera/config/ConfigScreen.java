@@ -52,11 +52,6 @@ public class ConfigScreen {
                 .setTooltip(Text.translatable(TOOLTIP + "classic"))
                 .setSaveConsumer(b -> config.general.classic = b)
                 .build());
-        general.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "clipToSpace"), config.general.clipToSpace)
-                .setDefaultValue(true)
-                .setTooltip(Text.translatable(TOOLTIP + "clipToSpace"))
-                .setSaveConsumer(b -> config.general.clipToSpace = b)
-                .build());
         general.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "dynamicCrosshair"), config.general.dynamicCrosshair)
                 .setDefaultValue(false)
                 .setTooltip(Text.translatable(TOOLTIP + "dynamicCrosshair"))

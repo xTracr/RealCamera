@@ -7,9 +7,11 @@ import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.mixins.PlayerEntityRendererAccessor;
 import com.xtracr.realcamera.utils.MathUtils;
+import com.xtracr.realcamera.utils.VertexDataAnalyser;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.client.render.entity.model.PlayerEntityModel;
 import net.minecraft.client.util.math.MatrixStack;
@@ -25,6 +27,7 @@ public class RealCameraCore {
     private static final ModConfig config = ConfigFile.modConfig;
 
     private static String status = "Successful";
+    private static boolean vRendering = false;
     private static float pitch = 0.0F;
     private static float yaw = 0.0F;
     private static float roll = 0.0F;
@@ -33,6 +36,10 @@ public class RealCameraCore {
 
     public static String getStatus() {
         return status;
+    }
+
+    public static boolean isvRendering() {
+        return vRendering;
     }
 
     public static float getPitch() {
@@ -74,8 +81,10 @@ public class RealCameraCore {
         if (config.isClassic()) return;
 
         // GameRenderer.renderWorld
-        MatrixStack matrixStack = new MatrixStack();
+        MatrixStack matrixStack = VertexDataAnalyser.getMatrixStack();
+        vRendering = true;
         virtualRender(client, tickDelta, matrixStack);
+        vRendering = false;
 
         // ModelPart$Cuboid.renderCuboid
         Vector4f offset = matrixStack.peek().getPositionMatrix().transform(new Vector4f((float) (config.getBindingZ() * config.getScale()),
@@ -105,6 +114,12 @@ public class RealCameraCore {
         Vec3d renderOffset = new Vec3d(MathHelper.lerp(tickDelta, player.lastRenderX, player.getX()),
                 MathHelper.lerp(tickDelta, player.lastRenderY, player.getY()),
                 MathHelper.lerp(tickDelta, player.lastRenderZ, player.getZ()));
+        matrixStack.push();
+        EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
+        dispatcher.configure(client.world, client.gameRenderer.getCamera(), player);
+        dispatcher.render(player, renderOffset.getX(), renderOffset.getY(), renderOffset.getZ(), 0, tickDelta, matrixStack, layer -> VertexDataAnalyser.catcher, 0xF000F0);
+        VertexDataAnalyser.analyse(0.0001f, player, tickDelta);
+        matrixStack.pop();
         // EntityRenderDispatcher.render
         if (config.compatPhysicsMod())
             PhysicsModCompat.renderStart(client.getEntityRenderDispatcher(), player, renderOffset.getX(), renderOffset.getY(),
