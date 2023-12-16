@@ -26,6 +26,7 @@ import org.joml.Vector4f;
 public class RealCameraCore {
     private static final ModConfig config = ConfigFile.modConfig;
 
+    public static MatrixStack matrixStack = new MatrixStack();
     private static String status = "Successful";
     private static boolean vRendering = false;
     private static float pitch = 0.0F;
@@ -81,9 +82,9 @@ public class RealCameraCore {
         if (config.isClassic()) return;
 
         // GameRenderer.renderWorld
-        MatrixStack matrixStack = VertexDataAnalyser.getMatrixStack();
+        matrixStack = new MatrixStack();
         vRendering = true;
-        virtualRender(client, tickDelta, matrixStack);
+        virtualRender(client, tickDelta);
         vRendering = false;
 
         // ModelPart$Cuboid.renderCuboid
@@ -102,7 +103,7 @@ public class RealCameraCore {
         roll = config.isRollingBound() ? (float) eulerAngle.getZ() : config.getBindingRoll();
     }
 
-    private static void virtualRender(MinecraftClient client, float tickDelta, MatrixStack matrixStack) {
+    private static void virtualRender(MinecraftClient client, float tickDelta) {
         ClientPlayerEntity player = client.player;
         // WorldRenderer.render
         if (player.age == 0) {
@@ -116,9 +117,11 @@ public class RealCameraCore {
                 MathHelper.lerp(tickDelta, player.lastRenderZ, player.getZ()));
         matrixStack.push();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
+        VertexDataAnalyser.preAnalysing();
         dispatcher.configure(client.world, client.gameRenderer.getCamera(), player);
-        dispatcher.render(player, renderOffset.getX(), renderOffset.getY(), renderOffset.getZ(), 0, tickDelta, matrixStack, layer -> VertexDataAnalyser.catcher, 0xF000F0);
-        VertexDataAnalyser.analyse(0.0001f, player, tickDelta);
+        dispatcher.render(player, renderOffset.getX(), renderOffset.getY(), renderOffset.getZ(), 0, tickDelta,
+                matrixStack, layer -> VertexDataAnalyser.catcher, 0xF000F0);
+        VertexDataAnalyser.analyse(player, tickDelta);
         matrixStack.pop();
         // EntityRenderDispatcher.render
         if (config.compatPhysicsMod())

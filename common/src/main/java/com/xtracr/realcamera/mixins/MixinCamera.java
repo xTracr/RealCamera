@@ -22,7 +22,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Camera.class)
 public abstract class MixinCamera {
-
     @Shadow
     private BlockView area;
     @Shadow
@@ -39,42 +38,41 @@ public abstract class MixinCamera {
     @Inject(method = "update", at = @At("RETURN"))
     private void realCamera$updateCamera(BlockView area, Entity focusedEntity, boolean thirdPerson, boolean inverseView,
             float tickDelta, CallbackInfo cInfo) {
-        if (RealCameraCore.isActive()) {
-            final ModConfig config = ConfigFile.modConfig;
-            if (config.isRendering() && !config.shouldDisableRendering(MinecraftClient.getInstance())) {
-                this.thirdPerson = true;
+        if (!RealCameraCore.isActive()) return;
+        final ModConfig config = ConfigFile.modConfig;
+        if (config.isRendering() && !config.shouldDisableRendering(MinecraftClient.getInstance())) {
+            this.thirdPerson = true;
+        }
+
+        Vec3d startVec = pos;
+        if (config.isClassic()) {
+            Vec3d offset = new Vec3d(config.getClassicX(), config.getClassicY(), config.getClassicZ()).multiply(config.getScale());
+            Vec3d center = new Vec3d(config.getCenterX(), config.getCenterY(), config.getCenterZ()).multiply(config.getScale());
+            float newPitch = pitch + config.getClassicPitch();
+            float newYaw = yaw - config.getClassicYaw();
+            if (config.compatPehkui()) {
+                offset = PehkuiCompat.scaleVec3d(offset, focusedEntity, tickDelta);
+                center = PehkuiCompat.scaleVec3d(center, focusedEntity, tickDelta);
             }
 
-            Vec3d startVec = pos;
-            if (config.isClassic()) {
-                Vec3d offset = new Vec3d(config.getClassicX(), config.getClassicY(), config.getClassicZ()).multiply(config.getScale());
-                Vec3d center = new Vec3d(config.getCenterX(), config.getCenterY(), config.getCenterZ()).multiply(config.getScale());
-                float newPitch = pitch + config.getClassicPitch();
-                float newYaw = yaw - config.getClassicYaw();
-                if (config.compatPehkui()) {
-                    offset = PehkuiCompat.scaleVec3d(offset, focusedEntity, tickDelta);
-                    center = PehkuiCompat.scaleVec3d(center, focusedEntity, tickDelta);
-                }
-
-                setRotation(yaw, 0.0F);
-                moveBy(center.getX(), center.getY(), center.getZ());
-                setRotation(newYaw, newPitch);
-                RealCameraCore.setRoll(config.getClassicRoll());
-                moveBy(offset.getX(), offset.getY(), offset.getZ());
+            setRotation(yaw, 0.0F);
+            moveBy(center.getX(), center.getY(), center.getZ());
+            setRotation(newYaw, newPitch);
+            RealCameraCore.setRoll(config.getClassicRoll());
+            moveBy(offset.getX(), offset.getY(), offset.getZ());
+            realCamera$clipToSpace(startVec);
+        } else {
+            Vec3d prevPos = RealCameraCore.getPos();
+            Box box = focusedEntity.getBoundingBox();
+            double restrictedY = MathHelper.clamp(prevPos.getY(), box.minY + 0.1D, box.maxY - 0.1D);
+            startVec = new Vec3d(pos.getX(), restrictedY, pos.getZ());
+            if (!config.doOffsetModel()) {
+                setPos(prevPos);
                 realCamera$clipToSpace(startVec);
-            } else {
-                Vec3d prevPos = RealCameraCore.getPos();
-                Box box = focusedEntity.getBoundingBox();
-                double restrictedY = MathHelper.clamp(prevPos.getY(), box.minY + 0.1D, box.maxY - 0.1D);
-                startVec = new Vec3d(pos.getX(), restrictedY, pos.getZ());
-                if (!config.doOffsetModel()) {
-                    setPos(prevPos);
-                    realCamera$clipToSpace(startVec);
-                }
-                RealCameraCore.setModelOffset(pos.subtract(prevPos));
-                setRotation(config.isYawingBound() ? RealCameraCore.getYaw() : yaw - config.getBindingYaw(),
-                        config.isPitchingBound() ? RealCameraCore.getPitch() : pitch + config.getBindingPitch());
             }
+            RealCameraCore.setModelOffset(pos.subtract(prevPos));
+            setRotation(config.isYawingBound() ? RealCameraCore.getYaw() : yaw - config.getBindingYaw(),
+                    config.isPitchingBound() ? RealCameraCore.getPitch() : pitch + config.getBindingPitch());
         }
     }
 

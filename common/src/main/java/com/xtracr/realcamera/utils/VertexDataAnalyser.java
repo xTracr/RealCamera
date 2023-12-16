@@ -3,83 +3,93 @@ package com.xtracr.realcamera.utils;
 import com.xtracr.realcamera.RealCamera;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
+import org.joml.Matrix2f;
 import org.joml.Matrix3f;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class VertexDataAnalyser {
     private static final String KEY_ANALYSER = "message.xtracr_" + RealCamera.MODID + "_analyser_";
+    private static final float defaultAccuracy = 0.00001f;
     private static final Map<Integer, Pair<Integer, Float>> indexResult = new HashMap<>();
-    private static final Map<Integer, Pair<Integer, Integer>> autoModeResult = new HashMap<>();
-    private static final Map<Integer, Float> orthogonalVectors = new HashMap<>();
-    public static final VertexDataCatcher catcher = new VertexDataCatcher();
-
-    private static boolean readyToBind;
+    private static final Map<Integer, Pair<Integer, Integer>> orthogonalResult = new HashMap<>();
+    private static final List<Integer> processedResults = new ArrayList<>();
+    private static List<Integer> equivalenceClass = new ArrayList<>();
     private static boolean analysing;
+    private static boolean ready;
+    private static float accuracy = defaultAccuracy;
     private static int count;
     private static int mode;
     private static int ticks;
+    public static final VertexDataCatcher catcher = new VertexDataCatcher(
+            i -> analysing && mode == 1, i -> analysing && mode != 1, i -> analysing && mode != 1);
 
     public static boolean isAnalysing() {
         return analysing;
     }
 
-    public static MatrixStack getMatrixStack() {
+    public static boolean preAnalysing() {
         catcher.clear();
-        return catcher.matrixStack;
+        return analysing;
+    }
+
+    public static List<Integer> getFinalResults(int index) {
+        if (processedResults.isEmpty()) {
+            printGameMessage(Text.translatable(KEY_ANALYSER + "notReady"));
+            return null;
+        }
+        List<Integer> ret = new ArrayList<>(processedResults);
+        final int target = index == -1 ? processedResults.get(0) : index;
+        ret.add(target);
+        if (equivalenceClass.contains(target)) {
+            for (int i = 1; i <= Math.max(target, equivalenceClass.get(equivalenceClass.size() - 1) - target); i++) {
+                if (equivalenceClass.contains(target - i)) ret.add(target - i);
+                else if (equivalenceClass.contains(target + i)) ret.add(target + i);
+                else break;
+            }
+        }
+        return ret;
     }
 
     public static void tick() {
-        if (readyToBind) {
-            ticks--;    // analysing must be false here
-            if (ticks < -600) {
-                readyToBind = false;
-                printGameMessage(Text.translatable(KEY_ANALYSER + "willNotBind"));
-            }
-        }
         if (!analysing) return;
         ticks--;
         if (ticks > 0) return;
         if (mode == 0) {
             int target = getResult(1, false).get(0);
-            start(-1 - target, 80);
+            start(-1 - target, 80, accuracy);
             return;
         }
         analysing = false;
+        ready = true;
         showResult(12, false);
     }
 
-    public static void start(int mode, int ticks) {
-        if (readyToBind && mode == 0) {
-            //TODO: set binding mode config
-            readyToBind = false;
-            int frontIndex = autoModeResult.get(-1).getLeft();
-            int upIndex = autoModeResult.get(-2).getLeft();
-            int leftIndex = autoModeResult.get(-2).getRight();
-            printGameMessage(Text.translatable(KEY_ANALYSER + "autoBind", frontIndex, upIndex, leftIndex));
-            return;
-        }
+    public static void start(int mode, int ticks, float accuracy) {
         indexResult.clear();
-        autoModeResult.clear();
-        orthogonalVectors.clear();
-        readyToBind = false;
+        orthogonalResult.clear();
+        processedResults.clear();
+        equivalenceClass.clear();
         analysing = true;
+        ready = false;
         count = 0;
+        VertexDataAnalyser.accuracy = accuracy;
         VertexDataAnalyser.mode = mode;
         VertexDataAnalyser.ticks = ticks;
+        equivalenceClass.add(mode >= 2 ? mode - 2 : mode <= -1 ? -1 - mode : 0);
         if (mode >= 0) printGameMessage(Text.translatable(KEY_ANALYSER + "start"));
     }
 
     public static void showResult(int number, boolean detail) {
+        if (!ready) {
+            printGameMessage(Text.translatable(KEY_ANALYSER + "notReady"));
+            return;
+        }
         printGameMessage(Text.translatable(KEY_ANALYSER + "showResult"));
         List<Integer> sorted = getResult(number, true);
         StringBuilder buffer = new StringBuilder();
@@ -99,51 +109,47 @@ public abstract class VertexDataAnalyser {
             buffer.append(": ").append(c);
         }
         printGameMessage(Text.translatable(KEY_ANALYSER + "byCorrelation", buffer.toString()));
-        if (mode != 1 && !orthogonalVectors.isEmpty()) {
-            buffer = new StringBuilder();
-            sorted = new ArrayList<>(orthogonalVectors.keySet());
-            sorted.sort((i, j) -> (int)((orthogonalVectors.get(i) - orthogonalVectors.get(j)) * 1000000));
-            sorted = sorted.subList(0, Math.min(number, sorted.size()));
-            for (int i : sorted) {
-                buffer.append(" [").append(i).append("]");
-                if (!detail) continue;
-                float d = Math.round(1000 * orthogonalVectors.get(i) / (float) count) / 1000f;
-                buffer.append(": ").append(d);
-            }
-            printGameMessage(Text.translatable(KEY_ANALYSER + "orthogonalVectors", buffer.toString()));
-        }
-        printGameMessage(Text.translatable(KEY_ANALYSER + "showResultEnd",
+        printGameMessage(Text.translatable(KEY_ANALYSER + "numberOfResults",
                 Math.min(number, indexResult.keySet().size()), indexResult.keySet().size()));
-        if (mode < 0 && orthogonalVectors.size() >= 2) {
-            int upIndex;
-            int leftIndex;
-            if (!autoModeResult.containsKey(-1)) {
-                sorted = new ArrayList<>(autoModeResult.keySet());
-                sorted.sort((i, j) -> autoModeResult.get(j).getLeft() - autoModeResult.get(i).getLeft());
-                upIndex = sorted.get(0);
-                sorted.sort((i, j) -> autoModeResult.get(j).getRight() - autoModeResult.get(i).getRight());
-                leftIndex = sorted.get(0);
-                autoModeResult.put(-1, new Pair<>(-1 - mode, 0));
-                autoModeResult.put(-2, new Pair<>(upIndex, leftIndex));
-            } else {
-                upIndex = autoModeResult.get(-2).getLeft();
-                leftIndex = autoModeResult.get(-2).getRight();
-            }
-            readyToBind = true;
-            count = 0;
-            printGameMessage(Text.translatable(KEY_ANALYSER + "autoModeResult", Text.literal("'autoBind'")
-                    .styled(s -> s.withColor(Formatting.GREEN)), Text.literal("30s").styled(s -> s.withColor(Formatting.YELLOW)),
-                    -1 - mode, upIndex, leftIndex));
+        if (mode == 1 || orthogonalResult.isEmpty()) return;
+        if (processedResults.isEmpty()) {
+            sorted = new ArrayList<>(orthogonalResult.keySet());
+            sorted.sort(Comparator.comparingInt(i -> -Math.abs(orthogonalResult.get(i).getRight())));
+            int leftIndex = sorted.get(0);
+            sorted.sort(Comparator.comparingInt(i -> -Math.abs(orthogonalResult.get(i).getLeft())));
+            int upIndex = sorted.get(0);
+            processedResults.add(equivalenceClass.get(0));
+            processedResults.add(orthogonalResult.get(upIndex).getLeft() > 0 ? upIndex : -upIndex - 1);
+            processedResults.add(orthogonalResult.get(leftIndex).getLeft()> 0 ? leftIndex : -leftIndex - 1);
         }
+        if (!equivalenceClass.contains(-1)) {
+            equivalenceClass = simplifyList(equivalenceClass, Comparator.comparingInt(i -> i), (int) (count * 0.9));
+            equivalenceClass = equivalenceClass.subList(0, Math.min(number, equivalenceClass.size()));
+            equivalenceClass.add(-1);
+        }
+        if (detail) {
+            buffer = new StringBuilder().append("[ ");
+            for (int i : equivalenceClass) {
+                if (i < 0) continue;
+                buffer.append(i).append(" ");
+            }
+            printGameMessage(Text.translatable(KEY_ANALYSER + "equivalenceClass", buffer.append("]").toString()));
+        }
+        printGameMessage(Text.translatable(KEY_ANALYSER + "bindSuggestion", Text.literal("'autoBind'")
+                .styled(s -> s.withColor(Formatting.GREEN)), processedResults.get(0), processedResults.get(1), processedResults.get(2)));
     }
 
-    public static void analyse(float accuracy, ClientPlayerEntity player, float tickDelta) {
+    public static void analyse(ClientPlayerEntity player, float tickDelta) {
         if (!analysing) return;
         count++;
         Vec3d viewVector = player.getRotationVec(tickDelta);
         List<Pair<Integer, Float>> indexCash = new ArrayList<>();
-        if (mode == 1) poseMode(accuracy, viewVector, indexCash);
-        else vertexMode(accuracy, viewVector, indexCash);
+        if (mode == 1) poseMode(viewVector, indexCash);
+        else {
+            Matrix3f viewRotation = new Matrix3f().rotate(RotationAxis.POSITIVE_X.rotationDegrees(-player.getPitch(tickDelta)))
+                    .rotate(RotationAxis.POSITIVE_Y.rotationDegrees(player.getYaw(tickDelta)));
+            vertexMode(viewVector, viewRotation, indexCash);
+        }
         for (Pair<Integer, Float> pair : indexCash) {
             int index = pair.getLeft();
             float dot = pair.getRight();
@@ -155,42 +161,25 @@ public abstract class VertexDataAnalyser {
                 indexResult.put(index, new Pair<>(1, dot));
             }
         }
-        if (mode < 0 && orthogonalVectors.size() >=2) {
-            List<Integer> sorted = new ArrayList<>(orthogonalVectors.keySet());
-            sorted.sort((i, j) -> (int)((orthogonalVectors.get(i) - orthogonalVectors.get(j)) * 1000000));
-            sorted = sorted.subList(0, 2);
-            int index0 = sorted.get(0);
-            int index1 = sorted.get(1);
-            Matrix3f viewRotation = new Matrix3f().rotate(RotationAxis.POSITIVE_X.rotationDegrees(-player.getPitch(tickDelta)))
-                    .rotate(RotationAxis.POSITIVE_Y.rotationDegrees(player.getYaw(tickDelta)));
-            Matrix3f rotation = new Matrix3f(catcher.normalRecorder.get(index0).toVector3f(),
-                    catcher.normalRecorder.get(index1).toVector3f(),
-                    catcher.normalRecorder.get(-1 - mode).toVector3f());
-            Pair<Integer, Integer> pair0 = autoModeResult.getOrDefault(index0, new Pair<>(0, 0));
-            Pair<Integer, Integer> pair1 = autoModeResult.getOrDefault(index1, new Pair<>(0, 0));
-            if (viewRotation.mul(rotation, new Matrix3f()).determinant() > 0.5f) {
-                rotation.mul(new Matrix3f(0, 1, 0, 1, 0, 0, 0, 0, 1));
-                pair0.setRight(pair0.getRight() + 1);
-                pair1.setLeft(pair1.getLeft() + 1);
-            } else {
-                pair0.setLeft(pair0.getLeft() + 1);
-                pair1.setRight(pair1.getRight() + 1);
-            }
-            autoModeResult.putIfAbsent(index0, pair0);
-            autoModeResult.putIfAbsent(index1, pair1);
-            Vec3d eulerAngle = MathUtils.getEulerAngleYXZ(rotation).multiply(180.0D / Math.PI);
-            eulerAngle.multiply(1);
-        }
     }
 
     private static List<Integer> getResult(int number , boolean byFrequency) {
         List<Integer> indexList = new ArrayList<>(indexResult.keySet());
         if (byFrequency) indexList.sort((i, j) -> indexResult.get(j).getLeft() - indexResult.get(i).getLeft());
-        else indexList.sort((i, j) -> (int)((indexResult.get(j).getRight() - indexResult.get(i).getRight()) * 1000000));
+        else indexList.sort(Comparator.comparingDouble(i -> -indexResult.get(i).getRight()));
         return indexList.subList(0, Math.min(number, indexList.size()));
     }
 
-    private static void poseMode(float accuracy, Vec3d viewVector, List<Pair<Integer, Float>> indexCash) {
+    private static <T> List<T> simplifyList(List<T> list, Comparator<T> comparator, int times) {
+        Map<T, Integer> listCash = new HashMap<>();
+        List<T> ret = new ArrayList<>();
+        list.forEach(t -> listCash.put(t, listCash.getOrDefault(t, 0) + 1));
+        listCash.forEach((t, i) -> { if (i >= times) ret.add(t); });
+        ret.sort(comparator);
+        return ret;
+    }
+
+    private static void poseMode(Vec3d viewVector, List<Pair<Integer, Float>> indexCash) {
         List<Matrix3f> recorder = catcher.matrixRecorder;
         List<Matrix3f> cash = new ArrayList<>();
         Matrix3f element0 = recorder.get(0);
@@ -213,38 +202,57 @@ public abstract class VertexDataAnalyser {
         }
     }
 
-    private static void vertexMode(float accuracy, Vec3d viewVector, List<Pair<Integer, Float>> indexCash) {
+    private static void vertexMode(Vec3d viewVector, Matrix3f viewRotation, List<Pair<Integer, Float>> indexCash) {
+        final float accuracy = mode == 0 ? defaultAccuracy : VertexDataAnalyser.accuracy;
         List<Vec3d> recorder = catcher.normalRecorder;
         List<Vec3d> cash = new ArrayList<>();
-        int index0 = 0;
-        if (mode >= 2) index0 = mode - 2 < recorder.size() ? mode - 2 : 0;
-        else if (mode <= -1) index0 = -1 - mode < recorder.size() ? -1 - mode : 0;
+        List<Integer> orthogonalCash = new ArrayList<>();
+        final int index0 = Math.min(equivalenceClass.get(0), recorder.size());
+        if (equivalenceClass.size() == 1) {
+            equivalenceClass.clear();
+            equivalenceClass.add(index0);
+        }
         Vec3d element0 = recorder.get(index0);
         cash.add(element0);
         double dotWithView0 = element0.dotProduct(viewVector);
         indexCash.add(new Pair<>(index0, (float) dotWithView0));
         for (int i = 0; i < recorder.size(); i++) {
-            if (i == index0) continue;
-            boolean skip = false;
             Vec3d element = recorder.get(i);
+            double dotWith0 = element.dotProduct(element0);
+            if (i == index0 || dotWith0 >= 1- defaultAccuracy) equivalenceClass.add(i);
+            else if (dotWith0 < defaultAccuracy && -dotWith0 < defaultAccuracy) {
+                boolean shouldAdd = true;
+                if (!orthogonalCash.isEmpty()) for (int index : orthogonalCash) {
+                    if (Math.abs(element.dotProduct(recorder.get(index))) > defaultAccuracy) shouldAdd = false;
+                }
+                if (shouldAdd) orthogonalCash.add(i);
+            }
+
+            double dotWithView = element.dotProduct(viewVector);
+            if (i == index0 || -dotWithView > accuracy) continue;
+            boolean skip = false;
             for (Vec3d vec : cash) {
                 double dotAbs = Math.abs(vec.dotProduct(element));
                 if (dotAbs >=  1-accuracy) skip = true;
             }
             if (skip) continue;
             cash.add(element);
-            double dotWithView = element.dotProduct(viewVector);
             indexCash.add(new Pair<>(i, (float) dotWithView));
-            double dotWith0 = Math.abs(element.dotProduct(element0));
-            if (dotWith0 > accuracy) continue;
-            boolean shouldPut = true;
-            if (!orthogonalVectors.isEmpty()) for (int index : orthogonalVectors.keySet()) {
-                double dotWith1 = Math.abs(element.dotProduct(recorder.get(index)));
-                if (i == index || dotWith1 <= accuracy) continue;
-                dotWith0 += dotWith1;
-                shouldPut = false;
-            }
-            if (shouldPut) orthogonalVectors.put(i, orthogonalVectors.getOrDefault(i, 0f) + (float) dotWith0);
+        }
+        if (orthogonalCash.size() >= 2) {
+            int index2 = orthogonalCash.get(1);
+            int index1 = orthogonalCash.get(0);
+            Matrix3f rotation = new Matrix3f(recorder.get(index2).toVector3f(), recorder.get(index1).toVector3f(),
+                    recorder.get(equivalenceClass.get(0)).toVector3f());
+            Pair<Integer, Integer> pair2 = orthogonalResult.getOrDefault(index2, new Pair<>(0, 0));
+            Pair<Integer, Integer> pair1 = orthogonalResult.getOrDefault(index1, new Pair<>(0, 0));
+            Matrix2f dotProduct = new Matrix2f(viewRotation.mul(rotation, new Matrix3f()));
+            pair2.setRight(pair2.getRight() + Math.round(dotProduct.m00()));
+            pair2.setLeft(pair2.getLeft() + Math.round(dotProduct.m01()));
+            pair1.setRight(pair1.getRight() + Math.round(dotProduct.m10()));
+            pair1.setLeft(pair1.getLeft() + Math.round(dotProduct.m11()));
+            orthogonalResult.putIfAbsent(index2, pair2);
+            orthogonalResult.putIfAbsent(index1, pair1);
         }
     }
 
