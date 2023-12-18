@@ -37,7 +37,6 @@ public abstract class MixinPlayerEntityRenderer
 
     @Inject(method = "setModelPose", at = @At("RETURN"))
     private void realCamera$onSetModelPoseRETURN(AbstractClientPlayerEntity player, CallbackInfo cInfo) {
-        if (!Flags.isRenderingClientPlayer) return;
         if (VirtualRenderer.shouldDisableRender("head")) model.head.visible = false;
         if (VirtualRenderer.shouldDisableRender("hat")) model.hat.visible = false;
         if (VirtualRenderer.shouldDisableRender("body")) model.body.visible = false;

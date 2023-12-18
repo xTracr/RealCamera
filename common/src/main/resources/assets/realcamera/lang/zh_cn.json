@@ -44,6 +44,7 @@
 
     "config.option.xtracr_realcamera_vanillaModelPart": "原版模型部位",
     "config.option.xtracr_realcamera_adjustOffset": "调整摄像头偏移",
+    "config.option.xtracr_realcamera_offsetModel": "偏移模型",
     "config.option.xtracr_realcamera_bindPitching": "绑定俯仰",
     "config.option.xtracr_realcamera_bindYawing": "绑定偏航",
     "config.option.xtracr_realcamera_bindRolling": "绑定翻滚",
@@ -60,7 +61,6 @@
     "config.option.xtracr_realcamera_useModModel": "模组模型兼容",
     "config.option.xtracr_realcamera_modelModID": "模型模组ID",
     "config.option.xtracr_realcamera_modModelPart": "模组模型部位",
-    "config.option.xtracr_realcamera_doABarrelRoll": "Do A Barrel Roll",
     "config.option.xtracr_realcamera_pehkui": "Pehkui",
     "config.option.xtracr_realcamera_physicsMod": "Physics Mod",
 
@@ -87,6 +87,7 @@
 
     "config.tooltip.xtracr_realcamera_vanillaModelPart": "摄像头绑定的模型部位",
     "config.tooltip.xtracr_realcamera_adjustOffset": "当前按下调整键时是调整摄像头的偏移还是旋转",
+    "config.tooltip.xtracr_realcamera_offsetModel": "使模型移动到摄像头上以保持摄像头位置不变，开启时与其它模组的兼容性可能会变好",
 
     "config.tooltip.xtracr_realcamera_classicAdjustMode": "决定当前按下调整键时调整哪一个",
 

@@ -58,10 +58,6 @@ public class ModConfig {
         general.classic = value;
     }
 
-    public boolean doClipToSpace() {
-        return general.clipToSpace;
-    }
-
     public boolean isCrosshairDynamic() {
         return general.dynamicCrosshair;
     }
@@ -85,6 +81,10 @@ public class ModConfig {
 
     public boolean isAdjustingOffset() {
         return binding.adjustOffset;
+    }
+
+    public boolean doOffsetModel() {
+        return binding.offsetModel;
     }
 
     public double getBindingX() {
@@ -149,10 +149,6 @@ public class ModConfig {
     }
 
     // classic
-    public Classic.AdjustMode getClassicAdjustMode() {
-        return classic.adjustMode;
-    }
-
     public double getClassicX() {
         return classic.cameraX;
     }
@@ -236,10 +232,6 @@ public class ModConfig {
         return compats.modModelPart;
     }
 
-    public boolean compatDoABarrelRoll() {
-        return compats.doABarrelRoll;
-    }
-
     public boolean compatPehkui() {
         return compats.pehkui;
     }
@@ -263,18 +255,18 @@ public class ModConfig {
         return b;
     }
 
-    public boolean shouldDisableRender(String modelPartName) {
+    public boolean shouldDisableModelPart(String modelPartName) {
         if (disable.onlyInBinding && general.classic) return false;
         return (disable.renderModelPart && disable.disabledModelParts.contains(modelPartName)) ||
                 shouldDisable(MinecraftClient.getInstance(), modelPartName);
     }
 
-    public boolean allowRenderingHandWhen(MinecraftClient client) {
+    public boolean allowRenderingHand(MinecraftClient client) {
         if (disable.onlyInBinding && general.classic) return false;
         return shouldDisable(client, "allow_rendering_hand");
     }
 
-    public boolean disableModWhen(MinecraftClient client) {
+    public boolean shouldDisableMod(MinecraftClient client) {
         if (disable.onlyInBinding && general.classic) return false;
         return shouldDisable(client, "disable_mod") ||
                 (client.player.isFallFlying() && disable.fallFlying) ||
@@ -285,7 +277,7 @@ public class ModConfig {
                 (client.currentScreen != null && disable.screenOpened);
     }
 
-    public boolean disableRenderingWhen(MinecraftClient client) {
+    public boolean shouldDisableRendering(MinecraftClient client) {
         if (disable.onlyInBinding && general.classic) return false;
         return shouldDisable(client, "disable_rendering");
     }
@@ -293,7 +285,6 @@ public class ModConfig {
     public static class General {
         public boolean enabled = false;
         public boolean classic = false;
-        public boolean clipToSpace = true;
         public boolean dynamicCrosshair = false;
         public boolean renderModel = true;
         public double adjustStep = 0.25D;
@@ -308,6 +299,7 @@ public class ModConfig {
     public static class Binding {
         public VanillaModelPart vanillaModelPart = VanillaModelPart.head;
         public boolean adjustOffset = true;
+        public boolean offsetModel = false;
         public double cameraX = 3.25D;
         public double cameraY = 2.0D;
         public double cameraZ = 0.0D;
@@ -369,14 +361,13 @@ public class ModConfig {
         public boolean useModModel = false;
         public String modelModID = "minecraft";
         public String modModelPart = "head";
-        public boolean doABarrelRoll = true;
         public boolean pehkui = true;
         public boolean physicsMod = true;
     }
 
     public static class Disable {
-        public static final Set<String> optionalParts = new HashSet<>(Set.of("head", "hat", "helmet"));
-        protected static final List<String> defaultParts = Arrays.asList("head", "hat", "helmet");
+        public static final Set<String> optionalParts = new HashSet<>(Set.of("head", "hat", "slot_head"));
+        protected static final List<String> defaultParts = Arrays.asList("head", "hat", "slot_head");
         protected static final Triple<String, List<String>, List<String>> defaultTriple = new Triple<>
                 ("holding", List.of("new item id"), List.of("new action"));
         protected static final List<Triple<String, List<String>, List<String>>> defaultConditions = Arrays.asList(
