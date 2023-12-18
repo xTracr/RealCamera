@@ -103,5 +103,8 @@
     "message.xtracr_realcamera_analyser_numberOfResults": "Total number of results displayed: %d / %d",
     "message.xtracr_realcamera_analyser_equivalenceClass": "Vertices with same direction of the given vertex: %s",
     "message.xtracr_realcamera_analyser_bindSuggestion": "Now you can run %s command to bind to: (position, front) [%d], (up) [%d] and (left) [%d]",
-    "message.xtracr_realcamera_command_bind": "Bound successfully: (position) [%d], (front) [%d], (up) [%d] and (left) [%d]"
+    "message.xtracr_realcamera_command_autoBind": "Bound successfully: (position) [%d], (front) [%d], (up) [%d] and (left) [%d]",
+    "message.xtracr_realcamera_command_delete_failure": "Failed to find '%s'",
+    "message.xtracr_realcamera_command_delete_success": "Successfully deleted '%s'",
+    "message.xtracr_realcamera_command_listAll": "Found %d results: %s"
 }

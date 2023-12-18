@@ -103,5 +103,8 @@
     "message.xtracr_realcamera_analyser_numberOfResults": "显示的结果总数: %d / %d",
     "message.xtracr_realcamera_analyser_equivalenceClass": "与给定的顶点同方向的顶点: %s",
     "message.xtracr_realcamera_analyser_bindSuggestion": "现在你可以运行%s命令来绑定至: (位置, 前方) [%d], (上方) [%d] and (左方) [%d]",
-    "message.xtracr_realcamera_command_bind": "绑定成功: (位置) [%d], (前方) [%d], (上方) [%d] and (左方) [%d]"
+    "message.xtracr_realcamera_command_autoBind": "绑定成功: (位置) [%d], (前方) [%d], (上方) [%d] and (左方) [%d]",
+    "message.xtracr_realcamera_command_delete_failure": "未能找到'%s'",
+    "message.xtracr_realcamera_command_delete_success": "成功删除'%s'",
+    "message.xtracr_realcamera_command_listAll": "找到了%d个结果: %s"
 }

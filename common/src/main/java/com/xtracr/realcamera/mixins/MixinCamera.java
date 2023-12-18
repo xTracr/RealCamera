@@ -62,17 +62,23 @@ public abstract class MixinCamera {
             moveBy(offset.getX(), offset.getY(), offset.getZ());
             realCamera$clipToSpace(startVec);
         } else {
-            Vec3d prevPos = RealCameraCore.getPos();
-            Box box = focusedEntity.getBoundingBox();
-            double restrictedY = MathHelper.clamp(prevPos.getY(), box.minY + 0.1D, box.maxY - 0.1D);
-            startVec = new Vec3d(pos.getX(), restrictedY, pos.getZ());
-            if (!config.doOffsetModel()) {
-                setPos(prevPos);
-                realCamera$clipToSpace(startVec);
-            }
-            RealCameraCore.setModelOffset(pos.subtract(prevPos));
+            Vec3d prevPos = pos;
+            Vec3d offset = new Vec3d(config.getBindingX(), config.getBindingY(), config.getBindingZ()).multiply(config.getScale());
+            if (config.compatPehkui()) offset = PehkuiCompat.scaleVec3d(offset, focusedEntity, tickDelta);
+            setPos(RealCameraCore.getPos());
             setRotation(config.isYawingBound() ? RealCameraCore.getYaw() : yaw - config.getBindingYaw(),
                     config.isPitchingBound() ? RealCameraCore.getPitch() : pitch + config.getBindingPitch());
+            moveBy(offset.getX(), offset.getY(), offset.getZ());
+            Vec3d modifiedPos = pos;
+            setPos(prevPos);
+            Box box = focusedEntity.getBoundingBox();
+            double restrictedY = MathHelper.clamp(modifiedPos.getY(), box.minY + 0.1D, box.maxY - 0.1D);
+            startVec = new Vec3d(pos.getX(), restrictedY, pos.getZ());
+            if (!config.doOffsetModel()) {
+                setPos(modifiedPos);
+                realCamera$clipToSpace(startVec);
+            }
+            RealCameraCore.setModelOffset(pos.subtract(modifiedPos));
         }
     }
 

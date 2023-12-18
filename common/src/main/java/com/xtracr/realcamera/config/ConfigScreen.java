@@ -43,6 +43,7 @@ public class ConfigScreen {
         ConfigCategory classic = builder.getOrCreateCategory(Text.translatable(CATEGORY + "classic"));
         ConfigCategory compats = builder.getOrCreateCategory(Text.translatable(CATEGORY + "compats"));
         ConfigCategory disable = builder.getOrCreateCategory(Text.translatable(CATEGORY + "disable"));
+        ConfigCategory experimental = builder.getOrCreateCategory(Text.literal("Experimental"));
 
         general.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "enabled"), config.general.enabled)
                 .setSaveConsumer(b -> config.general.enabled = b)
@@ -314,6 +315,15 @@ public class ConfigScreen {
                 .setSaveConsumer(b -> config.disable.screenOpened = b)
                 .build());
         disable.addEntry(disableModWhen.build());
+
+        experimental.addEntry(entryBuilder.startBooleanToggle(Text.literal("Enabled"), config.binding.experimental)
+                .setDefaultValue(false)
+                .setSaveConsumer(b -> config.binding.experimental = b)
+                .build());
+        experimental.addEntry(entryBuilder.startStrField(Text.literal("Name Of List"), config.binding.nameOfList)
+                .setDefaultValue("minecraft_head")
+                .setSaveConsumer(s -> config.binding.nameOfList = s)
+                .build());
 
         return builder.build();
     }

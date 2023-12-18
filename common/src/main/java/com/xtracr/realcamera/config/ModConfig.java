@@ -5,10 +5,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.math.MathHelper;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class ModConfig {
     protected static final double MIN_DOUBLE = -64.0D;
@@ -297,9 +294,14 @@ public class ModConfig {
     }
 
     public static class Binding {
+        public static final Map<String, List<Integer>> defaultIndexListMap = Map.of(
+                "minecraft_head", Arrays.asList(12, 0, -9, 12, 13, 14, 15));
         public VanillaModelPart vanillaModelPart = VanillaModelPart.head;
+        public boolean experimental = false;
         public boolean adjustOffset = true;
         public boolean offsetModel = false;
+        public String nameOfList = "minecraft_head";
+        public Map<String, List<Integer>> indexListMap = defaultIndexListMap;
         public double cameraX = 3.25D;
         public double cameraY = 2.0D;
         public double cameraZ = 0.0D;
@@ -312,6 +314,7 @@ public class ModConfig {
 
         private void clamp() {
             if (vanillaModelPart == null) vanillaModelPart = VanillaModelPart.head;
+            if (indexListMap == null) indexListMap = defaultIndexListMap;
             cameraX = MathHelper.clamp(cameraX, MIN_DOUBLE, MAX_DOUBLE);
             cameraY = MathHelper.clamp(cameraY, MIN_DOUBLE, MAX_DOUBLE);
             cameraZ = MathHelper.clamp(cameraZ, MIN_DOUBLE, MAX_DOUBLE);

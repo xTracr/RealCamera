@@ -21,13 +21,11 @@ public abstract class VertexDataAnalyser {
     private static final List<Integer> processedResults = new ArrayList<>();
     private static List<Integer> equivalenceClass = new ArrayList<>();
     private static boolean analysing;
-    private static boolean ready;
     private static float accuracy = defaultAccuracy;
     private static int count;
     private static int mode;
     private static int ticks;
-    public static final VertexDataCatcher catcher = new VertexDataCatcher(
-            i -> analysing && mode == 1, i -> analysing && mode != 1, i -> analysing && mode != 1);
+    public static final VertexDataCatcher catcher = new VertexDataCatcher(i -> analysing, i -> analysing);
 
     public static boolean isAnalysing() {
         return analysing;
@@ -48,9 +46,10 @@ public abstract class VertexDataAnalyser {
         ret.add(target);
         if (equivalenceClass.contains(target)) {
             for (int i = 1; i <= Math.max(target, equivalenceClass.get(equivalenceClass.size() - 1) - target); i++) {
-                if (equivalenceClass.contains(target - i)) ret.add(target - i);
-                else if (equivalenceClass.contains(target + i)) ret.add(target + i);
-                else break;
+                boolean add = equivalenceClass.contains(target + i);
+                if (add) ret.add(target + i);
+                if (equivalenceClass.contains(target - i)) ret.add(target + i);
+                else if (!add) break;
             }
         }
         return ret;
@@ -62,11 +61,10 @@ public abstract class VertexDataAnalyser {
         if (ticks > 0) return;
         if (mode == 0) {
             int target = getResult(1, false).get(0);
-            start(-1 - target, 80, accuracy);
+            start(target + 1, 80, accuracy);
             return;
         }
         analysing = false;
-        ready = true;
         showResult(12, false);
     }
 
@@ -76,17 +74,16 @@ public abstract class VertexDataAnalyser {
         processedResults.clear();
         equivalenceClass.clear();
         analysing = true;
-        ready = false;
         count = 0;
         VertexDataAnalyser.accuracy = accuracy;
         VertexDataAnalyser.mode = mode;
         VertexDataAnalyser.ticks = ticks;
-        equivalenceClass.add(mode >= 2 ? mode - 2 : mode <= -1 ? -1 - mode : 0);
+        equivalenceClass.add(Math.max(0, mode - 1));
         if (mode >= 0) printGameMessage(Text.translatable(KEY_ANALYSER + "start"));
     }
 
     public static void showResult(int number, boolean detail) {
-        if (!ready) {
+        if (indexResult.isEmpty()) {
             printGameMessage(Text.translatable(KEY_ANALYSER + "notReady"));
             return;
         }
@@ -111,7 +108,7 @@ public abstract class VertexDataAnalyser {
         printGameMessage(Text.translatable(KEY_ANALYSER + "byCorrelation", buffer.toString()));
         printGameMessage(Text.translatable(KEY_ANALYSER + "numberOfResults",
                 Math.min(number, indexResult.keySet().size()), indexResult.keySet().size()));
-        if (mode == 1 || orthogonalResult.isEmpty()) return;
+        if (orthogonalResult.isEmpty()) return;
         if (processedResults.isEmpty()) {
             sorted = new ArrayList<>(orthogonalResult.keySet());
             sorted.sort(Comparator.comparingInt(i -> -Math.abs(orthogonalResult.get(i).getRight())));
@@ -144,12 +141,9 @@ public abstract class VertexDataAnalyser {
         count++;
         Vec3d viewVector = player.getRotationVec(tickDelta);
         List<Pair<Integer, Float>> indexCash = new ArrayList<>();
-        if (mode == 1) poseMode(viewVector, indexCash);
-        else {
-            Matrix3f viewRotation = new Matrix3f().rotate(RotationAxis.POSITIVE_X.rotationDegrees(-player.getPitch(tickDelta)))
-                    .rotate(RotationAxis.POSITIVE_Y.rotationDegrees(player.getYaw(tickDelta)));
-            vertexMode(viewVector, viewRotation, indexCash);
-        }
+        Matrix3f viewRotation = new Matrix3f().rotate(RotationAxis.POSITIVE_X.rotationDegrees(-player.getPitch(tickDelta)))
+                .rotate(RotationAxis.POSITIVE_Y.rotationDegrees(player.getYaw(tickDelta)));
+        analyseVertices(viewVector, viewRotation, indexCash);
         for (Pair<Integer, Float> pair : indexCash) {
             int index = pair.getLeft();
             float dot = pair.getRight();
@@ -179,30 +173,7 @@ public abstract class VertexDataAnalyser {
         return ret;
     }
 
-    private static void poseMode(Vec3d viewVector, List<Pair<Integer, Float>> indexCash) {
-        List<Matrix3f> recorder = catcher.matrixRecorder;
-        List<Matrix3f> cash = new ArrayList<>();
-        Matrix3f element0 = recorder.get(0);
-        cash.add(element0);
-        double dotWithView0 = new Vec3d(element0.m20(), element0.m21(), element0.m22()).multiply(-1d).dotProduct(viewVector);
-        indexCash.add(new Pair<>(0, (float) dotWithView0));
-        for (int i = 1; i < recorder.size(); i++) {
-            boolean skip = false;
-            Matrix3f element = recorder.get(i);
-            float tr = element.m00() + element.m11() + element.m22();
-            for (Matrix3f matrix : cash) {
-                float cashTr = matrix.m00() + matrix.m11() + matrix.m22();
-                float dif = Math.abs(tr - cashTr);
-                if (dif <= accuracy) skip = true;
-            }
-            if (skip) continue;
-            cash.add(element);
-            double dotWithView = new Vec3d(element.m20(), element.m21(), element.m22()).multiply(-1d).dotProduct(viewVector);
-            indexCash.add(new Pair<>(i, (float) dotWithView));
-        }
-    }
-
-    private static void vertexMode(Vec3d viewVector, Matrix3f viewRotation, List<Pair<Integer, Float>> indexCash) {
+    private static void analyseVertices(Vec3d viewVector, Matrix3f viewRotation, List<Pair<Integer, Float>> indexCash) {
         final float accuracy = mode == 0 ? defaultAccuracy : VertexDataAnalyser.accuracy;
         List<Vec3d> recorder = catcher.normalRecorder;
         List<Vec3d> cash = new ArrayList<>();
