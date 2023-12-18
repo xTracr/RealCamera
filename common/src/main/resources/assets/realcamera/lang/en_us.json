@@ -44,6 +44,7 @@
 
     "config.option.xtracr_realcamera_vanillaModelPart": "Vanilla Model part",
     "config.option.xtracr_realcamera_adjustOffset": "Adjust Camera Offset",
+    "config.option.xtracr_realcamera_offsetModel": "Offset Model",
     "config.option.xtracr_realcamera_bindPitching": "Bind Pitching",
     "config.option.xtracr_realcamera_bindYawing": "Bind Yawing",
     "config.option.xtracr_realcamera_bindRolling": "Bind Rolling",
@@ -60,7 +61,6 @@
     "config.option.xtracr_realcamera_useModModel": "Mod Model Compat",
     "config.option.xtracr_realcamera_modelModID": "Model Mod ID",
     "config.option.xtracr_realcamera_modModelPart": "Mod Model Part",
-    "config.option.xtracr_realcamera_doABarrelRoll": "Do A Barrel Roll",
     "config.option.xtracr_realcamera_pehkui": "Pehkui",
     "config.option.xtracr_realcamera_physicsMod": "Physics Mod",
 
@@ -87,6 +87,7 @@
 
     "config.tooltip.xtracr_realcamera_vanillaModelPart": "Model part to bind camera to",
     "config.tooltip.xtracr_realcamera_adjustOffset": "When pressing the adjustment key, adjust the offset or rotation of camera",
+    "config.tooltip.xtracr_realcamera_offsetModel": "Move the model to camera to keep the camera position constant. Compatibility with other mods may become better when turned on",
 
     "config.tooltip.xtracr_realcamera_classicAdjustMode": "Determine which to adjust when pressing the adjustment key",
 

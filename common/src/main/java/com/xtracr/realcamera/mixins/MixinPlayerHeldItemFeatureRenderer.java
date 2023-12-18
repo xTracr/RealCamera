@@ -1,7 +1,6 @@
 package com.xtracr.realcamera.mixins;
 
 import com.xtracr.realcamera.api.VirtualRenderer;
-import com.xtracr.realcamera.utils.Flags;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.feature.PlayerHeldItemFeatureRenderer;
 import net.minecraft.client.render.model.json.ModelTransformationMode;
@@ -19,7 +18,6 @@ public abstract class MixinPlayerHeldItemFeatureRenderer {
     @Inject(method = "renderItem", at = @At("HEAD"), cancellable = true)
     private void realCamera$onRenderItemHEAD(LivingEntity entity, ItemStack stack, ModelTransformationMode transformationMode,
             Arm arm, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo cInfo) {
-        if (!Flags.isRenderingClientPlayer) return;
         if (VirtualRenderer.shouldDisableRender("heldItem")) cInfo.cancel();
     }
 }
