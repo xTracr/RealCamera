@@ -3,7 +3,6 @@ package com.xtracr.realcamera.config;
 import com.xtracr.realcamera.RealCamera;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.api.VirtualRenderer;
-import com.xtracr.realcamera.compat.DoABarrelRollCompat;
 import com.xtracr.realcamera.compat.PehkuiCompat;
 import com.xtracr.realcamera.compat.PhysicsModCompat;
 import com.xtracr.realcamera.utils.Triple;
@@ -54,11 +53,6 @@ public class ConfigScreen {
                 .setTooltip(new TranslatableText(TOOLTIP + "classic"))
                 .setSaveConsumer(b -> config.general.classic = b)
                 .build());
-        general.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(OPTION + "clipToSpace"), config.general.clipToSpace)
-                .setDefaultValue(true)
-                .setTooltip(new TranslatableText(TOOLTIP + "clipToSpace"))
-                .setSaveConsumer(b -> config.general.clipToSpace = b)
-                .build());
         general.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(OPTION + "dynamicCrosshair"), config.general.dynamicCrosshair)
                 .setDefaultValue(false)
                 .setTooltip(new TranslatableText(TOOLTIP + "dynamicCrosshair"))
@@ -93,6 +87,11 @@ public class ConfigScreen {
                 .setDefaultValue(true)
                 .setTooltip(new TranslatableText(TOOLTIP + "adjustOffset"))
                 .setSaveConsumer(b -> config.binding.adjustOffset = b)
+                .build());
+        binding.addEntry(entryBuilder.startBooleanToggle(new TranslatableText(OPTION + "offsetModel"), config.binding.offsetModel)
+                .setDefaultValue(false)
+                .setTooltip(new TranslatableText(TOOLTIP + "offsetModel"))
+                .setSaveConsumer(b -> config.binding.offsetModel = b)
                 .build());
         SubCategoryBuilder bindingCameraOffset = entryBuilder.startSubCategory(new TranslatableText(CATEGORY + "cameraOffset"))
                 .setTooltip(new TranslatableText(TOOLTIP + "bindingOffset"), new TranslatableText(TOOLTIP + "bindingOffset_n"));
@@ -240,11 +239,6 @@ public class ConfigScreen {
                 .build());
         SubCategoryBuilder compatSwitches = entryBuilder.startSubCategory(new TranslatableText(CATEGORY + "compatSwitches"))
                 .setTooltip(new TranslatableText(TOOLTIP + "compatSwitches"));
-        if (DoABarrelRollCompat.loaded)
-            compatSwitches.add(entryBuilder.startBooleanToggle(new TranslatableText(OPTION + "doABarrelRoll"), config.compats.doABarrelRoll)
-                    .setDefaultValue(true)
-                    .setSaveConsumer(b -> config.compats.doABarrelRoll = b)
-                    .build());
         if (PehkuiCompat.loaded)
             compatSwitches.add(entryBuilder.startBooleanToggle(new TranslatableText(OPTION + "pehkui"), config.compats.pehkui)
                     .setDefaultValue(true)
