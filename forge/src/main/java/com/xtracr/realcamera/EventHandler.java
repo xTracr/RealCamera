@@ -1,11 +1,16 @@
 package com.xtracr.realcamera;
 
+import com.xtracr.realcamera.command.ClientCommand;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.utils.CrosshairUtils;
+import com.xtracr.realcamera.utils.VertexDataAnalyser;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraftforge.client.event.InputEvent.Key;
+import net.minecraftforge.client.event.RegisterClientCommandsEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.client.event.ViewportEvent.ComputeCameraAngles;
+import net.minecraftforge.client.event.ViewportEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class EventHandler {
@@ -15,12 +20,22 @@ public class EventHandler {
     }
 
     @SubscribeEvent
-    public static void onCameraUpdate(ComputeCameraAngles event) {
+    public static void onCameraUpdate(ViewportEvent.ComputeCameraAngles event) {
         if (RealCameraCore.isActive()) {
             event.setPitch(RealCameraCore.getPitch());
             event.setYaw(RealCameraCore.getYaw());
             event.setRoll(RealCameraCore.getRoll());
         }
+    }
+
+    @SubscribeEvent
+    public static void onClientTick(TickEvent.ClientTickEvent event) {
+        VertexDataAnalyser.tick();
+    }
+
+    @SubscribeEvent
+    public static void onClientCommandRegister(RegisterClientCommandsEvent event) {
+        new ClientCommand<ServerCommandSource>().register(event.getDispatcher(), event.getBuildContext());
     }
 
     @SubscribeEvent

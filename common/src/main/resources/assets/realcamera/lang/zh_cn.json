@@ -93,5 +93,18 @@
     "config.tooltip.xtracr_realcamera_modModelPart": "摄像头绑定的模型部位的名称",
 
     "config.tooltip.xtracr_realcamera_disabledModelParts": "可能的选项(可能还有其它选项未被列举): %s",
-    "config.tooltip.xtracr_realcamera_customConditions_actions": "可用选项: [disable_mod, disable_rendering, allow_rendering_hand] 以及 模型部位的名称"
+    "config.tooltip.xtracr_realcamera_customConditions_actions": "可用选项: [disable_mod, disable_rendering, allow_rendering_hand] 以及 模型部位的名称",
+
+    "message.xtracr_realcamera_analyser_start": "------开始分析------",
+    "message.xtracr_realcamera_analyser_notReady": "当前没有分析结果，你需要启动分析或等待分析完成",
+    "message.xtracr_realcamera_analyser_showResult": "------分析结果------",
+    "message.xtracr_realcamera_analyser_byFrequency": "以频率排序: %s",
+    "message.xtracr_realcamera_analyser_byCorrelation": "以相关度排序: %s",
+    "message.xtracr_realcamera_analyser_numberOfResults": "显示的结果总数: %d / %d",
+    "message.xtracr_realcamera_analyser_equivalenceClass": "与给定的顶点同方向的顶点: %s",
+    "message.xtracr_realcamera_analyser_bindSuggestion": "现在你可以运行%s命令来绑定至: (位置, 前方) [%d], (上方) [%d] and (左方) [%d]",
+    "message.xtracr_realcamera_command_autoBind": "绑定成功: (位置) [%d], (前方) [%d], (上方) [%d] and (左方) [%d]",
+    "message.xtracr_realcamera_command_delete_failure": "未能找到'%s'",
+    "message.xtracr_realcamera_command_delete_success": "成功删除'%s'",
+    "message.xtracr_realcamera_command_listAll": "找到了%d个结果: %s"
 }

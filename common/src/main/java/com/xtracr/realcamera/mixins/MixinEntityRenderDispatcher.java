@@ -9,7 +9,9 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(EntityRenderDispatcher.class)
 public abstract class MixinEntityRenderDispatcher {
@@ -20,5 +22,12 @@ public abstract class MixinEntityRenderDispatcher {
             vec = vec.add(RealCameraCore.getModelOffset());
         }
         return vec;
+    }
+
+    @Inject(method = "render", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/client/render/entity/EntityRenderer;render(Lnet/minecraft/entity/Entity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V",
+            shift = At.Shift.AFTER), cancellable = true)
+    private void realCamera$cancelRender(CallbackInfo cInfo) {
+        if (RealCameraCore.isvRendering()) cInfo.cancel();
     }
 }

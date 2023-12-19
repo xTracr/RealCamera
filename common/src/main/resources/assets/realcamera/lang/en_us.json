@@ -93,5 +93,18 @@
     "config.tooltip.xtracr_realcamera_modModelPart": "Name of the model part to bind camera to",
 
     "config.tooltip.xtracr_realcamera_disabledModelParts": "Possible options(There may be other options not listed here): %s",
-    "config.tooltip.xtracr_realcamera_customConditions_actions": "Available options: [disable_mod, disable_rendering, allow_rendering_hand] and Model Part Names"
+    "config.tooltip.xtracr_realcamera_customConditions_actions": "Available options: [disable_mod, disable_rendering, allow_rendering_hand] and Model Part Names",
+
+    "message.xtracr_realcamera_analyser_start": "------Start Analysis------",
+    "message.xtracr_realcamera_analyser_notReady": "There is no analysis result now. You have to start analysis or wait for the analysis to finish",
+    "message.xtracr_realcamera_analyser_showResult": "------Analysis Result------",
+    "message.xtracr_realcamera_analyser_byFrequency": "Sort by frequency: %s",
+    "message.xtracr_realcamera_analyser_byCorrelation": "Sort by Correlation: %s",
+    "message.xtracr_realcamera_analyser_numberOfResults": "Total number of results displayed: %d / %d",
+    "message.xtracr_realcamera_analyser_equivalenceClass": "Vertices with same direction of the given vertex: %s",
+    "message.xtracr_realcamera_analyser_bindSuggestion": "Now you can run %s command to bind to: (position, front) [%d], (up) [%d] and (left) [%d]",
+    "message.xtracr_realcamera_command_autoBind": "Bound successfully: (position) [%d], (front) [%d], (up) [%d] and (left) [%d]",
+    "message.xtracr_realcamera_command_delete_failure": "Failed to find '%s'",
+    "message.xtracr_realcamera_command_delete_success": "Successfully deleted '%s'",
+    "message.xtracr_realcamera_command_listAll": "Found %d results: %s"
 }
