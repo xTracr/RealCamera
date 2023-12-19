@@ -1,8 +1,8 @@
-package com.xtracr.realcamera.mixins;
+package com.xtracr.realcamera.mixin;
 
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.utils.RaycastUtils;
+import com.xtracr.realcamera.util.RaycastUtil;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.util.hit.BlockHitResult;
@@ -19,8 +19,8 @@ public abstract class MixinItem {
     private static void realCamera$coverRaycast(World world, PlayerEntity player, RaycastContext.FluidHandling fluidHandling,
             CallbackInfoReturnable<BlockHitResult> cInfo) {
         if (!ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
-            RaycastUtils.update(player, 25.0D, 1.0F);
-            cInfo.setReturnValue(world.raycast(RaycastUtils.getRaycastContext(RaycastContext.ShapeType.OUTLINE, fluidHandling, player)));
+            RaycastUtil.update(player, 25.0D, 1.0F);
+            cInfo.setReturnValue(world.raycast(RaycastUtil.getRaycastContext(RaycastContext.ShapeType.OUTLINE, fluidHandling, player)));
         }
     }
 }

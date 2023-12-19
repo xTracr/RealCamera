@@ -1,4 +1,4 @@
-package com.xtracr.realcamera.utils;
+package com.xtracr.realcamera.util;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -7,7 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Optional;
 
-public class ReflectUtils {
+public class ReflectUtil {
     public static boolean isLoaded(final String className) {
         try {
             Class.forName(className);

@@ -1,7 +1,7 @@
 package com.xtracr.realcamera;
 
 import com.xtracr.realcamera.command.ClientCommand;
-import com.xtracr.realcamera.utils.VertexDataAnalyser;
+import com.xtracr.realcamera.util.VertexDataAnalyser;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;

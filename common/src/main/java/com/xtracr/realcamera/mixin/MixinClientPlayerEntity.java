@@ -1,9 +1,9 @@
-package com.xtracr.realcamera.mixins;
+package com.xtracr.realcamera.mixin;
 
 import com.mojang.authlib.GameProfile;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.utils.RaycastUtils;
+import com.xtracr.realcamera.util.RaycastUtil;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.option.Perspective;
@@ -30,8 +30,8 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
     @Override
     public HitResult raycast(double maxDistance, float tickDelta, boolean includeFluids) {
         if (!ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
-            RaycastUtils.update(this, maxDistance * maxDistance, tickDelta);
-            return getWorld().raycast(RaycastUtils.getRaycastContext(RaycastContext.ShapeType.OUTLINE,
+            RaycastUtil.update(this, maxDistance * maxDistance, tickDelta);
+            return getWorld().raycast(RaycastUtil.getRaycastContext(RaycastContext.ShapeType.OUTLINE,
                     includeFluids ? RaycastContext.FluidHandling.ANY : RaycastContext.FluidHandling.NONE, this));
         }
         return super.raycast(maxDistance, tickDelta, includeFluids);

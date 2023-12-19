@@ -1,4 +1,4 @@
-package com.xtracr.realcamera.utils;
+package com.xtracr.realcamera.util;
 
 public class Triple<L, M, R> {
     private L left;

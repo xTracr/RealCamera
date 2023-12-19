@@ -5,7 +5,7 @@ import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.api.VirtualRenderer;
 import com.xtracr.realcamera.compat.PehkuiCompat;
 import com.xtracr.realcamera.compat.PhysicsModCompat;
-import com.xtracr.realcamera.utils.Triple;
+import com.xtracr.realcamera.util.Triple;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;

@@ -1,4 +1,4 @@
-package com.xtracr.realcamera.utils;
+package com.xtracr.realcamera.util;
 
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.util.math.Vec3d;

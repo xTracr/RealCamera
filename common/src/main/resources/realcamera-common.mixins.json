@@ -1,7 +1,7 @@
 {
   "required": true,
   "minVersion": "0.8.5",
-  "package": "com.xtracr.realcamera.mixins",
+  "package": "com.xtracr.realcamera.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
   ],

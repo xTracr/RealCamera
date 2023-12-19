@@ -1,9 +1,9 @@
-package com.xtracr.realcamera.mixins;
+package com.xtracr.realcamera.mixin;
 
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.utils.CrosshairUtils;
-import com.xtracr.realcamera.utils.RaycastUtils;
+import com.xtracr.realcamera.util.CrosshairUtil;
+import com.xtracr.realcamera.util.RaycastUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.Perspective;
 import net.minecraft.client.render.Camera;
@@ -33,18 +33,18 @@ public abstract class MixinGameRenderer {
 
     @ModifyVariable(method = "updateTargetedEntity", at = @At("STORE"), ordinal = 0)
     private EntityHitResult realCamera$modifyEntityHitResult(EntityHitResult entityHitResult) {
-        CrosshairUtils.capturedEntityHitResult = entityHitResult;
+        CrosshairUtil.capturedEntityHitResult = entityHitResult;
         if (!ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
-            Vec3d startVec = RaycastUtils.getStartVec();
-            Vec3d endVec = RaycastUtils.getEndVec();
+            Vec3d startVec = RaycastUtil.getStartVec();
+            Vec3d endVec = RaycastUtil.getEndVec();
             double sqDistance = (client.crosshairTarget != null ?
                     client.crosshairTarget.getPos().squaredDistanceTo(startVec) : endVec.squaredDistanceTo(startVec));
             Entity cameraEntity = client.getCameraEntity();
             Box box = cameraEntity.getBoundingBox().stretch(cameraEntity.getRotationVec(client.getTickDelta())
                     .multiply(client.interactionManager.getReachDistance())).expand(1.0, 1.0, 1.0);
-            CrosshairUtils.capturedEntityHitResult = ProjectileUtil.raycast(cameraEntity, startVec, endVec, box, entity -> !entity.isSpectator() && entity.canHit(), sqDistance);
+            CrosshairUtil.capturedEntityHitResult = ProjectileUtil.raycast(cameraEntity, startVec, endVec, box, entity -> !entity.isSpectator() && entity.canHit(), sqDistance);
         }
-        return CrosshairUtils.capturedEntityHitResult;
+        return CrosshairUtil.capturedEntityHitResult;
     }
 
     @Inject(method = "renderHand", at = @At(value = "INVOKE",

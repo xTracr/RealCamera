@@ -1,6 +1,6 @@
 package com.xtracr.realcamera.api;
 
-import com.xtracr.realcamera.mixins.PlayerEntityRendererAccessor;
+import com.xtracr.realcamera.mixin.PlayerEntityRendererAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.network.AbstractClientPlayerEntity;

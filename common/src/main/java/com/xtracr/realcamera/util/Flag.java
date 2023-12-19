@@ -1,5 +1,5 @@
-package com.xtracr.realcamera.utils;
+package com.xtracr.realcamera.util;
 
-public class Flags {
+public class Flag {
     public static boolean isRenderingClientPlayer = false;
 }

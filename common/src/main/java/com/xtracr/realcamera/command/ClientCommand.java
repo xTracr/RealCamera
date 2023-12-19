@@ -2,7 +2,6 @@ package com.xtracr.realcamera.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -11,7 +10,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.xtracr.realcamera.RealCamera;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
-import com.xtracr.realcamera.utils.VertexDataAnalyser;
+import com.xtracr.realcamera.util.VertexDataAnalyser;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;

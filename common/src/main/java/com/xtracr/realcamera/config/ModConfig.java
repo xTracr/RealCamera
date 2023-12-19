@@ -1,6 +1,6 @@
 package com.xtracr.realcamera.config;
 
-import com.xtracr.realcamera.utils.Triple;
+import com.xtracr.realcamera.util.Triple;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.math.MathHelper;

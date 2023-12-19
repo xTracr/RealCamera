@@ -1,4 +1,4 @@
-package com.xtracr.realcamera.utils;
+package com.xtracr.realcamera.util;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
@@ -8,7 +8,7 @@ import net.minecraft.world.RaycastContext;
 import net.minecraft.world.RaycastContext.FluidHandling;
 import net.minecraft.world.RaycastContext.ShapeType;
 
-public class RaycastUtils {
+public class RaycastUtil {
     private static Vec3d startVec = Vec3d.ZERO;
     private static Vec3d direction = Vec3d.ZERO;
     private static Vec3d endVec = Vec3d.ZERO;
@@ -36,7 +36,7 @@ public class RaycastUtils {
         direction = Vec3d.fromPolar(camera.getPitch(), camera.getYaw());
 
         final Vec3d offset = startVec.subtract(eyePos);
-        final Vec3d footPoint = MathUtils.getIntersectionPoint(Vec3d.ZERO, direction, offset, direction);
+        final Vec3d footPoint = MathUtil.getIntersectionPoint(Vec3d.ZERO, direction, offset, direction);
         if (footPoint.lengthSquared() > sqDistance) {
             startVec = eyePos;
             direction = entity.getRotationVec(tickDelta);

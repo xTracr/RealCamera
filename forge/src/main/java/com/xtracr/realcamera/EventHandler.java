@@ -2,8 +2,8 @@ package com.xtracr.realcamera;
 
 import com.xtracr.realcamera.command.ClientCommand;
 import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.utils.CrosshairUtils;
-import com.xtracr.realcamera.utils.VertexDataAnalyser;
+import com.xtracr.realcamera.util.CrosshairUtil;
+import com.xtracr.realcamera.util.VertexDataAnalyser;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraftforge.client.event.InputEvent.Key;
@@ -42,7 +42,7 @@ public class EventHandler {
     public static void onRenderWorldStage(RenderLevelStageEvent event) {
         if (RenderLevelStageEvent.Stage.AFTER_SKY.equals(event.getStage())) {
             if (ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
-                CrosshairUtils.update(MinecraftClient.getInstance(), event.getCamera(),
+                CrosshairUtil.update(MinecraftClient.getInstance(), event.getCamera(),
                         event.getPoseStack().peek().getPositionMatrix(), event.getProjectionMatrix());
             }
         }

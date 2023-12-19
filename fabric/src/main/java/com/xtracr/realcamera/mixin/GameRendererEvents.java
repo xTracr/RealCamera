@@ -1,4 +1,4 @@
-package com.xtracr.realcamera.mixins;
+package com.xtracr.realcamera.mixin;
 
 import com.xtracr.realcamera.RealCameraCore;
 import net.minecraft.client.render.GameRenderer;

@@ -1,7 +1,7 @@
-package com.xtracr.realcamera.mixins;
+package com.xtracr.realcamera.mixin;
 
 import com.xtracr.realcamera.api.VirtualRenderer;
-import com.xtracr.realcamera.utils.Flags;
+import com.xtracr.realcamera.util.Flag;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -26,13 +26,13 @@ public abstract class MixinPlayerEntityRenderer
     @Inject(method = "render*", at = @At("HEAD"))
     private void realCamera$onRenderHEAD(AbstractClientPlayerEntity abstractClientPlayerEntity, float f, float g,
             MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, CallbackInfo cInfo) {
-        if (abstractClientPlayerEntity instanceof ClientPlayerEntity) Flags.isRenderingClientPlayer = true;
+        if (abstractClientPlayerEntity instanceof ClientPlayerEntity) Flag.isRenderingClientPlayer = true;
     }
 
     @Inject(method = "render*", at = @At("RETURN"))
     private void realCamera$onRenderRETURN(AbstractClientPlayerEntity abstractClientPlayerEntity, float f, float g,
             MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, CallbackInfo cInfo) {
-        Flags.isRenderingClientPlayer = false;
+        Flag.isRenderingClientPlayer = false;
     }
 
     @Inject(method = "setModelPose", at = @At("RETURN"))

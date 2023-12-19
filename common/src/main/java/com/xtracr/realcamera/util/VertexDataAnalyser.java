@@ -1,4 +1,4 @@
-package com.xtracr.realcamera.utils;
+package com.xtracr.realcamera.util;
 
 import com.xtracr.realcamera.RealCamera;
 import net.minecraft.client.MinecraftClient;

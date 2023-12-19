@@ -1,8 +1,8 @@
-package com.xtracr.realcamera.mixins;
+package com.xtracr.realcamera.mixin;
 
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.utils.CrosshairUtils;
+import com.xtracr.realcamera.util.CrosshairUtil;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
 import org.spongepowered.asm.mixin.Mixin;
@@ -16,7 +16,7 @@ public abstract class MixinInGameHud {
     private void realCamera$onRenderCrosshairHEAD(DrawContext context, CallbackInfo cInfo) {
         if (ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
             context.getMatrices().push();
-            CrosshairUtils.translateMatrices(context.getMatrices());
+            CrosshairUtil.translateMatrices(context.getMatrices());
         }
     }
 

@@ -5,10 +5,10 @@ import com.xtracr.realcamera.compat.PehkuiCompat;
 import com.xtracr.realcamera.compat.PhysicsModCompat;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
-import com.xtracr.realcamera.mixins.PlayerEntityRendererAccessor;
-import com.xtracr.realcamera.utils.MathUtils;
-import com.xtracr.realcamera.utils.VertexDataAnalyser;
-import com.xtracr.realcamera.utils.VertexDataCatcher;
+import com.xtracr.realcamera.mixin.PlayerEntityRendererAccessor;
+import com.xtracr.realcamera.util.MathUtil;
+import com.xtracr.realcamera.util.VertexDataAnalyser;
+import com.xtracr.realcamera.util.VertexDataCatcher;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -24,7 +24,9 @@ import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix3f;
 import org.joml.Vector4f;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 public class RealCameraCore {
     private static final ModConfig config = ConfigFile.modConfig;
@@ -100,7 +102,7 @@ public class RealCameraCore {
         normal.rotateLocal((float) Math.toRadians(config.getBindingYaw()), normal.m10, normal.m11, normal.m12);
         normal.rotateLocal((float) Math.toRadians(config.getBindingPitch()), normal.m00, normal.m01, normal.m02);
         normal.rotateLocal((float) Math.toRadians(config.getBindingRoll()), normal.m20, normal.m21, normal.m22);
-        Vec3d eulerAngle = MathUtils.getEulerAngleYXZ(normal).multiply(180.0D / Math.PI);
+        Vec3d eulerAngle = MathUtil.getEulerAngleYXZ(normal).multiply(180.0D / Math.PI);
         pitch = (float) eulerAngle.getX();
         yaw = (float) -eulerAngle.getY();
         roll = config.isRollingBound() ? (float) eulerAngle.getZ() : config.getBindingRoll();

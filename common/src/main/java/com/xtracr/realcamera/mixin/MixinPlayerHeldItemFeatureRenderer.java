@@ -1,4 +1,4 @@
-package com.xtracr.realcamera.mixins;
+package com.xtracr.realcamera.mixin;
 
 import com.xtracr.realcamera.api.VirtualRenderer;
 import net.minecraft.client.render.VertexConsumerProvider;
