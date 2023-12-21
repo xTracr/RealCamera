@@ -106,5 +106,10 @@
     "message.xtracr_realcamera_command_autoBind": "Bound successfully: (position) [%d], (front) [%d], (up) [%d] and (left) [%d]",
     "message.xtracr_realcamera_command_delete_failure": "Failed to find '%s'",
     "message.xtracr_realcamera_command_delete_success": "Successfully deleted '%s'",
-    "message.xtracr_realcamera_command_listAll": "Found %d results: %s"
+    "message.xtracr_realcamera_command_listAll": "Found %d results: %s",
+
+    "screen.xtracr_realcamera_vertexSelection_title": "Vertex Selection",
+    "screen.widget.xtracr_realcamera_vertexSelection_yaw": "Yaw = %s",
+    "screen.widget.xtracr_realcamera_vertexSelection_pitch": "Pitch = %s",
+    "screen.widget.xtracr_realcamera_vertexSelection_reset": "Reset"
 }

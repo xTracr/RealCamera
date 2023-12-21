@@ -12,7 +12,7 @@ public class VertexDataCatcher implements VertexConsumer {
     private final IntPredicate posPredicate;
     public final List<Vec3d> normalRecorder = new ArrayList<>();
     public final List<Vec3d> posRecorder = new ArrayList<>();
-    private int index = -1;
+    private int index;
 
     public VertexDataCatcher(IntPredicate normalPredicate, IntPredicate posPredicate) {
         this.normalPredicate = normalPredicate;
@@ -20,14 +20,13 @@ public class VertexDataCatcher implements VertexConsumer {
     }
 
     protected void clear() {
-        index = -1;
+        index = 0;
         normalRecorder.clear();
         posRecorder.clear();
     }
 
     @Override
     public VertexConsumer vertex(double x, double y, double z) {
-        index++;
         if (posPredicate.test(index)) posRecorder.add(new Vec3d(x, y, z));
         return this;
     }
@@ -60,6 +59,7 @@ public class VertexDataCatcher implements VertexConsumer {
 
     @Override
     public void next() {
+        index++;
     }
 
     @Override

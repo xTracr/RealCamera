@@ -8,7 +8,6 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
-import org.joml.Matrix2f;
 import org.joml.Matrix3f;
 
 import java.util.*;
@@ -22,9 +21,7 @@ public abstract class VertexDataAnalyser {
     private static List<Integer> equivalenceClass = new ArrayList<>();
     private static boolean analysing;
     private static float accuracy = defaultAccuracy;
-    private static int count;
-    private static int mode;
-    private static int ticks;
+    private static int count, mode, ticks;
     public static final VertexDataCatcher catcher = new VertexDataCatcher(i -> analysing, i -> analysing);
 
     public static boolean isAnalysing() {
@@ -41,7 +38,7 @@ public abstract class VertexDataAnalyser {
             printGameMessage(Text.translatable(KEY_ANALYSER + "notReady"));
             return null;
         }
-        List<Integer> ret = new ArrayList<>(processedResults);
+        List<Integer> ret = new ArrayList<>(processedResults).subList(0, 2);
         final int target = index == -1 ? processedResults.get(0) : index;
         ret.add(target);
         if (equivalenceClass.contains(target)) {
@@ -217,7 +214,7 @@ public abstract class VertexDataAnalyser {
                     recorder.get(equivalenceClass.get(0)).toVector3f());
             Pair<Integer, Integer> pair2 = orthogonalResult.getOrDefault(index2, new Pair<>(0, 0));
             Pair<Integer, Integer> pair1 = orthogonalResult.getOrDefault(index1, new Pair<>(0, 0));
-            Matrix2f dotProduct = new Matrix2f(viewRotation.mul(rotation, new Matrix3f()));
+            Matrix3f dotProduct = viewRotation.mul(rotation, new Matrix3f());
             pair2.setRight(pair2.getRight() + Math.round(dotProduct.m00()));
             pair2.setLeft(pair2.getLeft() + Math.round(dotProduct.m01()));
             pair1.setRight(pair1.getRight() + Math.round(dotProduct.m10()));

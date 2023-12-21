@@ -65,8 +65,7 @@ public abstract class MixinCamera {
             Vec3d offset = new Vec3d(config.getBindingX(), config.getBindingY(), config.getBindingZ()).multiply(config.getScale());
             if (config.compatPehkui()) offset = PehkuiCompat.scaleVec3d(offset, focusedEntity, tickDelta);
             setPos(RealCameraCore.getPos());
-            setRotation(config.isYawingBound() ? RealCameraCore.getYaw() : yaw - config.getBindingYaw(),
-                    config.isPitchingBound() ? RealCameraCore.getPitch() : pitch + config.getBindingPitch());
+            setRotation(RealCameraCore.getYaw(yaw), RealCameraCore.getPitch(pitch));
             moveBy(offset.getX(), offset.getY(), offset.getZ());
             Vec3d modifiedPos = pos;
             setPos(prevPos);

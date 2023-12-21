@@ -6,6 +6,10 @@ import org.joml.Matrix4f;
 import org.joml.Vector4f;
 
 public class MathUtil {
+    public static double round(double d, int digits) {
+        return Math.round(d * Math.pow(10, digits)) / Math.pow(10, digits);
+    }
+
     public static Vec3d getEulerAngleYXZ(Matrix3f normal) {
         if (normal.m21 <= -1.0D) {
             return new Vec3d(Math.PI / 2, Math.atan2(normal.m10, normal.m00), 0.0D);

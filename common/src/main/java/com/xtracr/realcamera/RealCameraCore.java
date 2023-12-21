@@ -25,7 +25,6 @@ import org.joml.Matrix3f;
 import org.joml.Vector4f;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 public class RealCameraCore {
@@ -34,9 +33,7 @@ public class RealCameraCore {
     private static final List<Integer> posList = new ArrayList<>();
     private static String status = "Successful";
     private static boolean vRendering = false;
-    private static float pitch = 0.0F;
-    private static float yaw = 0.0F;
-    private static float roll = 0.0F;
+    private static float pitch ,yaw, roll;
     private static Vec3d pos = Vec3d.ZERO;
     private static Vec3d modelOffset = Vec3d.ZERO;
 
@@ -48,12 +45,14 @@ public class RealCameraCore {
         return vRendering;
     }
 
-    public static float getPitch() {
-        return pitch;
+    public static float getPitch(float f) {
+        if (config.isPitchingBound()) return pitch;
+        else return f + config.getBindingPitch();
     }
 
-    public static float getYaw() {
-        return yaw;
+    public static float getYaw(float f) {
+        if (config.isYawingBound()) return yaw;
+        else return f - config.getBindingYaw();
     }
 
     public static float getRoll() {
@@ -114,14 +113,9 @@ public class RealCameraCore {
         if (VertexDataAnalyser.isAnalysing()) return VertexDataAnalyser.catcher;
         if (config.binding.experimental) try {
             List<Integer> list = config.binding.indexListMap.get(config.binding.nameOfList);
-            posList.addAll(list.subList(3, list.size()));
-            int leftSgn = list.get(2) >= 0 ? 1 : -1;
-            int upSgn = list.get(1) >= 0 ? 1 : -1;
-            int leftIndex = list.get(2) * leftSgn + (leftSgn - 1) / 2;
-            int upIndex = list.get(1) * upSgn + (upSgn - 1) / 2;
-            normalList.addAll(List.of(list.get(0), upIndex, leftIndex));
-            if (upSgn == -1) normalList.add(-1);
-            if (leftSgn == -1) normalList.add(-2);
+            normalList.add(list.get(0));
+            normalList.add(list.get(1));
+            posList.addAll(list.subList(2, list.size()));
         } catch (Exception ignored) {
         }
         return new VertexDataCatcher(normalList::contains, posList::contains);
@@ -134,15 +128,10 @@ public class RealCameraCore {
             average = average.add(vec);
         }
         pos = average.multiply(1 / (double) catcher.posRecorder.size());
-        List<Integer> sorted = new ArrayList<>(List.copyOf(normalList.subList(0, 3)));
-        List<Integer> order = new ArrayList<>();
-        sorted.sort(Comparator.comparingInt(i -> i));
-        order.add(sorted.indexOf(normalList.get(0)));
-        order.add(sorted.indexOf(normalList.get(1)));
-        order.add(sorted.indexOf(normalList.get(2)));
-        normal.set(catcher.normalRecorder.get(order.get(2)).multiply(normalList.contains(-2) ? -1 : 1).toVector3f(),
-                catcher.normalRecorder.get(order.get(1)).multiply(normalList.contains(-1) ? -1 : 1).toVector3f(),
-                catcher.normalRecorder.get(order.get(0)).toVector3f());
+        int order = normalList.get(0) < normalList.get(1) ? 0 : 1;
+        Vec3d front = catcher.normalRecorder.get(normalList.get(order));
+        Vec3d up = catcher.normalRecorder.get(normalList.get(1 - order));
+        normal.set(front.crossProduct(up).multiply(-1).toVector3f(), up.toVector3f(), front.toVector3f());
     }
 
     private static void virtualRender(MinecraftClient client, float tickDelta, MatrixStack matrixStack, VertexDataCatcher catcher) {

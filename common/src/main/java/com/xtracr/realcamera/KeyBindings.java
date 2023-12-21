@@ -2,6 +2,7 @@ package com.xtracr.realcamera;
 
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
+import com.xtracr.realcamera.gui.ModelViewScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
@@ -12,6 +13,8 @@ public final class KeyBindings {
     private static final String KEY_CATEGORY = "key.category.xtracr_" + RealCamera.MODID;
     private static final String KEY_ID = "key.xtracr_" + RealCamera.MODID + "_";
 
+    public static final KeyBinding MODEL_VIEW_GUI = new KeyBinding(
+            KEY_ID + "modelViewGui", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
     public static final KeyBinding TOGGLE_PERSPECTIVE = new KeyBinding(
             KEY_ID + "togglePerspective", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F6, KEY_CATEGORY);
     public static final KeyBinding TOGGLE_ADJUST_MODE = new KeyBinding(
@@ -32,8 +35,10 @@ public final class KeyBindings {
             KEY_ID + "adjustRIGHT", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
 
     public static void handle(MinecraftClient client) {
-        if (client.player == null || client.currentScreen != null) return;
-
+        if (client.player == null) return;
+        while (MODEL_VIEW_GUI.wasPressed()) {
+            client.setScreen(new ModelViewScreen());
+        }
         while (TOGGLE_PERSPECTIVE.wasPressed()) {
             boolean enabled = config.isEnabled();
             ConfigFile.load();
