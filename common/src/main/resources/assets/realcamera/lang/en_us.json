@@ -1,5 +1,6 @@
 {
     "key.category.xtracr_realcamera": "Real Camera",
+    "key.xtracr_realcamera_modelViewGui": "Open Model View GUI",
     "key.xtracr_realcamera_togglePerspective": "Enable/Disable",
     "key.xtracr_realcamera_toggleAdjustMode": "Toggle Adjust Mode",
     "key.xtracr_realcamera_toggleCameraMode": "Toggle Camera Mode",
@@ -108,8 +109,18 @@
     "message.xtracr_realcamera_command_delete_success": "Successfully deleted '%s'",
     "message.xtracr_realcamera_command_listAll": "Found %d results: %s",
 
-    "screen.xtracr_realcamera_vertexSelection_title": "Vertex Selection",
-    "screen.widget.xtracr_realcamera_vertexSelection_yaw": "Yaw = %s",
-    "screen.widget.xtracr_realcamera_vertexSelection_pitch": "Pitch = %s",
-    "screen.widget.xtracr_realcamera_vertexSelection_reset": "Reset"
+    "screen.xtracr_realcamera_modelView_title": "Model View",
+    "screen.widget.xtracr_realcamera_modelView_yaw": "Yaw = %s",
+    "screen.widget.xtracr_realcamera_modelView_pitch": "Pitch = %s",
+    "screen.widget.xtracr_realcamera_modelView_reset": "Reset Model State",
+    "screen.widget.xtracr_realcamera_modelView_frontIndex": "index of the forward vector",
+    "screen.widget.xtracr_realcamera_modelView_upIndex": "index of the upward vector",
+    "screen.widget.xtracr_realcamera_modelView_posIndex": "index of the first vertex of the plane",
+    "screen.widget.xtracr_realcamera_modelView_listName": "name of the list of the indexes, can be selected and bound in the 'Experimental' screen of config screen if saved",
+    "screen.widget.xtracr_realcamera_modelView_save": "Save",
+    "screen.widget.xtracr_realcamera_modelView_load": "Load",
+
+    "screen.tooltip.xtracr_realcamera_modelView_selectFront": "When turned on, hold Alt and left click to select forward vector",
+    "screen.tooltip.xtracr_realcamera_modelView_selectUp": "When turned on, hold Alt and left click to select upward vector",
+    "screen.tooltip.xtracr_realcamera_modelView_selectPos": "When turned on, hold Alt and left click to select plane, to which camera can be bound to its center"
 }

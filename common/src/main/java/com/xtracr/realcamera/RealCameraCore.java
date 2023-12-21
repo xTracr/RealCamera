@@ -7,7 +7,6 @@ import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.mixin.PlayerEntityRendererAccessor;
 import com.xtracr.realcamera.util.MathUtil;
-import com.xtracr.realcamera.util.VertexDataAnalyser;
 import com.xtracr.realcamera.util.VertexDataCatcher;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
@@ -22,15 +21,13 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix3f;
+import org.joml.Vector3f;
 import org.joml.Vector4f;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class RealCameraCore {
     private static final ModConfig config = ConfigFile.modConfig;
-    private static final List<Integer> normalList = new ArrayList<>();
-    private static final List<Integer> posList = new ArrayList<>();
     private static String status = "Successful";
     private static boolean vRendering = false;
     private static float pitch ,yaw, roll;
@@ -85,15 +82,17 @@ public class RealCameraCore {
         // GameRenderer.renderWorld
         MatrixStack matrixStack = new MatrixStack();
         vRendering = true;
-        VertexDataCatcher catcher = setupCatcher();
+        VertexDataCatcher catcher = new VertexDataCatcher();
         virtualRender(client, tickDelta, matrixStack, catcher);
         vRendering = false;
 
         // ModelPart$Cuboid.renderCuboid
-        Vector4f offset = matrixStack.peek().getPositionMatrix().transform(new Vector4f(0, 0, 0, 1.0F));
+        Vector4f offset = matrixStack.peek().getPositionMatrix().transform(new Vector4f((float) (config.getBindingZ() * config.getScale()),
+                -(float) (config.getBindingY() * config.getScale()) - 0.125f,
+                -(float) (config.getBindingX() * config.getScale()) - 0.225f, 1.0F));
         pos = new Vec3d(offset.x(), offset.y(), offset.z());
         Matrix3f normal = matrixStack.peek().getNormalMatrix().scale(1.0F, -1.0F, -1.0F);
-        if (!VertexDataAnalyser.isAnalysing() && config.binding.experimental) try {
+        if (config.binding.experimental) try {
             applyAnalysisResult(normal, catcher);
         } catch (Exception ignored) {
         }
@@ -107,31 +106,20 @@ public class RealCameraCore {
         roll = config.isRollingBound() ? (float) eulerAngle.getZ() : config.getBindingRoll();
     }
 
-    private static VertexDataCatcher setupCatcher() {
-        normalList.clear();
-        posList.clear();
-        if (VertexDataAnalyser.isAnalysing()) return VertexDataAnalyser.catcher;
-        if (config.binding.experimental) try {
-            List<Integer> list = config.binding.indexListMap.get(config.binding.nameOfList);
-            normalList.add(list.get(0));
-            normalList.add(list.get(1));
-            posList.addAll(list.subList(2, list.size()));
-        } catch (Exception ignored) {
-        }
-        return new VertexDataCatcher(normalList::contains, posList::contains);
-    }
-
     private static void applyAnalysisResult(Matrix3f normal, VertexDataCatcher catcher) {
         if (catcher.posRecorder.isEmpty()) throw new NullPointerException("Target vertices not found");
-        Vec3d average = Vec3d.ZERO;
-        for (Vec3d vec : catcher.posRecorder) {
-            average = average.add(vec);
-        }
-        pos = average.multiply(1 / (double) catcher.posRecorder.size());
-        int order = normalList.get(0) < normalList.get(1) ? 0 : 1;
-        Vec3d front = catcher.normalRecorder.get(normalList.get(order));
-        Vec3d up = catcher.normalRecorder.get(normalList.get(1 - order));
+        List<Integer> indexList = config.binding.indexListMap.get(config.binding.nameOfList);
+        Vec3d front = catcher.normalRecorder.get(indexList.get(0));
+        Vec3d up = catcher.normalRecorder.get(indexList.get(1));
         normal.set(front.crossProduct(up).multiply(-1).toVector3f(), up.toVector3f(), front.toVector3f());
+        Vector3f offset = normal.transform(new Vector3f((float) (config.getBindingZ() * config.getScale()),
+                (float) (config.getBindingY() * config.getScale()),
+                (float) (config.getBindingX() * config.getScale())));
+        Vec3d center = Vec3d.ZERO;
+        for (int i : indexList.subList(2, indexList.size())) {
+            center = center.add(catcher.posRecorder.get(i));
+        }
+        pos = center.multiply(1 / (double) (indexList.size() - 2)).add(offset.x(), offset.y(), offset.z());
     }
 
     private static void virtualRender(MinecraftClient client, float tickDelta, MatrixStack matrixStack, VertexDataCatcher catcher) {
@@ -149,9 +137,8 @@ public class RealCameraCore {
         matrixStack.push();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         dispatcher.configure(client.world, client.gameRenderer.getCamera(), player);
-        if (VertexDataAnalyser.preAnalysing() || config.binding.experimental) dispatcher.render(player, renderOffset.getX(),
+        if (config.binding.experimental) dispatcher.render(player, renderOffset.getX(),
                 renderOffset.getY(), renderOffset.getZ(), 0, tickDelta, matrixStack, layer -> catcher, 0xF000F0);
-        VertexDataAnalyser.analyse(player, tickDelta);
         matrixStack.pop();
         // EntityRenderDispatcher.render
         if (config.compatPhysicsMod())

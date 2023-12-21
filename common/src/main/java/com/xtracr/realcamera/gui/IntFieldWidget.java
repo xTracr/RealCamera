@@ -9,8 +9,8 @@ import java.util.function.IntConsumer;
 public class IntFieldWidget extends TextFieldWidget {
     IntConsumer consumer;
 
-    public IntFieldWidget(TextRenderer textRenderer, int width, int height, Text text, int value, IntConsumer consumer) {
-        super(textRenderer, width, height, text);
+    public IntFieldWidget(TextRenderer textRenderer, int x, int y, int width, int height, Text text, int value, IntConsumer consumer) {
+        super(textRenderer, x, y, width, height, text);
         this.consumer = consumer;
         setMaxLength(9);
         setValue(value);
@@ -22,6 +22,7 @@ public class IntFieldWidget extends TextFieldWidget {
 
     protected void setValue(int value) {
         setText(String.valueOf(value));
+        consumer.accept(value);
     }
 
     @Override

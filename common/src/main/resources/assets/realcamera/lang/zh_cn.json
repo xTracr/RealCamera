@@ -1,5 +1,6 @@
 {
     "key.category.xtracr_realcamera": "Real Camera",
+    "key.xtracr_realcamera_modelViewGui": "打开模型视图界面",
     "key.xtracr_realcamera_togglePerspective": "开启/关闭",
     "key.xtracr_realcamera_toggleAdjustMode": "切换调整模式",
     "key.xtracr_realcamera_toggleCameraMode": "切换摄像头模式",
@@ -106,5 +107,20 @@
     "message.xtracr_realcamera_command_autoBind": "绑定成功: (位置) [%d], (前方) [%d], (上方) [%d] and (左方) [%d]",
     "message.xtracr_realcamera_command_delete_failure": "未能找到'%s'",
     "message.xtracr_realcamera_command_delete_success": "成功删除'%s'",
-    "message.xtracr_realcamera_command_listAll": "找到了%d个结果: %s"
+    "message.xtracr_realcamera_command_listAll": "找到了%d个结果: %s",
+
+    "screen.xtracr_realcamera_modelView_title": "模型试图",
+    "screen.widget.xtracr_realcamera_modelView_yaw": "俯仰 = %s",
+    "screen.widget.xtracr_realcamera_modelView_pitch": "偏航 = %s",
+    "screen.widget.xtracr_realcamera_modelView_reset": "重置模型状态",
+    "screen.widget.xtracr_realcamera_modelView_frontIndex": "向前矢量的索引",
+    "screen.widget.xtracr_realcamera_modelView_upIndex": "向上矢量的索引",
+    "screen.widget.xtracr_realcamera_modelView_posIndex": "平面的第一个顶点的索引",
+    "screen.widget.xtracr_realcamera_modelView_listName": "索引组的名称，保存后可在配置屏幕的'Experimental'界面选择并绑定",
+    "screen.widget.xtracr_realcamera_modelView_save": "保存",
+    "screen.widget.xtracr_realcamera_modelView_load": "加载",
+
+    "screen.tooltip.xtracr_realcamera_modelView_selectFront": "打开后，按住Alt并左键可选择向前矢量",
+    "screen.tooltip.xtracr_realcamera_modelView_selectUp": "打开后，按住Alt并左键可选择向上矢量",
+    "screen.tooltip.xtracr_realcamera_modelView_selectPos": "打开后，按住Alt并左键可选择平面，摄像头可以绑定到该平面的中心点上"
 }

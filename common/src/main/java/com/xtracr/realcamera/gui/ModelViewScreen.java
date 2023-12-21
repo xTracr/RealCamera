@@ -1,11 +1,15 @@
 package com.xtracr.realcamera.gui;
 
 import com.xtracr.realcamera.RealCamera;
+import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.util.MathUtil;
+import com.xtracr.realcamera.util.ModelAnalyser;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.render.DiffuseLighting;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.util.InputUtil;
@@ -18,21 +22,28 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ModelViewScreen extends Screen {
-    private static final String KEY_SCREEN = "screen.xtracr_" + RealCamera.MODID + "_vertexSelection_";
-    private static final String KEY_WIDGET = "screen.widget.xtracr_" + RealCamera.MODID + "_vertexSelection_";
+    private static final String KEY_SCREEN = "screen.xtracr_" + RealCamera.MODID + "_modelView_";
+    private static final String KEY_WIDGET = "screen.widget.xtracr_" + RealCamera.MODID + "_modelView_";
+    private static final String KEY_TOOLTIP = "screen.tooltip.xtracr_" + RealCamera.MODID + "_modelView_";
     protected int xSize = 400, ySize = 220;
     protected int x, y;
-    public double mouseX, mouseY;
     private int entitySize = 80;
     private double entityX, entityY;
     private float yaw, pitch, xRot, yRot;
     private boolean selectingFront, selectingUp, selectingPos;
-    private int layers, frontIndex, upIndex;
-    private IntFieldWidget frontIndexWidget, upIndexWidget;
+    private List<Integer> focusedPolygon, posPolygon;
+    private int layers, frontIndex, upIndex, posIndex;
+    private IntFieldWidget frontIndexWidget, upIndexWidget, posIndexWidget;
+    private TextFieldWidget nameWidget;
     private final ButtonWidget selectFrontButton = ButtonWidget.builder(Text.literal("OFF"), button -> changeSelectionTarget(0)).size(25, 18).build();
     private final ButtonWidget selectUpButton = ButtonWidget.builder(Text.literal("OFF"), button -> changeSelectionTarget(1)).size(25, 18).build();
     private final ButtonWidget selectPosButton = ButtonWidget.builder(Text.literal("OFF"), button -> changeSelectionTarget(2)).size(25, 18).build();
+    private final ButtonWidget saveButton = ButtonWidget.builder(Text.translatable(KEY_WIDGET + "save"), button -> saveCurrent()).size((xSize - ySize)/4 - 10, 18).build();
+    private final ButtonWidget loadButton = ButtonWidget.builder(Text.translatable(KEY_WIDGET + "load"), button -> loadToCurrent()).size((xSize - ySize)/4 - 10, 18).build();
     private final DoubleValueSlider yawWidget = new DoubleValueSlider((xSize - ySize)/2 - 15, 18, 0.5D,
             -60.0D, 60.0D, d -> Text.translatable(KEY_WIDGET + "yaw", MathUtil.round(d, 2)), d -> yaw = (float) d);
     private final DoubleValueSlider pitchWidget = new DoubleValueSlider((xSize - ySize)/2 - 15, 18, 0.5D,
@@ -48,43 +59,38 @@ public class ModelViewScreen extends Screen {
         super.init();
         x = (width - xSize) / 2;
         y = (height - ySize) / 2;
-        frontIndexWidget = new IntFieldWidget(textRenderer, (xSize - ySize)/2 - 45, 18, Text.translatable(KEY_WIDGET + "frontIndex"), frontIndex, i -> frontIndex = i);
-        upIndexWidget = new IntFieldWidget(textRenderer, (xSize - ySize)/2 - 45, 18, Text.translatable(KEY_WIDGET + "upIndex"), upIndex, i -> upIndex = i);
-        frontIndexWidget.setPosition(x + 5, y + 70);
-        selectFrontButton.setPosition(x + (xSize - ySize)/2 - 35, y + 70);
-        upIndexWidget.setPosition(x + 5, y + 92);
-        selectUpButton.setPosition(x + (xSize - ySize)/2 - 35, y + 92);
-        selectPosButton.setPosition(x + (xSize - ySize)/2 - 35, y + 114);
-        yawWidget.setPosition(x + 5, y + 26);
-        pitchWidget.setPosition(x + 5, y + 48);
-        resetWidget.setPosition(x + 5, y + 4);
-        addDrawableChild(frontIndexWidget);
-        addDrawableChild(selectFrontButton);
-        addDrawableChild(upIndexWidget);
-        addDrawableChild(selectUpButton);
-        addDrawableChild(selectPosButton);
-        addDrawableChild(yawWidget);
-        addDrawableChild(pitchWidget);
-        addDrawableChild(resetWidget);
+        frontIndexWidget = new IntFieldWidget(textRenderer, x + 5, y + 70, (xSize - ySize)/2 - 45, 18, Text.translatable(KEY_WIDGET + "frontIndex"), frontIndex, i -> frontIndex = i);
+        upIndexWidget = new IntFieldWidget(textRenderer, x + 5, y + 92, (xSize - ySize)/2 - 45, 18, Text.translatable(KEY_WIDGET + "upIndex"), upIndex, i -> upIndex = i);
+        posIndexWidget = new IntFieldWidget(textRenderer, x + 5, y + 114, (xSize - ySize)/2 - 45, 18, Text.translatable(KEY_WIDGET + "posIndex"), posIndex, i -> posIndex = i);
+        nameWidget = new TextFieldWidget(textRenderer, x + 5, y + 158, (xSize - ySize)/2 - 15, 18, Text.translatable(KEY_WIDGET + "listName"));
+        nameWidget.setMaxLength(20);
+        selectFrontButton.setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "selectFront")));
+        selectUpButton.setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "selectUp")));
+        selectPosButton.setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "selectPos")));
+        addDrawableChild(resetWidget).setPosition(x + 5, y + 4);
+        addDrawableChild(yawWidget).setPosition(x + 5, y + 26);
+        addDrawableChild(pitchWidget).setPosition(x + 5, y + 48);
+        addDrawableChild(frontIndexWidget).setTooltip(Tooltip.of(Text.translatable(KEY_WIDGET + "frontIndex")));
+        addDrawableChild(selectFrontButton).setPosition(x + (xSize - ySize)/2 - 35, y + 70);
+        addDrawableChild(upIndexWidget).setTooltip(Tooltip.of(Text.translatable(KEY_WIDGET + "upIndex")));
+        addDrawableChild(selectUpButton).setPosition(x + (xSize - ySize)/2 - 35, y + 92);
+        addDrawableChild(posIndexWidget).setTooltip(Tooltip.of(Text.translatable(KEY_WIDGET + "posIndex")));
+        addDrawableChild(selectPosButton).setPosition(x + (xSize - ySize)/2 - 35, y + 114);
+        addDrawableChild(saveButton).setPosition(x + 5, y + 136);
+        addDrawableChild(loadButton).setPosition(x + (xSize - ySize)/4, y + 136);
+        addDrawableChild(nameWidget).setTooltip(Tooltip.of(Text.translatable(KEY_WIDGET + "listName")));
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        super.render(context, mouseX, mouseY, delta);
-        this.mouseX = mouseX;
-        this.mouseY = mouseY;
-        drawEntity(context, x + (xSize - ySize) / 2, y, x + (xSize + ySize) / 2, y + ySize, this.client.player);
-    }
-
-    @Override
-    public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
-        super.renderBackground(context, mouseX, mouseY, delta);
-        context.fill(x, y, x + (xSize - ySize) / 2 - 5, y + ySize, 0xFF555555);
+        context.fill(x, y, x + (xSize - ySize) / 2 - 5, y + ySize, 0xEE505050);
         context.fill(x + (xSize - ySize) / 2, y, x + (xSize + ySize) / 2, y + ySize, 0xFF222222);
-        context.fill(x + (xSize + ySize) / 2 + 5, y, x + xSize, y + ySize, 0xFF555555);
+        context.fill(x + (xSize + ySize) / 2 + 5, y, x + xSize, y + ySize, 0xEE505050);
+        super.render(context, mouseX, mouseY, delta);
+        drawEntity(context, x + (xSize - ySize) / 2, y, x + (xSize + ySize) / 2, y + ySize, mouseX, mouseY, this.client.player);
     }
 
-    protected void drawEntity(DrawContext context, int x1, int y1, int x2, int y2, LivingEntity entity) {
+    protected void drawEntity(DrawContext context, int x1, int y1, int x2, int y2, int mouseX, int mouseY, LivingEntity entity) {
         float centerX = (float)(x1 + x2) / 2.0f;
         float centerY = (float)(y1 + y2) / 2.0f;
         context.enableScissor(x1, y1, x2, y2);
@@ -100,7 +106,7 @@ public class ModelViewScreen extends Screen {
         entity.headYaw = entity.getYaw();
         entity.prevHeadYaw = entity.getYaw();
         Vector3f vector3f = new Vector3f((float) entityX, (float) entityY, -2.0f);
-        drawEntity(context, centerX, centerY, entitySize, vector3f, quaternionf, entity);
+        drawEntity(context, centerX, centerY, entitySize, mouseX, mouseY, vector3f, quaternionf, entity);
         entity.bodyYaw = entityBodyYaw;
         entity.setYaw(entityYaw);
         entity.setPitch(entityPitch);
@@ -109,7 +115,7 @@ public class ModelViewScreen extends Screen {
         context.disableScissor();
     }
 
-    protected static void drawEntity(DrawContext context, float x, float y, int size, Vector3f offset, Quaternionf quaternionf, LivingEntity entity) {
+    protected void drawEntity(DrawContext context, float x, float y, int size, int mouseX, int mouseY, Vector3f offset, Quaternionf quaternionf, LivingEntity entity) {
         context.getMatrices().push();
         context.getMatrices().translate(x, y, 0);
         context.getMatrices().multiplyPositionMatrix(new Matrix4f().scaling(size, size, -size));
@@ -119,8 +125,15 @@ public class ModelViewScreen extends Screen {
         EntityRenderDispatcher entityRenderDispatcher = MinecraftClient.getInstance().getEntityRenderDispatcher();
         entityRenderDispatcher.setRenderShadows(false);
         entityRenderDispatcher.render(entity, 0, -entity.getHeight() / 2.0f, 0, 0.0f, 1.0f, context.getMatrices(), context.getVertexConsumers(), 0xF000F0);
-        //entityRenderDispatcher.render(entity, 0, -entity.getHeight() / 2.0f, 0, 0.0f, 1.0f, context.getMatrices(), layer -> null, 0xF000F0);
+        ModelAnalyser analyser = new ModelAnalyser();
+        entityRenderDispatcher.render(entity, 0, -entity.getHeight() / 2.0f, 0, 0.0f, 1.0f, context.getMatrices(), analyser, 0xF000F0);
         context.draw();
+        focusedPolygon = analyser.getFocusedPolygon(mouseX, mouseY, layers);
+        if (focusedPolygon != null) analyser.drawPolygon(context, focusedPolygon.get(0), 0x6FFFFFFF);
+        analyser.drawNormal(context, frontIndex, entitySize / 2, 0xFF00CC00);
+        analyser.drawNormal(context, upIndex, entitySize / 2, 0xFFCC0000);
+        analyser.drawPolygon(context, posIndex, 0x6F3333CC);
+        posPolygon = analyser.getPolygon(posIndex);
         entityRenderDispatcher.setRenderShadows(true);
         context.getMatrices().pop();
         DiffuseLighting.enableGuiDepthLighting();
@@ -133,6 +146,26 @@ public class ModelViewScreen extends Screen {
         entityX = entityY = 0;
         xRot = yRot = 0;
         layers = 0;
+    }
+
+    private void saveCurrent() {
+        String name = nameWidget.getText();
+        if (name == null) return;
+        List<Integer> list = new ArrayList<>(List.of(frontIndex, upIndex));
+        list.addAll(posPolygon);
+        ConfigFile.modConfig.binding.indexListMap.put(name, list);
+        ConfigFile.save();
+    }
+
+    private void loadToCurrent() {
+        String name = nameWidget.getText();
+        List<Integer> list = ConfigFile.modConfig.binding.indexListMap.get(name);
+        try {
+            frontIndexWidget.setValue(list.get(0));
+            upIndexWidget.setValue(list.get(1));
+            posIndexWidget.setValue(list.get(2));
+        } catch (Exception ignored) {
+        }
     }
 
     private void changeSelectionTarget(int target) {
@@ -169,9 +202,20 @@ public class ModelViewScreen extends Screen {
     }
 
     @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (mouseInViewArea(mouseX, mouseY) && focusedPolygon != null  && button == GLFW.GLFW_MOUSE_BUTTON_LEFT&&
+                InputUtil.isKeyPressed(this.client.getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_ALT)) {
+            if (selectingFront) frontIndexWidget.setValue(focusedPolygon.get(0));
+            if (selectingUp) upIndexWidget.setValue(focusedPolygon.get(0));
+            if (selectingPos) posIndexWidget.setValue(focusedPolygon.get(0));
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
         if (mouseInViewArea(mouseX, mouseY)) {
-            if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && !InputUtil.isKeyPressed(this.client.getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_ALT)) {
                 xRot = MathHelper.wrapDegrees(xRot + (float) deltaY / 90f);
                 yRot = MathHelper.wrapDegrees(yRot - (float) deltaX / 90f);
             } else if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
@@ -183,16 +227,18 @@ public class ModelViewScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount) { // 1.20.1
         if (mouseInViewArea(mouseX, mouseY)) {
             if (InputUtil.isKeyPressed(this.client.getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_ALT)) {
-                layers = Math.max(0, layers + (int) verticalAmount);
+                layers = Math.max(0, layers + (int) amount);
             } else {
-                entitySize = MathHelper.clamp(entitySize + (int) verticalAmount * entitySize / 16, 16, 1024);
+                entitySize = MathHelper.clamp(entitySize + (int) amount * entitySize / 16, 16, 1024);
             }
+            return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+        return super.mouseScrolled(mouseX, mouseY, amount);
     }
+
 
     @Override
     public boolean shouldPause() {

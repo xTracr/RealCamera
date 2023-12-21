@@ -5,29 +5,17 @@ import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.IntPredicate;
 
 public class VertexDataCatcher implements VertexConsumer {
-    private final IntPredicate normalPredicate;
-    private final IntPredicate posPredicate;
     public final List<Vec3d> normalRecorder = new ArrayList<>();
     public final List<Vec3d> posRecorder = new ArrayList<>();
-    private int index;
 
-    public VertexDataCatcher(IntPredicate normalPredicate, IntPredicate posPredicate) {
-        this.normalPredicate = normalPredicate;
-        this.posPredicate = posPredicate;
-    }
-
-    protected void clear() {
-        index = 0;
-        normalRecorder.clear();
-        posRecorder.clear();
+    public VertexDataCatcher() {
     }
 
     @Override
     public VertexConsumer vertex(double x, double y, double z) {
-        if (posPredicate.test(index)) posRecorder.add(new Vec3d(x, y, z));
+        posRecorder.add(new Vec3d(x, y, z));
         return this;
     }
 
@@ -53,13 +41,12 @@ public class VertexDataCatcher implements VertexConsumer {
 
     @Override
     public VertexConsumer normal(float x, float y, float z) {
-        if (normalPredicate.test(index)) normalRecorder.add(new Vec3d(x, y, z));
+        normalRecorder.add(new Vec3d(x, y, z));
         return this;
     }
 
     @Override
     public void next() {
-        index++;
     }
 
     @Override

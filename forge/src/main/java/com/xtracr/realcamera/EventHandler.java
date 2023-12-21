@@ -3,14 +3,12 @@ package com.xtracr.realcamera;
 import com.xtracr.realcamera.command.ClientCommand;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.util.CrosshairUtil;
-import com.xtracr.realcamera.util.VertexDataAnalyser;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraftforge.client.event.InputEvent.Key;
 import net.minecraftforge.client.event.RegisterClientCommandsEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.client.event.ViewportEvent;
-import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class EventHandler {
@@ -26,11 +24,6 @@ public class EventHandler {
             event.setYaw(RealCameraCore.getYaw(event.getYaw()));
             event.setRoll(RealCameraCore.getRoll());
         }
-    }
-
-    @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        VertexDataAnalyser.tick();
     }
 
     @SubscribeEvent

@@ -302,8 +302,8 @@ public class ModConfig {
         public boolean offsetModel = false;
         public String nameOfList = "minecraft_head";
         public Map<String, List<Integer>> indexListMap = defaultIndexListMap;
-        public double cameraX = 3.25D;
-        public double cameraY = 2.0D;
+        public double cameraX = 0.0D;
+        public double cameraY = 0.0D;
         public double cameraZ = 0.0D;
         public boolean bindPitching = true;
         public boolean bindYawing = true;

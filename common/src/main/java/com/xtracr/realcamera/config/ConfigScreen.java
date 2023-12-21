@@ -96,13 +96,13 @@ public class ConfigScreen {
         SubCategoryBuilder bindingCameraOffset = entryBuilder.startSubCategory(Text.translatable(CATEGORY + "cameraOffset"))
                 .setTooltip(Text.translatable(TOOLTIP + "bindingOffset"), Text.translatable(TOOLTIP + "bindingOffset_n"));
         bindingCameraOffset.add(entryBuilder.startDoubleField(Text.translatable(OPTION + "cameraOffset", "X"), config.binding.cameraX)
-                .setDefaultValue(3.25D)
+                .setDefaultValue(0.0D)
                 .setMin(ModConfig.MIN_DOUBLE)
                 .setMax(ModConfig.MAX_DOUBLE)
                 .setSaveConsumer(d -> config.binding.cameraX = d)
                 .build());
         bindingCameraOffset.add(entryBuilder.startDoubleField(Text.translatable(OPTION + "cameraOffset", "Y"), config.binding.cameraY)
-                .setDefaultValue(2.0D)
+                .setDefaultValue(0.0D)
                 .setMin(ModConfig.MIN_DOUBLE)
                 .setMax(ModConfig.MAX_DOUBLE)
                 .setSaveConsumer(d -> config.binding.cameraY = d)
@@ -316,7 +316,7 @@ public class ConfigScreen {
                 .build());
         disable.addEntry(disableModWhen.build());
 
-        experimental.addEntry(entryBuilder.startBooleanToggle(Text.literal("Enabled"), config.binding.experimental)
+        experimental.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "enabled"), config.binding.experimental)
                 .setDefaultValue(false)
                 .setSaveConsumer(b -> config.binding.experimental = b)
                 .build());

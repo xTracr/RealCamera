@@ -28,7 +28,6 @@ public class RealCameraForge {
 
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onKeyInput);
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onCameraUpdate);
-        MinecraftForge.EVENT_BUS.addListener(EventHandler::onClientTick);
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onClientCommandRegister);
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onRenderWorldStage);
 
