@@ -14,6 +14,7 @@
 * 在第一人称视角下渲染玩家模型
 * 按下F6来开关，另外一些键来调整摄像头
 * 在Config界面配置以上特性（需Cloth Config）
+* 在未来的0.6+版本中在理论上支持大多数模组模型
 
 > 详细了解[如何配置](https://github.com/xTracr/RealCamera/wiki/Configuration)
 
@@ -35,18 +36,12 @@
 
 ### 兼容性 ###
 
-* 引起崩溃:
-  * OptiFine
 * 不兼容:
-  * Yes Steve Model(GeckoLib?)
-  * Customizable Player Models
+  * OptiFine
 * 兼容:
-  * 大多数摄像头模组
-  * Player Animation Lib
+  * 多数摄像头模组
+  * 多数模型模组(0.6+)
   * Not Enough Animations[^1]
-  * First Person Model
-  * Pehkui
-  * Epic Fight
 
 [^1]:建议在 *更多动画* 的配置内禁用`Animation Smoothing`选项。
 

@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[46,)"
+loaderVersion="[47,48)"
 license="MIT license"
 issueTrackerURL="https://github.com/xTracr/RealCamera/issues"
 [[mods]]
@@ -26,7 +26,7 @@ Make the camera more realistic in the first-person view.
     # Does this dependency have to exist - if not, ordering below must be specified
     mandatory=true #mandatory
     # The version range of the dependency
-    versionRange="[46,)" #mandatory
+    versionRange="[47,48)" #mandatory
     # An ordering relationship for the dependency - BEFORE or AFTER required if the relationship is not mandatory
     ordering="NONE"
     # Side this dependency is applied on - BOTH, CLIENT or SERVER
@@ -35,7 +35,7 @@ Make the camera more realistic in the first-person view.
 [[dependencies.realcamera]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.20,1.21)"
+    versionRange="[1.20.1,1.20.2)"
     ordering="NONE"
     side="BOTH"
 

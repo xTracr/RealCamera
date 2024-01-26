@@ -14,6 +14,7 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 * Render player model in first-person perspective
 * Use F6 to toggle the feature on/off and other hotkeys to adjust the camera
 * Configure these features in the config screen(Cloth Config required)
+* Support most mod models in theory with the upcoming feature in 0.6+ (You can discuss it [here](https://github.com/xTracr/RealCamera/discussions))
 
 > Learn more about [Configuration](https://github.com/xTracr/RealCamera/wiki/Configuration)
 
@@ -35,18 +36,12 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 
 ### Compatibility ###
 
-* Cause crash:
-  * OptiFine
 * Incompatible:
-  * Yes Steve Model(GeckoLib?)
-  * Customizable Player Models
+  * OptiFine
 * Compatible:
   * most camera mods
-  * Player Animation Lib
+  * most player model mods (0.6+)
   * Not Enough Animations[^1]
-  * First Person Model
-  * Pehkui
-  * Epic Fight
 
 [^1]:It is suggested to disable `Animation Smoothing` option in the config of *Not Enough Animations*.
 

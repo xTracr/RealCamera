@@ -3,7 +3,6 @@ package com.xtracr.realcamera.gui;
 import com.xtracr.realcamera.RealCamera;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.util.MathUtil;
-import com.xtracr.realcamera.util.ModelAnalyser;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -11,6 +10,7 @@ import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.render.DiffuseLighting;
+import net.minecraft.client.render.VertexConsumers;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.LivingEntity;
@@ -83,9 +83,9 @@ public class ModelViewScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        context.fill(x, y, x + (xSize - ySize) / 2 - 5, y + ySize, 0xEE505050);
+        context.fill(x, y, x + (xSize - ySize) / 2 - 5, y + ySize, 0xFF555555);
         context.fill(x + (xSize - ySize) / 2, y, x + (xSize + ySize) / 2, y + ySize, 0xFF222222);
-        context.fill(x + (xSize + ySize) / 2 + 5, y, x + xSize, y + ySize, 0xEE505050);
+        context.fill(x + (xSize + ySize) / 2 + 5, y, x + xSize, y + ySize, 0xFF555555);
         super.render(context, mouseX, mouseY, delta);
         drawEntity(context, x + (xSize - ySize) / 2, y, x + (xSize + ySize) / 2, y + ySize, mouseX, mouseY, this.client.player);
     }
@@ -106,7 +106,7 @@ public class ModelViewScreen extends Screen {
         entity.headYaw = entity.getYaw();
         entity.prevHeadYaw = entity.getYaw();
         Vector3f vector3f = new Vector3f((float) entityX, (float) entityY, -2.0f);
-        drawEntity(context, centerX, centerY, entitySize, mouseX, mouseY, vector3f, quaternionf, entity);
+        drawEntity(context, centerX, centerY, mouseX, mouseY, vector3f, quaternionf, entity);
         entity.bodyYaw = entityBodyYaw;
         entity.setYaw(entityYaw);
         entity.setPitch(entityPitch);
@@ -115,21 +115,21 @@ public class ModelViewScreen extends Screen {
         context.disableScissor();
     }
 
-    protected void drawEntity(DrawContext context, float x, float y, int size, int mouseX, int mouseY, Vector3f offset, Quaternionf quaternionf, LivingEntity entity) {
+    protected void drawEntity(DrawContext context, float x, float y, int mouseX, int mouseY, Vector3f offset, Quaternionf quaternionf, LivingEntity entity) {
         context.getMatrices().push();
         context.getMatrices().translate(x, y, 0);
-        context.getMatrices().multiplyPositionMatrix(new Matrix4f().scaling(size, size, -size));
+        context.getMatrices().multiplyPositionMatrix(new Matrix4f().scaling(entitySize, entitySize, -entitySize));
         context.getMatrices().translate(offset.x(), offset.y(), offset.z());
         context.getMatrices().multiply(quaternionf);
         DiffuseLighting.method_34742();
         EntityRenderDispatcher entityRenderDispatcher = MinecraftClient.getInstance().getEntityRenderDispatcher();
         entityRenderDispatcher.setRenderShadows(false);
-        entityRenderDispatcher.render(entity, 0, -entity.getHeight() / 2.0f, 0, 0.0f, 1.0f, context.getMatrices(), context.getVertexConsumers(), 0xF000F0);
         ModelAnalyser analyser = new ModelAnalyser();
-        entityRenderDispatcher.render(entity, 0, -entity.getHeight() / 2.0f, 0, 0.0f, 1.0f, context.getMatrices(), analyser, 0xF000F0);
+        entityRenderDispatcher.render(entity, 0, -entity.getHeight() / 2.0f, 0, 0.0f, 1.0f, context.getMatrices(),
+                layer -> VertexConsumers.union(context.getVertexConsumers().getBuffer(layer), analyser.getBuffer(layer)), 0xF000F0);
         context.draw();
         focusedPolygon = analyser.getFocusedPolygon(mouseX, mouseY, layers);
-        if (focusedPolygon != null) analyser.drawPolygon(context, focusedPolygon.get(0), 0x6FFFFFFF);
+        if (focusedPolygon != null) analyser.drawPolygon(context, focusedPolygon.get(0), 0x7FFFFFFF);
         analyser.drawNormal(context, frontIndex, entitySize / 2, 0xFF00CC00);
         analyser.drawNormal(context, upIndex, entitySize / 2, 0xFFCC0000);
         analyser.drawPolygon(context, posIndex, 0x6F3333CC);
@@ -203,11 +203,12 @@ public class ModelViewScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (mouseInViewArea(mouseX, mouseY) && focusedPolygon != null  && button == GLFW.GLFW_MOUSE_BUTTON_LEFT&&
+        if (mouseInViewArea(mouseX, mouseY) && focusedPolygon != null  && button == GLFW.GLFW_MOUSE_BUTTON_LEFT &&
                 InputUtil.isKeyPressed(this.client.getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_ALT)) {
             if (selectingFront) frontIndexWidget.setValue(focusedPolygon.get(0));
             if (selectingUp) upIndexWidget.setValue(focusedPolygon.get(0));
             if (selectingPos) posIndexWidget.setValue(focusedPolygon.get(0));
+            if (selectingFront || selectingUp || selectingPos) return true;
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }
@@ -218,16 +219,18 @@ public class ModelViewScreen extends Screen {
             if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && !InputUtil.isKeyPressed(this.client.getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_ALT)) {
                 xRot = MathHelper.wrapDegrees(xRot + (float) deltaY / 90f);
                 yRot = MathHelper.wrapDegrees(yRot - (float) deltaX / 90f);
+                return true;
             } else if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
                 entityX = entityX + deltaX / entitySize;
                 entityY = entityY + deltaY / entitySize;
+                return true;
             }
         }
         return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double amount) { // 1.20.1
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
         if (mouseInViewArea(mouseX, mouseY)) {
             if (InputUtil.isKeyPressed(this.client.getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_ALT)) {
                 layers = Math.max(0, layers + (int) amount);
@@ -238,7 +241,6 @@ public class ModelViewScreen extends Screen {
         }
         return super.mouseScrolled(mouseX, mouseY, amount);
     }
-
 
     @Override
     public boolean shouldPause() {
