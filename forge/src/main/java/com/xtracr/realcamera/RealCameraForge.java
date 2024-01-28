@@ -5,6 +5,7 @@ import com.xtracr.realcamera.config.ConfigScreen;
 import net.minecraftforge.client.ConfigScreenHandler.ConfigScreenFactory;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModList;
@@ -27,7 +28,7 @@ public class RealCameraForge {
         if (ModList.get().isLoaded("epicfight")) EpicFightCompat.register();
 
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onKeyInput);
-        MinecraftForge.EVENT_BUS.addListener(EventHandler::onCameraUpdate);
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, EventHandler::onCameraUpdate);
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onClientCommandRegister);
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onRenderWorldStage);
 

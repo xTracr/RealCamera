@@ -3,6 +3,7 @@ package com.xtracr.realcamera.mixin;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.util.CrosshairUtil;
+import com.xtracr.realcamera.util.Flag;
 import com.xtracr.realcamera.util.RaycastUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.Perspective;
@@ -66,16 +67,22 @@ public abstract class MixinGameRenderer {
         }
     }
 
+    @Inject(method = "renderWorld", at = @At("HEAD"))
+    private void realCamera$onRenderWorldHEAD(float tickDelta, long limitTime, MatrixStack matrices, CallbackInfo cInfo) {
+        Flag.isRenderingWorld = true;
+        RealCameraCore.init(client);
+    }
+
     @Inject(method = "renderWorld", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/client/render/Camera;update(Lnet/minecraft/world/BlockView;Lnet/minecraft/entity/Entity;ZZF)V"))
     private void realCamera$onBeforeCameraUpdate(float tickDelta, long limitTime, MatrixStack matrices, CallbackInfo cInfo) {
-        if (RealCameraCore.isActive()) {
-            RealCameraCore.computeCamera(client, tickDelta);
-        }
+        if (!RealCameraCore.isActive()) return;
+        RealCameraCore.computeCamera(client, tickDelta);
     }
 
-    @Inject(method = "bobView", at = @At("HEAD"), cancellable = true)
-    private void realCamera$cancelBobview(CallbackInfo cInfo) {
-        if (RealCameraCore.isActive()) cInfo.cancel();
+    @Inject(method = "renderWorld", at = @At("RETURN"))
+    private void realCamera$onRenderWorldRETURN(float tickDelta, long limitTime, MatrixStack matrices, CallbackInfo cInfo) {
+        Flag.isRenderingWorld = false;
     }
+
 }

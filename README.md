@@ -2,9 +2,10 @@
 
 ## [中文](README_ZH.md) ##
 
-Make the camera more realistic in the first-person view. Supported versions: 1.18-1.20 Forge & Fabric.
-
-Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases), [Modrinth](https://modrinth.com/mod/real-camera), [CurseForge](https://curseforge.com/minecraft/mc-mods/real-camera) or [Github Actions](https://github.com/xTracr/RealCamera/actions/workflows/build.yml)  
+Make the camera more realistic in the first-person view.
+Supported versions: 1.18-1.20 Forge & Fabric.
+Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases), [Modrinth](https://modrinth.com/mod/real-camera) or [CurseForge](https://curseforge.com/minecraft/mc-mods/real-camera)
+Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/build.yml)
 
 ## Features ##
 
@@ -13,6 +14,7 @@ Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases),
 * Render player model in first-person perspective.
 * Use F6 to toggle the feature on or off and other hotkeys to adjust the camera.
 * Configure these features in the config screen (Cloth Config required).
+* Support most mod models in theory with the upcoming feature in 0.6+ (You can discuss it [here](https://github.com/xTracr/RealCamera/discussions))
 
 > Learn more about [Configuration](https://github.com/xTracr/RealCamera/wiki/Configuration)
 
@@ -36,23 +38,14 @@ Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases),
 
 ### Compatibility ###
 
-* May Cause Crashes:
-  * OptiFine
-
 * Incompatible:
-  * Yes, Steve Model (GeckoLib?)
-  * Customizable Player Models
-
+  * OptiFine
 * Compatible:
-  * Most camera mods
-  * Player Animation Lib
+  * most camera mods
+  * most player model mods (0.6+)
   * Not Enough Animations[^1]
-  * First-person Person Model
-  * Pehkui
-  * Epic Fight
 
-
-[^1]:It is suggested to disable the `Animation Smoothing` option in the config of *Not Enough Animations*.
+[^1]: It is suggested to disable the `Animation Smoothing` option in the config of *Not Enough Animations*.
 
 ## [More Information](https://github.com/xTracr/RealCamera/wiki) ##
 

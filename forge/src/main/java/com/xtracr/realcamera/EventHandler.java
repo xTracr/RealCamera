@@ -20,8 +20,6 @@ public class EventHandler {
     @SubscribeEvent
     public static void onCameraUpdate(ViewportEvent.ComputeCameraAngles event) {
         if (RealCameraCore.isActive()) {
-            event.setPitch(RealCameraCore.getPitch(event.getPitch()));
-            event.setYaw(RealCameraCore.getYaw(event.getYaw()));
             event.setRoll(RealCameraCore.getRoll());
         }
     }

@@ -8,6 +8,8 @@
 
 * 0.6.0-beta:
 * 0.6.0-alpha.1:
+* Added model view screen
+* Allowed to select the model part you want to bind directly in the screen
 
 * 0.5.0-beta:
 * Redesigned config screen
@@ -47,8 +49,8 @@
     * model sometimes isn't rendered when flying with elytra
     * leash position isn't correct
   * 0.4.4-alpha:
-  * Added dynamic crosshair function
-  * Added clip to space function
+  * Added "dynamic crosshair" feature
+  * Added "clip to space" feature
 
 * 0.3.0-alpha:
 * Made the hit result of the player's crosshair match the actual position of the crosshair
@@ -92,6 +94,8 @@
 
 * 0.6.0-beta:
 * 0.6.0-alpha.1:
+* 添加了模型视图界面
+* 允许在界面中选择想要绑定的模型部位
 
 * 0.5.0-beta:
 * 重新设计了配置屏幕

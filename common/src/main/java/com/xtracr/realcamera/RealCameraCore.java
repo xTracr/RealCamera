@@ -30,7 +30,8 @@ public class RealCameraCore {
     private static final ModConfig config = ConfigFile.modConfig;
     private static String status = "Successful";
     private static boolean vRendering = false;
-    private static float pitch ,yaw, roll;
+    private static boolean active = false;
+    private static float pitch, yaw, roll;
     private static Vec3d pos = Vec3d.ZERO;
     private static Vec3d modelOffset = Vec3d.ZERO;
 
@@ -68,10 +69,13 @@ public class RealCameraCore {
         modelOffset = vec3d;
     }
 
-    public static boolean isActive() {
-        MinecraftClient client = MinecraftClient.getInstance();
-        return config.isEnabled() && client.options.getPerspective().isFirstPerson() && client.gameRenderer.getCamera() != null
+    public static void init(MinecraftClient client) {
+        active = config.isEnabled() && client.options.getPerspective().isFirstPerson() && client.gameRenderer.getCamera() != null
                 && client.player != null && !config.shouldDisableMod(client);
+    }
+
+    public static boolean isActive() {
+        return active;
     }
 
     public static void computeCamera(MinecraftClient client, float tickDelta) {
@@ -93,7 +97,20 @@ public class RealCameraCore {
         pos = new Vec3d(offset.x(), offset.y(), offset.z());
         Matrix3f normal = matrixStack.peek().getNormalMatrix().scale(1.0F, -1.0F, -1.0F);
         if (config.binding.experimental) try {
-            applyAnalysisResult(normal, catcher);
+            if (catcher.posRecorder.isEmpty()) throw new NullPointerException("Target vertices not found");
+            List<Integer> indexList = config.binding.indexListMap.get(config.binding.nameOfList);
+            Vec3d front = catcher.normalRecorder.get(indexList.get(0));
+            Vec3d up = catcher.normalRecorder.get(indexList.get(1));
+            Vec3d center = Vec3d.ZERO;
+            for (int i : indexList.subList(2, indexList.size())) {
+                center = center.add(catcher.posRecorder.get(i));
+            }
+            if (!MathUtil.isFinite(front) || !MathUtil.isFinite(up) || !MathUtil.isFinite(center)) throw new ArithmeticException();
+            normal.set(up.crossProduct(front).toVector3f(), up.toVector3f(), front.toVector3f());
+            Vector3f vec3f = normal.transform(new Vector3f((float) (config.getBindingZ() * config.getScale()),
+                    (float) (config.getBindingY() * config.getScale()),
+                    (float) (config.getBindingX() * config.getScale())));
+            pos = center.multiply(1 / (double) (indexList.size() - 2)).add(vec3f.x(), vec3f.y(), vec3f.z());
         } catch (Exception ignored) {
         }
 
@@ -104,22 +121,6 @@ public class RealCameraCore {
         pitch = (float) eulerAngle.getX();
         yaw = (float) -eulerAngle.getY();
         roll = config.isRollingBound() ? (float) eulerAngle.getZ() : config.getBindingRoll();
-    }
-
-    private static void applyAnalysisResult(Matrix3f normal, VertexDataCatcher catcher) {
-        if (catcher.posRecorder.isEmpty()) throw new NullPointerException("Target vertices not found");
-        List<Integer> indexList = config.binding.indexListMap.get(config.binding.nameOfList);
-        Vec3d front = catcher.normalRecorder.get(indexList.get(0));
-        Vec3d up = catcher.normalRecorder.get(indexList.get(1));
-        normal.set(front.crossProduct(up).multiply(-1).toVector3f(), up.toVector3f(), front.toVector3f());
-        Vector3f offset = normal.transform(new Vector3f((float) (config.getBindingZ() * config.getScale()),
-                (float) (config.getBindingY() * config.getScale()),
-                (float) (config.getBindingX() * config.getScale())));
-        Vec3d center = Vec3d.ZERO;
-        for (int i : indexList.subList(2, indexList.size())) {
-            center = center.add(catcher.posRecorder.get(i));
-        }
-        pos = center.multiply(1 / (double) (indexList.size() - 2)).add(offset.x(), offset.y(), offset.z());
     }
 
     private static void virtualRender(MinecraftClient client, float tickDelta, MatrixStack matrixStack, VertexDataCatcher catcher) {
