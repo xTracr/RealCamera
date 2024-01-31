@@ -31,17 +31,18 @@ public class ModelViewScreen extends Screen {
     private static final String KEY_TOOLTIP = "screen.tooltip.xtracr_" + RealCamera.MODID + "_modelView_";
     protected int xSize = 400, ySize = 220;
     protected int x, y;
+    protected boolean shouldPause = false;
     private int entitySize = 80;
     private double entityX, entityY;
     private float yaw, pitch, xRot, yRot;
-    private boolean selectingFront, selectingUp, selectingPos;
-    private List<Integer> focusedPolygon, posPolygon;
-    private int layers, frontIndex, upIndex, posIndex;
+    private int select;
+    private List<Integer> posPolygon;
+    private int layers, frontIndex, upIndex, posIndex, focusedIndex = -1;
     private IntFieldWidget frontIndexWidget, upIndexWidget, posIndexWidget;
     private TextFieldWidget nameWidget;
-    private final ButtonWidget selectFrontButton = ButtonWidget.builder(Text.literal("OFF"), button -> changeSelectionTarget(0)).size(25, 18).build();
-    private final ButtonWidget selectUpButton = ButtonWidget.builder(Text.literal("OFF"), button -> changeSelectionTarget(1)).size(25, 18).build();
-    private final ButtonWidget selectPosButton = ButtonWidget.builder(Text.literal("OFF"), button -> changeSelectionTarget(2)).size(25, 18).build();
+    private final ButtonWidget selectFrontButton = ButtonWidget.builder(Text.literal("OFF"), button -> changeSelectionTarget(0, button)).size(25, 18).build();
+    private final ButtonWidget selectUpButton = ButtonWidget.builder(Text.literal("OFF"), button -> changeSelectionTarget(1, button)).size(25, 18).build();
+    private final ButtonWidget selectPosButton = ButtonWidget.builder(Text.literal("OFF"), button -> changeSelectionTarget(2, button)).size(25, 18).build();
     private final ButtonWidget saveButton = ButtonWidget.builder(Text.translatable(KEY_WIDGET + "save"), button -> saveCurrent()).size((xSize - ySize)/4 - 10, 18).build();
     private final ButtonWidget loadButton = ButtonWidget.builder(Text.translatable(KEY_WIDGET + "load"), button -> loadToCurrent()).size((xSize - ySize)/4 - 10, 18).build();
     private final DoubleValueSlider yawWidget = new DoubleValueSlider((xSize - ySize)/2 - 15, 18, 0.5D,
@@ -128,12 +129,13 @@ public class ModelViewScreen extends Screen {
         entityRenderDispatcher.render(entity, 0, -entity.getHeight() / 2.0f, 0, 0.0f, 1.0f, context.getMatrices(),
                 layer -> VertexConsumers.union(context.getVertexConsumers().getBuffer(layer), analyser.getBuffer(layer)), 0xF000F0);
         context.draw();
-        focusedPolygon = analyser.getFocusedPolygon(mouseX, mouseY, layers);
-        if (focusedPolygon != null) analyser.drawPolygon(context, focusedPolygon.get(0), 0x7FFFFFFF);
+        analyser.analyse();
+        focusedIndex = analyser.getFocusedIndex(mouseX, mouseY, layers);
+        analyser.drawQuad(context, posIndex, 0x6F3333CC);
+        if (focusedIndex > -1) analyser.drawPolyhedron(context, focusedIndex, 0x5FFFFFFF);
         analyser.drawNormal(context, frontIndex, entitySize / 2, 0xFF00CC00);
         analyser.drawNormal(context, upIndex, entitySize / 2, 0xFFCC0000);
-        analyser.drawPolygon(context, posIndex, 0x6F3333CC);
-        posPolygon = analyser.getPolygon(posIndex);
+        posPolygon = analyser.getQuad(posIndex);
         entityRenderDispatcher.setRenderShadows(true);
         context.getMatrices().pop();
         DiffuseLighting.enableGuiDepthLighting();
@@ -168,47 +170,24 @@ public class ModelViewScreen extends Screen {
         }
     }
 
-    private void changeSelectionTarget(int target) {
-        Text ON = Text.literal("ON").styled(style -> style.withColor(Formatting.GREEN));
-        Text OFF = Text.literal("OFF");
-        boolean front = selectingFront;
-        boolean up = selectingUp;
-        boolean pos = selectingPos;
-        selectFrontButton.setMessage(OFF);
-        selectUpButton.setMessage(OFF);
-        selectPosButton.setMessage(OFF);
-        selectingFront = selectingUp = selectingPos = false;
-        switch (target) {
-            case 0:
-                if (front) break;
-                selectFrontButton.setMessage(ON);
-                selectingFront = true;
-                break;
-            case 1:
-                if (up) break;
-                selectUpButton.setMessage(ON);
-                selectingUp = true;
-                break;
-            case 2:
-                if (pos) break;
-                selectPosButton.setMessage(ON);
-                selectingPos = true;
-                break;
-        }
+    private void changeSelectionTarget(int target, ButtonWidget button) {
+        select ^= 1 << target;
+        if ((select >> target & 1) != 0) button.setMessage(Text.literal("ON").styled(style -> style.withColor(Formatting.GREEN)));
+        else button.setMessage(Text.literal("OFF"));
     }
 
     protected boolean mouseInViewArea(double mouseX, double mouseY) {
-        return mouseX >= x + (double) (xSize - ySize) / 2 && mouseX <= x + (double) (xSize + ySize) / 2 && mouseY >= y && mouseY <= y + (double) ySize;
+        return mouseX >= x + (double) (xSize - ySize) / 2 && mouseX <= x + (double) (xSize + ySize) / 2 && mouseY >= y && mouseY <= y + ySize;
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (mouseInViewArea(mouseX, mouseY) && focusedPolygon != null  && button == GLFW.GLFW_MOUSE_BUTTON_LEFT &&
+        if (mouseInViewArea(mouseX, mouseY) && focusedIndex > -1  && button == GLFW.GLFW_MOUSE_BUTTON_LEFT &&
                 InputUtil.isKeyPressed(this.client.getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_ALT)) {
-            if (selectingFront) frontIndexWidget.setValue(focusedPolygon.get(0));
-            if (selectingUp) upIndexWidget.setValue(focusedPolygon.get(0));
-            if (selectingPos) posIndexWidget.setValue(focusedPolygon.get(0));
-            if (selectingFront || selectingUp || selectingPos) return true;
+            if ((select & 1) != 0) frontIndexWidget.setValue(focusedIndex);
+            if ((select >> 1 & 1) != 0) upIndexWidget.setValue(focusedIndex);
+            if ((select >> 2 & 1) != 0) posIndexWidget.setValue(focusedIndex);
+            if (select != 0) return true;
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }
@@ -244,6 +223,6 @@ public class ModelViewScreen extends Screen {
 
     @Override
     public boolean shouldPause() {
-        return false;
+        return shouldPause;
     }
 }

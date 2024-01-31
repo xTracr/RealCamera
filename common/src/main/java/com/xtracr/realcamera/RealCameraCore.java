@@ -8,6 +8,7 @@ import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.mixin.PlayerEntityRendererAccessor;
 import com.xtracr.realcamera.util.MathUtil;
 import com.xtracr.realcamera.util.VertexDataCatcher;
+import com.xtracr.realcamera.util.VertexDataCatcherProvider;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -86,8 +87,9 @@ public class RealCameraCore {
         // GameRenderer.renderWorld
         MatrixStack matrixStack = new MatrixStack();
         vRendering = true;
-        VertexDataCatcher catcher = new VertexDataCatcher();
-        virtualRender(client, tickDelta, matrixStack, catcher);
+        VertexDataCatcherProvider catcherProvider = new VertexDataCatcherProvider();
+        virtualRender(client, tickDelta, matrixStack, catcherProvider);
+        VertexDataCatcher catcher = catcherProvider.getUnion(new VertexDataCatcher());
         vRendering = false;
 
         // ModelPart$Cuboid.renderCuboid
@@ -97,14 +99,12 @@ public class RealCameraCore {
         pos = new Vec3d(offset.x(), offset.y(), offset.z());
         Matrix3f normal = matrixStack.peek().getNormalMatrix().scale(1.0F, -1.0F, -1.0F);
         if (config.binding.experimental) try {
-            if (catcher.posRecorder.isEmpty()) throw new NullPointerException("Target vertices not found");
+            if (catcher.vertexCount() <= 0) throw new NullPointerException("Vertices not found");
             List<Integer> indexList = config.binding.indexListMap.get(config.binding.nameOfList);
-            Vec3d front = catcher.normalRecorder.get(indexList.get(0));
-            Vec3d up = catcher.normalRecorder.get(indexList.get(1));
+            Vec3d front = catcher.getNormal(indexList.get(0));
+            Vec3d up = catcher.getNormal(indexList.get(1));
             Vec3d center = Vec3d.ZERO;
-            for (int i : indexList.subList(2, indexList.size())) {
-                center = center.add(catcher.posRecorder.get(i));
-            }
+            for (int i : indexList.subList(2, indexList.size())) center = center.add(catcher.getPos(i));
             if (!MathUtil.isFinite(front) || !MathUtil.isFinite(up) || !MathUtil.isFinite(center)) throw new ArithmeticException();
             normal.set(up.crossProduct(front).toVector3f(), up.toVector3f(), front.toVector3f());
             Vector3f vec3f = normal.transform(new Vector3f((float) (config.getBindingZ() * config.getScale()),
@@ -123,7 +123,7 @@ public class RealCameraCore {
         roll = config.isRollingBound() ? (float) eulerAngle.getZ() : config.getBindingRoll();
     }
 
-    private static void virtualRender(MinecraftClient client, float tickDelta, MatrixStack matrixStack, VertexDataCatcher catcher) {
+    private static void virtualRender(MinecraftClient client, float tickDelta, MatrixStack matrixStack, VertexDataCatcherProvider provider) {
         ClientPlayerEntity player = client.player;
         // WorldRenderer.render
         if (player.age == 0) {
@@ -139,7 +139,7 @@ public class RealCameraCore {
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         dispatcher.configure(client.world, client.gameRenderer.getCamera(), player);
         if (config.binding.experimental) dispatcher.render(player, renderOffset.getX(),
-                renderOffset.getY(), renderOffset.getZ(), 0, tickDelta, matrixStack, layer -> catcher, 0xF000F0);
+                renderOffset.getY(), renderOffset.getZ(), 0, tickDelta, matrixStack, provider, 0xF000F0);
         matrixStack.pop();
         // EntityRenderDispatcher.render
         if (config.compatPhysicsMod())
