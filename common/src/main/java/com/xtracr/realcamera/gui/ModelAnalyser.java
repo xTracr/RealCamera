@@ -8,7 +8,7 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.util.Pair;
 import org.joml.Vector3f;
 
-import java.awt.Polygon;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;

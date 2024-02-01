@@ -3,7 +3,6 @@ package com.xtracr.realcamera.api;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
-import com.xtracr.realcamera.util.Flag;
 import net.minecraft.client.util.math.MatrixStack;
 
 import java.util.HashMap;
@@ -40,8 +39,7 @@ public class VirtualRenderer {
      */
     public static boolean shouldDisableRender(String modelPartName) {
         ModConfig.Disable.optionalParts.add(modelPartName);
-        return Flag.isRenderingClientPlayer && Flag.isRenderingWorld &&
-                config.shouldDisableModelPart(modelPartName) && RealCameraCore.isActive();
+        return RealCameraCore.isRenderingPlayer() && config.shouldDisableModelPart(modelPartName) && RealCameraCore.isActive();
     }
 
     public static boolean virtualRender(float tickDelta, MatrixStack matrixStack) {

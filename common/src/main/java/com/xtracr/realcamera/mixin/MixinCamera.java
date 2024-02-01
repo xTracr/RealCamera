@@ -4,7 +4,6 @@ import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.compat.PehkuiCompat;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.hit.HitResult;
@@ -32,18 +31,12 @@ public abstract class MixinCamera {
     private float pitch;
     @Shadow
     private float yaw;
-    @Shadow
-    private boolean thirdPerson;
 
     @Inject(method = "update", at = @At("RETURN"))
     private void realCamera$updateCamera(BlockView area, Entity focusedEntity, boolean thirdPerson, boolean inverseView,
             float tickDelta, CallbackInfo cInfo) {
         if (!RealCameraCore.isActive()) return;
         final ModConfig config = ConfigFile.modConfig;
-        if (config.isRendering() && !config.shouldDisableRendering(MinecraftClient.getInstance())) {
-            this.thirdPerson = true;
-        }
-
         Vec3d startVec = pos;
         if (config.isClassic()) {
             Vec3d offset = new Vec3d(config.getClassicX(), config.getClassicY(), config.getClassicZ()).multiply(config.getScale());

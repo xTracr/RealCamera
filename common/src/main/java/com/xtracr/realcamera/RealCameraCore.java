@@ -12,6 +12,7 @@ import com.xtracr.realcamera.util.VertexDataCatcherProvider;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.client.render.entity.model.PlayerEntityModel;
@@ -29,8 +30,10 @@ import java.util.List;
 
 public class RealCameraCore {
     private static final ModConfig config = ConfigFile.modConfig;
+    private static VertexDataCatcherProvider catcherProvider = new VertexDataCatcherProvider();
     private static String status = "Successful";
-    private static boolean vRendering = false;
+
+    private static boolean renderingPlayer = false;
     private static boolean active = false;
     private static float pitch, yaw, roll;
     private static Vec3d pos = Vec3d.ZERO;
@@ -40,8 +43,12 @@ public class RealCameraCore {
         return status;
     }
 
-    public static boolean isvRendering() {
-        return vRendering;
+    public static boolean isRenderingPlayer() {
+        return renderingPlayer;
+    }
+
+    public static void setRenderingPlayer(boolean value) {
+        renderingPlayer = value;
     }
 
     public static float getPitch(float f) {
@@ -62,10 +69,6 @@ public class RealCameraCore {
         return pos;
     }
 
-    public static Vec3d getModelOffset() {
-        return modelOffset;
-    }
-
     public static void setModelOffset(Vec3d vec3d) {
         modelOffset = vec3d;
     }
@@ -79,6 +82,17 @@ public class RealCameraCore {
         return active;
     }
 
+    public static void renderPlayer(Vec3d cameraPos, MatrixStack matrices, VertexConsumerProvider vertexConsumers) {
+        matrices.push();
+        cameraPos = cameraPos.subtract(modelOffset);
+        matrices.peek().getPositionMatrix().transpose().invertAffine()
+                .translate((float) -cameraPos.getX(), (float) -cameraPos.getY(), (float) -cameraPos.getZ());
+        matrices.peek().getNormalMatrix().transpose().invert();
+        // TODO
+        catcherProvider.drawByAnother(matrices, vertexConsumers, null, null);
+        matrices.pop();
+    }
+
     public static void computeCamera(MinecraftClient client, float tickDelta) {
         modelOffset = Vec3d.ZERO;
         roll = config.getClassicRoll();
@@ -86,11 +100,9 @@ public class RealCameraCore {
 
         // GameRenderer.renderWorld
         MatrixStack matrixStack = new MatrixStack();
-        vRendering = true;
-        VertexDataCatcherProvider catcherProvider = new VertexDataCatcherProvider();
+        catcherProvider = new VertexDataCatcherProvider();
         virtualRender(client, tickDelta, matrixStack, catcherProvider);
         VertexDataCatcher catcher = catcherProvider.getUnion(new VertexDataCatcher());
-        vRendering = false;
 
         // ModelPart$Cuboid.renderCuboid
         Vector4f offset = matrixStack.peek().getPositionMatrix().transform(new Vector4f((float) (config.getBindingZ() * config.getScale()),
@@ -138,8 +150,8 @@ public class RealCameraCore {
         matrixStack.push();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         dispatcher.configure(client.world, client.gameRenderer.getCamera(), player);
-        if (config.binding.experimental) dispatcher.render(player, renderOffset.getX(),
-                renderOffset.getY(), renderOffset.getZ(), 0, tickDelta, matrixStack, provider, 0xF000F0);
+        if (config.binding.experimental) dispatcher.render(player, renderOffset.getX(), renderOffset.getY(), renderOffset.getZ(),
+                MathHelper.lerp(tickDelta, player.prevYaw, player.getYaw()), tickDelta, matrixStack, provider, dispatcher.getLight(player, tickDelta));
         matrixStack.pop();
         // EntityRenderDispatcher.render
         if (config.compatPhysicsMod())

@@ -10,7 +10,6 @@ import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.render.DiffuseLighting;
-import net.minecraft.client.render.VertexConsumers;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.LivingEntity;
@@ -126,8 +125,8 @@ public class ModelViewScreen extends Screen {
         EntityRenderDispatcher entityRenderDispatcher = MinecraftClient.getInstance().getEntityRenderDispatcher();
         entityRenderDispatcher.setRenderShadows(false);
         ModelAnalyser analyser = new ModelAnalyser();
-        entityRenderDispatcher.render(entity, 0, -entity.getHeight() / 2.0f, 0, 0.0f, 1.0f, context.getMatrices(),
-                layer -> VertexConsumers.union(context.getVertexConsumers().getBuffer(layer), analyser.getBuffer(layer)), 0xF000F0);
+        entityRenderDispatcher.render(entity, 0, -entity.getHeight() / 2.0f, 0, 0.0f, 1.0f, context.getMatrices(), analyser, 0xF000F0);
+        analyser.drawByAnother(context.getVertexConsumers(), null, null); // TODO
         context.draw();
         analyser.analyse();
         focusedIndex = analyser.getFocusedIndex(mouseX, mouseY, layers);

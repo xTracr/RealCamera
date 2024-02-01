@@ -8,7 +8,6 @@
   "client": [
     "MixinCamera",
     "MixinClientPlayerEntity",
-    "MixinEntityRenderDispatcher",
     "MixinEntityRenderer",
     "MixinGameRenderer",
     "MixinInGameHud",
@@ -16,6 +15,7 @@
     "MixinPlayerEntity",
     "MixinPlayerEntityRenderer",
     "MixinPlayerHeldItemFeatureRenderer",
+    "MixinWorldRenderer",
     "PlayerEntityRendererAccessor"
   ],
   "server": [
