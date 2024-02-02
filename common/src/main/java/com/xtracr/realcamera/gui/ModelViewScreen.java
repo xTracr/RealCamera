@@ -30,7 +30,7 @@ public class ModelViewScreen extends Screen {
     private static final String KEY_TOOLTIP = "screen.tooltip.xtracr_" + RealCamera.MODID + "_modelView_";
     protected int xSize = 400, ySize = 220;
     protected int x, y;
-    protected boolean shouldPause = false;
+    protected boolean shouldPause = false, showCube = false;
     private int entitySize = 80;
     private double entityX, entityY;
     private float yaw, pitch, xRot, yRot;
@@ -49,6 +49,8 @@ public class ModelViewScreen extends Screen {
     private final DoubleValueSlider pitchWidget = new DoubleValueSlider((xSize - ySize)/2 - 15, 18, 0.5D,
             -90.0D, 90.0D, d -> Text.translatable(KEY_WIDGET + "pitch", MathUtil.round(d, 2)), d -> pitch = (float) d);
     private final ButtonWidget resetWidget = ButtonWidget.builder(Text.translatable(KEY_WIDGET + "reset"), button -> reset()).size((xSize - ySize)/2 - 15, 18).build();
+    private final ButtonWidget pauseWidget = ButtonWidget.builder(Text.translatable(KEY_WIDGET + "pause"), button -> shouldPause = !shouldPause).size((xSize - ySize)/2 - 15, 18).build();
+    private final ButtonWidget showCubeWidget = ButtonWidget.builder(Text.translatable(KEY_WIDGET + "showCube"), button -> showCube = !showCube).size((xSize - ySize)/2 - 15, 18).build();
 
     public ModelViewScreen() {
         super(Text.translatable(KEY_SCREEN + "title"));
@@ -67,6 +69,8 @@ public class ModelViewScreen extends Screen {
         selectFrontButton.setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "selectFront")));
         selectUpButton.setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "selectUp")));
         selectPosButton.setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "selectPos")));
+        pauseWidget.setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "pause")));
+        showCubeWidget.setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "showCube")));
         addDrawableChild(resetWidget).setPosition(x + 5, y + 4);
         addDrawableChild(yawWidget).setPosition(x + 5, y + 26);
         addDrawableChild(pitchWidget).setPosition(x + 5, y + 48);
@@ -79,15 +83,23 @@ public class ModelViewScreen extends Screen {
         addDrawableChild(saveButton).setPosition(x + 5, y + 136);
         addDrawableChild(loadButton).setPosition(x + (xSize - ySize)/4, y + 136);
         addDrawableChild(nameWidget).setTooltip(Tooltip.of(Text.translatable(KEY_WIDGET + "listName")));
+        addDrawableChild(pauseWidget).setPosition(x + (xSize + ySize) / 2 + 10, y + 4);
+        addDrawableChild(showCubeWidget).setPosition(x + (xSize + ySize) / 2 + 10, y + 26);
     }
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        renderBackground(context);// 1.20.1 only
+        super.render(context, mouseX, mouseY, delta);
+        drawEntity(context, x + (xSize - ySize) / 2, y, x + (xSize + ySize) / 2, y + ySize, mouseX, mouseY, this.client.player);
+    }
+
+    @Override
+    public void renderBackground(DrawContext context) {
+        super.renderBackground(context);
         context.fill(x, y, x + (xSize - ySize) / 2 - 5, y + ySize, 0xFF555555);
         context.fill(x + (xSize - ySize) / 2, y, x + (xSize + ySize) / 2, y + ySize, 0xFF222222);
         context.fill(x + (xSize + ySize) / 2 + 5, y, x + xSize, y + ySize, 0xFF555555);
-        super.render(context, mouseX, mouseY, delta);
-        drawEntity(context, x + (xSize - ySize) / 2, y, x + (xSize + ySize) / 2, y + ySize, mouseX, mouseY, this.client.player);
     }
 
     protected void drawEntity(DrawContext context, int x1, int y1, int x2, int y2, int mouseX, int mouseY, LivingEntity entity) {
@@ -131,7 +143,10 @@ public class ModelViewScreen extends Screen {
         analyser.analyse();
         focusedIndex = analyser.getFocusedIndex(mouseX, mouseY, layers);
         analyser.drawQuad(context, posIndex, 0x6F3333CC);
-        if (focusedIndex > -1) analyser.drawPolyhedron(context, focusedIndex, 0x5FFFFFFF);
+        if (focusedIndex > -1) {
+            if (showCube) analyser.drawPolyhedron(context, focusedIndex, 0x5FFFFFFF);
+            else analyser.drawQuad(context, focusedIndex, 0x7FFFFFFF);
+        }
         analyser.drawNormal(context, frontIndex, entitySize / 2, 0xFF00CC00);
         analyser.drawNormal(context, upIndex, entitySize / 2, 0xFFCC0000);
         posPolygon = analyser.getQuad(posIndex);

@@ -31,10 +31,10 @@ public abstract class MixinWorldRenderer {
         ModConfig config = ConfigFile.modConfig;
         if (camera.isThirdPerson() || !RealCameraCore.isActive() || !config.isRendering() || config.shouldDisableRendering(this.client)) return;
         VertexConsumerProvider.Immediate immediate = this.bufferBuilders.getEntityVertexConsumers();
-        Vec3d cameraPos = camera.getPos();
+        Vec3d offset = camera.getPos().subtract(RealCameraCore.getModelOffset());
         RealCameraCore.setRenderingPlayer(true);
-        if (config.binding.experimental && !config.isClassic()) RealCameraCore.renderPlayer(cameraPos, matrices, immediate);
-        else renderEntity(camera.getFocusedEntity(), cameraPos.getX(), cameraPos.getY(), cameraPos.getZ(), tickDelta, matrices, immediate);
+        if (config.binding.experimental && !config.isClassic()) RealCameraCore.renderPlayer(offset, matrices, immediate);
+        else renderEntity(camera.getFocusedEntity(), offset.getX(), offset.getY(), offset.getZ(), tickDelta, matrices, immediate);
         RealCameraCore.setRenderingPlayer(false);
     }
 

@@ -110,6 +110,8 @@
     "screen.widget.xtracr_realcamera_modelView_listName": "索引组的名称，保存后可在配置屏幕的'Experimental'界面选择并绑定",
     "screen.widget.xtracr_realcamera_modelView_save": "保存",
     "screen.widget.xtracr_realcamera_modelView_load": "加载",
+    "screen.widget.xtracr_realcamera_modelView_pause": "开始/结束 暂停",
+    "screen.widget.xtracr_realcamera_modelView_showCube": "显示/隐藏 立方体",
 
     "screen.tooltip.xtracr_realcamera_modelView_selectFront": "打开后，按住Alt并左键可选择向前矢量",
     "screen.tooltip.xtracr_realcamera_modelView_selectUp": "打开后，按住Alt并左键可选择向上矢量",

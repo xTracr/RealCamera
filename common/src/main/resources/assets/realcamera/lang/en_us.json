@@ -110,6 +110,8 @@
     "screen.widget.xtracr_realcamera_modelView_listName": "Name of the list of the indexes, can be selected and bound in the 'Experimental' screen of config screen if saved",
     "screen.widget.xtracr_realcamera_modelView_save": "Save",
     "screen.widget.xtracr_realcamera_modelView_load": "Load",
+    "screen.widget.xtracr_realcamera_modelView_pause": "Start/End Pause",
+    "screen.widget.xtracr_realcamera_modelView_showCube": "Show/Hide Cube",
 
     "screen.tooltip.xtracr_realcamera_modelView_selectFront": "When turned on, hold Alt and left click to select forward vector",
     "screen.tooltip.xtracr_realcamera_modelView_selectUp": "When turned on, hold Alt and left click to select upward vector",

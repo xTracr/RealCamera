@@ -295,7 +295,7 @@ public class ModConfig {
 
     public static class Binding {
         public static final Map<String, List<Integer>> defaultIndexListMap = Map.of(
-                "minecraft_head", Arrays.asList(12, 0, -9, 12, 13, 14, 15));
+                "minecraft_head", Arrays.asList(12, 0, 12, 12, 13, 14, 15));
         public VanillaModelPart vanillaModelPart = VanillaModelPart.head;
         public boolean experimental = false;
         public boolean adjustOffset = true;

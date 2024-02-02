@@ -1,7 +1,7 @@
 package com.xtracr.realcamera.gui;
 
-import com.xtracr.realcamera.util.VertexDataCatcher;
-import com.xtracr.realcamera.util.VertexDataCatcherProvider;
+import com.xtracr.realcamera.util.VertexRecorder;
+import com.xtracr.realcamera.util.VertexRecorderProvider;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
@@ -14,9 +14,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class ModelAnalyser extends VertexDataCatcherProvider {
+public class ModelAnalyser extends VertexRecorderProvider {
     private final float precision = 0.00001f;
-    private final VertexDataCatcher catcher = new VertexDataCatcher();
+    private final VertexRecorder unionRecorder = new VertexRecorder();
     private final List<List<Integer>> quads = new ArrayList<>();
 
     public List<Integer> getQuad(int index) {
@@ -30,11 +30,11 @@ public class ModelAnalyser extends VertexDataCatcherProvider {
     }
 
     public void analyse() {
-        getUnion(catcher);
-        int size = catcher.vertexCount();
+        getUnion(unionRecorder);
+        int size = unionRecorder.vertexCount();
         quads.add(new ArrayList<>(List.of(0)));
         for (int i = 1; i < size; i++) {
-            double dotProduct = catcher.getNormal(i - 1).dotProduct(catcher.getNormal(i));
+            double dotProduct = unionRecorder.getNormal(i - 1).dotProduct(unionRecorder.getNormal(i));
             if (dotProduct >=  1 - precision) quads.get(quads.size() - 1).add(i);
             else quads.add(new ArrayList<>(List.of(i)));
         }
@@ -44,9 +44,9 @@ public class ModelAnalyser extends VertexDataCatcherProvider {
         List<Pair<Integer, Float>> sortByDepth = new ArrayList<>();
         for (List<Integer> vertices : quads) {
             Polygon quad = new Polygon();
-            vertices.forEach(i -> quad.addPoint((int) catcher.getPos(i).getX(), (int) catcher.getPos(i).getY()));
-            Vector3f normal = catcher.getNormal(vertices.get(0)).toVector3f();
-            Vector3f point = catcher.getPos(vertices.get(0)).toVector3f();
+            vertices.forEach(i -> quad.addPoint((int) unionRecorder.getPos(i).getX(), (int) unionRecorder.getPos(i).getY()));
+            Vector3f normal = unionRecorder.getNormal(vertices.get(0)).toVector3f();
+            Vector3f point = unionRecorder.getPos(vertices.get(0)).toVector3f();
             float deltaZ = 0;
             if (normal.z() != 0) deltaZ = (normal.x() * (mouseX - point.x()) + normal.y() * (mouseY - point.y())) / normal.z();
             if (quad.contains(mouseX, mouseY)) sortByDepth.add(new Pair<>(vertices.get(0), point.z() + deltaZ));
@@ -57,12 +57,12 @@ public class ModelAnalyser extends VertexDataCatcherProvider {
     }
 
     public void drawQuad(DrawContext context, int vertex, int argb) {
-        if (vertex >= catcher.vertexCount()) return;
+        if (vertex >= unionRecorder.vertexCount()) return;
         drawQuad(context, getQuad(vertex), argb, 1000);
     }
 
     public void drawPolyhedron(DrawContext context, int vertex, int argb) {
-        if (vertex >= catcher.vertexCount()) return;
+        if (vertex >= unionRecorder.vertexCount()) return;
         List<Integer> highlight = getQuad(vertex);
         List<List<Integer>> polyhedron = new ArrayList<>(List.of(highlight));
         boolean added;
@@ -92,12 +92,12 @@ public class ModelAnalyser extends VertexDataCatcherProvider {
     }
 
     public void drawNormal(DrawContext context, int vertex, int length, int argb) {
-        if (vertex >= catcher.vertexCount()) return;
+        if (vertex >= unionRecorder.vertexCount()) return;
         VertexConsumer vertexConsumer = context.getVertexConsumers().getBuffer(RenderLayer.getLineStrip());
-        Vector3f normal = catcher.getNormal(vertex).toVector3f();
+        Vector3f normal = unionRecorder.getNormal(vertex).toVector3f();
         Vector3f start = new Vector3f();
         List<Integer> quad = getQuad(vertex);
-        quad.forEach(i -> start.add(catcher.getPos(i).toVector3f()));
+        quad.forEach(i -> start.add(unionRecorder.getPos(i).toVector3f()));
         start.mul(1 / (float) quad.size());
         Vector3f end = new Vector3f(normal).mul(length).add(start);
         vertexConsumer.vertex(start.x(), start.y(), start.z() + 1200f).color(argb).normal(normal.x(), normal.y(), normal.z()).next();
@@ -108,7 +108,7 @@ public class ModelAnalyser extends VertexDataCatcherProvider {
     private boolean intersects(List<Integer> quad, List<List<Integer>> quads) {
         boolean ret = false;
         for (List<Integer> p : quads) for (int v1 : quad) for (int v2 : p) {
-            if (catcher.getPos(v1).squaredDistanceTo(catcher.getPos(v2)) < precision) {
+            if (unionRecorder.getPos(v1).squaredDistanceTo(unionRecorder.getPos(v2)) < precision) {
                 ret = true;
                 break;
             }
@@ -118,7 +118,7 @@ public class ModelAnalyser extends VertexDataCatcherProvider {
 
     private void drawQuad(DrawContext context, List<Integer> quad, int argb, int offset) {
         VertexConsumer vertexConsumer = context.getVertexConsumers().getBuffer(RenderLayer.getGui());
-        quad.stream().map(catcher::getPos).forEach(pos -> vertexConsumer.vertex(pos.getX(), pos.getY(), pos.getZ() + offset).color(argb).next());
+        quad.stream().map(unionRecorder::getPos).forEach(pos -> vertexConsumer.vertex(pos.getX(), pos.getY(), pos.getZ() + offset).color(argb).next());
         context.draw();
     }
 }

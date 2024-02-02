@@ -5,8 +5,6 @@ import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.util.CrosshairUtil;
 import com.xtracr.realcamera.util.RaycastUtil;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.Perspective;
-import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
@@ -17,7 +15,6 @@ import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -25,9 +22,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GameRenderer.class)
 public abstract class MixinGameRenderer {
-    @Unique
-    private static boolean realCamera$toggled = false;
-
     @Shadow
     @Final MinecraftClient client;
 
@@ -45,25 +39,6 @@ public abstract class MixinGameRenderer {
             CrosshairUtil.capturedEntityHitResult = ProjectileUtil.raycast(cameraEntity, startVec, endVec, box, entity -> !entity.isSpectator() && entity.canHit(), sqDistance);
         }
         return CrosshairUtil.capturedEntityHitResult;
-    }
-
-    @Inject(method = "renderHand", at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/client/util/math/MatrixStack;push()V"))
-    private void realCamera$setThirdPerson(MatrixStack matrices, Camera camera, float tickDelta, CallbackInfo cInfo) {
-        if (ConfigFile.modConfig.isRendering() && !ConfigFile.modConfig.shouldDisableRendering(client) && RealCameraCore.isActive() &&
-                !ConfigFile.modConfig.allowRenderingHand(client)) {
-            client.options.setPerspective(Perspective.THIRD_PERSON_BACK);
-            realCamera$toggled = true;
-        }
-    }
-
-    @Inject(method = "renderHand", at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/client/util/math/MatrixStack;pop()V"))
-    private void realCamera$setFirstPerson(CallbackInfo cInfo) {
-        if (realCamera$toggled) {
-            client.options.setPerspective(Perspective.FIRST_PERSON);
-            realCamera$toggled = false;
-        }
     }
 
     @Inject(method = "renderWorld", at = @At("HEAD"))

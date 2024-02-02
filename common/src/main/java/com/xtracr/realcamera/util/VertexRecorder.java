@@ -6,13 +6,13 @@ import net.minecraft.util.math.Vec3d;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VertexDataCatcher implements VertexConsumer {
+public class VertexRecorder implements VertexConsumer {
     protected final List<Vertex> vertices = new ArrayList<>();
     private Vec3d pos = Vec3d.ZERO, normal = Vec3d.ZERO;
     private int argb, overlay, light;
     private float u, v;
 
-    public VertexDataCatcher() {}
+    public VertexRecorder() {}
 
     public int vertexCount() {
         return vertices.size();
