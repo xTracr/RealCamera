@@ -2,6 +2,7 @@ package com.xtracr.realcamera.gui;
 
 import com.xtracr.realcamera.RealCamera;
 import com.xtracr.realcamera.config.ConfigFile;
+import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.util.MathUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -21,9 +22,6 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class ModelViewScreen extends Screen {
     private static final String KEY_SCREEN = "screen.xtracr_" + RealCamera.MODID + "_modelView_";
     private static final String KEY_WIDGET = "screen.widget.xtracr_" + RealCamera.MODID + "_modelView_";
@@ -35,10 +33,10 @@ public class ModelViewScreen extends Screen {
     private double entityX, entityY;
     private float yaw, pitch, xRot, yRot;
     private int select;
-    private List<Integer> posPolygon;
+    private String focusedRenderTypeName;
     private int layers, frontIndex, upIndex, posIndex, focusedIndex = -1;
     private IntFieldWidget frontIndexWidget, upIndexWidget, posIndexWidget;
-    private TextFieldWidget nameWidget;
+    private TextFieldWidget renderTypeWidget, nameWidget;
     private final ButtonWidget selectFrontButton = ButtonWidget.builder(Text.literal("OFF"), button -> changeSelectionTarget(0, button)).size(25, 18).build();
     private final ButtonWidget selectUpButton = ButtonWidget.builder(Text.literal("OFF"), button -> changeSelectionTarget(1, button)).size(25, 18).build();
     private final ButtonWidget selectPosButton = ButtonWidget.builder(Text.literal("OFF"), button -> changeSelectionTarget(2, button)).size(25, 18).build();
@@ -64,7 +62,9 @@ public class ModelViewScreen extends Screen {
         frontIndexWidget = new IntFieldWidget(textRenderer, x + 5, y + 70, (xSize - ySize)/2 - 45, 18, Text.translatable(KEY_WIDGET + "frontIndex"), frontIndex, i -> frontIndex = i);
         upIndexWidget = new IntFieldWidget(textRenderer, x + 5, y + 92, (xSize - ySize)/2 - 45, 18, Text.translatable(KEY_WIDGET + "upIndex"), upIndex, i -> upIndex = i);
         posIndexWidget = new IntFieldWidget(textRenderer, x + 5, y + 114, (xSize - ySize)/2 - 45, 18, Text.translatable(KEY_WIDGET + "posIndex"), posIndex, i -> posIndex = i);
-        nameWidget = new TextFieldWidget(textRenderer, x + 5, y + 158, (xSize - ySize)/2 - 15, 18, Text.translatable(KEY_WIDGET + "listName"));
+        renderTypeWidget = new TextFieldWidget(textRenderer, x + 5, y + 136, (xSize - ySize)/2 - 15, 18, Text.translatable(KEY_WIDGET + "renderType"));
+        nameWidget = new TextFieldWidget(textRenderer, x + 5, y + 180, (xSize - ySize)/2 - 15, 18, Text.translatable(KEY_WIDGET + "listName"));
+        renderTypeWidget.setMaxLength(32768);
         nameWidget.setMaxLength(20);
         selectFrontButton.setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "selectFront")));
         selectUpButton.setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "selectUp")));
@@ -80,8 +80,9 @@ public class ModelViewScreen extends Screen {
         addDrawableChild(selectUpButton).setPosition(x + (xSize - ySize)/2 - 35, y + 92);
         addDrawableChild(posIndexWidget).setTooltip(Tooltip.of(Text.translatable(KEY_WIDGET + "posIndex")));
         addDrawableChild(selectPosButton).setPosition(x + (xSize - ySize)/2 - 35, y + 114);
-        addDrawableChild(saveButton).setPosition(x + 5, y + 136);
-        addDrawableChild(loadButton).setPosition(x + (xSize - ySize)/4, y + 136);
+        addDrawableChild(saveButton).setPosition(x + 5, y + 158);
+        addDrawableChild(loadButton).setPosition(x + (xSize - ySize)/4, y + 158);
+        addDrawableChild(renderTypeWidget).setTooltip(Tooltip.of(Text.translatable(KEY_WIDGET + "renderType")));
         addDrawableChild(nameWidget).setTooltip(Tooltip.of(Text.translatable(KEY_WIDGET + "listName")));
         addDrawableChild(pauseWidget).setPosition(x + (xSize + ySize) / 2 + 10, y + 4);
         addDrawableChild(showCubeWidget).setPosition(x + (xSize + ySize) / 2 + 10, y + 26);
@@ -138,18 +139,19 @@ public class ModelViewScreen extends Screen {
         entityRenderDispatcher.setRenderShadows(false);
         ModelAnalyser analyser = new ModelAnalyser();
         entityRenderDispatcher.render(entity, 0, -entity.getHeight() / 2.0f, 0, 0.0f, 1.0f, context.getMatrices(), analyser, 0xF000F0);
+        analyser.buildLastRecord();
         analyser.drawByAnother(context.getVertexConsumers(), null, null); // TODO
         context.draw();
-        analyser.analyse();
+        analyser.setCurrent(renderLayer -> renderLayer.toString().equals(renderTypeWidget.getText()), 0);
         focusedIndex = analyser.getFocusedIndex(mouseX, mouseY, layers);
-        analyser.drawQuad(context, posIndex, 0x6F3333CC);
+        focusedRenderTypeName = analyser.focusedRenderLayerName();
+        analyser.drawQuad(context, posIndex, 0x6F3333CC, false);
         if (focusedIndex > -1) {
             if (showCube) analyser.drawPolyhedron(context, focusedIndex, 0x5FFFFFFF);
-            else analyser.drawQuad(context, focusedIndex, 0x7FFFFFFF);
+            else analyser.drawQuad(context, focusedIndex, 0x7FFFFFFF, true);
         }
         analyser.drawNormal(context, frontIndex, entitySize / 2, 0xFF00CC00);
         analyser.drawNormal(context, upIndex, entitySize / 2, 0xFFCC0000);
-        posPolygon = analyser.getQuad(posIndex);
         entityRenderDispatcher.setRenderShadows(true);
         context.getMatrices().pop();
         DiffuseLighting.enableGuiDepthLighting();
@@ -167,19 +169,19 @@ public class ModelViewScreen extends Screen {
     private void saveCurrent() {
         String name = nameWidget.getText();
         if (name == null) return;
-        List<Integer> list = new ArrayList<>(List.of(frontIndex, upIndex));
-        list.addAll(posPolygon);
-        ConfigFile.modConfig.binding.indexListMap.put(name, list);
+        ConfigFile.modConfig.binding.targetMap.put(name,
+                new ModConfig.Binding.Target(renderTypeWidget.getText(), frontIndex, upIndex, posIndex));
         ConfigFile.save();
     }
 
     private void loadToCurrent() {
         String name = nameWidget.getText();
-        List<Integer> list = ConfigFile.modConfig.binding.indexListMap.get(name);
+        ModConfig.Binding.Target target = ConfigFile.modConfig.binding.targetMap.get(name);
         try {
-            frontIndexWidget.setValue(list.get(0));
-            upIndexWidget.setValue(list.get(1));
-            posIndexWidget.setValue(list.get(2));
+            renderTypeWidget.setText(target.renderTypeName());
+            frontIndexWidget.setValue(target.frontIndex());
+            upIndexWidget.setValue(target.upIndex());
+            posIndexWidget.setValue(target.posIndex());
         } catch (Exception ignored) {
         }
     }
@@ -201,7 +203,10 @@ public class ModelViewScreen extends Screen {
             if ((select & 1) != 0) frontIndexWidget.setValue(focusedIndex);
             if ((select >> 1 & 1) != 0) upIndexWidget.setValue(focusedIndex);
             if ((select >> 2 & 1) != 0) posIndexWidget.setValue(focusedIndex);
-            if (select != 0) return true;
+            if (select != 0) {
+                renderTypeWidget.setText(focusedRenderTypeName);
+                return true;
+            }
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }

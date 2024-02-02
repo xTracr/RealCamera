@@ -321,7 +321,6 @@ public class ConfigScreen {
                 .setSaveConsumer(b -> config.binding.experimental = b)
                 .build());
         experimental.addEntry(entryBuilder.startStrField(Text.literal("Name Of List"), config.binding.nameOfList)
-                .setDefaultValue("minecraft_head")
                 .setSaveConsumer(s -> config.binding.nameOfList = s)
                 .build());
 

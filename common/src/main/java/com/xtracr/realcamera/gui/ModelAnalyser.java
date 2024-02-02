@@ -1,124 +1,113 @@
 package com.xtracr.realcamera.gui;
 
+import com.xtracr.realcamera.util.Triple;
 import com.xtracr.realcamera.util.VertexRecorder;
-import com.xtracr.realcamera.util.VertexRecorderProvider;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.util.Pair;
+import net.minecraft.util.math.Vec3d;
 import org.joml.Vector3f;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-public class ModelAnalyser extends VertexRecorderProvider {
-    private final float precision = 0.00001f;
-    private final VertexRecorder unionRecorder = new VertexRecorder();
-    private final List<List<Integer>> quads = new ArrayList<>();
+public class ModelAnalyser extends VertexRecorder {
+    BuiltRecord focusedRecord;
 
-    public List<Integer> getQuad(int index) {
-        List<Integer> ret = new ArrayList<>();
-        for (List<Integer> quad : quads) {
-            if (!quad.contains(index)) continue;
-            ret = quad;
-            break;
-        }
-        return ret;
-    }
-
-    public void analyse() {
-        getUnion(unionRecorder);
-        int size = unionRecorder.vertexCount();
-        quads.add(new ArrayList<>(List.of(0)));
-        for (int i = 1; i < size; i++) {
-            double dotProduct = unionRecorder.getNormal(i - 1).dotProduct(unionRecorder.getNormal(i));
-            if (dotProduct >=  1 - precision) quads.get(quads.size() - 1).add(i);
-            else quads.add(new ArrayList<>(List.of(i)));
-        }
+    public String focusedRenderLayerName() {
+        if (focusedRecord == null) return null;
+        return focusedRecord.renderLayer().toString();
     }
 
     public int getFocusedIndex(int mouseX, int mouseY, int layers) {
-        List<Pair<Integer, Float>> sortByDepth = new ArrayList<>();
-        for (List<Integer> vertices : quads) {
-            Polygon quad = new Polygon();
-            vertices.forEach(i -> quad.addPoint((int) unionRecorder.getPos(i).getX(), (int) unionRecorder.getPos(i).getY()));
-            Vector3f normal = unionRecorder.getNormal(vertices.get(0)).toVector3f();
-            Vector3f point = unionRecorder.getPos(vertices.get(0)).toVector3f();
+        List<Triple<Float, BuiltRecord, Integer>> sortByDepth = new ArrayList<>();
+        for (BuiltRecord record : records) for (int i = 0; i < record.quadCount(); i++) {
+            Vertex[] quad = record.vertices()[i];
+            Polygon polygon = new Polygon();
+            for (Vertex vertex : quad) polygon.addPoint((int) vertex.pos().getX(), (int) vertex.pos().getY());
+            Vector3f normal = quad[0].normal().toVector3f();
+            Vector3f point = quad[0].pos().toVector3f();
             float deltaZ = 0;
             if (normal.z() != 0) deltaZ = (normal.x() * (mouseX - point.x()) + normal.y() * (mouseY - point.y())) / normal.z();
-            if (quad.contains(mouseX, mouseY)) sortByDepth.add(new Pair<>(vertices.get(0), point.z() + deltaZ));
+            if (polygon.contains(mouseX, mouseY)) sortByDepth.add(new Triple<>(point.z() + deltaZ, record, i));
         }
         if (sortByDepth.isEmpty()) return -1;
-        sortByDepth.sort(Comparator.comparingDouble(pair -> -pair.getRight()));
-        return sortByDepth.get(Math.min(sortByDepth.size() - 1, layers)).getLeft();
+        sortByDepth.sort(Comparator.comparingDouble(triple -> -triple.getLeft()));
+        Triple<Float, BuiltRecord, Integer> result = sortByDepth.get(Math.min(sortByDepth.size() - 1, layers));
+        focusedRecord = result.getMiddle();
+        return result.getRight();
     }
 
-    public void drawQuad(DrawContext context, int vertex, int argb) {
-        if (vertex >= unionRecorder.vertexCount()) return;
-        drawQuad(context, getQuad(vertex), argb, 1000);
+    public void drawQuad(DrawContext context, int quadIndex, int argb, boolean drawFocused) {
+        BuiltRecord record = drawFocused ? focusedRecord : currentRecord;
+        if (record == null || quadIndex >= record.quadCount()) return;
+        drawQuad(context, record.vertices()[quadIndex], argb, 1000);
     }
 
-    public void drawPolyhedron(DrawContext context, int vertex, int argb) {
-        if (vertex >= unionRecorder.vertexCount()) return;
-        List<Integer> highlight = getQuad(vertex);
-        List<List<Integer>> polyhedron = new ArrayList<>(List.of(highlight));
+    public void drawPolyhedron(DrawContext context, int quadIndex, int argb) {
+        if (focusedRecord == null || quadIndex >= focusedRecord.quadCount()) return;
+        Vertex[] highlight = focusedRecord.vertices()[quadIndex];
+        List<Vertex[]> polyhedron = new ArrayList<>();
+        polyhedron.add(highlight);
+        List<Integer> indexes = new ArrayList<>(List.of(quadIndex));
+        Vertex[][] vertices = focusedRecord.vertices();
         boolean added;
+        int size = focusedRecord.quadCount();
         do {
             added = false;
-            for (List<Integer> quad : quads) {
-                if (polyhedron.contains(quad) | !intersects(quad, polyhedron)) continue;
+            for (int i = 0; i < size; i++) {
+                Vertex[] quad = vertices[i];
+                if (indexes.contains(i) | !intersects(quad, polyhedron)) continue;
                 polyhedron.add(quad);
+                indexes.add(i);
                 added = true;
             }
         } while (added);
-        List<Integer> indexes = polyhedron.stream().map(quads::indexOf).sorted().toList();
-        int index = quads.indexOf(highlight), size = quads.size();
-        List<Integer> resultIndexes = new ArrayList<>(List.of(index));
-        for (int i = index + 1; i < size; i++) {
+        List<Integer> resultIndexes = new ArrayList<>(List.of(quadIndex));
+        for (int i = quadIndex + 1; i < size; i++) {
             if (!indexes.contains(i)) break;
             resultIndexes.add(i);
         }
-        for (int i = index - 1; i >= 0; i--) {
+        for (int i = quadIndex - 1; i >= 0; i--) {
             if (!indexes.contains(i)) break;
             resultIndexes.add(i);
         }
-        resultIndexes.forEach(i -> drawQuad(context, quads.get(i), argb, 1000));
+        resultIndexes.forEach(i -> drawQuad(context, vertices[i], argb, 1000));
         drawQuad(context, highlight, argb, 1100);
-        Collections.reverse(highlight = new ArrayList<>(highlight));
-        drawQuad(context, highlight, argb, 1100);
+        size = highlight.length;
+        Vertex[] reversed = new Vertex[size];
+        for (int i = 0; i < size; i++) reversed[i] = highlight[size - 1 - i];
+        drawQuad(context, reversed, argb, 1100);
     }
 
-    public void drawNormal(DrawContext context, int vertex, int length, int argb) {
-        if (vertex >= unionRecorder.vertexCount()) return;
+    public void drawNormal(DrawContext context, int quadIndex, int length, int argb) {
+        if (quadIndex >= quadCount()) return;
         VertexConsumer vertexConsumer = context.getVertexConsumers().getBuffer(RenderLayer.getLineStrip());
-        Vector3f normal = unionRecorder.getNormal(vertex).toVector3f();
-        Vector3f start = new Vector3f();
-        List<Integer> quad = getQuad(vertex);
-        quad.forEach(i -> start.add(unionRecorder.getPos(i).toVector3f()));
-        start.mul(1 / (float) quad.size());
+        Vector3f normal = getNormal(quadIndex).toVector3f();
+        Vector3f start = getCenter(quadIndex).toVector3f();
         Vector3f end = new Vector3f(normal).mul(length).add(start);
         vertexConsumer.vertex(start.x(), start.y(), start.z() + 1200f).color(argb).normal(normal.x(), normal.y(), normal.z()).next();
         vertexConsumer.vertex(end.x(), end.y(), end.z() + 1200f).color(argb).normal(normal.x(), normal.y(), normal.z()).next();
         context.draw();
     }
 
-    private boolean intersects(List<Integer> quad, List<List<Integer>> quads) {
+    private boolean intersects(Vertex[] quad, List<Vertex[]> quads) {
+        final float precision = 0.00001f;
         boolean ret = false;
-        for (List<Integer> p : quads) for (int v1 : quad) for (int v2 : p) {
-            if (unionRecorder.getPos(v1).squaredDistanceTo(unionRecorder.getPos(v2)) < precision) {
-                ret = true;
-                break;
-            }
-        }
+        for (Vertex[] p : quads) for (Vertex v1 : quad)
+            if (Arrays.stream(p).anyMatch(v2 -> v1.pos().squaredDistanceTo(v2.pos()) < precision)) ret = true;
         return ret;
     }
 
-    private void drawQuad(DrawContext context, List<Integer> quad, int argb, int offset) {
+    private void drawQuad(DrawContext context, Vertex[] quad, int argb, int offset) {
         VertexConsumer vertexConsumer = context.getVertexConsumers().getBuffer(RenderLayer.getGui());
-        quad.stream().map(unionRecorder::getPos).forEach(pos -> vertexConsumer.vertex(pos.getX(), pos.getY(), pos.getZ() + offset).color(argb).next());
+        for (Vertex vertex : quad) {
+            Vec3d pos = vertex.pos();
+            vertexConsumer.vertex(pos.getX(), pos.getY(), pos.getZ() + offset).color(argb).next();
+        }
         context.draw();
     }
 }

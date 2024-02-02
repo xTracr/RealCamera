@@ -294,14 +294,12 @@ public class ModConfig {
     }
 
     public static class Binding {
-        public static final Map<String, List<Integer>> defaultIndexListMap = Map.of(
-                "minecraft_head", Arrays.asList(12, 0, 12, 12, 13, 14, 15));
         public VanillaModelPart vanillaModelPart = VanillaModelPart.head;
         public boolean experimental = false;
         public boolean adjustOffset = true;
         public boolean offsetModel = false;
-        public String nameOfList = "minecraft_head";
-        public Map<String, List<Integer>> indexListMap = defaultIndexListMap;
+        public String nameOfList = "name";
+        public Map<String, Target> targetMap = new HashMap<>();
         public double cameraX = 0.0D;
         public double cameraY = 0.0D;
         public double cameraZ = 0.0D;
@@ -314,7 +312,7 @@ public class ModConfig {
 
         private void clamp() {
             if (vanillaModelPart == null) vanillaModelPart = VanillaModelPart.head;
-            if (indexListMap == null) indexListMap = defaultIndexListMap;
+            if (targetMap == null) targetMap = new HashMap<>();
             cameraX = MathHelper.clamp(cameraX, MIN_DOUBLE, MAX_DOUBLE);
             cameraY = MathHelper.clamp(cameraY, MIN_DOUBLE, MAX_DOUBLE);
             cameraZ = MathHelper.clamp(cameraZ, MIN_DOUBLE, MAX_DOUBLE);
@@ -322,6 +320,8 @@ public class ModConfig {
             yaw = MathHelper.wrapDegrees(yaw);
             roll = MathHelper.wrapDegrees(roll);
         }
+
+        public record Target(String renderTypeName, int frontIndex, int upIndex, int posIndex) {}
     }
 
     public static class Classic {

@@ -30,11 +30,11 @@ public class ClientCommand<S extends CommandSource>{
 
     private int deleteList(CommandContext<S> context) {
         final String name = StringArgumentType.getString(context, "name");
-        if (!config.binding.indexListMap.containsKey(name)) {
+        if (!config.binding.targetMap.containsKey(name)) {
             printGameMessage(Text.translatable(KEY_COMMAND + "delete_failure", name));
             return 0;
         }
-        config.binding.indexListMap.remove(name);
+        config.binding.targetMap.remove(name);
         ConfigFile.save();
         printGameMessage(Text.translatable(KEY_COMMAND + "delete_success", name));
         return 1;
@@ -42,12 +42,10 @@ public class ClientCommand<S extends CommandSource>{
 
     private int listAll(CommandContext<S> context) {
         StringBuffer buffer = new StringBuffer();
-        config.binding.indexListMap.forEach((name, list) -> {
-            buffer.append("\n'").append(name).append("' -> [ ");
-            list.forEach(i -> buffer.append(i).append(" "));
-            buffer.append("]");
-        });
-        printGameMessage(Text.translatable(KEY_COMMAND + "listAll", config.binding.indexListMap.size(), buffer.toString()));
+        config.binding.targetMap.forEach((name, target) -> buffer.append("\n'").append(name).append("' -> [ ")
+                .append(target.renderTypeName()).append(" ").append(target.frontIndex()).append(" ")
+                .append(target.upIndex()).append(" ").append(target.posIndex()).append(" ]"));
+        printGameMessage(Text.translatable(KEY_COMMAND + "listAll", config.binding.targetMap.size(), buffer.toString()));
         return 1;
     }
 
