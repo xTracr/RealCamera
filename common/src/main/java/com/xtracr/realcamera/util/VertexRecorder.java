@@ -3,15 +3,15 @@ package com.xtracr.realcamera.util;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Vec3d;
-import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class VertexRecorder implements VertexConsumerProvider {
@@ -32,13 +32,13 @@ public class VertexRecorder implements VertexConsumerProvider {
     public Vec3d getCenter(int index) {
         if (currentRecord == null) return null;
         Vec3d center = Vec3d.ZERO;
-        for (Vertex vertex : currentRecord.vertices[index]) center = center.add(vertex.pos);
+        for (Vertex vertex : currentRecord.vertices[index]) center = center.add(vertex.pos());
         return center.multiply(1 / (double) currentRecord.additionalVertexCount);
     }
 
     public Vec3d getNormal(int index) {
         if (currentRecord == null) return null;
-        return currentRecord.vertices[index][0].normal;
+        return currentRecord.vertices[index][0].normal();
     }
 
     public void buildLastRecord() {
@@ -60,52 +60,25 @@ public class VertexRecorder implements VertexConsumerProvider {
         }
     }
 
-    public void drawByAnother(MatrixStack matrixStack, VertexConsumerProvider anotherProvider, @Nullable Predicate<RenderLayer> layerPredicate, @Nullable VertexPredicate vertexPredicate) {
-        records.forEach(record -> {
-            RenderLayer renderLayer = record.renderLayer;
-            Vertex[][] vertices = record.vertices;
-            if (layerPredicate != null && !layerPredicate.test(renderLayer)) return;
-            VertexConsumer buffer = anotherProvider.getBuffer(renderLayer);
-            Consumer<Vertex> vertexConsumer = vertex -> {
-                Vector4f pos = new Vector4f(vertex.pos().toVector3f(), 1.0f).mul(matrixStack.peek().getPositionMatrix());
-                Vector3f normal = vertex.normal().toVector3f().mul(matrixStack.peek().getNormalMatrix());
-                int argb = vertex.argb();
-                buffer.vertex(pos.x(), pos.y(), pos.z(),
-                        (float) (argb >> 16 & 0xFF) / 255, (float) (argb >> 8 & 0xFF) / 255, (float) (argb & 0xFF) / 255, (float) (argb >> 24) / 255,
-                        vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), normal.x(), normal.y(), normal.z());
-            };
-            int size = record.quadCount;
-            if (vertexPredicate == null) for (Vertex[] vertexList: vertices) {
-                for (Vertex vertex : vertexList) vertexConsumer.accept(vertex);
-            } else for (int i = 0; i < size; i++) {
-                Vertex[] vertexList = vertices[i];
-                if (vertexPredicate.test(renderLayer, vertexList, i)) for (Vertex vertex : vertexList) {
-                    vertexConsumer.accept(vertex);
-                }
-            }
-        });
+    public void drawByAnother(VertexConsumerProvider anotherProvider, Predicate<RenderLayer> layerPredicate, VertexPredicate vertexPredicate) {
+        drawByAnother(vertex -> vertex, anotherProvider, layerPredicate, vertexPredicate);
     }
 
-    public void drawByAnother(VertexConsumerProvider anotherProvider, @Nullable Predicate<RenderLayer> layerPredicate, @Nullable VertexPredicate vertexPredicate) {
+    public void drawByAnother(Function<Vertex, Vertex> function, VertexConsumerProvider anotherProvider, Predicate<RenderLayer> layerPredicate, VertexPredicate vertexPredicate) {
         records.forEach(record -> {
             RenderLayer renderLayer = record.renderLayer;
+            if (!layerPredicate.test(renderLayer)) return;
             Vertex[][] vertices = record.vertices;
-            if (layerPredicate != null && !layerPredicate.test(renderLayer)) return;
             VertexConsumer buffer = anotherProvider.getBuffer(renderLayer);
-            Consumer<Vertex> vertexConsumer = vertex -> {
-                Vec3d pos = vertex.pos(), normal = vertex.normal();
-                int argb = vertex.argb();
-                buffer.vertex((float) pos.getX(), (float) pos.getY(), (float) pos.getZ(),
-                        (float) (argb >> 16 & 0xFF) / 255, (float) (argb >> 8 & 0xFF) / 255, (float) (argb & 0xFF) / 255, (float) (argb >> 24) / 255,
-                        vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), (float) normal.getX(), (float) normal.getY(), (float) normal.getZ());
-            };
-            int size = record.quadCount;
-            if (vertexPredicate == null) for (Vertex[] vertexList: vertices) {
-                for (Vertex vertex : vertexList) vertexConsumer.accept(vertex);
-            } else for (int i = 0; i < size; i++) {
-                Vertex[] vertexList = vertices[i];
-                if (vertexPredicate.test(renderLayer, vertexList, i)) for (Vertex vertex : vertexList) {
-                    vertexConsumer.accept(vertex);
+            int quadCount = record.quadCount, vertexCount = record.additionalVertexCount, argb;
+            for (int i = 0; i < quadCount; i++) {
+                Vertex[] quad = new Vertex[vertexCount];
+                for (int j = 0; j < vertexCount; j++) quad[j] = function.apply(vertices[i][j]);
+                if (vertexPredicate.test(renderLayer, quad, i)) for (Vertex vertex : quad) {
+                    argb = vertex.argb;
+                    buffer.vertex((float) vertex.x, (float) vertex.y, (float) vertex.z,
+                            (float) (argb >> 16 & 0xFF) / 255, (float) (argb >> 8 & 0xFF) / 255, (float) (argb & 0xFF) / 255, (float) (argb >> 24) / 255,
+                            vertex.u, vertex.v, vertex.overlay, vertex.light, vertex.normalX, vertex.normalY, vertex.normalZ);
                 }
             }
         });
@@ -120,26 +93,25 @@ public class VertexRecorder implements VertexConsumerProvider {
     private static class VertexRecord implements VertexConsumer {
         private final List<Vertex> vertices = new ArrayList<>();
         private final RenderLayer renderLayer;
-        private final int additionalVertexCount;
         private Vec3d pos = Vec3d.ZERO, normal = Vec3d.ZERO;
         private int argb, overlay, light;
         private float u, v;
 
         VertexRecord(RenderLayer renderLayer) {
             this.renderLayer = renderLayer;
-            this.additionalVertexCount = renderLayer.getDrawMode().additionalVertexCount;
         }
 
         private BuiltRecord build() {
-            int size = vertices.size() / additionalVertexCount;
-            Vertex[][] list = new Vertex[size][additionalVertexCount];
-            for (int i = 0; i < size; i++) {
+            int additionalVertexCount = renderLayer.getDrawMode().additionalVertexCount;
+            int quadCount = vertices.size() / additionalVertexCount;
+            Vertex[][] quads = new Vertex[quadCount][additionalVertexCount];
+            for (int i = 0; i < quadCount; i++) {
                 int index = i * additionalVertexCount;
                 for (int j = 0; j < additionalVertexCount; j++) {
-                    list[i][j] = vertices.get(index + j);
+                    quads[i][j] = vertices.get(index + j);
                 }
             }
-            return new BuiltRecord(renderLayer, list, size, additionalVertexCount);
+            return new BuiltRecord(renderLayer, quads, quadCount, additionalVertexCount);
         }
 
         @Override
@@ -181,7 +153,8 @@ public class VertexRecorder implements VertexConsumerProvider {
 
         @Override
         public void next() {
-            vertices.add(new Vertex(pos, argb, u, v, overlay, light, normal));
+            vertices.add(new Vertex(pos.getX(), pos.getY(), pos.getZ(), argb, u, v, overlay, light,
+                    (float) normal.getX(), (float) normal.getY(), (float) normal.getZ()));
             pos = normal = Vec3d.ZERO;
             u = v = overlay = light = argb = 0;
         }
@@ -197,7 +170,21 @@ public class VertexRecorder implements VertexConsumerProvider {
 
     protected record BuiltRecord(RenderLayer renderLayer, Vertex[][] vertices, int quadCount, int additionalVertexCount) {}
 
-    public record Vertex(Vec3d pos, int argb, float u, float v, int overlay, int light, Vec3d normal) {}
+    public record Vertex(double x, double y, double z, int argb, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) {
+        public Vec3d pos() {
+            return new Vec3d(x, y, z);
+        }
+
+        public Vec3d normal() {
+            return new Vec3d(normalX, normalY, normalZ);
+        }
+
+        public Vertex transform(Matrix4f positionMatrix, Matrix3f normalMatrix) {
+            Vector4f pos = new Vector4f((float) x, (float) y, (float) z, 1.0f).mul(positionMatrix);
+            Vector3f normal = new Vector3f(normalX, normalY, normalZ).mul(normalMatrix);
+            return new Vertex(pos.x(), pos.y(), pos.z(), argb, u, v, overlay, light, normal.x(), normal.y(), normal.z());
+        }
+    }
 
     public interface VertexPredicate {
         boolean test(RenderLayer renderLayer, Vertex[] vertices, int index);

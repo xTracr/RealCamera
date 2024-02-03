@@ -64,15 +64,15 @@ public class ConfigScreen {
                 .setSaveConsumer(b -> config.general.renderModel = b)
                 .build());
         general.addEntry(entryBuilder.startDoubleField(Text.translatable(OPTION + "adjustStep"), config.general.adjustStep)
-                .setDefaultValue(0.25D)
-                .setMin(0.0D)
+                .setDefaultValue(0.25)
+                .setMin(0)
                 .setMax(ModConfig.MAX_DOUBLE)
                 .setTooltip(Text.translatable(TOOLTIP + "adjustStep"))
                 .setSaveConsumer(d -> config.general.adjustStep = d)
                 .build());
         general.addEntry(entryBuilder.startDoubleField(Text.translatable(OPTION + "scale"), config.general.scale)
-                .setDefaultValue(1.0D)
-                .setMin(0.0D)
+                .setDefaultValue(1)
+                .setMin(0)
                 .setMax(ModConfig.MAX_DOUBLE)
                 .setTooltip(Text.translatable(TOOLTIP + "scale"))
                 .setSaveConsumer(d -> config.general.scale = d)
@@ -96,19 +96,19 @@ public class ConfigScreen {
         SubCategoryBuilder bindingCameraOffset = entryBuilder.startSubCategory(Text.translatable(CATEGORY + "cameraOffset"))
                 .setTooltip(Text.translatable(TOOLTIP + "bindingOffset"), Text.translatable(TOOLTIP + "bindingOffset_n"));
         bindingCameraOffset.add(entryBuilder.startDoubleField(Text.translatable(OPTION + "cameraOffset", "X"), config.binding.cameraX)
-                .setDefaultValue(0.0D)
+                .setDefaultValue(0)
                 .setMin(ModConfig.MIN_DOUBLE)
                 .setMax(ModConfig.MAX_DOUBLE)
                 .setSaveConsumer(d -> config.binding.cameraX = d)
                 .build());
         bindingCameraOffset.add(entryBuilder.startDoubleField(Text.translatable(OPTION + "cameraOffset", "Y"), config.binding.cameraY)
-                .setDefaultValue(0.0D)
+                .setDefaultValue(0)
                 .setMin(ModConfig.MIN_DOUBLE)
                 .setMax(ModConfig.MAX_DOUBLE)
                 .setSaveConsumer(d -> config.binding.cameraY = d)
                 .build());
         bindingCameraOffset.add(entryBuilder.startDoubleField(Text.translatable(OPTION + "cameraOffset", "Z"), config.binding.cameraZ)
-                .setDefaultValue(0.0D)
+                .setDefaultValue(0)
                 .setMin(ModConfig.MIN_DOUBLE)
                 .setMax(ModConfig.MAX_DOUBLE)
                 .setSaveConsumer(d -> config.binding.cameraZ = d)
@@ -129,21 +129,21 @@ public class ConfigScreen {
                 .setSaveConsumer(b -> config.binding.bindRolling = b)
                 .build());
         bindingCameraRotation.add(entryBuilder.startFloatField(Text.translatable(OPTION + "pitch"), config.binding.pitch)
-                .setDefaultValue(0.0F)
-                .setMin(-180.0F)
-                .setMax(180.0F)
+                .setDefaultValue(0.0f)
+                .setMin(-180.0f)
+                .setMax(180.0f)
                 .setSaveConsumer(f -> config.binding.pitch = f)
                 .build());
         bindingCameraRotation.add(entryBuilder.startFloatField(Text.translatable(OPTION + "yaw"), config.binding.yaw)
-                .setDefaultValue(0.0F)
-                .setMin(-180.0F)
-                .setMax(180.0F)
+                .setDefaultValue(0.0f)
+                .setMin(-180.0f)
+                .setMax(180.0f)
                 .setSaveConsumer(f -> config.binding.yaw = f)
                 .build());
         bindingCameraRotation.add(entryBuilder.startFloatField(Text.translatable(OPTION + "roll"), config.binding.roll)
-                .setDefaultValue(0.0F)
-                .setMin(-180.0F)
-                .setMax(180.0F)
+                .setDefaultValue(0.0f)
+                .setMin(-180.0f)
+                .setMax(180.0f)
                 .setSaveConsumer(f -> config.binding.roll = f)
                 .build());
         binding.addEntry(bindingCameraRotation.build());
@@ -156,19 +156,19 @@ public class ConfigScreen {
         SubCategoryBuilder classicCameraOffset = entryBuilder.startSubCategory(Text.translatable(CATEGORY + "cameraOffset"))
                 .setTooltip(Text.translatable(TOOLTIP + "classicOffset"), Text.translatable(TOOLTIP + "classicOffset_n"));
         classicCameraOffset.add(entryBuilder.startDoubleField(Text.translatable(OPTION + "cameraOffset", "X"), config.classic.cameraX)
-                .setDefaultValue(-60.0D)
+                .setDefaultValue(-60)
                 .setMin(ModConfig.MIN_DOUBLE)
                 .setMax(ModConfig.MAX_DOUBLE)
                 .setSaveConsumer(d -> config.classic.cameraX = d)
                 .build());
         classicCameraOffset.add(entryBuilder.startDoubleField(Text.translatable(OPTION + "cameraOffset", "Y"), config.classic.cameraY)
-                .setDefaultValue(2.0D)
+                .setDefaultValue(2)
                 .setMin(ModConfig.MIN_DOUBLE)
                 .setMax(ModConfig.MAX_DOUBLE)
                 .setSaveConsumer(d -> config.classic.cameraY = d)
                 .build());
         classicCameraOffset.add(entryBuilder.startDoubleField(Text.translatable(OPTION + "cameraOffset", "Z"), config.classic.cameraZ)
-                .setDefaultValue(-16.0D)
+                .setDefaultValue(-16)
                 .setMin(ModConfig.MIN_DOUBLE)
                 .setMax(ModConfig.MAX_DOUBLE)
                 .setSaveConsumer(d -> config.classic.cameraZ = d)
@@ -177,19 +177,19 @@ public class ConfigScreen {
         SubCategoryBuilder classicCenterOffset = entryBuilder.startSubCategory(Text.translatable(CATEGORY + "centerOffset"))
                 .setTooltip(Text.translatable(TOOLTIP + "centerOffset"));
         classicCenterOffset.add(entryBuilder.startDoubleField(Text.translatable(OPTION + "centerOffset", "X"), config.classic.centerX)
-                .setDefaultValue(0.0D)
+                .setDefaultValue(0)
                 .setMin(ModConfig.MIN_DOUBLE)
                 .setMax(ModConfig.MAX_DOUBLE)
                 .setSaveConsumer(d -> config.classic.centerX = d)
                 .build());
         classicCenterOffset.add(entryBuilder.startDoubleField(Text.translatable(OPTION + "centerOffset", "Y"), config.classic.centerY)
-                .setDefaultValue(-3.4D)
+                .setDefaultValue(-3.4)
                 .setMin(ModConfig.MIN_DOUBLE)
                 .setMax(ModConfig.MAX_DOUBLE)
                 .setSaveConsumer(d -> config.classic.centerY = d)
                 .build());
         classicCenterOffset.add(entryBuilder.startDoubleField(Text.translatable(OPTION + "centerOffset", "Z"), config.classic.centerZ)
-                .setDefaultValue(0.0D)
+                .setDefaultValue(0)
                 .setMin(ModConfig.MIN_DOUBLE)
                 .setMax(ModConfig.MAX_DOUBLE)
                 .setSaveConsumer(d -> config.classic.centerZ = d)
@@ -198,21 +198,21 @@ public class ConfigScreen {
         SubCategoryBuilder classicCameraRotation = entryBuilder.startSubCategory(Text.translatable(CATEGORY + "cameraRotation"))
                 .setTooltip(Text.translatable(TOOLTIP + "cameraRotation"), Text.translatable(TOOLTIP + "cameraRotation_n"));
         classicCameraRotation.add(entryBuilder.startFloatField(Text.translatable(OPTION + "pitch"), config.classic.pitch)
-                .setDefaultValue(0.0F)
-                .setMin(-180.0F)
-                .setMax(180.0F)
+                .setDefaultValue(0.0f)
+                .setMin(-180.0f)
+                .setMax(180.0f)
                 .setSaveConsumer(f -> config.classic.pitch = f)
                 .build());
         classicCameraRotation.add(entryBuilder.startFloatField(Text.translatable(OPTION + "yaw"), config.classic.yaw)
-                .setDefaultValue(18.0F)
-                .setMin(-180.0F)
-                .setMax(180.0F)
+                .setDefaultValue(18.0f)
+                .setMin(-180.0f)
+                .setMax(180.0f)
                 .setSaveConsumer(f -> config.classic.yaw = f)
                 .build());
         classicCameraRotation.add(entryBuilder.startFloatField(Text.translatable(OPTION + "roll"), config.classic.roll)
-                .setDefaultValue(0.0F)
-                .setMin(-180.0F)
-                .setMax(180.0F)
+                .setDefaultValue(0.0f)
+                .setMin(-180.0f)
+                .setMax(180.0f)
                 .setSaveConsumer(f -> config.classic.roll = f)
                 .build());
         classic.addEntry(classicCameraRotation.build());
@@ -316,12 +316,18 @@ public class ConfigScreen {
                 .build());
         disable.addEntry(disableModWhen.build());
 
-        experimental.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "enabled"), config.binding.experimental)
+        experimental.addEntry(entryBuilder.startBooleanToggle(Text.literal("Enabled"), config.binding.experimental)
                 .setDefaultValue(false)
                 .setSaveConsumer(b -> config.binding.experimental = b)
                 .build());
         experimental.addEntry(entryBuilder.startStrField(Text.literal("Name Of List"), config.binding.nameOfList)
                 .setSaveConsumer(s -> config.binding.nameOfList = s)
+                .build());
+        experimental.addEntry(entryBuilder.startDoubleField(Text.literal("Disabling Depth"), config.disable.depth)
+                .setDefaultValue(0.2)
+                .setMin(0.01)
+                .setMax(ModConfig.MAX_DOUBLE)
+                .setSaveConsumer(d -> config.disable.depth = d)
                 .build());
 
         return builder.build();

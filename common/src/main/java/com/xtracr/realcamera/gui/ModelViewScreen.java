@@ -140,7 +140,7 @@ public class ModelViewScreen extends Screen {
         ModelAnalyser analyser = new ModelAnalyser();
         entityRenderDispatcher.render(entity, 0, -entity.getHeight() / 2.0f, 0, 0.0f, 1.0f, context.getMatrices(), analyser, 0xF000F0);
         analyser.buildLastRecord();
-        analyser.drawByAnother(context.getVertexConsumers(), null, null); // TODO
+        analyser.drawByAnother(context.getVertexConsumers(), renderLayer -> true, (renderLayer, vertices, index) -> true); // TODO
         context.draw();
         analyser.setCurrent(renderLayer -> renderLayer.toString().equals(renderTypeWidget.getText()), 0);
         focusedIndex = analyser.getFocusedIndex(mouseX, mouseY, layers);

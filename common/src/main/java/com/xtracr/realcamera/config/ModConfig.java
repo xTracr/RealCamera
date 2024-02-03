@@ -389,6 +389,7 @@ public class ModConfig {
         public boolean sneaking = false;
         public boolean sleeping = false;
         public boolean screenOpened = false;
+        public double depth = 0.2;
 
         private void clamp() {
             if (disabledModelParts == null) disabledModelParts = defaultParts;

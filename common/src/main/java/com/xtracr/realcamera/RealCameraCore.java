@@ -22,6 +22,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
@@ -84,11 +85,19 @@ public class RealCameraCore {
 
     public static void renderPlayer(Vec3d offset, MatrixStack matrices, VertexConsumerProvider vertexConsumers) {
         matrices.push();
-        matrices.peek().getPositionMatrix().transpose().invertAffine()
+        Matrix4f positionMatrix = matrices.peek().getPositionMatrix().transpose().invertAffine()
                 .translate((float) -offset.getX(), (float) -offset.getY(), (float) -offset.getZ());
-        matrices.peek().getNormalMatrix().transpose().invert();
-        // TODO
-        recorder.drawByAnother(matrices, vertexConsumers, null, null);
+        Matrix3f normalMatrix = matrices.peek().getNormalMatrix().transpose().invert();
+        VertexRecorder.VertexPredicate predicate = (renderLayer, vertices, index) -> {
+            Vec3d center = Vec3d.ZERO;
+            double depth = config.disable.depth;
+            for (VertexRecorder.Vertex vertex : vertices) {
+                center = center.add(vertex.pos());
+                if (vertex.z() < -depth) return true;
+            }
+            return center.getZ() < -depth * vertices.length;
+        };
+        recorder.drawByAnother(vertex -> vertex.transform(positionMatrix, normalMatrix), vertexConsumers, renderLayer -> true, predicate);
         matrices.pop();
     }
 

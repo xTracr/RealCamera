@@ -5,7 +5,6 @@ import com.xtracr.realcamera.util.VertexRecorder;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.util.math.Vec3d;
 import org.joml.Vector3f;
 
 import java.awt.*;
@@ -27,12 +26,13 @@ public class ModelAnalyser extends VertexRecorder {
         for (BuiltRecord record : records) for (int i = 0; i < record.quadCount(); i++) {
             Vertex[] quad = record.vertices()[i];
             Polygon polygon = new Polygon();
-            for (Vertex vertex : quad) polygon.addPoint((int) vertex.pos().getX(), (int) vertex.pos().getY());
-            Vector3f normal = quad[0].normal().toVector3f();
-            Vector3f point = quad[0].pos().toVector3f();
+            for (Vertex vertex : quad) polygon.addPoint((int) vertex.x(), (int) vertex.y());
+            Vertex point = quad[0];
+            Vector3f normal = new Vector3f(point.normalX(), point.normalY(), point.normalZ());
+            Vector3f mousePos = new Vector3f((float) point.x(), (float) point.y(), (float) point.z());
             float deltaZ = 0;
-            if (normal.z() != 0) deltaZ = (normal.x() * (mouseX - point.x()) + normal.y() * (mouseY - point.y())) / normal.z();
-            if (polygon.contains(mouseX, mouseY)) sortByDepth.add(new Triple<>(point.z() + deltaZ, record, i));
+            if (normal.z() != 0) deltaZ = (normal.x() * (mouseX - mousePos.x()) + normal.y() * (mouseY - mousePos.y())) / normal.z();
+            if (polygon.contains(mouseX, mouseY)) sortByDepth.add(new Triple<>(mousePos.z() + deltaZ, record, i));
         }
         if (sortByDepth.isEmpty()) return -1;
         sortByDepth.sort(Comparator.comparingDouble(triple -> -triple.getLeft()));
@@ -45,6 +45,13 @@ public class ModelAnalyser extends VertexRecorder {
         BuiltRecord record = drawFocused ? focusedRecord : currentRecord;
         if (record == null || quadIndex >= record.quadCount()) return;
         drawQuad(context, record.vertices()[quadIndex], argb, 1000);
+        if (drawFocused) {
+            Vertex[] highlight = record.vertices()[quadIndex];
+            int size = highlight.length;
+            Vertex[] reversed = new Vertex[size];
+            for (int i = 0; i < size; i++) reversed[i] = highlight[size - 1 - i];
+            drawQuad(context, reversed, argb, 1000);
+        }
     }
 
     public void drawPolyhedron(DrawContext context, int quadIndex, int argb) {
@@ -94,7 +101,7 @@ public class ModelAnalyser extends VertexRecorder {
         context.draw();
     }
 
-    private boolean intersects(Vertex[] quad, List<Vertex[]> quads) {
+    private static boolean intersects(Vertex[] quad, List<Vertex[]> quads) {
         final float precision = 0.00001f;
         boolean ret = false;
         for (Vertex[] p : quads) for (Vertex v1 : quad)
@@ -102,11 +109,10 @@ public class ModelAnalyser extends VertexRecorder {
         return ret;
     }
 
-    private void drawQuad(DrawContext context, Vertex[] quad, int argb, int offset) {
+    private static void drawQuad(DrawContext context, Vertex[] quad, int argb, int offset) {
         VertexConsumer vertexConsumer = context.getVertexConsumers().getBuffer(RenderLayer.getGui());
         for (Vertex vertex : quad) {
-            Vec3d pos = vertex.pos();
-            vertexConsumer.vertex(pos.getX(), pos.getY(), pos.getZ() + offset).color(argb).next();
+            vertexConsumer.vertex(vertex.x(), vertex.y(), vertex.z() + offset).color(argb).next();
         }
         context.draw();
     }
