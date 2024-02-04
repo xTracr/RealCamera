@@ -325,15 +325,14 @@ public class ConfigScreen {
                 .build());
         experimental.addEntry(entryBuilder.startBooleanToggle(Text.literal("Auto Bind"), config.binding.autoBind)
                 .setDefaultValue(true)
-                .setTooltip(Text.literal("根据当前玩家模型纹理，自动在已保存的配置中搜索合适项"),
-                        Text.literal("如果搜索到了结果，会忽略Name of List的值"))
+                .setTooltip(Text.translatable(TOOLTIP + "autoBind"))
                 .setSaveConsumer(b -> config.binding.autoBind = b)
                 .build());
         experimental.addEntry(entryBuilder.startDoubleField(Text.literal("Disabling Depth"), config.disable.depth)
                 .setDefaultValue(0.2)
                 .setMin(0.01)
                 .setMax(ModConfig.MAX_DOUBLE)
-                .setTooltip(Text.literal("全部顶点到屏幕距离均小于该值的面不会被渲染（单位：格）"))
+                .setTooltip(Text.translatable(TOOLTIP + "depth"))
                 .setSaveConsumer(d -> config.disable.depth = d)
                 .build());
 

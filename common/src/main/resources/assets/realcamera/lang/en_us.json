@@ -96,6 +96,9 @@
     "config.tooltip.xtracr_realcamera_disabledModelParts": "Possible options(There may be other options not listed here): %s",
     "config.tooltip.xtracr_realcamera_customConditions_actions": "Available options: [disable_mod, disable_rendering, allow_rendering_hand] and Model Part Names",
 
+    "config.tooltip.xtracr_realcamera_autoBind": "Automatically searches through saved lists based on the current player model texture\nThe value of 'Name of List' will be ignored if a result is found",
+    "config.tooltip.xtracr_realcamera_depth": "Planes where all vertex-to-screen distances are less than this value will not be rendered",
+
     "message.xtracr_realcamera_command_delete_failure": "Failed to find '%s'",
     "message.xtracr_realcamera_command_delete_success": "Successfully deleted '%s'",
     "message.xtracr_realcamera_command_listAll": "Found %d results: %s",

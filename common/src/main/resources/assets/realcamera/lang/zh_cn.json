@@ -96,6 +96,9 @@
     "config.tooltip.xtracr_realcamera_disabledModelParts": "可能的选项(可能还有其它选项未被列举): %s",
     "config.tooltip.xtracr_realcamera_customConditions_actions": "可用选项: [disable_mod, disable_rendering, allow_rendering_hand] 以及 模型部位的名称",
 
+    "config.tooltip.xtracr_realcamera_autoBind": "根据当前玩家模型纹理，自动在已保存的配置中搜索合适项\n如果搜索到了结果，会忽略Name of List的值",
+    "config.tooltip.xtracr_realcamera_depth": "全部顶点到屏幕距离均小于该值的面不会被渲染",
+
     "message.xtracr_realcamera_command_delete_failure": "未能找到'%s'",
     "message.xtracr_realcamera_command_delete_success": "成功删除'%s'",
     "message.xtracr_realcamera_command_listAll": "找到了%d个结果: %s",
