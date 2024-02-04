@@ -16,9 +16,9 @@ import java.util.List;
 public class ModelAnalyser extends VertexRecorder {
     BuiltRecord focusedRecord;
 
-    public String focusedRenderLayerName() {
+    public String focusedTextureId() {
         if (focusedRecord == null) return null;
-        return focusedRecord.renderLayer().toString();
+        return getTextureId(focusedRecord);
     }
 
     public int getFocusedIndex(int mouseX, int mouseY, int layers) {
@@ -114,6 +114,7 @@ public class ModelAnalyser extends VertexRecorder {
         for (Vertex vertex : quad) {
             vertexConsumer.vertex(vertex.x(), vertex.y(), vertex.z() + offset).color(argb).next();
         }
+        if (quad.length == 3) vertexConsumer.vertex(quad[2].x(), quad[2].y(), quad[2].z() + offset).color(argb).next();
         context.draw();
     }
 }

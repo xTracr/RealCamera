@@ -33,10 +33,10 @@ public class ModelViewScreen extends Screen {
     private double entityX, entityY;
     private float yaw, pitch, xRot, yRot;
     private int select;
-    private String focusedRenderTypeName;
+    private String focusedTextureId;
     private int layers, frontIndex, upIndex, posIndex, focusedIndex = -1;
     private IntFieldWidget frontIndexWidget, upIndexWidget, posIndexWidget;
-    private TextFieldWidget renderTypeWidget, nameWidget;
+    private TextFieldWidget textureIdWidget, nameWidget;
     private final ButtonWidget selectFrontButton = ButtonWidget.builder(Text.literal("OFF"), button -> changeSelectionTarget(0, button)).size(25, 18).build();
     private final ButtonWidget selectUpButton = ButtonWidget.builder(Text.literal("OFF"), button -> changeSelectionTarget(1, button)).size(25, 18).build();
     private final ButtonWidget selectPosButton = ButtonWidget.builder(Text.literal("OFF"), button -> changeSelectionTarget(2, button)).size(25, 18).build();
@@ -62,9 +62,9 @@ public class ModelViewScreen extends Screen {
         frontIndexWidget = new IntFieldWidget(textRenderer, x + 5, y + 70, (xSize - ySize)/2 - 45, 18, Text.translatable(KEY_WIDGET + "frontIndex"), frontIndex, i -> frontIndex = i);
         upIndexWidget = new IntFieldWidget(textRenderer, x + 5, y + 92, (xSize - ySize)/2 - 45, 18, Text.translatable(KEY_WIDGET + "upIndex"), upIndex, i -> upIndex = i);
         posIndexWidget = new IntFieldWidget(textRenderer, x + 5, y + 114, (xSize - ySize)/2 - 45, 18, Text.translatable(KEY_WIDGET + "posIndex"), posIndex, i -> posIndex = i);
-        renderTypeWidget = new TextFieldWidget(textRenderer, x + 5, y + 136, (xSize - ySize)/2 - 15, 18, Text.translatable(KEY_WIDGET + "renderType"));
+        textureIdWidget = new TextFieldWidget(textRenderer, x + 5, y + 136, (xSize - ySize)/2 - 15, 18, Text.translatable(KEY_WIDGET + "textureId"));
         nameWidget = new TextFieldWidget(textRenderer, x + 5, y + 180, (xSize - ySize)/2 - 15, 18, Text.translatable(KEY_WIDGET + "listName"));
-        renderTypeWidget.setMaxLength(32768);
+        textureIdWidget.setMaxLength(1024);
         nameWidget.setMaxLength(20);
         selectFrontButton.setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "selectFront")));
         selectUpButton.setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "selectUp")));
@@ -82,7 +82,7 @@ public class ModelViewScreen extends Screen {
         addDrawableChild(selectPosButton).setPosition(x + (xSize - ySize)/2 - 35, y + 114);
         addDrawableChild(saveButton).setPosition(x + 5, y + 158);
         addDrawableChild(loadButton).setPosition(x + (xSize - ySize)/4, y + 158);
-        addDrawableChild(renderTypeWidget).setTooltip(Tooltip.of(Text.translatable(KEY_WIDGET + "renderType")));
+        addDrawableChild(textureIdWidget).setTooltip(Tooltip.of(Text.translatable(KEY_WIDGET + "textureId")));
         addDrawableChild(nameWidget).setTooltip(Tooltip.of(Text.translatable(KEY_WIDGET + "listName")));
         addDrawableChild(pauseWidget).setPosition(x + (xSize + ySize) / 2 + 10, y + 4);
         addDrawableChild(showCubeWidget).setPosition(x + (xSize + ySize) / 2 + 10, y + 26);
@@ -142,9 +142,9 @@ public class ModelViewScreen extends Screen {
         analyser.buildLastRecord();
         analyser.drawByAnother(context.getVertexConsumers(), renderLayer -> true, (renderLayer, vertices, index) -> true); // TODO
         context.draw();
-        analyser.setCurrent(renderLayer -> renderLayer.toString().equals(renderTypeWidget.getText()), 0);
+        analyser.setCurrent(renderLayer -> renderLayer.toString().contains(textureIdWidget.getText()), 0);
         focusedIndex = analyser.getFocusedIndex(mouseX, mouseY, layers);
-        focusedRenderTypeName = analyser.focusedRenderLayerName();
+        focusedTextureId = analyser.focusedTextureId();
         analyser.drawQuad(context, posIndex, 0x6F3333CC, false);
         if (focusedIndex > -1) {
             if (showCube) analyser.drawPolyhedron(context, focusedIndex, 0x5FFFFFFF);
@@ -170,7 +170,7 @@ public class ModelViewScreen extends Screen {
         String name = nameWidget.getText();
         if (name == null) return;
         ConfigFile.modConfig.binding.targetMap.put(name,
-                new ModConfig.Binding.Target(renderTypeWidget.getText(), frontIndex, upIndex, posIndex));
+                new ModConfig.Binding.Target(textureIdWidget.getText(), frontIndex, upIndex, posIndex));
         ConfigFile.save();
     }
 
@@ -178,7 +178,7 @@ public class ModelViewScreen extends Screen {
         String name = nameWidget.getText();
         ModConfig.Binding.Target target = ConfigFile.modConfig.binding.targetMap.get(name);
         try {
-            renderTypeWidget.setText(target.renderTypeName());
+            textureIdWidget.setText(target.textureId());
             frontIndexWidget.setValue(target.frontIndex());
             upIndexWidget.setValue(target.upIndex());
             posIndexWidget.setValue(target.posIndex());
@@ -204,7 +204,7 @@ public class ModelViewScreen extends Screen {
             if ((select >> 1 & 1) != 0) upIndexWidget.setValue(focusedIndex);
             if ((select >> 2 & 1) != 0) posIndexWidget.setValue(focusedIndex);
             if (select != 0) {
-                renderTypeWidget.setText(focusedRenderTypeName);
+                textureIdWidget.setText(focusedTextureId);
                 return true;
             }
         }

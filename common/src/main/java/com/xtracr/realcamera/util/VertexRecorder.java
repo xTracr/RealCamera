@@ -10,9 +10,12 @@ import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class VertexRecorder implements VertexConsumerProvider {
     protected final List<BuiltRecord> records = new ArrayList<>();
@@ -24,9 +27,9 @@ public class VertexRecorder implements VertexConsumerProvider {
         return currentRecord.quadCount;
     }
 
-    public String currentRenderLayerName() {
+    public String currentTextureId() {
         if (currentRecord == null) return null;
-        return currentRecord.renderLayer.toString();
+        return getTextureId(currentRecord);
     }
 
     public Vec3d getCenter(int index) {
@@ -48,16 +51,8 @@ public class VertexRecorder implements VertexConsumerProvider {
     }
 
     public void setCurrent(Predicate<RenderLayer> predicate, int index) {
-        int i = 0;
-        for (BuiltRecord record : records) {
-            if (!predicate.test(record.renderLayer)) continue;
-            if (i < index) {
-                i++;
-                continue;
-            }
-            currentRecord = record;
-            return;
-        }
+        currentRecord = records.stream().filter(record -> predicate.test(record.renderLayer))
+                .sorted(Comparator.comparingInt(record -> -record.quadCount())).toList().get(index);
     }
 
     public void drawByAnother(VertexConsumerProvider anotherProvider, Predicate<RenderLayer> layerPredicate, VertexPredicate vertexPredicate) {
@@ -82,6 +77,14 @@ public class VertexRecorder implements VertexConsumerProvider {
                 }
             }
         });
+    }
+
+    protected static String getTextureId(BuiltRecord record) {
+        String name = record.renderLayer.toString();
+        Pattern pattern = Pattern.compile("texture\\[Optional\\[(.*?)]");
+        Matcher matcher = pattern.matcher(name);
+        if (matcher.find()) return matcher.group(1);
+        return null;
     }
 
     @Override

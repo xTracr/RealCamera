@@ -26,6 +26,8 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
+import java.util.Collection;
+
 public class RealCameraCore {
     private static final ModConfig config = ConfigFile.modConfig;
     private static VertexRecorder recorder = new VertexRecorder();
@@ -119,8 +121,17 @@ public class RealCameraCore {
         pos = new Vec3d(offset.x(), offset.y(), offset.z());
         Matrix3f normal = matrixStack.peek().getNormalMatrix().scale(1.0F, -1.0F, -1.0F);
         if (config.binding.experimental) try {
-            ModConfig.Binding.Target target = config.binding.targetMap.get(config.binding.nameOfList);
-            recorder.setCurrent(renderLayer -> renderLayer.toString().equals(target.renderTypeName()), 0); // TODO
+            ModConfig.Binding.Target target;
+            if (config.binding.autoBind) {
+                Collection<ModConfig.Binding.Target> targetSet = config.binding.targetMap.values();
+                recorder.setCurrent(renderLayer -> targetSet.stream().anyMatch(t -> renderLayer.toString().contains(t.textureId())), 0);
+                String textureId = recorder.currentTextureId();
+                target = targetSet.stream().filter(t -> textureId.contains(t.textureId())).findFirst()
+                        .orElse(config.binding.targetMap.get(config.binding.nameOfList));
+            } else {
+                target = config.binding.targetMap.get(config.binding.nameOfList);
+            }
+            recorder.setCurrent(renderLayer -> renderLayer.toString().contains(target.textureId()), 0);
             if (recorder.quadCount() <= 0) throw new NullPointerException("Vertices not found");
             Vec3d front = recorder.getNormal(target.frontIndex());
             Vec3d up = recorder.getNormal(target.upIndex());
