@@ -10,15 +10,15 @@ import java.util.function.Function;
 public class DoubleValueSlider extends SliderWidget {
     private final double min, max;
     private final Function<Double, Text> textFunction;
-    private final DoubleConsumer consumer;
+    private final DoubleConsumer setter;
 
-    public DoubleValueSlider(int width, int height, double value, double min, double max, Function<Double, Text> textFunction, DoubleConsumer consumer) {
+    public DoubleValueSlider(int width, int height, double value, double min, double max, Function<Double, Text> textFunction, DoubleConsumer setter) {
         super(0, 0, width, height, textFunction.apply(min + (max - min) * value), value);
         this.min = min;
         this.max = max;
         this.textFunction = textFunction;
-        this.consumer = consumer;
-        this.consumer.accept(min + (max - min) * value);
+        this.setter = setter;
+        this.setter.accept(min + (max - min) * value);
     }
 
     protected void setValue(double value) {
@@ -34,6 +34,6 @@ public class DoubleValueSlider extends SliderWidget {
 
     @Override
     protected void applyValue() {
-        consumer.accept(min + (max - min) * value);
+        setter.accept(min + (max - min) * value);
     }
 }

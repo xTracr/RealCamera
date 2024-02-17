@@ -107,17 +107,16 @@
     "screen.widget.xtracr_realcamera_modelView_yaw": "Yaw = %s",
     "screen.widget.xtracr_realcamera_modelView_pitch": "Pitch = %s",
     "screen.widget.xtracr_realcamera_modelView_reset": "Reset Model State",
-    "screen.widget.xtracr_realcamera_modelView_frontIndex": "Index of the forward vector",
-    "screen.widget.xtracr_realcamera_modelView_upIndex": "Index of the upward vector",
-    "screen.widget.xtracr_realcamera_modelView_posIndex": "Index of the plane",
-    "screen.widget.xtracr_realcamera_modelView_textureId": "The texture id of the selected model (not necessary to be the full id), can be shortened when saving to make it easier to recognize.\nFor example, shorten minecraft:textures/entity/player/slim/alex.png to minecraft:textures/entity/player/.",
-    "screen.widget.xtracr_realcamera_modelView_listName": "Name of the list of the indexes, can be selected and bound in the 'Experimental' screen of config screen if saved",
+    "screen.widget.xtracr_realcamera_modelView_selectMode": "Selecting: %s",
+    "screen.widget.xtracr_realcamera_modelView_forwardMode": "Forward Vector",
+    "screen.widget.xtracr_realcamera_modelView_upwardMode": "Upward Vector",
+    "screen.widget.xtracr_realcamera_modelView_posMode": "Plane",
     "screen.widget.xtracr_realcamera_modelView_save": "Save",
     "screen.widget.xtracr_realcamera_modelView_load": "Load",
     "screen.widget.xtracr_realcamera_modelView_pause": "Start/End Pause",
     "screen.widget.xtracr_realcamera_modelView_showCube": "Show/Hide Cube",
 
-    "screen.tooltip.xtracr_realcamera_modelView_selectFront": "When turned on, hold Alt and left click to select forward vector\nNote: scroll with left Alt held to toggle between the different layers of model",
-    "screen.tooltip.xtracr_realcamera_modelView_selectUp": "When turned on, hold Alt and left click to select upward vector\nNote: scroll with left Alt held to toggle between the different layers of model",
-    "screen.tooltip.xtracr_realcamera_modelView_selectPos": "When turned on, hold Alt and left click to select plane, to which camera can be bound to its center\nNote: scroll with left Alt held to toggle between the different layers of model"
+    "screen.tooltip.xtracr_realcamera_modelView_selectMode": "Hold left Alt and left click to get the UV coordinates at the mouse pointer\nThe three sets of UV coordinates below are, from top to bottom, the forward vector, the upward vector, and the UV coordinates of the plane's center\nNote: Scroll with left Alt held to switch between the different layers of model. Manually inputting UV coordinates allows you to bind more accurately to the target position",
+    "screen.tooltip.xtracr_realcamera_modelView_textureId": "The texture id of the selected model (not necessary to be the full id), can be shortened when saving to make it easier to recognize.\nFor example, shorten minecraft:textures/entity/player/slim/alex.png to minecraft:textures/entity/player/.",
+    "screen.tooltip.xtracr_realcamera_modelView_listName": "Name of the config, can be selected and bound in the 'Experimental' screen of config screen if saved"
 }

@@ -9,6 +9,8 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.gui.widget.GridWidget;
+import net.minecraft.client.gui.widget.SimplePositioningWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.render.DiffuseLighting;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
@@ -16,39 +18,34 @@ import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Pair;
 import net.minecraft.util.math.MathHelper;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.Map;
+
 public class ModelViewScreen extends Screen {
     private static final String KEY_SCREEN = "screen.xtracr_" + RealCamera.MODID + "_modelView_";
     private static final String KEY_WIDGET = "screen.widget.xtracr_" + RealCamera.MODID + "_modelView_";
     private static final String KEY_TOOLTIP = "screen.tooltip.xtracr_" + RealCamera.MODID + "_modelView_";
-    protected int xSize = 400, ySize = 220;
+    private static final Map<String, Text> selectingText = Map.of("forward", Text.translatable(KEY_WIDGET + "forwardMode").styled(s -> s.withColor(Formatting.GREEN)),
+            "upward", Text.translatable(KEY_WIDGET + "upwardMode").styled(s -> s.withColor(Formatting.RED)),
+            "pos", Text.translatable(KEY_WIDGET + "posMode").styled(s -> s.withColor(Formatting.BLUE)));
+    protected int xSize = 420, ySize = 220, widgetWidth = (xSize - ySize) / 4 - 10, widgetHeight = 17;
     protected int x, y;
-    protected boolean shouldPause = false, showCube = false;
-    private int entitySize = 80;
+    private boolean shouldPause = false, showCube = false;
+    private int entitySize = 80, layers = 0;
     private double entityX, entityY;
     private float yaw, pitch, xRot, yRot;
-    private int select;
-    private String focusedTextureId;
-    private int layers, frontIndex, upIndex, posIndex, focusedIndex = -1;
-    private IntFieldWidget frontIndexWidget, upIndexWidget, posIndexWidget;
-    private TextFieldWidget textureIdWidget, nameWidget;
-    private final ButtonWidget selectFrontButton = ButtonWidget.builder(Text.literal("OFF"), button -> changeSelectionTarget(0, button)).size(25, 18).build();
-    private final ButtonWidget selectUpButton = ButtonWidget.builder(Text.literal("OFF"), button -> changeSelectionTarget(1, button)).size(25, 18).build();
-    private final ButtonWidget selectPosButton = ButtonWidget.builder(Text.literal("OFF"), button -> changeSelectionTarget(2, button)).size(25, 18).build();
-    private final ButtonWidget saveButton = ButtonWidget.builder(Text.translatable(KEY_WIDGET + "save"), button -> saveCurrent()).size((xSize - ySize)/4 - 10, 18).build();
-    private final ButtonWidget loadButton = ButtonWidget.builder(Text.translatable(KEY_WIDGET + "load"), button -> loadToCurrent()).size((xSize - ySize)/4 - 10, 18).build();
-    private final DoubleValueSlider yawWidget = new DoubleValueSlider((xSize - ySize)/2 - 15, 18, 0.5D,
-            -60.0D, 60.0D, d -> Text.translatable(KEY_WIDGET + "yaw", MathUtil.round(d, 2)), d -> yaw = (float) d);
-    private final DoubleValueSlider pitchWidget = new DoubleValueSlider((xSize - ySize)/2 - 15, 18, 0.5D,
-            -90.0D, 90.0D, d -> Text.translatable(KEY_WIDGET + "pitch", MathUtil.round(d, 2)), d -> pitch = (float) d);
-    private final ButtonWidget resetWidget = ButtonWidget.builder(Text.translatable(KEY_WIDGET + "reset"), button -> reset()).size((xSize - ySize)/2 - 15, 18).build();
-    private final ButtonWidget pauseWidget = ButtonWidget.builder(Text.translatable(KEY_WIDGET + "pause"), button -> shouldPause = !shouldPause).size((xSize - ySize)/2 - 15, 18).build();
-    private final ButtonWidget showCubeWidget = ButtonWidget.builder(Text.translatable(KEY_WIDGET + "showCube"), button -> showCube = !showCube).size((xSize - ySize)/2 - 15, 18).build();
+    private String focusedTextureId, selecting = "forward";
+    private Pair<Float, Float> focusedUV;
+    private FloatFieldWidget forwardUField, forwardVField, upwardUField, upwardVField, posUField, posVField;
+    private TextFieldWidget textureIdField, nameField;
+    private DoubleValueSlider yawSlider, pitchSlider;
 
     public ModelViewScreen() {
         super(Text.translatable(KEY_SCREEN + "title"));
@@ -59,33 +56,51 @@ public class ModelViewScreen extends Screen {
         super.init();
         x = (width - xSize) / 2;
         y = (height - ySize) / 2;
-        frontIndexWidget = new IntFieldWidget(textRenderer, x + 5, y + 70, (xSize - ySize)/2 - 45, 18, Text.translatable(KEY_WIDGET + "frontIndex"), frontIndex, i -> frontIndex = i);
-        upIndexWidget = new IntFieldWidget(textRenderer, x + 5, y + 92, (xSize - ySize)/2 - 45, 18, Text.translatable(KEY_WIDGET + "upIndex"), upIndex, i -> upIndex = i);
-        posIndexWidget = new IntFieldWidget(textRenderer, x + 5, y + 114, (xSize - ySize)/2 - 45, 18, Text.translatable(KEY_WIDGET + "posIndex"), posIndex, i -> posIndex = i);
-        textureIdWidget = new TextFieldWidget(textRenderer, x + 5, y + 136, (xSize - ySize)/2 - 15, 18, Text.translatable(KEY_WIDGET + "textureId"));
-        nameWidget = new TextFieldWidget(textRenderer, x + 5, y + 180, (xSize - ySize)/2 - 15, 18, Text.translatable(KEY_WIDGET + "listName"));
-        textureIdWidget.setMaxLength(1024);
-        nameWidget.setMaxLength(20);
-        selectFrontButton.setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "selectFront")));
-        selectUpButton.setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "selectUp")));
-        selectPosButton.setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "selectPos")));
-        pauseWidget.setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "pause")));
-        showCubeWidget.setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "showCube")));
-        addDrawableChild(resetWidget).setPosition(x + 5, y + 4);
-        addDrawableChild(yawWidget).setPosition(x + 5, y + 26);
-        addDrawableChild(pitchWidget).setPosition(x + 5, y + 48);
-        addDrawableChild(frontIndexWidget).setTooltip(Tooltip.of(Text.translatable(KEY_WIDGET + "frontIndex")));
-        addDrawableChild(selectFrontButton).setPosition(x + (xSize - ySize)/2 - 35, y + 70);
-        addDrawableChild(upIndexWidget).setTooltip(Tooltip.of(Text.translatable(KEY_WIDGET + "upIndex")));
-        addDrawableChild(selectUpButton).setPosition(x + (xSize - ySize)/2 - 35, y + 92);
-        addDrawableChild(posIndexWidget).setTooltip(Tooltip.of(Text.translatable(KEY_WIDGET + "posIndex")));
-        addDrawableChild(selectPosButton).setPosition(x + (xSize - ySize)/2 - 35, y + 114);
-        addDrawableChild(saveButton).setPosition(x + 5, y + 158);
-        addDrawableChild(loadButton).setPosition(x + (xSize - ySize)/4, y + 158);
-        addDrawableChild(textureIdWidget).setTooltip(Tooltip.of(Text.translatable(KEY_WIDGET + "textureId")));
-        addDrawableChild(nameWidget).setTooltip(Tooltip.of(Text.translatable(KEY_WIDGET + "listName")));
-        addDrawableChild(pauseWidget).setPosition(x + (xSize + ySize) / 2 + 10, y + 4);
-        addDrawableChild(showCubeWidget).setPosition(x + (xSize + ySize) / 2 + 10, y + 26);
+        initLeftWidgets();
+        initRightWidgets();
+    }
+
+    private void initLeftWidgets() {
+        GridWidget gridWidget = new GridWidget();
+        gridWidget.getMainPositioner().margin(5, 4, 0, 0);
+        GridWidget.Adder adder = gridWidget.createAdder(2);
+        adder.add(createButton("reset",widgetWidth * 2 + 5, button -> reset()), 2);
+        adder.add(yawSlider = new DoubleValueSlider(widgetWidth * 2 + 5, widgetHeight, 0.5D,
+                -60.0D, 60.0D, d -> Text.translatable(KEY_WIDGET + "yaw", MathUtil.round(d, 2)), d -> yaw = (float) d), 2);
+        adder.add(pitchSlider = new DoubleValueSlider(widgetWidth * 2 + 5, widgetHeight, 0.5D,
+                -90.0D, 90.0D, d -> Text.translatable(KEY_WIDGET + "pitch", MathUtil.round(d, 2)), d -> pitch = (float) d), 2);
+        adder.add(createButton(Text.translatable(KEY_WIDGET + "selectMode", selectingText.get(selecting)), widgetWidth * 2 + 5, button -> {
+                    if (selecting.equals("forward")) selecting = "upward";
+                    else if (selecting.equals("upward")) selecting = "pos";
+                    else selecting = "forward";
+                    button.setMessage(Text.translatable(KEY_WIDGET + "selectMode", selectingText.get(selecting)));
+                }), 2).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "selectMode")));
+        adder.add(forwardUField = createFloatField(widgetWidth, forwardUField));
+        adder.add(forwardVField = createFloatField(widgetWidth, forwardVField));
+        adder.add(upwardUField = createFloatField(widgetWidth, upwardUField));
+        adder.add(upwardVField = createFloatField(widgetWidth, upwardVField));
+        adder.add(posUField = createFloatField(widgetWidth, posUField));
+        adder.add(posVField = createFloatField(widgetWidth, posVField));
+        adder.add(textureIdField = createTextField(widgetWidth * 2 + 5, textureIdField),2).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "textureId")));
+        adder.add(createButton("save", widgetWidth, button -> saveConfig()));
+        adder.add(createButton("load", widgetWidth, button -> loadConfig()));
+        adder.add(nameField = createTextField(widgetWidth * 2 + 5, nameField),2).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "listName")));
+        textureIdField.setMaxLength(1024);
+        nameField.setMaxLength(20);
+        gridWidget.refreshPositions();
+        SimplePositioningWidget.setPos(gridWidget, x, y, x + (xSize - ySize) / 2 - 5, y + ySize, 0, 0);
+        gridWidget.forEachChild(this::addDrawableChild);
+    }
+
+    private void initRightWidgets() {
+        GridWidget gridWidget = new GridWidget();
+        gridWidget.getMainPositioner().margin(5, 4, 0, 0);
+        GridWidget.Adder adder = gridWidget.createAdder(2);
+        adder.add(createButton("pause", widgetWidth * 2 + 5, button -> shouldPause = !shouldPause), 2);
+        adder.add(createButton("showCube", widgetWidth * 2 + 5, button -> showCube = !showCube), 2);
+        gridWidget.refreshPositions();
+        SimplePositioningWidget.setPos(gridWidget, x + (xSize + ySize) / 2 + 5, y, x + xSize, y +ySize, 0, 0);
+        gridWidget.forEachChild(this::addDrawableChild);
     }
 
     @Override
@@ -140,18 +155,19 @@ public class ModelViewScreen extends Screen {
         ModelAnalyser analyser = new ModelAnalyser();
         entityRenderDispatcher.render(entity, 0, -entity.getHeight() / 2.0f, 0, 0.0f, 1.0f, context.getMatrices(), analyser, 0xF000F0);
         analyser.buildLastRecord();
-        analyser.drawByAnother(context.getVertexConsumers(), renderLayer -> true, (renderLayer, vertices, index) -> true); // TODO
+        analyser.drawByAnother(context.getVertexConsumers(), renderLayer -> true, (renderLayer, vertices) -> true); // TODO
         context.draw();
-        analyser.setCurrent(renderLayer -> renderLayer.toString().contains(textureIdWidget.getText()), 0);
-        focusedIndex = analyser.getFocusedIndex(mouseX, mouseY, layers);
+        analyser.setCurrent(renderLayer -> renderLayer.toString().contains(textureIdField.getText()), 0);
+        int focusedIndex = analyser.getFocusedIndex(mouseX, mouseY, layers);
+        focusedUV = analyser.getCenterUV(focusedIndex);
         focusedTextureId = analyser.focusedTextureId();
-        analyser.drawQuad(context, posIndex, 0x6F3333CC, false);
-        if (focusedIndex > -1) {
+        analyser.drawQuad(context, posUField.getValue(), posVField.getValue(), 0x6F3333CC);
+        if (focusedIndex != -1) {
             if (showCube) analyser.drawPolyhedron(context, focusedIndex, 0x5FFFFFFF);
             else analyser.drawQuad(context, focusedIndex, 0x7FFFFFFF, true);
         }
-        analyser.drawNormal(context, frontIndex, entitySize / 2, 0xFF00CC00);
-        analyser.drawNormal(context, upIndex, entitySize / 2, 0xFFCC0000);
+        analyser.drawNormal(context, forwardUField.getValue(), forwardVField.getValue(), entitySize / 2, 0xFF00CC00);
+        analyser.drawNormal(context, upwardUField.getValue(), upwardVField.getValue(), entitySize / 2, 0xFFCC0000);
         entityRenderDispatcher.setRenderShadows(true);
         context.getMatrices().pop();
         DiffuseLighting.enableGuiDepthLighting();
@@ -159,37 +175,52 @@ public class ModelViewScreen extends Screen {
 
     private void reset() {
         entitySize = 80;
-        yawWidget.setValue(0);
-        pitchWidget.setValue(0);
+        yawSlider.setValue(0);
+        pitchSlider.setValue(0);
         entityX = entityY = 0;
         xRot = yRot = 0;
         layers = 0;
     }
 
-    private void saveCurrent() {
-        String name = nameWidget.getText();
+    private void saveConfig() {
+        String name = nameField.getText();
         if (name == null) return;
-        ConfigFile.modConfig.binding.targetMap.put(name,
-                new ModConfig.Binding.Target(textureIdWidget.getText(), frontIndex, upIndex, posIndex));
+        ConfigFile.modConfig.binding.targetMap.put(name, new ModConfig.Binding.Target(textureIdField.getText(),
+                forwardUField.getValue(), forwardVField.getValue(), upwardUField.getValue(), upwardVField.getValue(),
+                posUField.getValue(), posVField.getValue()));
         ConfigFile.save();
     }
 
-    private void loadToCurrent() {
-        String name = nameWidget.getText();
+    private void loadConfig() {
+        String name = nameField.getText();
         ModConfig.Binding.Target target = ConfigFile.modConfig.binding.targetMap.get(name);
+        if (target == null) return;
         try {
-            textureIdWidget.setText(target.textureId());
-            frontIndexWidget.setValue(target.frontIndex());
-            upIndexWidget.setValue(target.upIndex());
-            posIndexWidget.setValue(target.posIndex());
+            textureIdField.setText(target.textureId());
+            forwardUField.setValue(target.forwardU());
+            forwardVField.setValue(target.forwardV());
+            upwardUField.setValue(target.upwardU());
+            upwardVField.setValue(target.upwardV());
+            posUField.setValue(target.posU());
+            posVField.setValue(target.posV());
         } catch (Exception ignored) {
         }
     }
 
-    private void changeSelectionTarget(int target, ButtonWidget button) {
-        select ^= 1 << target;
-        if ((select >> target & 1) != 0) button.setMessage(Text.literal("ON").styled(style -> style.withColor(Formatting.GREEN)));
-        else button.setMessage(Text.literal("OFF"));
+    private ButtonWidget createButton(String name, int width, ButtonWidget.PressAction onPress) {
+        return createButton(Text.translatable(KEY_WIDGET + name), width, onPress);
+    }
+
+    private ButtonWidget createButton(Text message, int width, ButtonWidget.PressAction onPress) {
+        return ButtonWidget.builder(message, onPress).size(width, widgetHeight).build();
+    }
+
+    private FloatFieldWidget createFloatField(int width, @Nullable FloatFieldWidget copyFrom) {
+        return new FloatFieldWidget(textRenderer, 0, 0, width, widgetHeight, copyFrom, null);
+    }
+
+    private TextFieldWidget createTextField(int width, @Nullable TextFieldWidget copyFrom) {
+        return new TextFieldWidget(textRenderer, 0, 0, width, widgetHeight, copyFrom, null);
     }
 
     protected boolean mouseInViewArea(double mouseX, double mouseY) {
@@ -198,15 +229,20 @@ public class ModelViewScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (mouseInViewArea(mouseX, mouseY) && focusedIndex > -1  && button == GLFW.GLFW_MOUSE_BUTTON_LEFT &&
+        if (mouseInViewArea(mouseX, mouseY) && focusedUV != null && button == GLFW.GLFW_MOUSE_BUTTON_LEFT &&
                 InputUtil.isKeyPressed(this.client.getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_ALT)) {
-            if ((select & 1) != 0) frontIndexWidget.setValue(focusedIndex);
-            if ((select >> 1 & 1) != 0) upIndexWidget.setValue(focusedIndex);
-            if ((select >> 2 & 1) != 0) posIndexWidget.setValue(focusedIndex);
-            if (select != 0) {
-                textureIdWidget.setText(focusedTextureId);
-                return true;
+            if (selecting.equals("forward")) {
+                forwardUField.setValue(focusedUV.getLeft());
+                forwardVField.setValue(focusedUV.getRight());
+            } else if (selecting.equals("upward")) {
+                upwardUField.setValue(focusedUV.getLeft());
+                upwardVField.setValue(focusedUV.getRight());
+            } else {
+                posUField.setValue(focusedUV.getLeft());
+                posVField.setValue(focusedUV.getRight());
             }
+            textureIdField.setText(focusedTextureId);
+            return true;
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }

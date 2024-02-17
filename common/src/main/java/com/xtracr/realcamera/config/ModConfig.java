@@ -295,7 +295,8 @@ public class ModConfig {
 
     public static class Binding {
         protected static final Map<String, Target> defaultTargetMap = Map.of("minecraft_head",
-                new Target("minecraft:textures/entity/player/", 3, 0, 3));
+                new Target("minecraft:textures/entity/player/",
+                        0.1875f, 0.2f, 0.1875f, 0.075f, 0.1875f, 0.2f));
         public VanillaModelPart vanillaModelPart = VanillaModelPart.head;
         public boolean experimental = false;
         public boolean adjustOffset = true;
@@ -324,7 +325,7 @@ public class ModConfig {
             roll = MathHelper.wrapDegrees(roll);
         }
 
-        public record Target(String textureId, int frontIndex, int upIndex, int posIndex) {}
+        public record Target(String textureId, float forwardU, float forwardV, float upwardU, float upwardV, float posU, float posV) {}
     }
 
     public static class Classic {

@@ -11,6 +11,7 @@ import com.xtracr.realcamera.util.VertexRecorder;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
@@ -27,6 +28,7 @@ import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import java.util.Collection;
+import java.util.function.BiPredicate;
 
 public class RealCameraCore {
     private static final ModConfig config = ConfigFile.modConfig;
@@ -90,16 +92,15 @@ public class RealCameraCore {
         Matrix4f positionMatrix = matrices.peek().getPositionMatrix().transpose().invertAffine()
                 .translate((float) -offset.getX(), (float) -offset.getY(), (float) -offset.getZ());
         Matrix3f normalMatrix = matrices.peek().getNormalMatrix().transpose().invert();
-        VertexRecorder.VertexPredicate predicate = (renderLayer, vertices, index) -> {
-            Vec3d center = Vec3d.ZERO;
-            double depth = config.disable.depth;
+        BiPredicate<RenderLayer, VertexRecorder.Vertex[]> biPredicate = (renderLayer, vertices) -> {
+            double depth = config.disable.depth, centerZ = 0;
             for (VertexRecorder.Vertex vertex : vertices) {
-                center = center.add(vertex.pos());
                 if (vertex.z() < -depth) return true;
+                centerZ += vertex.z();
             }
-            return center.getZ() < -depth * vertices.length;
+            return centerZ < -depth * vertices.length;
         };
-        recorder.drawByAnother(vertex -> vertex.transform(positionMatrix, normalMatrix), vertexConsumers, renderLayer -> true, predicate);
+        recorder.drawByAnother(vertex -> vertex.transform(positionMatrix, normalMatrix), vertexConsumers, renderLayer -> true, biPredicate);
         matrices.pop();
     }
 
@@ -133,9 +134,9 @@ public class RealCameraCore {
             }
             recorder.setCurrent(renderLayer -> renderLayer.toString().contains(target.textureId()), 0);
             if (recorder.quadCount() <= 0) throw new NullPointerException("Vertices not found");
-            Vec3d front = recorder.getNormal(target.frontIndex());
-            Vec3d up = recorder.getNormal(target.upIndex());
-            Vec3d center = recorder.getCenter(target.posIndex());
+            Vec3d front = recorder.getNormal(target.forwardU(), target.forwardV());
+            Vec3d up = recorder.getNormal(target.upwardU(), target.upwardV());
+            Vec3d center = recorder.getPos(target.posU(), target.posV());
             if (!MathUtil.isFinite(front) || !MathUtil.isFinite(up) || !MathUtil.isFinite(center)) throw new ArithmeticException();
             normal.set(up.crossProduct(front).toVector3f(), up.toVector3f(), front.toVector3f());
             Vector3f vec3f = normal.transform(new Vector3f((float) (config.getBindingZ() * config.getScale()),

@@ -42,9 +42,7 @@ public class ClientCommand<S extends CommandSource>{
 
     private int listAll(CommandContext<S> context) {
         StringBuffer buffer = new StringBuffer();
-        config.binding.targetMap.forEach((name, target) -> buffer.append("\n'").append(name).append("' -> [ ")
-                .append(target.textureId()).append(" ").append(target.frontIndex()).append(" ")
-                .append(target.upIndex()).append(" ").append(target.posIndex()).append(" ]"));
+        config.binding.targetMap.forEach((name, target) -> buffer.append("\n'").append(name).append("' -> ").append(target));
         printGameMessage(Text.translatable(KEY_COMMAND + "listAll", config.binding.targetMap.size(), buffer.toString()));
         return 1;
     }

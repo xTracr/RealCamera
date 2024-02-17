@@ -103,21 +103,20 @@
     "message.xtracr_realcamera_command_delete_success": "成功删除'%s'",
     "message.xtracr_realcamera_command_listAll": "找到了%d个结果: %s",
 
-    "screen.xtracr_realcamera_modelView_title": "模型试图",
+    "screen.xtracr_realcamera_modelView_title": "模型视图",
     "screen.widget.xtracr_realcamera_modelView_yaw": "俯仰 = %s",
     "screen.widget.xtracr_realcamera_modelView_pitch": "偏航 = %s",
     "screen.widget.xtracr_realcamera_modelView_reset": "重置模型状态",
-    "screen.widget.xtracr_realcamera_modelView_frontIndex": "向前矢量的索引",
-    "screen.widget.xtracr_realcamera_modelView_upIndex": "向上矢量的索引",
-    "screen.widget.xtracr_realcamera_modelView_posIndex": "平面的索引",
-    "screen.widget.xtracr_realcamera_modelView_textureId": "被选中的模型的纹理的id（不是完整的id也可以识别），保存时可以缩短一部分以便于程序识别\n比如将minecraft:textures/entity/player/slim/alex.png缩短为minecraft:textures/entity/player/",
-    "screen.widget.xtracr_realcamera_modelView_listName": "索引组的名称，保存后可在配置屏幕的'Experimental'界面选择并绑定",
+    "screen.widget.xtracr_realcamera_modelView_selectMode": "选择: %s",
+    "screen.widget.xtracr_realcamera_modelView_forwardMode": "向前矢量",
+    "screen.widget.xtracr_realcamera_modelView_upwardMode": "向上矢量",
+    "screen.widget.xtracr_realcamera_modelView_posMode": "平面",
     "screen.widget.xtracr_realcamera_modelView_save": "保存",
     "screen.widget.xtracr_realcamera_modelView_load": "加载",
     "screen.widget.xtracr_realcamera_modelView_pause": "开始/结束 暂停",
     "screen.widget.xtracr_realcamera_modelView_showCube": "显示/隐藏 立方体",
 
-    "screen.tooltip.xtracr_realcamera_modelView_selectFront": "打开后，按住Alt并左键可选择向前矢量\n注：按住左Alt键滚动可在模型的不同层间切换",
-    "screen.tooltip.xtracr_realcamera_modelView_selectUp": "打开后，按住Alt并左键可选择向上矢量\n注：按住左Alt键滚动可在模型的不同层间切换",
-    "screen.tooltip.xtracr_realcamera_modelView_selectPos": "打开后，按住Alt并左键可选择平面，摄像头可以绑定到该平面的中心点上\n注：按住左Alt键滚动可在模型的不同层间切换"
+    "screen.tooltip.xtracr_realcamera_modelView_selectMode": "按住左Alt并左键可获取鼠标指针处的UV坐标\n下方三组UV坐标由上到下依次为向前矢量、向上矢量和平面中心的UV坐标\n注：按住左Alt键滚动可在模型的不同层间切换，手动输入UV坐标可以更加精确地绑定到目标位置",
+    "screen.tooltip.xtracr_realcamera_modelView_textureId": "被选中的模型的纹理的id（不是完整的id也可以识别），保存时可以缩短一部分以便于程序识别\n比如将minecraft:textures/entity/player/slim/alex.png缩短为minecraft:textures/entity/player/",
+    "screen.tooltip.xtracr_realcamera_modelView_listName": "配置的名称，保存后可在配置屏幕的'Experimental'界面选择并绑定"
 }
