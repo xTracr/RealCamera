@@ -62,8 +62,10 @@ public class VertexRecorder implements VertexConsumerProvider {
     }
 
     public void setCurrent(Predicate<RenderLayer> predicate, int index) {
-        currentRecord = records.stream().filter(record -> predicate.test(record.renderLayer))
-                .sorted(Comparator.comparingInt(record -> -record.quadCount())).toList().get(index);
+        List<BuiltRecord> recordList = records.stream().filter(record -> predicate.test(record.renderLayer))
+                .sorted(Comparator.comparingInt(record -> -record.quadCount())).toList();
+        if (index < recordList.size()) currentRecord = recordList.get(index);
+        else currentRecord = null;
     }
 
     public void drawByAnother(VertexConsumerProvider anotherProvider, Predicate<RenderLayer> layerPredicate, BiPredicate<RenderLayer, Vertex[]> biPredicate) {

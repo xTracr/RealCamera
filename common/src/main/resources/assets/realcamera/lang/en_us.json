@@ -107,7 +107,7 @@
     "screen.widget.xtracr_realcamera_modelView_yaw": "Yaw = %s",
     "screen.widget.xtracr_realcamera_modelView_pitch": "Pitch = %s",
     "screen.widget.xtracr_realcamera_modelView_reset": "Reset Model State",
-    "screen.widget.xtracr_realcamera_modelView_selectMode": "Selecting: %s",
+    "screen.widget.xtracr_realcamera_modelView_selectMode": "Selecting",
     "screen.widget.xtracr_realcamera_modelView_forwardMode": "Forward Vector",
     "screen.widget.xtracr_realcamera_modelView_upwardMode": "Upward Vector",
     "screen.widget.xtracr_realcamera_modelView_posMode": "Plane",

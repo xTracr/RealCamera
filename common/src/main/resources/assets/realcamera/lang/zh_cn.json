@@ -107,7 +107,7 @@
     "screen.widget.xtracr_realcamera_modelView_yaw": "俯仰 = %s",
     "screen.widget.xtracr_realcamera_modelView_pitch": "偏航 = %s",
     "screen.widget.xtracr_realcamera_modelView_reset": "重置模型状态",
-    "screen.widget.xtracr_realcamera_modelView_selectMode": "选择: %s",
+    "screen.widget.xtracr_realcamera_modelView_selectMode": "选择",
     "screen.widget.xtracr_realcamera_modelView_forwardMode": "向前矢量",
     "screen.widget.xtracr_realcamera_modelView_upwardMode": "向上矢量",
     "screen.widget.xtracr_realcamera_modelView_posMode": "平面",
