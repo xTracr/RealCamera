@@ -5,6 +5,7 @@ import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.util.CrosshairUtil;
 import com.xtracr.realcamera.util.RaycastUtil;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
@@ -24,6 +25,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinGameRenderer {
     @Shadow
     @Final MinecraftClient client;
+
+    @Shadow @Final private Camera camera;
 
     @ModifyVariable(method = "updateTargetedEntity", at = @At("STORE"), ordinal = 0)
     private EntityHitResult realCamera$modifyEntityHitResult(EntityHitResult entityHitResult) {
@@ -51,6 +54,14 @@ public abstract class MixinGameRenderer {
     private void realCamera$onBeforeCameraUpdate(float tickDelta, long limitTime, MatrixStack matrices, CallbackInfo cInfo) {
         if (RealCameraCore.isActive()) {
             RealCameraCore.computeCamera(client, tickDelta);
+        }
+    }
+
+    @Inject(method = "renderWorld", at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/client/render/WorldRenderer;setupFrustum(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/util/math/Vec3d;Lorg/joml/Matrix4f;)V"))
+    private void realCamera$onBeforeSetupFrustum(CallbackInfo cInfo) {
+        if (RealCameraCore.isActive() && !ConfigFile.modConfig.isClassic()) {
+            ((CameraAccessor) camera).invokeSetPos(RealCameraCore.getPos());
         }
     }
 }

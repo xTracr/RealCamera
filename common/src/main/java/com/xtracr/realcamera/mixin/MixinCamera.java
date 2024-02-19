@@ -62,6 +62,7 @@ public abstract class MixinCamera {
                 setPos(prevPos);
                 realCamera$clipToSpace(startVec);
             }
+            RealCameraCore.setPos(pos);
             RealCameraCore.setModelOffset(pos.subtract(prevPos));
             setRotation(RealCameraCore.getYaw(yaw), RealCameraCore.getPitch(pitch));
         }

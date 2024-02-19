@@ -20,7 +20,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinWorldRenderer {
     @Shadow
     @Final private MinecraftClient client;
-
     @Shadow
     @Final private BufferBuilderStorage bufferBuilders;
 
@@ -31,10 +30,10 @@ public abstract class MixinWorldRenderer {
         ModConfig config = ConfigFile.modConfig;
         if (camera.isThirdPerson() || !RealCameraCore.isActive() || !config.isRendering() || config.shouldDisableRendering(this.client)) return;
         VertexConsumerProvider.Immediate immediate = this.bufferBuilders.getEntityVertexConsumers();
-        Vec3d offset = camera.getPos().subtract(RealCameraCore.getModelOffset());
+        Vec3d cameraPos = camera.getPos();
         RealCameraCore.setRenderingPlayer(true);
-        if (config.binding.experimental && !config.isClassic()) RealCameraCore.renderPlayer(offset, matrices, immediate);
-        else renderEntity(camera.getFocusedEntity(), offset.getX(), offset.getY(), offset.getZ(), tickDelta, matrices, immediate);
+        if (config.binding.experimental && !config.isClassic()) RealCameraCore.renderPlayer(cameraPos, matrices, immediate);
+        else renderEntity(camera.getFocusedEntity(), cameraPos.getX(), cameraPos.getY(), cameraPos.getZ(), tickDelta, matrices, immediate);
         RealCameraCore.setRenderingPlayer(false);
     }
 

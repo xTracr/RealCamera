@@ -70,8 +70,8 @@ public class RealCameraCore {
         return pos;
     }
 
-    public static Vec3d getModelOffset() {
-        return modelOffset;
+    public static void setPos(Vec3d vec3d) {
+        pos = vec3d;
     }
 
     public static void setModelOffset(Vec3d vec3d) {
@@ -87,10 +87,11 @@ public class RealCameraCore {
         return active;
     }
 
-    public static void renderPlayer(Vec3d offset, MatrixStack matrices, VertexConsumerProvider vertexConsumers) {
+    public static void renderPlayer(Vec3d cameraPos, MatrixStack matrices, VertexConsumerProvider vertexConsumers) {
         matrices.push();
+        cameraPos = cameraPos.subtract(modelOffset);
         Matrix4f positionMatrix = matrices.peek().getPositionMatrix().transpose().invertAffine()
-                .translate((float) -offset.getX(), (float) -offset.getY(), (float) -offset.getZ());
+                .translate((float) -cameraPos.getX(), (float) -cameraPos.getY(), (float) -cameraPos.getZ());
         Matrix3f normalMatrix = matrices.peek().getNormalMatrix().transpose().invert();
         BiPredicate<RenderLayer, VertexRecorder.Vertex[]> biPredicate = (renderLayer, vertices) -> {
             double depth = config.disable.depth, centerZ = 0;
