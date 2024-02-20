@@ -5,7 +5,7 @@ import com.xtracr.realcamera.util.VertexRecorder;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.util.Pair;
+import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
 
 import java.awt.*;
@@ -21,7 +21,7 @@ public class ModelAnalyser extends VertexRecorder {
         return getTextureId(focusedRecord);
     }
 
-    public Pair<Float, Float> getCenterUV(int quadIndex) {
+    public Vec2f getCenterUV(int quadIndex) {
         if (quadIndex == -1 || focusedRecord == null || quadIndex >= focusedRecord.quadCount()) return null;
         float u = 0, v = 0;
         Vertex[] quad = focusedRecord.vertices()[quadIndex];
@@ -29,7 +29,7 @@ public class ModelAnalyser extends VertexRecorder {
             u += vertex.u();
             v += vertex.v();
         }
-        return new Pair<>(u / quad.length, v / quad.length);
+        return new Vec2f(u / quad.length, v / quad.length);
     }
 
     public int getFocusedIndex(int mouseX, int mouseY, int layers) {
@@ -55,23 +55,12 @@ public class ModelAnalyser extends VertexRecorder {
 
     public void drawQuad(DrawContext context, float u, float v, int argb) {
         if (currentRecord == null) return;
-        drawQuad(context, getQuadIndex(currentRecord, u, v), argb, false);
+        int quadIndex = getQuadIndex(currentRecord, u, v);
+        if (quadIndex == -1) return;
+        drawQuad(context, currentRecord.vertices()[quadIndex], argb, 1000);
     }
 
-    public void drawQuad(DrawContext context, int quadIndex, int argb, boolean drawFocused) {
-        BuiltRecord record = drawFocused ? focusedRecord : currentRecord;
-        if (quadIndex == -1 || record == null || quadIndex >= record.quadCount()) return;
-        drawQuad(context, record.vertices()[quadIndex], argb, 1000);
-        if (drawFocused) {
-            Vertex[] highlight = record.vertices()[quadIndex];
-            int size = highlight.length;
-            Vertex[] reversed = new Vertex[size];
-            for (int i = 0; i < size; i++) reversed[i] = highlight[size - 1 - i];
-            drawQuad(context, reversed, argb, 1000);
-        }
-    }
-
-    public void drawPolyhedron(DrawContext context, int quadIndex, int argb) {
+    public void drawPolyhedron(DrawContext context, int quadIndex, int argb1, int argb2) {
         if (focusedRecord == null || quadIndex >= focusedRecord.quadCount()) return;
         Vertex[] highlight = focusedRecord.vertices()[quadIndex];
         List<Vertex[]> polyhedron = new ArrayList<>();
@@ -99,12 +88,12 @@ public class ModelAnalyser extends VertexRecorder {
             if (!indexes.contains(i)) break;
             resultIndexes.add(i);
         }
-        resultIndexes.forEach(i -> drawQuad(context, vertices[i], argb, 1000));
-        drawQuad(context, highlight, argb, 1100);
+        resultIndexes.forEach(i -> drawQuad(context, vertices[i], argb2, 1000));
+        drawQuad(context, highlight, argb1, 1100);
         size = highlight.length;
         Vertex[] reversed = new Vertex[size];
         for (int i = 0; i < size; i++) reversed[i] = highlight[size - 1 - i];
-        drawQuad(context, reversed, argb, 1100);
+        drawQuad(context, reversed, argb1, 1100);
     }
 
     public void drawNormal(DrawContext context,  float u, float v, int length, int argb) {

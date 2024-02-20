@@ -27,7 +27,7 @@ public abstract class NumberFieldWidget<T extends Comparable<T>> extends TextFie
     public T getValue() {
         try {
             return getValueInternal();
-        } catch (Exception ignored) {
+        } catch (Exception exception) {
             return defaultValue;
         }
     }

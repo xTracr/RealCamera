@@ -303,7 +303,7 @@ public class ModConfig {
         public boolean offsetModel = false;
         public boolean autoBind = true;
         public String nameOfList = "minecraft_head";
-        public Map<String, Target> targetMap = defaultTargetMap;
+        public LinkedHashMap<String, Target> targetMap = new LinkedHashMap<>(defaultTargetMap);
         public double cameraX = 0.0D;
         public double cameraY = 0.0D;
         public double cameraZ = 0.0D;
@@ -316,7 +316,7 @@ public class ModConfig {
 
         private void clamp() {
             if (vanillaModelPart == null) vanillaModelPart = VanillaModelPart.head;
-            if (targetMap == null) targetMap = defaultTargetMap;
+            if (targetMap == null) targetMap = new LinkedHashMap<>(defaultTargetMap);
             cameraX = MathHelper.clamp(cameraX, MIN_DOUBLE, MAX_DOUBLE);
             cameraY = MathHelper.clamp(cameraY, MIN_DOUBLE, MAX_DOUBLE);
             cameraZ = MathHelper.clamp(cameraZ, MIN_DOUBLE, MAX_DOUBLE);
@@ -374,10 +374,10 @@ public class ModConfig {
 
     public static class Disable {
         public static final Set<String> optionalParts = new HashSet<>(Set.of("head", "hat", "slot_head"));
-        protected static final List<String> defaultParts = Arrays.asList("head", "hat", "slot_head");
+        protected static final List<String> defaultParts = List.of("head", "hat", "slot_head");
         protected static final Triple<String, List<String>, List<String>> defaultTriple = new Triple<>
                 ("holding", List.of("new item id"), List.of("new action"));
-        protected static final List<Triple<String, List<String>, List<String>>> defaultConditions = Arrays.asList(
+        protected static final List<Triple<String, List<String>, List<String>>> defaultConditions = List.of(
                 new Triple<>("using", List.of("minecraft:spyglass"), List.of("disable_rendering")),
                 new Triple<>("holding", List.of("Example--minecraft:filled_map"), Arrays.asList(
                         "allow_rendering_hand", "leftArm", "rightArm", "leftSleeve", "rightSleeve", "heldItem")));
@@ -385,8 +385,8 @@ public class ModConfig {
 
         public boolean onlyInBinding = true;
         public boolean renderModelPart = false;
-        public List<String> disabledModelParts = defaultParts;
-        public List<Triple<String, List<String>, List<String>>> customConditions = defaultConditions;
+        public List<String> disabledModelParts = new ArrayList<>(defaultParts);
+        public List<Triple<String, List<String>, List<String>>> customConditions = new ArrayList<>(defaultConditions);
         public boolean fallFlying = true;
         public boolean swimming = false;
         public boolean crawling = false;
@@ -396,8 +396,8 @@ public class ModConfig {
         public double depth = 0.2;
 
         private void clamp() {
-            if (disabledModelParts == null) disabledModelParts = defaultParts;
-            if (customConditions == null) customConditions = defaultConditions;
+            if (disabledModelParts == null) disabledModelParts = new ArrayList<>(defaultParts);
+            if (customConditions == null) customConditions = new ArrayList<>(defaultConditions);
             customConditions.forEach(triple -> resetTripleIfNull(triple, defaultTriple));
         }
     }
