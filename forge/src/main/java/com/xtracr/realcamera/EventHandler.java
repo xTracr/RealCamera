@@ -20,7 +20,7 @@ public class EventHandler {
     @SubscribeEvent
     public static void onCameraUpdate(ViewportEvent.ComputeCameraAngles event) {
         if (RealCameraCore.isActive()) {
-            event.setRoll(RealCameraCore.getRoll());
+            event.setRoll(RealCameraCore.getRoll(event.getRoll()));
         }
     }
 

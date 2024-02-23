@@ -28,10 +28,8 @@ public class ConfigScreen {
     private static final String TOOLTIP = "config.tooltip.xtracr_" + RealCamera.MODID + "_";
 
     public static Screen create(Screen parent) {
-
         ConfigFile.load();
         final ModConfig config = ConfigFile.modConfig;
-
         final ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
                 .transparentBackground()
@@ -88,13 +86,20 @@ public class ConfigScreen {
                 .setTooltip(Text.translatable(TOOLTIP + "adjustOffset"))
                 .setSaveConsumer(b -> config.binding.adjustOffset = b)
                 .build());
-        binding.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "offsetModel"), config.binding.offsetModel)
-                .setDefaultValue(false)
-                .setTooltip(Text.translatable(TOOLTIP + "offsetModel"))
-                .setSaveConsumer(b -> config.binding.offsetModel = b)
-                .build());
         SubCategoryBuilder bindingCameraOffset = entryBuilder.startSubCategory(Text.translatable(CATEGORY + "cameraOffset"))
                 .setTooltip(Text.translatable(TOOLTIP + "bindingOffset"), Text.translatable(TOOLTIP + "bindingOffset_n"));
+        bindingCameraOffset.add(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "bindPosition", "X"), config.binding.bindX)
+                .setDefaultValue(true)
+                .setSaveConsumer(b -> config.binding.bindX = b)
+                .build());
+        bindingCameraOffset.add(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "bindPosition", "Y"), config.binding.bindY)
+                .setDefaultValue(true)
+                .setSaveConsumer(b -> config.binding.bindY = b)
+                .build());
+        bindingCameraOffset.add(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "bindPosition", "Z"), config.binding.bindZ)
+                .setDefaultValue(true)
+                .setSaveConsumer(b -> config.binding.bindZ = b)
+                .build());
         bindingCameraOffset.add(entryBuilder.startDoubleField(Text.translatable(OPTION + "cameraOffset", "X"), config.binding.cameraX)
                 .setDefaultValue(0)
                 .setMin(ModConfig.MIN_DOUBLE)
@@ -116,15 +121,15 @@ public class ConfigScreen {
         binding.addEntry(bindingCameraOffset.build());
         SubCategoryBuilder bindingCameraRotation = entryBuilder.startSubCategory(Text.translatable(CATEGORY + "cameraRotation"))
                 .setTooltip(Text.translatable(TOOLTIP + "cameraRotation"), Text.translatable(TOOLTIP + "cameraRotation_n"));
-        bindingCameraRotation.add(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "bindPitching"), config.binding.bindPitching)
+        bindingCameraRotation.add(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "bindRotation", Text.translatable(OPTION + "pitch")), config.binding.bindPitching)
                 .setDefaultValue(true)
                 .setSaveConsumer(b -> config.binding.bindPitching = b)
                 .build());
-        bindingCameraRotation.add(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "bindYawing"), config.binding.bindYawing)
+        bindingCameraRotation.add(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "bindRotation", Text.translatable(OPTION + "yaw")), config.binding.bindYawing)
                 .setDefaultValue(true)
                 .setSaveConsumer(b -> config.binding.bindYawing = b)
                 .build());
-        bindingCameraRotation.add(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "bindRolling"), config.binding.bindRolling)
+        bindingCameraRotation.add(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "bindRotation", Text.translatable(OPTION + "roll")), config.binding.bindRolling)
                 .setDefaultValue(true)
                 .setSaveConsumer(b -> config.binding.bindRolling = b)
                 .build());
@@ -319,9 +324,6 @@ public class ConfigScreen {
         experimental.addEntry(entryBuilder.startBooleanToggle(Text.literal("Enabled"), config.binding.experimental)
                 .setDefaultValue(false)
                 .setSaveConsumer(b -> config.binding.experimental = b)
-                .build());
-        experimental.addEntry(entryBuilder.startStrField(Text.literal("Name Of List"), config.binding.nameOfList)
-                .setSaveConsumer(s -> config.binding.nameOfList = s)
                 .build());
         experimental.addEntry(entryBuilder.startBooleanToggle(Text.literal("Auto Bind"), config.binding.autoBind)
                 .setDefaultValue(true)

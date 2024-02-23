@@ -10,8 +10,10 @@ import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.*;
+import java.util.Objects;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -76,11 +78,13 @@ public class VertexRecorder implements VertexConsumerProvider {
         records.forEach(record -> {
             RenderLayer renderLayer = record.renderLayer;
             if (!layerPredicate.test(renderLayer)) return;
-            int argb;
+            int argb, length;
             Vertex[] newQuad;
             VertexConsumer buffer = anotherProvider.getBuffer(renderLayer);
             for (Vertex[] quad : record.vertices) {
-                newQuad = Arrays.stream(quad).map(function).toArray(Vertex[]::new);
+                length = quad.length;
+                newQuad = new Vertex[length];
+                for (int i = 0; i < length; i++) newQuad[i] = function.apply(quad[i]);
                 if (biPredicate.test(renderLayer, newQuad)) for (Vertex vertex : newQuad) {
                     argb = vertex.argb;
                     buffer.vertex((float) vertex.x, (float) vertex.y, (float) vertex.z,

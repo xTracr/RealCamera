@@ -32,7 +32,7 @@ public class ModelViewScreen extends Screen {
     protected int xSize = 420, ySize = 220, widgetWidth = (xSize - ySize) / 4 - 8, widgetHeight = 18;
     protected int x, y;
     private boolean shouldPause = false;
-    private int entitySize = 80, layers = 0, page = 0;
+    private int entitySize = 80, layers = 0, currentPage = 0;
     private double entityX, entityY;
     private float xRot, yRot;
     private String focusedTextureId;
@@ -54,11 +54,11 @@ public class ModelViewScreen extends Screen {
         super.init();
         x = (width - xSize) / 2;
         y = (height - ySize) / 2;
-        initWidgets(page);
+        initWidgets(currentPage);
     }
 
     private void initWidgets(int page) {
-        this.page = page;
+        this.currentPage = page;
         clearChildren();
         initLeftWidgets();
         addDrawableChild(new TexturedButton(x + (xSize - ySize) / 2 + 4, y + 4, 16, 16, 0, 0, button -> {
@@ -81,7 +81,6 @@ public class ModelViewScreen extends Screen {
         GridWidget gridWidget = new GridWidget();
         gridWidget.getMainPositioner().margin(4, 2, 0, 0);
         Positioner fieldPositioner = gridWidget.copyPositioner().margin(5, 3, 1, 1);
-        Positioner fieldPositioner2 = gridWidget.copyPositioner().margin(-13, 3, 1, 1);
         GridWidget.Adder adder = gridWidget.createAdder(2);
         adder.add(yawSlider, 2);
         adder.add(pitchSlider, 2);
@@ -90,25 +89,29 @@ public class ModelViewScreen extends Screen {
                         2, Text.translatable(KEY_WIDGET + "posMode").styled(s -> s.withColor(Formatting.BLUE))), widgetWidth * 2 + 4,
                 Text.translatable(KEY_WIDGET + "selectMode")), 2).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "selectMode")));
         adder.add(forwardUField = createFloatField(widgetWidth, forwardUField), 1, fieldPositioner);
-        adder.add(forwardVField = createFloatField(widgetWidth, forwardVField), 1, fieldPositioner2);
+        adder.add(forwardVField = createFloatField(widgetWidth, forwardVField), 1, fieldPositioner);
         adder.add(upwardUField = createFloatField(widgetWidth, upwardUField), 1, fieldPositioner);
-        adder.add(upwardVField = createFloatField(widgetWidth, upwardVField), 1, fieldPositioner2);
+        adder.add(upwardVField = createFloatField(widgetWidth, upwardVField), 1, fieldPositioner);
         adder.add(posUField = createFloatField(widgetWidth, posUField), 1, fieldPositioner);
-        adder.add(posVField = createFloatField(widgetWidth, posVField), 1, fieldPositioner2);
+        adder.add(posVField = createFloatField(widgetWidth, posVField), 1, fieldPositioner);
         adder.add(textureIdField = createTextField(widgetWidth * 2 + 4, textureIdField),2, fieldPositioner)
                 .setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "textureId")));
-        adder.add(nameField = createTextField(widgetWidth * 2 - 24, nameField),1, fieldPositioner)
-                .setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "listName")));
-        adder.add(ButtonWidget.builder(Text.translatable(KEY_WIDGET + "save"), button -> {
+        textureIdField.setMaxLength(1024);
+        adder.add(createButton(Text.translatable(KEY_WIDGET + "save"), widgetWidth, button -> {
             String name = nameField.getText();
             if (name == null) return;
             ConfigFile.modConfig.binding.targetMap.put(name, new ModConfig.Binding.Target(textureIdField.getText(),
                     forwardUField.getValue(), forwardVField.getValue(), upwardUField.getValue(), upwardVField.getValue(),
                     posUField.getValue(), posVField.getValue()));
             ConfigFile.save();
-            init();
-        }).size(24, widgetHeight).build());
-        textureIdField.setMaxLength(1024);
+            initWidgets(currentPage);
+        }));
+        adder.add(createButton(Text.translatable(KEY_WIDGET + "bind"), widgetWidth, button -> {
+            ConfigFile.modConfig.binding.nameOfList = nameField.getText();
+            initWidgets(currentPage);
+        })).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "bind", "Auto Bind")));
+        adder.add(nameField = createTextField(widgetWidth * 2 + 4, nameField),2, fieldPositioner)
+                .setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "listName")));
         nameField.setMaxLength(20);
         gridWidget.refreshPositions();
         SimplePositioningWidget.setPos(gridWidget, x, y + 2, x + (xSize - ySize) / 2 - 4, y + ySize, 0, 0);
@@ -122,14 +125,15 @@ public class ModelViewScreen extends Screen {
         gridWidget.getMainPositioner().margin(4, 2, 0, 0);
         Positioner texturedPositioner = gridWidget.copyPositioner().margin(5, 3, 1, 1);
         GridWidget.Adder adder = gridWidget.createAdder(3);
-        adder.add(new TexturedButton(0, 16, button -> initWidgets((page + pageCount - 1) % pageCount)), 1, texturedPositioner);
-        adder.add(new TextWidget(20, widgetHeight, Text.of((page + 1) + " / " + pageCount), textRenderer));
+        adder.add(new TexturedButton(0, 16, button -> initWidgets((page - 1 + pageCount) % pageCount)), 1, texturedPositioner);
+        adder.add(new TextWidget(18, widgetHeight, Text.of((page + 1) + " / " + pageCount), textRenderer));
         adder.add(new TexturedButton(16, 16, button -> initWidgets((page + 1) % pageCount)), 1, texturedPositioner);
         String[] names = targetMap.keySet().toArray(String[]::new);
         for (int i = page * 6; i < Math.min(page * 6 + 6, targetMap.size()); i++) {
             String name = names[i];
             ModConfig.Binding.Target target = targetMap.get(name);
-            adder.add(createButton(Text.of(names[i]), widgetWidth * 2 - 18, button -> {
+            adder.add(createButton(Text.literal(name).styled(s -> name.equals(ConfigFile.modConfig.binding.nameOfList) ? s.withColor(Formatting.GREEN) : s),
+                    widgetWidth * 2 - 18, button -> {
                 nameField.setText(name);
                 textureIdField.setText(target.textureId());
                 forwardUField.setValue(target.forwardU());
@@ -141,11 +145,11 @@ public class ModelViewScreen extends Screen {
             }), 2);
             adder.add(new TexturedButton(32, 16, button -> {
                 targetMap.remove(name);
-                initWidgets(page);
+                initWidgets(page * 6 >= targetMap.size() ? page - 1 : page);
             }), 1, texturedPositioner);
         }
         gridWidget.refreshPositions();
-        SimplePositioningWidget.setPos(gridWidget, x + (xSize + ySize) / 2 + 5, y + 2, x + xSize, y + ySize, 0, 0);
+        SimplePositioningWidget.setPos(gridWidget, x + (xSize + ySize) / 2 + 4, y + 2, x + xSize, y + ySize, 0, 0);
         gridWidget.forEachChild(this::addDrawableChild);
     }
 
@@ -159,9 +163,9 @@ public class ModelViewScreen extends Screen {
     @Override
     public void renderBackground(DrawContext context) {
         super.renderBackground(context);
-        context.fill(x, y, x + (xSize - ySize) / 2 - 5, y + ySize, 0xFF444444);
+        context.fill(x, y, x + (xSize - ySize) / 2 - 4, y + ySize, 0xFF444444);
         context.fill(x + (xSize - ySize) / 2, y, x + (xSize + ySize) / 2, y + ySize, 0xFF222222);
-        context.fill(x + (xSize + ySize) / 2 + 5, y, x + xSize, y + ySize, 0xFF444444);
+        context.fill(x + (xSize + ySize) / 2 + 4, y, x + xSize, y + ySize, 0xFF444444);
     }
 
     protected void drawEntity(DrawContext context, int x1, int y1, int x2, int y2, int mouseX, int mouseY, LivingEntity entity) {
@@ -208,7 +212,7 @@ public class ModelViewScreen extends Screen {
         focusedUV = analyser.getCenterUV(focusedIndex);
         focusedTextureId = analyser.focusedTextureId();
         analyser.drawQuad(context, posUField.getValue(), posVField.getValue(), 0x6F3333CC);
-        if (focusedIndex != -1) analyser.drawPolyhedron(context, focusedIndex, 0x7FFFFFFF, 0x3FFFFFFF);
+        if (focusedIndex != -1) analyser.drawPolyhedron(context, focusedIndex, 0x7FFFFFFF, 0x2FFFFFFF);
         analyser.drawNormal(context, forwardUField.getValue(), forwardVField.getValue(), entitySize / 2, 0xFF00CC00);
         analyser.drawNormal(context, upwardUField.getValue(), upwardVField.getValue(), entitySize / 2, 0xFFCC0000);
         entityRenderDispatcher.setRenderShadows(true);

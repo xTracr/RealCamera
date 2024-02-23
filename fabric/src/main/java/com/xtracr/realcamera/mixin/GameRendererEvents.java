@@ -16,7 +16,7 @@ public abstract class GameRendererEvents {
             shift = At.Shift.AFTER))
     private void realCamera$onAfterCameraUpdate(float tickDelta, long limitTime, MatrixStack matrixStack, CallbackInfo cInfo) {
         if (RealCameraCore.isActive()) {
-            matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(RealCameraCore.getRoll()));
+            matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(RealCameraCore.getRoll(0)));
         }
     }
 }

@@ -21,6 +21,7 @@ import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -37,8 +38,7 @@ public class RealCameraCore {
     private static boolean renderingPlayer = false;
     private static boolean active = false;
     private static float pitch, yaw, roll;
-    private static Vec3d pos = Vec3d.ZERO;
-    private static Vec3d modelOffset = Vec3d.ZERO;
+    private static Vec3d pos = Vec3d.ZERO, cameraPos = Vec3d.ZERO;
 
     public static String getStatus() {
         return status;
@@ -62,20 +62,23 @@ public class RealCameraCore {
         else return f - config.getBindingYaw();
     }
 
-    public static float getRoll() {
-        return roll;
+    public static float getRoll(float f) {
+        if (config.isRollingBound()) return roll;
+        else return f + config.getBindingRoll();
     }
 
-    public static Vec3d getPos() {
-        return pos;
+    public static Vec3d getPos(Vec3d vec3d) {
+        return new Vec3d(config.isXBound() ? pos.getX() : vec3d.getX(),
+                config.isYBound() ? pos.getY() : vec3d.getY(),
+                config.isZBound() ? pos.getZ() : vec3d.getZ());
     }
 
-    public static void setPos(Vec3d vec3d) {
-        pos = vec3d;
+    public static Vec3d getCameraPos() {
+        return cameraPos;
     }
 
-    public static void setModelOffset(Vec3d vec3d) {
-        modelOffset = vec3d;
+    public static void setCameraPos(Vec3d vec3d) {
+        cameraPos = vec3d;
     }
 
     public static void init(MinecraftClient client) {
@@ -87,12 +90,14 @@ public class RealCameraCore {
         return active;
     }
 
-    public static void renderPlayer(Vec3d cameraPos, MatrixStack matrices, VertexConsumerProvider vertexConsumers) {
-        matrices.push();
-        cameraPos = cameraPos.subtract(modelOffset);
-        Matrix4f positionMatrix = matrices.peek().getPositionMatrix().transpose().invertAffine()
-                .translate((float) -cameraPos.getX(), (float) -cameraPos.getY(), (float) -cameraPos.getZ());
-        Matrix3f normalMatrix = matrices.peek().getNormalMatrix().transpose().invert();
+    public static void renderPlayer(VertexConsumerProvider vertexConsumers) {
+        MatrixStack matrixStack = new MatrixStack();
+        matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(roll));
+        matrixStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(pitch));
+        matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(yaw + 180.0f));
+        Matrix4f positionMatrix = matrixStack.peek().getPositionMatrix().transpose().invertAffine()
+                .translate((float) -pos.getX(), (float) -pos.getY(), (float) -pos.getZ());
+        Matrix3f normalMatrix = matrixStack.peek().getNormalMatrix().transpose().invert();
         BiPredicate<RenderLayer, VertexRecorder.Vertex[]> biPredicate = (renderLayer, vertices) -> {
             double depth = config.disable.depth, centerZ = 0;
             for (VertexRecorder.Vertex vertex : vertices) {
@@ -102,11 +107,9 @@ public class RealCameraCore {
             return centerZ < -depth * vertices.length;
         };
         recorder.drawByAnother(vertex -> vertex.transform(positionMatrix, normalMatrix), vertexConsumers, renderLayer -> true, biPredicate);
-        matrices.pop();
     }
 
     public static void computeCamera(MinecraftClient client, float tickDelta) {
-        modelOffset = Vec3d.ZERO;
         roll = config.getClassicRoll();
         if (config.isClassic()) return;
 
@@ -153,7 +156,7 @@ public class RealCameraCore {
         Vec3d eulerAngle = MathUtil.getEulerAngleYXZ(normal).multiply(180.0D / Math.PI);
         pitch = (float) eulerAngle.getX();
         yaw = (float) -eulerAngle.getY();
-        roll = config.isRollingBound() ? (float) eulerAngle.getZ() : config.getBindingRoll();
+        roll = (float) eulerAngle.getZ();
     }
 
     private static void virtualRender(MinecraftClient client, float tickDelta, MatrixStack matrixStack, VertexConsumerProvider consumers) {

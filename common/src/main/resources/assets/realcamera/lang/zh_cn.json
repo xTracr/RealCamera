@@ -12,7 +12,6 @@
     "key.xtracr_realcamera_adjustRIGHT": "向右调整",
     "modmenu.descriptionTranslation.realcamera": "使第一人称视角下的摄像头更加真实。",
 
-
     "config.title.xtracr_realcamera": "Real Camera",
     "config.category.xtracr_realcamera_general": "通用",
     "config.category.xtracr_realcamera_binding": "绑定模式",
@@ -44,11 +43,9 @@
 
     "config.option.xtracr_realcamera_vanillaModelPart": "原版模型部位",
     "config.option.xtracr_realcamera_adjustOffset": "调整摄像头偏移",
-    "config.option.xtracr_realcamera_offsetModel": "偏移模型",
-    "config.option.xtracr_realcamera_bindPitching": "绑定俯仰",
-    "config.option.xtracr_realcamera_bindYawing": "绑定偏航",
-    "config.option.xtracr_realcamera_bindRolling": "绑定翻滚",
+    "config.option.xtracr_realcamera_bindPosition": "绑定%s坐标值",
     "config.option.xtracr_realcamera_cameraOffset": "摄像头%s偏移",
+    "config.option.xtracr_realcamera_bindRotation": "绑定%s",
     "config.option.xtracr_realcamera_pitch": "俯仰角",
     "config.option.xtracr_realcamera_yaw": "偏航角",
     "config.option.xtracr_realcamera_roll": "翻滚角",
@@ -96,7 +93,7 @@
     "config.tooltip.xtracr_realcamera_disabledModelParts": "可能的选项(可能还有其它选项未被列举): %s",
     "config.tooltip.xtracr_realcamera_customConditions_actions": "可用选项: [disable_mod, disable_rendering, allow_rendering_hand] 以及 模型部位的名称",
 
-    "config.tooltip.xtracr_realcamera_autoBind": "根据当前玩家模型纹理，自动在已保存的配置中搜索合适项\n如果搜索到了结果，会忽略Name of List的值",
+    "config.tooltip.xtracr_realcamera_autoBind": "根据当前玩家模型纹理，自动在已保存的配置中搜索合适项",
     "config.tooltip.xtracr_realcamera_depth": "全部顶点到屏幕距离均小于该值的面不会被渲染",
 
     "message.xtracr_realcamera_command_delete_failure": "未能找到'%s'",
@@ -111,8 +108,10 @@
     "screen.widget.xtracr_realcamera_modelView_upwardMode": "向上矢量",
     "screen.widget.xtracr_realcamera_modelView_posMode": "平面",
     "screen.widget.xtracr_realcamera_modelView_save": "保存",
+    "screen.widget.xtracr_realcamera_modelView_bind": "绑定",
 
     "screen.tooltip.xtracr_realcamera_modelView_selectMode": "按住左Alt并左键可获取鼠标指针处的UV坐标\n下方三组UV坐标由上到下依次为向前矢量、向上矢量和平面中心的UV坐标\n注：按住左Alt键滚动可在模型的不同层间切换，手动输入UV坐标可以更加精确地绑定到目标位置",
     "screen.tooltip.xtracr_realcamera_modelView_textureId": "被选中的模型的纹理的id（不是完整的id也可以识别），保存时可以缩短一部分以便于程序识别\n比如将minecraft:textures/entity/player/slim/alex.png缩短为minecraft:textures/entity/player/",
-    "screen.tooltip.xtracr_realcamera_modelView_listName": "配置的名称，保存后可在配置屏幕的'Experimental'界面选择并绑定"
+    "screen.tooltip.xtracr_realcamera_modelView_bind": "在右侧显示为绿色的是当前所绑定的，在'%s'启用时会被忽略",
+    "screen.tooltip.xtracr_realcamera_modelView_listName": "配置的名称"
 }

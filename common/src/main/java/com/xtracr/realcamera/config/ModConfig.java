@@ -80,8 +80,16 @@ public class ModConfig {
         return binding.adjustOffset;
     }
 
-    public boolean doOffsetModel() {
-        return binding.offsetModel;
+    public boolean isXBound() {
+        return binding.bindX;
+    }
+
+    public boolean isYBound() {
+        return binding.bindY;
+    }
+
+    public boolean isZBound() {
+        return binding.bindZ;
     }
 
     public double getBindingX() {
@@ -300,10 +308,12 @@ public class ModConfig {
         public VanillaModelPart vanillaModelPart = VanillaModelPart.head;
         public boolean experimental = false;
         public boolean adjustOffset = true;
-        public boolean offsetModel = false;
         public boolean autoBind = true;
         public String nameOfList = "minecraft_head";
         public LinkedHashMap<String, Target> targetMap = new LinkedHashMap<>(defaultTargetMap);
+        public boolean bindX = true;
+        public boolean bindY = true;
+        public boolean bindZ = true;
         public double cameraX = 0.0D;
         public double cameraY = 0.0D;
         public double cameraZ = 0.0D;
