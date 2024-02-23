@@ -58,16 +58,12 @@ public class VertexRecorder implements VertexConsumerProvider {
     }
 
     public void buildLastRecord() {
-        if (lastRecord == null) return;
-        if (!lastRecord.vertices.isEmpty()) records.add(lastRecord.build());
+        if (lastRecord != null && !lastRecord.vertices.isEmpty()) records.add(lastRecord.build());
         lastRecord = null;
     }
 
-    public void setCurrent(Predicate<RenderLayer> predicate, int index) {
-        List<BuiltRecord> recordList = records.stream().filter(record -> predicate.test(record.renderLayer))
-                .sorted(Comparator.comparingInt(record -> -record.quadCount())).toList();
-        if (index < recordList.size()) currentRecord = recordList.get(index);
-        else currentRecord = null;
+    public void setCurrent(Predicate<RenderLayer> predicate) {
+        currentRecord = records.stream().filter(record -> predicate.test(record.renderLayer)).max(Comparator.comparingInt(BuiltRecord::quadCount)).orElse(null);
     }
 
     public void drawByAnother(VertexConsumerProvider anotherProvider, Predicate<RenderLayer> layerPredicate, BiPredicate<RenderLayer, Vertex[]> biPredicate) {
@@ -102,7 +98,7 @@ public class VertexRecorder implements VertexConsumerProvider {
     }
 
     protected static int getQuadIndex(BuiltRecord record, float u, float v) {
-        final int resolution = 10000000;
+        final int resolution = 1000000;
         for (int i = 0, size = record.vertices.length; i < size; i++) {
             Vertex[] quad = record.vertices[i];
             Polygon polygon = new Polygon();

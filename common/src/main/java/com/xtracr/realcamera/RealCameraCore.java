@@ -28,7 +28,9 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.BiPredicate;
 
 public class RealCameraCore {
@@ -64,7 +66,7 @@ public class RealCameraCore {
 
     public static float getRoll(float f) {
         if (config.isRollingBound()) return roll;
-        else return f + config.getBindingRoll();
+        else return f + (config.isClassic() ? config.getClassicRoll() : config.getBindingRoll());
     }
 
     public static Vec3d getPos(Vec3d vec3d) {
@@ -73,8 +75,10 @@ public class RealCameraCore {
                 config.isZBound() ? pos.getZ() : vec3d.getZ());
     }
 
-    public static Vec3d getCameraPos() {
-        return cameraPos;
+    public static Vec3d getCameraPos(Vec3d vec3d) {
+        return new Vec3d(config.isXBound() ? cameraPos.getX() : vec3d.getX(),
+                config.isYBound() ? cameraPos.getY() : vec3d.getY(),
+                config.isZBound() ? cameraPos.getZ() : vec3d.getZ());
     }
 
     public static void setCameraPos(Vec3d vec3d) {
@@ -125,29 +129,32 @@ public class RealCameraCore {
                 -(float) (config.getBindingX() * config.getScale()) - 0.225f, 1.0F));
         pos = new Vec3d(offset.x(), offset.y(), offset.z());
         Matrix3f normal = matrixStack.peek().getNormalMatrix().scale(1.0F, -1.0F, -1.0F);
-        if (config.binding.experimental) try {
-            ModConfig.Binding.Target target;
+        if (config.binding.experimental) {
+            List<ModConfig.Binding.Target> targetList = new ArrayList<>();
             if (config.binding.autoBind) {
                 Collection<ModConfig.Binding.Target> targetSet = config.binding.targetMap.values();
-                recorder.setCurrent(renderLayer -> targetSet.stream().anyMatch(t -> renderLayer.toString().contains(t.textureId())), 0);
+                recorder.setCurrent(renderLayer -> targetSet.stream().anyMatch(t -> renderLayer.toString().contains(t.textureId())));
                 String textureId = recorder.currentTextureId();
-                target = targetSet.stream().filter(t -> textureId.contains(t.textureId())).findFirst()
-                        .orElse(config.binding.targetMap.get(config.binding.nameOfList));
-            } else {
-                target = config.binding.targetMap.get(config.binding.nameOfList);
+                if (textureId != null) targetList.addAll(targetSet.stream().filter(t -> textureId.contains(t.textureId())).toList());
             }
-            recorder.setCurrent(renderLayer -> renderLayer.toString().contains(target.textureId()), 0);
-            if (recorder.quadCount() <= 0) throw new NullPointerException("Vertices not found");
-            Vec3d front = recorder.getNormal(target.forwardU(), target.forwardV());
-            Vec3d up = recorder.getNormal(target.upwardU(), target.upwardV());
-            Vec3d center = recorder.getPos(target.posU(), target.posV());
-            if (!MathUtil.isFinite(front) || !MathUtil.isFinite(up) || !MathUtil.isFinite(center)) throw new ArithmeticException();
-            normal.set(up.crossProduct(front).toVector3f(), up.toVector3f(), front.toVector3f());
-            Vector3f vec3f = normal.transform(new Vector3f((float) (config.getBindingZ() * config.getScale()),
-                    (float) (config.getBindingY() * config.getScale()),
-                    (float) (config.getBindingX() * config.getScale())));
-            pos = center.add(vec3f.x(), vec3f.y(), vec3f.z());
-        } catch (Exception ignored) {
+            targetList.add(config.binding.targetMap.get(config.binding.nameOfList));
+            for (ModConfig.Binding.Target target : targetList) {
+                try {
+                    recorder.setCurrent(renderLayer -> renderLayer.toString().contains(target.textureId()));
+                    if (recorder.quadCount() <= 0) throw new NullPointerException("Vertices not found");
+                    Vec3d front = recorder.getNormal(target.forwardU(), target.forwardV());
+                    Vec3d up = recorder.getNormal(target.upwardU(), target.upwardV());
+                    Vec3d center = recorder.getPos(target.posU(), target.posV());
+                    if (!MathUtil.isFinite(front) || !MathUtil.isFinite(up) || !MathUtil.isFinite(center)) throw new ArithmeticException();
+                    normal.set(up.crossProduct(front).toVector3f(), up.toVector3f(), front.toVector3f());
+                    Vector3f vec3f = normal.transform(new Vector3f((float) (config.getBindingZ() * config.getScale()),
+                            (float) (config.getBindingY() * config.getScale()),
+                            (float) (config.getBindingX() * config.getScale())));
+                    pos = center.add(vec3f.x(), vec3f.y(), vec3f.z());
+                    break;
+                } catch (Exception ignored) {
+                }
+            }
         }
 
         normal.rotateLocal((float) Math.toRadians(config.getBindingYaw()), normal.m10, normal.m11, normal.m12);

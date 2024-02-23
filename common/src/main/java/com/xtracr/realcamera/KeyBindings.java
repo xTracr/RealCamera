@@ -8,31 +8,34 @@ import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.Collection;
+import java.util.HashSet;
+
 public final class KeyBindings {
     private static final ModConfig config = ConfigFile.modConfig;
     private static final String KEY_CATEGORY = "key.category.xtracr_" + RealCamera.MODID;
     private static final String KEY_ID = "key.xtracr_" + RealCamera.MODID + "_";
+    public static final Collection<KeyBinding> KEY_BINDINGS = new HashSet<>();
+    private static final KeyBinding MODEL_VIEW_GUI = createKeyBinding("modelViewGui");
+    private static final KeyBinding TOGGLE_PERSPECTIVE = createKeyBinding("togglePerspective", GLFW.GLFW_KEY_F6);
+    private static final KeyBinding TOGGLE_ADJUST_MODE = createKeyBinding("toggleAdjustMode");
+    private static final KeyBinding TOGGLE_CAMERA_MODE = createKeyBinding("toggleCameraMode");
+    private static final KeyBinding ADJUST_UP = createKeyBinding("adjustUP");
+    private static final KeyBinding ADJUST_DOWN = createKeyBinding("adjustDOWN");
+    private static final KeyBinding ADJUST_FRONT = createKeyBinding("adjustFRONT");
+    private static final KeyBinding ADJUST_BACK = createKeyBinding("adjustBACK");
+    private static final KeyBinding ADJUST_LEFT = createKeyBinding("adjustLEFT");
+    private static final KeyBinding ADJUST_RIGHT = createKeyBinding("adjustRIGHT");
+    
+    public static KeyBinding createKeyBinding(String id) {
+        return createKeyBinding(id, InputUtil.UNKNOWN_KEY.getCode());
+    }
 
-    public static final KeyBinding MODEL_VIEW_GUI = new KeyBinding(
-            KEY_ID + "modelViewGui", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
-    public static final KeyBinding TOGGLE_PERSPECTIVE = new KeyBinding(
-            KEY_ID + "togglePerspective", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_F6, KEY_CATEGORY);
-    public static final KeyBinding TOGGLE_ADJUST_MODE = new KeyBinding(
-            KEY_ID + "toggleAdjustMode", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
-    public static final KeyBinding TOGGLE_CAMERA_MODE = new KeyBinding(
-            KEY_ID + "toggleCameraMode", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
-    public static final KeyBinding ADJUST_UP = new KeyBinding(
-            KEY_ID + "adjustUP", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
-    public static final KeyBinding ADJUST_DOWN = new KeyBinding(
-            KEY_ID + "adjustDOWN", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
-    public static final KeyBinding ADJUST_FRONT = new KeyBinding(
-            KEY_ID + "adjustFRONT", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
-    public static final KeyBinding ADJUST_BACK = new KeyBinding(
-            KEY_ID + "adjustBACK", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
-    public static final KeyBinding ADJUST_LEFT = new KeyBinding(
-            KEY_ID + "adjustLEFT", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
-    public static final KeyBinding ADJUST_RIGHT = new KeyBinding(
-            KEY_ID + "adjustRIGHT", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), KEY_CATEGORY);
+    public static KeyBinding createKeyBinding(String id, int code) {
+        KeyBinding keyBinding = new KeyBinding(KEY_ID + id, code, KEY_CATEGORY);
+        KEY_BINDINGS.add(keyBinding);
+        return keyBinding;
+    }
 
     public static void handle(MinecraftClient client) {
         if (client.player == null) return;

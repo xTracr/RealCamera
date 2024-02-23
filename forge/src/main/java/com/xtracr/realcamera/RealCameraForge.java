@@ -40,15 +40,6 @@ public class RealCameraForge {
 
     @SubscribeEvent
     public void onKeyRegister(RegisterKeyMappingsEvent event) {
-        event.register(KeyBindings.MODEL_VIEW_GUI);
-        event.register(KeyBindings.TOGGLE_PERSPECTIVE);
-        event.register(KeyBindings.TOGGLE_ADJUST_MODE);
-        event.register(KeyBindings.TOGGLE_CAMERA_MODE);
-        event.register(KeyBindings.ADJUST_UP);
-        event.register(KeyBindings.ADJUST_DOWN);
-        event.register(KeyBindings.ADJUST_BACK);
-        event.register(KeyBindings.ADJUST_FRONT);
-        event.register(KeyBindings.ADJUST_LEFT);
-        event.register(KeyBindings.ADJUST_RIGHT);
+        KeyBindings.KEY_BINDINGS.forEach(event::register);
     }
 }

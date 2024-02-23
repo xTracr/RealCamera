@@ -61,7 +61,7 @@ public abstract class MixinGameRenderer {
             target = "Lnet/minecraft/client/render/WorldRenderer;setupFrustum(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/util/math/Vec3d;Lorg/joml/Matrix4f;)V"))
     private void realCamera$onBeforeSetupFrustum(CallbackInfo cInfo) {
         if (RealCameraCore.isActive() && !ConfigFile.modConfig.isClassic()) {
-            ((CameraAccessor) camera).invokeSetPos(RealCameraCore.getCameraPos());
+            ((CameraAccessor) camera).invokeSetPos(RealCameraCore.getCameraPos(camera.getPos()));
         }
     }
 }

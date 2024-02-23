@@ -9,7 +9,7 @@ public class FloatFieldWidget extends NumberFieldWidget<Float> {
     public FloatFieldWidget(TextRenderer textRenderer, int width, int height,
             @Nullable NumberFieldWidget<Float> copyFrom, Text text) {
         super(textRenderer, 0, 0, width, height, copyFrom, text, 0f, Float.MAX_VALUE, -Float.MAX_VALUE);
-        setMaxLength(9);
+        setMaxLength(8);
     }
 
     @Override

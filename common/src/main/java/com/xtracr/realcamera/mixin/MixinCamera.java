@@ -1,11 +1,12 @@
 package com.xtracr.realcamera.mixin;
 
 import com.xtracr.realcamera.RealCameraCore;
-import com.xtracr.realcamera.compat.PehkuiCompat;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
 import net.minecraft.client.render.Camera;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityDimensions;
+import net.minecraft.entity.EntityType;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
@@ -38,23 +39,20 @@ public abstract class MixinCamera {
         if (!RealCameraCore.isActive()) return;
         final ModConfig config = ConfigFile.modConfig;
         Vec3d startVec = pos;
+        Box box = focusedEntity.getBoundingBox();
         if (config.isClassic()) {
-            Vec3d offset = new Vec3d(config.getClassicX(), config.getClassicY(), config.getClassicZ()).multiply(config.getScale());
-            Vec3d center = new Vec3d(config.getCenterX(), config.getCenterY(), config.getCenterZ()).multiply(config.getScale());
+            EntityDimensions playerDimensions = EntityType.PLAYER.getDimensions();
+            double scale = config.getScale() * 2 * box.getAverageSideLength() / (playerDimensions.height + playerDimensions.width);
+            Vec3d offset = new Vec3d(config.getClassicX(), config.getClassicY(), config.getClassicZ()).multiply(scale);
+            Vec3d center = new Vec3d(config.getCenterX(), config.getCenterY(), config.getCenterZ()).multiply(scale);
             float newPitch = pitch + config.getClassicPitch();
             float newYaw = yaw - config.getClassicYaw();
-            if (config.compatPehkui()) {
-                offset = PehkuiCompat.scaleVec3d(offset, focusedEntity, tickDelta);
-                center = PehkuiCompat.scaleVec3d(center, focusedEntity, tickDelta);
-            }
-
             setRotation(yaw, 0.0F);
             moveBy(center.getX(), center.getY(), center.getZ());
             setRotation(newYaw, newPitch);
             moveBy(offset.getX(), offset.getY(), offset.getZ());
         } else {
             Vec3d prevPos = RealCameraCore.getPos(pos);
-            Box box = focusedEntity.getBoundingBox();
             double restrictedY = MathHelper.clamp(prevPos.getY(), box.minY + 0.1D, box.maxY - 0.1D);
             startVec = new Vec3d(pos.getX(), restrictedY, pos.getZ());
             setPos(prevPos);

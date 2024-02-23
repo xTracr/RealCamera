@@ -207,7 +207,7 @@ public class ModelViewScreen extends Screen {
         analyser.buildLastRecord();
         analyser.drawByAnother(context.getVertexConsumers(), renderLayer -> true, (renderLayer, vertices) -> true); // TODO
         context.draw();
-        analyser.setCurrent(renderLayer -> renderLayer.toString().contains(textureIdField.getText()), 0);
+        analyser.setCurrent(renderLayer -> renderLayer.toString().contains(textureIdField.getText()));
         int focusedIndex = analyser.getFocusedIndex(mouseX, mouseY, layers);
         focusedUV = analyser.getCenterUV(focusedIndex);
         focusedTextureId = analyser.focusedTextureId();
