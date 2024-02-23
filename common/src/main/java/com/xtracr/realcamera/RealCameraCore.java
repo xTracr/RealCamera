@@ -55,30 +55,31 @@ public class RealCameraCore {
     }
 
     public static float getPitch(float f) {
-        if (config.isPitchingBound()) return pitch;
+        if (config.isRotationBound()) return pitch;
         else return f + config.getBindingPitch();
     }
 
     public static float getYaw(float f) {
-        if (config.isYawingBound()) return yaw;
+        if (config.isRotationBound()) return yaw;
         else return f - config.getBindingYaw();
     }
 
     public static float getRoll(float f) {
-        if (config.isRollingBound()) return roll;
-        else return f + (config.isClassic() ? config.getClassicRoll() : config.getBindingRoll());
+        if (config.isClassic()) return f + config.getClassicRoll();
+        else if (config.isRotationBound()) return roll;
+        else return f + config.getBindingRoll();
     }
 
     public static Vec3d getPos(Vec3d vec3d) {
-        return new Vec3d(config.isXBound() ? pos.getX() : vec3d.getX(),
-                config.isYBound() ? pos.getY() : vec3d.getY(),
-                config.isZBound() ? pos.getZ() : vec3d.getZ());
+        return new Vec3d(config.isXBound() ? pos.getX() : vec3d.getX() + config.getBindingX(),
+                config.isYBound() ? pos.getY() : vec3d.getY() + config.getBindingY(),
+                config.isZBound() ? pos.getZ() : vec3d.getZ() + config.getBindingZ());
     }
 
     public static Vec3d getCameraPos(Vec3d vec3d) {
-        return new Vec3d(config.isXBound() ? cameraPos.getX() : vec3d.getX(),
-                config.isYBound() ? cameraPos.getY() : vec3d.getY(),
-                config.isZBound() ? cameraPos.getZ() : vec3d.getZ());
+        return new Vec3d(config.isXBound() ? cameraPos.getX() : vec3d.getX() + config.getBindingX(),
+                config.isYBound() ? cameraPos.getY() : vec3d.getY() + config.getBindingY(),
+                config.isZBound() ? cameraPos.getZ() : vec3d.getZ() + config.getBindingZ());
     }
 
     public static void setCameraPos(Vec3d vec3d) {

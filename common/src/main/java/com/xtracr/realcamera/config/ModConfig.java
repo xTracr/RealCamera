@@ -104,16 +104,8 @@ public class ModConfig {
         return binding.cameraZ;
     }
 
-    public boolean isPitchingBound() {
-        return binding.bindPitching;
-    }
-
-    public boolean isYawingBound() {
-        return binding.bindYawing;
-    }
-
-    public boolean isRollingBound() {
-        return binding.bindRolling;
+    public boolean isRotationBound() {
+        return binding.bindRotation;
     }
 
     public float getBindingPitch() {
@@ -317,9 +309,7 @@ public class ModConfig {
         public double cameraX = 0.0D;
         public double cameraY = 0.0D;
         public double cameraZ = 0.0D;
-        public boolean bindPitching = true;
-        public boolean bindYawing = true;
-        public boolean bindRolling = true;
+        public boolean bindRotation = true;
         public float pitch = 0.0F;
         public float yaw = 0.0F;
         public float roll = 0.0F;

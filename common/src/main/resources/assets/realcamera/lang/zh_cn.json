@@ -45,7 +45,7 @@
     "config.option.xtracr_realcamera_adjustOffset": "调整摄像头偏移",
     "config.option.xtracr_realcamera_bindPosition": "绑定%s坐标值",
     "config.option.xtracr_realcamera_cameraOffset": "摄像头%s偏移",
-    "config.option.xtracr_realcamera_bindRotation": "绑定%s",
+    "config.option.xtracr_realcamera_bindRotation": "绑定旋转方向",
     "config.option.xtracr_realcamera_pitch": "俯仰角",
     "config.option.xtracr_realcamera_yaw": "偏航角",
     "config.option.xtracr_realcamera_roll": "翻滚角",

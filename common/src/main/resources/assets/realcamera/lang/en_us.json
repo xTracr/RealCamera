@@ -45,7 +45,7 @@
     "config.option.xtracr_realcamera_adjustOffset": "Adjust Camera Offset",
     "config.option.xtracr_realcamera_bindPosition": "Bind %s coordinate value",
     "config.option.xtracr_realcamera_cameraOffset": "Camera %s Offset",
-    "config.option.xtracr_realcamera_bindRotation": "Bind %sing",
+    "config.option.xtracr_realcamera_bindRotation": "Bind Rotation",
     "config.option.xtracr_realcamera_pitch": "Pitch",
     "config.option.xtracr_realcamera_yaw": "Yaw",
     "config.option.xtracr_realcamera_roll": "Roll",

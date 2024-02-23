@@ -121,17 +121,9 @@ public class ConfigScreen {
         binding.addEntry(bindingCameraOffset.build());
         SubCategoryBuilder bindingCameraRotation = entryBuilder.startSubCategory(Text.translatable(CATEGORY + "cameraRotation"))
                 .setTooltip(Text.translatable(TOOLTIP + "cameraRotation"), Text.translatable(TOOLTIP + "cameraRotation_n"));
-        bindingCameraRotation.add(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "bindRotation", Text.translatable(OPTION + "pitch")), config.binding.bindPitching)
+        bindingCameraRotation.add(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "bindRotation"), config.binding.bindRotation)
                 .setDefaultValue(true)
-                .setSaveConsumer(b -> config.binding.bindPitching = b)
-                .build());
-        bindingCameraRotation.add(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "bindRotation", Text.translatable(OPTION + "yaw")), config.binding.bindYawing)
-                .setDefaultValue(true)
-                .setSaveConsumer(b -> config.binding.bindYawing = b)
-                .build());
-        bindingCameraRotation.add(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "bindRotation", Text.translatable(OPTION + "roll")), config.binding.bindRolling)
-                .setDefaultValue(true)
-                .setSaveConsumer(b -> config.binding.bindRolling = b)
+                .setSaveConsumer(b -> config.binding.bindRotation = b)
                 .build());
         bindingCameraRotation.add(entryBuilder.startFloatField(Text.translatable(OPTION + "pitch"), config.binding.pitch)
                 .setDefaultValue(0.0f)
