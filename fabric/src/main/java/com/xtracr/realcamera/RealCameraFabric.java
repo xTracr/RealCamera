@@ -15,7 +15,7 @@ public class RealCameraFabric implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         RealCamera.setup();
-        KeyBindings.KEY_BINDINGS.forEach(KeyBindingHelper::registerKeyBinding);
+        KeyBindings.register(KeyBindingHelper::registerKeyBinding);
 
         ClientTickEvents.END_CLIENT_TICK.register(KeyBindings::handle);
         WorldRenderEvents.START.register(EventHandler::onWorldRenderStart);

@@ -52,7 +52,7 @@ public class PhysicsModCompat {
         Object world = ReflectUtil.getFieldValue(EntityRenderDispatcher_worldField, dispatcher).get();
         if ((boolean) ReflectUtil.invokeMethod(ConfigClient_areOceanPhysicsEnabled, null).orElse(false) && world instanceof ClientWorld clientWorld) {
             Object oceanWorld = ReflectUtil.invokeMethod(PhysicsWorld_getOceanWorld, ReflectUtil.invokeMethod(PhysicsMod_getPhysicsWorld, ReflectUtil.invokeMethod(PhysicsMod_getInstance, null, clientWorld).get()).get()).get();
-            ReflectUtil.invokeMethod(OceanWorld_computeEntityOffset, oceanWorld, matrixStack.peek().getPositionMatrix(), matrixStack.peek().getNormalMatrix(), clientWorld, entity, x, y, z, 0.0D, 0.0D, 0.0D, yRot, renderPercent);
+            ReflectUtil.invokeMethod(OceanWorld_computeEntityOffset, oceanWorld, matrixStack.peek().getPositionMatrix(), matrixStack.peek().getNormalMatrix(), clientWorld, entity, x, y, z, 0.0d, 0.0d, 0.0d, yRot, renderPercent);
         }
     }
 }

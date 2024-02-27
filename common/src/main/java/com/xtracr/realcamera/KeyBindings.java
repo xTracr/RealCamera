@@ -5,17 +5,16 @@ import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.gui.ModelViewScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
 public final class KeyBindings {
-    private static final ModConfig config = ConfigFile.modConfig;
     private static final String KEY_CATEGORY = "key.category.xtracr_" + RealCamera.MODID;
     private static final String KEY_ID = "key.xtracr_" + RealCamera.MODID + "_";
-    public static final Collection<KeyBinding> KEY_BINDINGS = new HashSet<>();
+    private static final List<KeyBinding> KEY_BINDINGS = new ArrayList<>();
     private static final KeyBinding MODEL_VIEW_GUI = createKeyBinding("modelViewGui");
     private static final KeyBinding TOGGLE_PERSPECTIVE = createKeyBinding("togglePerspective", GLFW.GLFW_KEY_F6);
     private static final KeyBinding TOGGLE_ADJUST_MODE = createKeyBinding("toggleAdjustMode");
@@ -28,7 +27,7 @@ public final class KeyBindings {
     private static final KeyBinding ADJUST_RIGHT = createKeyBinding("adjustRIGHT");
     
     public static KeyBinding createKeyBinding(String id) {
-        return createKeyBinding(id, InputUtil.UNKNOWN_KEY.getCode());
+        return createKeyBinding(id, GLFW.GLFW_KEY_UNKNOWN);
     }
 
     public static KeyBinding createKeyBinding(String id, int code) {
@@ -37,8 +36,13 @@ public final class KeyBindings {
         return keyBinding;
     }
 
+    public static void register(Consumer<KeyBinding> registerer) {
+        KEY_BINDINGS.forEach(registerer);
+    }
+
     public static void handle(MinecraftClient client) {
         if (client.player == null) return;
+        final ModConfig config = ConfigFile.modConfig;
         while (MODEL_VIEW_GUI.wasPressed()) {
             client.setScreen(new ModelViewScreen());
         }
@@ -58,32 +62,32 @@ public final class KeyBindings {
             ConfigFile.save();
         }
         while (ADJUST_LEFT.wasPressed()) {
-            if (config.isClassic()) config.adjustClassicZ(true);
+            if (config.isClassic()) config.adjustClassicZ(1);
             else config.adjustBindingZ(true);
             ConfigFile.save();
         }
         while (ADJUST_RIGHT.wasPressed()) {
-            if (config.isClassic()) config.adjustClassicZ(false);
+            if (config.isClassic()) config.adjustClassicZ(-1);
             else config.adjustBindingZ(false);
             ConfigFile.save();
         }
         while (ADJUST_UP.wasPressed()) {
-            if (config.isClassic()) config.adjustClassicY(true);
+            if (config.isClassic()) config.adjustClassicY(1);
             else config.adjustBindingY(true);
             ConfigFile.save();
         }
         while (ADJUST_DOWN.wasPressed()) {
-            if (config.isClassic()) config.adjustClassicY(false);
+            if (config.isClassic()) config.adjustClassicY(-1);
             else config.adjustBindingY(false);
             ConfigFile.save();
         }
         while (ADJUST_FRONT.wasPressed()) {
-            if (config.isClassic()) config.adjustClassicX(true);
+            if (config.isClassic()) config.adjustClassicX(1);
             else config.adjustBindingX(true);
             ConfigFile.save();
         }
         while (ADJUST_BACK.wasPressed()) {
-            if (config.isClassic()) config.adjustClassicX(false);
+            if (config.isClassic()) config.adjustClassicX(-1);
             else config.adjustBindingX(false);
             ConfigFile.save();
         }

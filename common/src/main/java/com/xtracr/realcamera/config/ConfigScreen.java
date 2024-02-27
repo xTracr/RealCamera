@@ -322,13 +322,6 @@ public class ConfigScreen {
                 .setTooltip(Text.translatable(TOOLTIP + "autoBind"))
                 .setSaveConsumer(b -> config.binding.autoBind = b)
                 .build());
-        experimental.addEntry(entryBuilder.startDoubleField(Text.literal("Disabling Depth"), config.disable.depth)
-                .setDefaultValue(0.2)
-                .setMin(0.01)
-                .setMax(ModConfig.MAX_DOUBLE)
-                .setTooltip(Text.translatable(TOOLTIP + "depth"))
-                .setSaveConsumer(d -> config.disable.depth = d)
-                .build());
 
         return builder.build();
     }

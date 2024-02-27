@@ -8,8 +8,8 @@ import net.minecraft.util.math.MathHelper;
 import java.util.*;
 
 public class ModConfig {
-    protected static final double MIN_DOUBLE = -64.0D;
-    protected static final double MAX_DOUBLE = 64.0D;
+    protected static final double MIN_DOUBLE = -64.0d;
+    protected static final double MAX_DOUBLE = 64.0d;
 
     public General general = new General();
     public Binding binding = new Binding();
@@ -186,32 +186,29 @@ public class ModConfig {
         classic.adjustMode = classic.adjustMode.cycle();
     }
 
-    public void adjustClassicX(boolean add) {
-        int s = add ? 1 : -1;
+    public void adjustClassicX(int count) {
         switch (classic.adjustMode) {
-            case CENTER -> classic.centerX += s * getAdjustStep();
-            case ROTATION -> classic.roll += s * 4 * (float) getAdjustStep();
-            default -> classic.cameraX += s * getAdjustStep();
+            case CENTER -> classic.centerX += count * getAdjustStep();
+            case ROTATION -> classic.roll += count * 4 * (float) getAdjustStep();
+            default -> classic.cameraX += count * getAdjustStep();
         }
         classic.clamp();
     }
 
-    public void adjustClassicY(boolean add) {
-        int s = add ? 1 : -1;
+    public void adjustClassicY(int count) {
         switch (classic.adjustMode) {
-            case CENTER -> classic.centerY += s * getAdjustStep();
-            case ROTATION -> classic.yaw += s * 4 * (float) getAdjustStep();
-            default -> classic.cameraY += s * getAdjustStep();
+            case CENTER -> classic.centerY += count * getAdjustStep();
+            case ROTATION -> classic.yaw += count * 4 * (float) getAdjustStep();
+            default -> classic.cameraY += count * getAdjustStep();
         }
         classic.clamp();
     }
 
-    public void adjustClassicZ(boolean add) {
-        int s = add ? 1 : -1;
+    public void adjustClassicZ(int count) {
         switch (classic.adjustMode) {
-            case CENTER -> classic.centerZ += s * getAdjustStep();
-            case ROTATION -> classic.pitch += s * 4 * (float) getAdjustStep();
-            default -> classic.cameraZ += s * getAdjustStep();
+            case CENTER -> classic.centerZ += count * getAdjustStep();
+            case ROTATION -> classic.pitch += count * 4 * (float) getAdjustStep();
+            default -> classic.cameraZ += count * getAdjustStep();
         }
         classic.clamp();
     }
@@ -285,34 +282,32 @@ public class ModConfig {
         public boolean dynamicCrosshair = false;
         public boolean renderModel = true;
         public double adjustStep = 0.25D;
-        public double scale = 1.0D;
+        public double scale = 1.0d;
 
         private void clamp() {
-            adjustStep = MathHelper.clamp(adjustStep, 0.0D, MAX_DOUBLE);
-            scale = MathHelper.clamp(scale, 0.0D, MAX_DOUBLE);
+            adjustStep = MathHelper.clamp(adjustStep, 0.0d, MAX_DOUBLE);
+            scale = MathHelper.clamp(scale, 0.0d, MAX_DOUBLE);
         }
     }
 
     public static class Binding {
-        protected static final Map<String, Target> defaultTargetMap = Map.of("minecraft_head",
-                new Target("minecraft:textures/entity/player/",
-                        0.1875f, 0.2f, 0.1875f, 0.075f, 0.1875f, 0.2f));
+        protected static final Map<String, BindingTarget> defaultTargetMap = Map.of("minecraft_head", BindingTarget.MINECRAFT_HEAD);
         public VanillaModelPart vanillaModelPart = VanillaModelPart.head;
         public boolean experimental = false;
         public boolean adjustOffset = true;
         public boolean autoBind = true;
         public String nameOfList = "minecraft_head";
-        public LinkedHashMap<String, Target> targetMap = new LinkedHashMap<>(defaultTargetMap);
+        public LinkedHashMap<String, BindingTarget> targetMap = new LinkedHashMap<>(defaultTargetMap);
         public boolean bindX = true;
         public boolean bindY = true;
         public boolean bindZ = true;
-        public double cameraX = 0.0D;
-        public double cameraY = 0.0D;
-        public double cameraZ = 0.0D;
+        public double cameraX = 0.0d;
+        public double cameraY = 0.0d;
+        public double cameraZ = 0.0d;
         public boolean bindRotation = true;
-        public float pitch = 0.0F;
-        public float yaw = 0.0F;
-        public float roll = 0.0F;
+        public float pitch = 0.0f;
+        public float yaw = 0.0f;
+        public float roll = 0.0f;
 
         private void clamp() {
             if (vanillaModelPart == null) vanillaModelPart = VanillaModelPart.head;
@@ -324,21 +319,19 @@ public class ModConfig {
             yaw = MathHelper.wrapDegrees(yaw);
             roll = MathHelper.wrapDegrees(roll);
         }
-
-        public record Target(String textureId, float forwardU, float forwardV, float upwardU, float upwardV, float posU, float posV) {}
     }
 
     public static class Classic {
         public AdjustMode adjustMode = AdjustMode.CAMERA;
-        public double cameraX = -60.0D;
-        public double cameraY = 2.0D;
-        public double cameraZ = -16.0D;
-        public double centerX = 0.0D;
+        public double cameraX = -60.0d;
+        public double cameraY = 2.0d;
+        public double cameraZ = -16.0d;
+        public double centerX = 0.0d;
         public double centerY = -3.4D;
-        public double centerZ = 0.0D;
-        public float pitch = 0.0F;
-        public float yaw = 18.0F;
-        public float roll = 0.0F;
+        public double centerZ = 0.0d;
+        public float pitch = 0.0f;
+        public float yaw = 18.0f;
+        public float roll = 0.0f;
 
         private void clamp() {
             if (adjustMode == null) adjustMode = AdjustMode.CAMERA;
@@ -393,7 +386,6 @@ public class ModConfig {
         public boolean sneaking = false;
         public boolean sleeping = false;
         public boolean screenOpened = false;
-        public double depth = 0.2;
 
         private void clamp() {
             if (disabledModelParts == null) disabledModelParts = new ArrayList<>(defaultParts);

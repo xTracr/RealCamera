@@ -47,7 +47,7 @@ public abstract class MixinCamera {
             Vec3d center = new Vec3d(config.getCenterX(), config.getCenterY(), config.getCenterZ()).multiply(scale);
             float newPitch = pitch + config.getClassicPitch();
             float newYaw = yaw - config.getClassicYaw();
-            setRotation(yaw, 0.0F);
+            setRotation(yaw, 0.0f);
             moveBy(center.getX(), center.getY(), center.getZ());
             setRotation(newYaw, newPitch);
             moveBy(offset.getX(), offset.getY(), offset.getZ());

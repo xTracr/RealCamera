@@ -1,5 +1,6 @@
 package com.xtracr.realcamera.util;
 
+import com.xtracr.realcamera.config.BindingTarget;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -14,8 +15,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.BiPredicate;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,24 +36,14 @@ public class VertexRecorder implements VertexConsumerProvider {
     }
 
     public Vec3d getPos(float u, float v) {
-        if (currentRecord == null) return null;
-        return getPos(getQuadIndex(currentRecord, u, v), u, v);
-    }
-
-    public Vec3d getPos(int quadIndex, float u, float v) {
-        if (currentRecord == null || quadIndex >= currentRecord.quadCount) return null;
-        Vertex[] quad = currentRecord.vertices[quadIndex];
-        if (quad.length < 3) return null;
-        float u0 = quad[0].u, v0 = quad[0].v, u1 = quad[1].u, v1 = quad[1].v, u2 = quad[2].u, v2 = quad[2].v;
-        float alpha = ((u - u1) * (v1 - v2) - (v - v1) * (u1 - u2)) / ((u0 - u1) * (v1 - v2) - (v0 - v1) * (u1 - u2)),
-                beta = ((u - u2) * (v2 - v0) - (v - v2) * (u2 - u0)) / ((u1 - u2) * (v2 - v0) - (v1 - v2) * (u2 - u0));
-        return quad[0].pos().multiply(alpha).add(quad[1].pos().multiply(beta)).add(quad[2].pos().multiply(1 - alpha - beta));
+        Vertex[] quad;
+        if (currentRecord == null || (quad = getQuad(currentRecord, u, v)) == null) return null;
+        return getPos(quad, u, v);
     }
 
     public Vec3d getNormal(float u, float v) {
-        if (currentRecord == null) return null;
-        Vertex[] quad = getQuad(currentRecord, u, v);
-        if (quad == null || quad.length < 1) return null;
+        Vertex[] quad;
+        if (currentRecord == null || (quad = getQuad(currentRecord, u, v)) == null) return null;
         return quad[0].normal();
     }
 
@@ -66,22 +56,30 @@ public class VertexRecorder implements VertexConsumerProvider {
         currentRecord = records.stream().filter(record -> predicate.test(record.renderLayer)).max(Comparator.comparingInt(BuiltRecord::quadCount)).orElse(null);
     }
 
-    public void drawByAnother(VertexConsumerProvider anotherProvider, Predicate<RenderLayer> layerPredicate, BiPredicate<RenderLayer, Vertex[]> biPredicate) {
-        drawByAnother(vertex -> vertex, anotherProvider, layerPredicate, biPredicate);
+    public Vec3d getTargetPosAndRot(BindingTarget target, Matrix3f normal) throws ArithmeticException {
+        Vec3d front = getNormal(target.forwardU(), target.forwardV());
+        Vec3d up = getNormal(target.upwardU(), target.upwardV());
+        Vec3d center = getPos(target.posU(), target.posV());
+        if (!MathUtil.isFinite(front) || !MathUtil.isFinite(up) || !MathUtil.isFinite(center)) throw new ArithmeticException();
+        normal.set(up.crossProduct(front).toVector3f(), up.toVector3f(), front.toVector3f());
+        Vector3f vec3f = normal.transform(new Vector3f((float) target.offsetZ(), (float) target.offsetY(), (float) target.offsetX()));
+        return center.add(vec3f.x(), vec3f.y(), vec3f.z());
     }
 
-    public void drawByAnother(Function<Vertex, Vertex> function, VertexConsumerProvider anotherProvider, Predicate<RenderLayer> layerPredicate, BiPredicate<RenderLayer, Vertex[]> biPredicate) {
+    public void drawByAnother(VertexConsumerProvider anotherProvider) {
+        drawByAnother(anotherProvider, renderLayer -> true, (renderLayer, vertices) -> vertices);
+    }
+
+    public void drawByAnother(VertexConsumerProvider anotherProvider, Predicate<RenderLayer> layerPredicate, BiFunction<RenderLayer, Vertex[], Vertex[]> function) {
         records.forEach(record -> {
             RenderLayer renderLayer = record.renderLayer;
             if (!layerPredicate.test(renderLayer)) return;
-            int argb, length;
+            int argb;
             Vertex[] newQuad;
             VertexConsumer buffer = anotherProvider.getBuffer(renderLayer);
             for (Vertex[] quad : record.vertices) {
-                length = quad.length;
-                newQuad = new Vertex[length];
-                for (int i = 0; i < length; i++) newQuad[i] = function.apply(quad[i]);
-                if (biPredicate.test(renderLayer, newQuad)) for (Vertex vertex : newQuad) {
+                if ((newQuad = function.apply(renderLayer, quad)) == null) continue;
+                for (Vertex vertex : newQuad) {
                     argb = vertex.argb;
                     buffer.vertex((float) vertex.x, (float) vertex.y, (float) vertex.z,
                             (float) (argb >> 16 & 0xFF) / 255, (float) (argb >> 8 & 0xFF) / 255, (float) (argb & 0xFF) / 255, (float) (argb >> 24) / 255,
@@ -92,20 +90,21 @@ public class VertexRecorder implements VertexConsumerProvider {
     }
 
     protected static Vertex[] getQuad(BuiltRecord record, float u, float v) {
-        int i = getQuadIndex(record, u, v);
-        if (i >= 0) return record.vertices[i];
+        final int resolution = 1000000;
+        for (Vertex[] quad : record.vertices) {
+            Polygon polygon = new Polygon();
+            for (Vertex vertex : quad) polygon.addPoint((int) (resolution * vertex.u), (int) (resolution * vertex.v));
+            if (polygon.contains(resolution * u, resolution * v)) return quad;
+        }
         return null;
     }
 
-    protected static int getQuadIndex(BuiltRecord record, float u, float v) {
-        final int resolution = 1000000;
-        for (int i = 0, size = record.vertices.length; i < size; i++) {
-            Vertex[] quad = record.vertices[i];
-            Polygon polygon = new Polygon();
-            for (Vertex vertex : quad) polygon.addPoint((int) (resolution * vertex.u), (int) (resolution * vertex.v));
-            if (polygon.contains(resolution * u, resolution * v)) return i;
-        }
-        return -1;
+    protected static Vec3d getPos(Vertex[] quad, float u, float v) {
+        if (quad.length < 3) return quad[0].pos();
+        float u0 = quad[0].u, v0 = quad[0].v, u1 = quad[1].u, v1 = quad[1].v, u2 = quad[2].u, v2 = quad[2].v;
+        float alpha = ((u - u1) * (v1 - v2) - (v - v1) * (u1 - u2)) / ((u0 - u1) * (v1 - v2) - (v0 - v1) * (u1 - u2)),
+                beta = ((u - u2) * (v2 - v0) - (v - v2) * (u2 - u0)) / ((u1 - u2) * (v2 - v0) - (v1 - v2) * (u2 - u0));
+        return quad[0].pos().multiply(alpha).add(quad[1].pos().multiply(beta)).add(quad[2].pos().multiply(1 - alpha - beta));
     }
 
     protected static String getTextureId(BuiltRecord record) {
@@ -128,7 +127,7 @@ public class VertexRecorder implements VertexConsumerProvider {
     private static class VertexRecord implements VertexConsumer {
         private final List<Vertex> vertices = new ArrayList<>();
         private final RenderLayer renderLayer;
-        private Vec3d pos = Vec3d.ZERO, normal = Vec3d.ZERO;
+        private Vec3d pos = net.minecraft.util.math.Vec3d.ZERO, normal = net.minecraft.util.math.Vec3d.ZERO;
         private int argb, overlay, light;
         private float u, v;
 
@@ -190,7 +189,7 @@ public class VertexRecorder implements VertexConsumerProvider {
         public void next() {
             vertices.add(new Vertex(pos.getX(), pos.getY(), pos.getZ(), argb, u, v, overlay, light,
                     (float) normal.getX(), (float) normal.getY(), (float) normal.getZ()));
-            pos = normal = Vec3d.ZERO;
+            pos = normal = net.minecraft.util.math.Vec3d.ZERO;
             u = v = overlay = light = argb = 0;
         }
 

@@ -27,15 +27,15 @@ public class PehkuiCompat {
 
     public static void scaleMatrices(MatrixStack matrixStack, Entity entity, float tickDelta) {
         if (!loaded) return;
-        final float widthScale = (float) ReflectUtil.invokeMethod(getModelWidthScale, null, entity, tickDelta).orElse(1.0F);
-        final float heightScale = (float) ReflectUtil.invokeMethod(getModelHeightScale, null, entity, tickDelta).orElse(1.0F);
+        final float widthScale = (float) ReflectUtil.invokeMethod(getModelWidthScale, null, entity, tickDelta).orElse(1.0f);
+        final float heightScale = (float) ReflectUtil.invokeMethod(getModelHeightScale, null, entity, tickDelta).orElse(1.0f);
         matrixStack.peek().getPositionMatrix().scale(widthScale, heightScale, widthScale);
     }
 
     public static Vec3d scaleVec3d(Vec3d vec3d, Entity entity, float tickDelta) {
         if (!loaded) return vec3d;
-        final float widthScale = (float) ReflectUtil.invokeMethod(getModelWidthScale, null, entity, tickDelta).orElse(1.0F);
-        final float heightScale = (float) ReflectUtil.invokeMethod(getModelHeightScale, null, entity, tickDelta).orElse(1.0F);
+        final float widthScale = (float) ReflectUtil.invokeMethod(getModelWidthScale, null, entity, tickDelta).orElse(1.0f);
+        final float heightScale = (float) ReflectUtil.invokeMethod(getModelHeightScale, null, entity, tickDelta).orElse(1.0f);
         return vec3d.multiply(widthScale, heightScale, widthScale);
     }
 }

@@ -14,7 +14,7 @@ public class CrosshairUtil {
     private static Vec3d offset = Vec3d.ZERO;
 
     public static void translateMatrices(MatrixStack matrixStack) {
-        matrixStack.translate(offset.getX(), -offset.getY(), 0.0D);
+        matrixStack.translate(offset.getX(), -offset.getY(), 0.0d);
     }
 
     public static void update(MinecraftClient client, Camera camera, Matrix4f... projectionMatrices) {
@@ -28,6 +28,6 @@ public class CrosshairUtil {
         }
         Window window = client.getWindow();
         offset = MathUtil.projectToVec2d(hitResult.getPos().subtract(camera.getPos()), projectionMatrices)
-                .multiply(0.5 * window.getScaledWidth(), 0.5 * window.getScaledHeight(), 0.0D);
+                .multiply(0.5 * window.getScaledWidth(), 0.5 * window.getScaledHeight(), 0.0d);
     }
 }

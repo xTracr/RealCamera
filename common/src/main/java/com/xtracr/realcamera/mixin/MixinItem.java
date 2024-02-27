@@ -19,7 +19,7 @@ public abstract class MixinItem {
     private static void realCamera$coverRaycast(World world, PlayerEntity player, RaycastContext.FluidHandling fluidHandling,
             CallbackInfoReturnable<BlockHitResult> cInfo) {
         if (!ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
-            RaycastUtil.update(player, 25.0D, 1.0F);
+            RaycastUtil.update(player, 25.0d, 1.0f);
             cInfo.setReturnValue(world.raycast(RaycastUtil.getRaycastContext(RaycastContext.ShapeType.OUTLINE, fluidHandling, player)));
         }
     }

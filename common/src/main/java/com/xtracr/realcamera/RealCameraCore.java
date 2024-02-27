@@ -3,6 +3,7 @@ package com.xtracr.realcamera;
 import com.xtracr.realcamera.api.VirtualRenderer;
 import com.xtracr.realcamera.compat.PehkuiCompat;
 import com.xtracr.realcamera.compat.PhysicsModCompat;
+import com.xtracr.realcamera.config.BindingTarget;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.mixin.PlayerEntityRendererAccessor;
@@ -25,17 +26,16 @@ import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
-import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.BiPredicate;
+import java.util.function.BiFunction;
 
 public class RealCameraCore {
-    private static final ModConfig config = ConfigFile.modConfig;
     private static VertexRecorder recorder = new VertexRecorder();
+    private static BindingTarget currentTarget = new BindingTarget();
     private static String status = "Successful";
     private static boolean renderingPlayer = false;
     private static boolean active = false;
@@ -55,31 +55,31 @@ public class RealCameraCore {
     }
 
     public static float getPitch(float f) {
-        if (config.isRotationBound()) return pitch;
-        else return f + config.getBindingPitch();
+        if (currentTarget.bindRotation()) return pitch;
+        else return f + currentTarget.pitch();
     }
 
     public static float getYaw(float f) {
-        if (config.isRotationBound()) return yaw;
-        else return f - config.getBindingYaw();
+        if (currentTarget.bindRotation()) return yaw;
+        else return f - currentTarget.yaw();
     }
 
     public static float getRoll(float f) {
-        if (config.isClassic()) return f + config.getClassicRoll();
-        else if (config.isRotationBound()) return roll;
-        else return f + config.getBindingRoll();
+        if (config().isClassic()) return f + config().getClassicRoll();
+        else if (currentTarget.bindRotation()) return roll;
+        else return f + currentTarget.roll();
     }
 
     public static Vec3d getPos(Vec3d vec3d) {
-        return new Vec3d(config.isXBound() ? pos.getX() : vec3d.getX() + config.getBindingX(),
-                config.isYBound() ? pos.getY() : vec3d.getY() + config.getBindingY(),
-                config.isZBound() ? pos.getZ() : vec3d.getZ() + config.getBindingZ());
+        return new Vec3d(currentTarget.bindX() ? pos.getX() : vec3d.getX() + currentTarget.offsetX(),
+                currentTarget.bindY() ? pos.getY() : vec3d.getY() + currentTarget.offsetY(),
+                currentTarget.bindZ() ? pos.getZ() : vec3d.getZ() + currentTarget.offsetZ());
     }
 
     public static Vec3d getCameraPos(Vec3d vec3d) {
-        return new Vec3d(config.isXBound() ? cameraPos.getX() : vec3d.getX() + config.getBindingX(),
-                config.isYBound() ? cameraPos.getY() : vec3d.getY() + config.getBindingY(),
-                config.isZBound() ? cameraPos.getZ() : vec3d.getZ() + config.getBindingZ());
+        return new Vec3d(currentTarget.bindX() ? cameraPos.getX() : vec3d.getX() + currentTarget.offsetX(),
+                currentTarget.bindY() ? cameraPos.getY() : vec3d.getY() + currentTarget.offsetY(),
+                currentTarget.bindZ() ? cameraPos.getZ() : vec3d.getZ() + currentTarget.offsetZ());
     }
 
     public static void setCameraPos(Vec3d vec3d) {
@@ -87,8 +87,8 @@ public class RealCameraCore {
     }
 
     public static void init(MinecraftClient client) {
-        active = config.isEnabled() && client.options.getPerspective().isFirstPerson() && client.gameRenderer.getCamera() != null
-                && client.player != null && !config.shouldDisableMod(client);
+        active = config().isEnabled() && client.options.getPerspective().isFirstPerson() && client.gameRenderer.getCamera() != null
+                && client.player != null && !config().shouldDisableMod(client);
     }
 
     public static boolean isActive() {
@@ -103,20 +103,24 @@ public class RealCameraCore {
         Matrix4f positionMatrix = matrixStack.peek().getPositionMatrix().transpose().invertAffine()
                 .translate((float) -pos.getX(), (float) -pos.getY(), (float) -pos.getZ());
         Matrix3f normalMatrix = matrixStack.peek().getNormalMatrix().transpose().invert();
-        BiPredicate<RenderLayer, VertexRecorder.Vertex[]> biPredicate = (renderLayer, vertices) -> {
-            double depth = config.disable.depth, centerZ = 0;
-            for (VertexRecorder.Vertex vertex : vertices) {
-                if (vertex.z() < -depth) return true;
+        BiFunction<RenderLayer, VertexRecorder.Vertex[], VertexRecorder.Vertex[]> function = (renderLayer, vertices) -> {
+            double depth = currentTarget.disablingDepth(), centerZ = 0;
+            int size = vertices.length;
+            VertexRecorder.Vertex[] newQuad = new VertexRecorder.Vertex[size];
+            for (int i = 0; i < size; i++) newQuad[i] = vertices[i].transform(positionMatrix, normalMatrix);
+            for (VertexRecorder.Vertex vertex : newQuad) {
+                if (vertex.z() < -depth) return newQuad;
                 centerZ += vertex.z();
             }
-            return centerZ < -depth * vertices.length;
+            return centerZ < -depth * vertices.length ? newQuad : null;
         };
-        recorder.drawByAnother(vertex -> vertex.transform(positionMatrix, normalMatrix), vertexConsumers, renderLayer -> true, biPredicate);
+        recorder.drawByAnother(vertexConsumers, renderLayer -> true, function);
     }
 
     public static void computeCamera(MinecraftClient client, float tickDelta) {
-        roll = config.getClassicRoll();
-        if (config.isClassic()) return;
+        roll = config().getClassicRoll();
+        currentTarget = new BindingTarget();
+        if (config().isClassic()) return;
 
         // GameRenderer.renderWorld
         MatrixStack matrixStack = new MatrixStack();
@@ -125,46 +129,43 @@ public class RealCameraCore {
         recorder.buildLastRecord();
 
         // ModelPart$Cuboid.renderCuboid
-        Vector4f offset = matrixStack.peek().getPositionMatrix().transform(new Vector4f((float) (config.getBindingZ() * config.getScale()),
-                -(float) (config.getBindingY() * config.getScale()) - 0.125f,
-                -(float) (config.getBindingX() * config.getScale()) - 0.225f, 1.0F));
+        Vector4f offset = matrixStack.peek().getPositionMatrix().transform(new Vector4f((float) (config().getBindingZ() * config().getScale()),
+                -(float) (config().getBindingY() * config().getScale()) - 0.125f,
+                -(float) (config().getBindingX() * config().getScale()) - 0.225f, 1.0f));
         pos = new Vec3d(offset.x(), offset.y(), offset.z());
-        Matrix3f normal = matrixStack.peek().getNormalMatrix().scale(1.0F, -1.0F, -1.0F);
-        if (config.binding.experimental) {
-            List<ModConfig.Binding.Target> targetList = new ArrayList<>();
-            if (config.binding.autoBind) {
-                Collection<ModConfig.Binding.Target> targetSet = config.binding.targetMap.values();
+        Matrix3f normal = matrixStack.peek().getNormalMatrix().scale(1.0f, -1.0f, -1.0f);
+        if (config().binding.experimental) {
+            List<BindingTarget> targetList = new ArrayList<>();
+            if (config().binding.autoBind) {
+                Collection<BindingTarget> targetSet = config().binding.targetMap.values();
                 recorder.setCurrent(renderLayer -> targetSet.stream().anyMatch(t -> renderLayer.toString().contains(t.textureId())));
                 String textureId = recorder.currentTextureId();
                 if (textureId != null) targetList.addAll(targetSet.stream().filter(t -> textureId.contains(t.textureId())).toList());
             }
-            targetList.add(config.binding.targetMap.get(config.binding.nameOfList));
-            for (ModConfig.Binding.Target target : targetList) {
+            targetList.add(config().binding.targetMap.get(config().binding.nameOfList));
+            for (BindingTarget target : targetList) {
                 try {
                     recorder.setCurrent(renderLayer -> renderLayer.toString().contains(target.textureId()));
                     if (recorder.quadCount() <= 0) throw new NullPointerException("Vertices not found");
-                    Vec3d front = recorder.getNormal(target.forwardU(), target.forwardV());
-                    Vec3d up = recorder.getNormal(target.upwardU(), target.upwardV());
-                    Vec3d center = recorder.getPos(target.posU(), target.posV());
-                    if (!MathUtil.isFinite(front) || !MathUtil.isFinite(up) || !MathUtil.isFinite(center)) throw new ArithmeticException();
-                    normal.set(up.crossProduct(front).toVector3f(), up.toVector3f(), front.toVector3f());
-                    Vector3f vec3f = normal.transform(new Vector3f((float) (config.getBindingZ() * config.getScale()),
-                            (float) (config.getBindingY() * config.getScale()),
-                            (float) (config.getBindingX() * config.getScale())));
-                    pos = center.add(vec3f.x(), vec3f.y(), vec3f.z());
+                    pos = recorder.getTargetPosAndRot(target, normal);
+                    currentTarget = target;
                     break;
                 } catch (Exception ignored) {
                 }
             }
         }
 
-        normal.rotateLocal((float) Math.toRadians(config.getBindingYaw()), normal.m10, normal.m11, normal.m12);
-        normal.rotateLocal((float) Math.toRadians(config.getBindingPitch()), normal.m00, normal.m01, normal.m02);
-        normal.rotateLocal((float) Math.toRadians(config.getBindingRoll()), normal.m20, normal.m21, normal.m22);
-        Vec3d eulerAngle = MathUtil.getEulerAngleYXZ(normal).multiply(180.0D / Math.PI);
+        normal.rotateLocal((float) Math.toRadians(currentTarget.yaw()), normal.m10, normal.m11, normal.m12);
+        normal.rotateLocal((float) Math.toRadians(currentTarget.pitch()), normal.m00, normal.m01, normal.m02);
+        normal.rotateLocal((float) Math.toRadians(currentTarget.roll()), normal.m20, normal.m21, normal.m22);
+        Vec3d eulerAngle = MathUtil.getEulerAngleYXZ(normal).multiply(180.0d / Math.PI);
         pitch = (float) eulerAngle.getX();
         yaw = (float) -eulerAngle.getY();
         roll = (float) eulerAngle.getZ();
+    }
+
+    private static ModConfig config() {
+        return ConfigFile.modConfig;
     }
 
     private static void virtualRender(MinecraftClient client, float tickDelta, MatrixStack matrixStack, VertexConsumerProvider consumers) {
@@ -182,11 +183,11 @@ public class RealCameraCore {
         matrixStack.push();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         dispatcher.configure(client.world, client.gameRenderer.getCamera(), player);
-        if (config.binding.experimental) dispatcher.render(player, renderOffset.getX(), renderOffset.getY(), renderOffset.getZ(),
+        if (config().binding.experimental) dispatcher.render(player, renderOffset.getX(), renderOffset.getY(), renderOffset.getZ(),
                 MathHelper.lerp(tickDelta, player.prevYaw, player.getYaw()), tickDelta, matrixStack, consumers, dispatcher.getLight(player, tickDelta));
         matrixStack.pop();
         // EntityRenderDispatcher.render
-        if (config.compatPhysicsMod())
+        if (config().compatPhysicsMod())
             PhysicsModCompat.renderStart(client.getEntityRenderDispatcher(), player, renderOffset.getX(), renderOffset.getY(),
                     renderOffset.getZ(), MathHelper.lerp(tickDelta, player.prevYaw, player.getYaw()), tickDelta, matrixStack);
 
@@ -194,9 +195,9 @@ public class RealCameraCore {
         renderOffset = renderOffset.add(playerRenderer.getPositionOffset(player, tickDelta));
         matrixStack.translate(renderOffset.getX(), renderOffset.getY(), renderOffset.getZ());
 
-        if (config.compatPehkui()) PehkuiCompat.scaleMatrices(matrixStack, player, tickDelta);
+        if (config().compatPehkui()) PehkuiCompat.scaleMatrices(matrixStack, player, tickDelta);
 
-        if (config.isUsingModModel()) {
+        if (config().isUsingModModel()) {
             status = "Successful";
             try {
                 matrixStack.push();
@@ -257,6 +258,6 @@ public class RealCameraCore {
         playerModel.setAngles(player, o, n, l, k, m);
         // AnimalModel.render
         // ModelPart.render
-        config.getVanillaModelPart().get(playerRenderer.getModel()).rotate(matrixStack);
+        config().getVanillaModelPart().get(playerRenderer.getModel()).rotate(matrixStack);
     }
 }

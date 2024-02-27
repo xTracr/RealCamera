@@ -40,6 +40,6 @@ public class RealCameraForge {
 
     @SubscribeEvent
     public void onKeyRegister(RegisterKeyMappingsEvent event) {
-        KeyBindings.KEY_BINDINGS.forEach(event::register);
+        KeyBindings.register(event::register);
     }
 }

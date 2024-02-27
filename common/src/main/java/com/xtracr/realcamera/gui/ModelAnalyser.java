@@ -1,5 +1,6 @@
 package com.xtracr.realcamera.gui;
 
+import com.xtracr.realcamera.config.BindingTarget;
 import com.xtracr.realcamera.util.Triple;
 import com.xtracr.realcamera.util.VertexRecorder;
 import net.minecraft.client.gui.DrawContext;
@@ -7,6 +8,7 @@ import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
+import org.joml.Matrix3f;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -14,7 +16,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class ModelAnalyser extends VertexRecorder {
-    BuiltRecord focusedRecord;
+    private BuiltRecord focusedRecord;
 
     public String focusedTextureId() {
         if (focusedRecord == null) return null;
@@ -53,11 +55,31 @@ public class ModelAnalyser extends VertexRecorder {
         return result.getRight();
     }
 
-    public void drawQuad(DrawContext context, float u, float v, int argb) {
+    public void preview(DrawContext context, BindingTarget target, int length, int forwardArgb, int upwardArgb, int leftArgb) {
         if (currentRecord == null) return;
-        int quadIndex = getQuadIndex(currentRecord, u, v);
-        if (quadIndex == -1) return;
-        drawQuad(context, currentRecord.vertices()[quadIndex], argb, 1000);
+        Matrix3f normal = new Matrix3f();
+        Vec3d pos;
+        try {
+            pos = getTargetPosAndRot(target, normal);
+        } catch (Exception exception) {
+            drawByAnother(context.getVertexConsumers());
+            context.draw();
+            return;
+        }
+        normal.rotateLocal((float) Math.toRadians(target.yaw()), normal.m10, normal.m11, normal.m12);
+        normal.rotateLocal((float) Math.toRadians(target.pitch()), normal.m00, normal.m01, normal.m02);
+        normal.rotateLocal((float) Math.toRadians(target.roll()), normal.m20, normal.m21, normal.m22);
+        drawByAnother(context.getVertexConsumers());
+        context.draw();
+        drawNormal(context, pos, new Vec3d(normal.m20(), normal.m21(), normal.m22()), length, forwardArgb);
+        drawNormal(context, pos, new Vec3d(normal.m10(), normal.m11(), normal.m12()), length / 2, upwardArgb);
+        drawNormal(context, pos, new Vec3d(normal.m00(), normal.m01(), normal.m02()), length / 2, leftArgb);
+    }
+
+    public void drawQuad(DrawContext context, float u, float v, int argb) {
+        Vertex[] quad;
+        if (currentRecord == null || (quad = getQuad(currentRecord, u, v)) == null) return;
+        drawQuad(context, quad, argb, 1000);
     }
 
     public void drawPolyhedron(DrawContext context, int quadIndex, int argb1, int argb2) {
@@ -97,18 +119,9 @@ public class ModelAnalyser extends VertexRecorder {
     }
 
     public void drawNormal(DrawContext context,  float u, float v, int length, int argb) {
-        if (currentRecord == null) return;
-        int quadIndex = getQuadIndex(currentRecord, u, v);
-        if (quadIndex == -1) return;
-        Vertex vertex = currentRecord.vertices()[quadIndex][0];
-        Vec3d start = getPos(u, v);
-        Vec3d end = vertex.normal().multiply(length).add(start);
-        VertexConsumer vertexConsumer = context.getVertexConsumers().getBuffer(RenderLayer.getLineStrip());
-        vertexConsumer.vertex(start.getX(), start.getY(), start.getZ() + 1200f).color(argb)
-                .normal(vertex.normalX(), vertex.normalY(), vertex.normalZ()).next();
-        vertexConsumer.vertex(end.getX(), end.getY(), end.getZ() + 1200f).color(argb)
-                .normal(vertex.normalX(), vertex.normalY(), vertex.normalZ()).next();
-        context.draw();
+        Vertex[] quad;
+        if (currentRecord == null || (quad = getQuad(currentRecord, u, v)) == null) return;
+        drawNormal(context, getPos(quad, u, v), quad[0].normal(), length, argb);
     }
 
     private static boolean intersects(Vertex[] quad, List<Vertex[]> quads) {
@@ -122,6 +135,16 @@ public class ModelAnalyser extends VertexRecorder {
         VertexConsumer vertexConsumer = context.getVertexConsumers().getBuffer(RenderLayer.getGui());
         for (Vertex vertex : quad) vertexConsumer.vertex(vertex.x(), vertex.y(), vertex.z() + offset).color(argb).next();
         if (quad.length == 3) vertexConsumer.vertex(quad[2].x(), quad[2].y(), quad[2].z() + offset).color(argb).next();
+        context.draw();
+    }
+
+    private static void drawNormal(DrawContext context, Vec3d start, Vec3d normal, int length, int argb) {
+        Vec3d end = normal.multiply(length).add(start);
+        VertexConsumer vertexConsumer = context.getVertexConsumers().getBuffer(RenderLayer.getLineStrip());
+        vertexConsumer.vertex(start.getX(), start.getY(), start.getZ() + 1200f).color(argb)
+                .normal((float) normal.getX(), (float) normal.getY(), (float) normal.getZ()).next();
+        vertexConsumer.vertex(end.getX(), end.getY(), end.getZ() + 1200f).color(argb)
+                .normal((float) normal.getX(), (float) normal.getY(), (float) normal.getZ()).next();
         context.draw();
     }
 }
