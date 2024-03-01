@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 
 public class RealCameraCore {
-    private static VertexRecorder recorder = new VertexRecorder();
+    private static final VertexRecorder recorder = new VertexRecorder();
     private static String status = "Successful";
     private static boolean renderingPlayer = false;
     private static boolean active = false;
@@ -123,9 +123,9 @@ public class RealCameraCore {
         if (config().isClassic()) return;
 
         // GameRenderer.renderWorld
+        recorder.clear();
         MatrixStack matrixStack = new MatrixStack();
-        recorder = new VertexRecorder();
-        virtualRender(client, tickDelta, matrixStack, recorder);
+        virtualRender(client, tickDelta, matrixStack);
         recorder.buildLastRecord();
 
         // ModelPart$Cuboid.renderCuboid
@@ -168,7 +168,7 @@ public class RealCameraCore {
         return ConfigFile.modConfig;
     }
 
-    private static void virtualRender(MinecraftClient client, float tickDelta, MatrixStack matrixStack, VertexConsumerProvider consumers) {
+    private static void virtualRender(MinecraftClient client, float tickDelta, MatrixStack matrixStack) {
         ClientPlayerEntity player = client.player;
         // WorldRenderer.render
         if (player.age == 0) {
@@ -184,7 +184,7 @@ public class RealCameraCore {
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         dispatcher.configure(client.world, client.gameRenderer.getCamera(), player);
         if (config().binding.experimental) dispatcher.render(player, renderOffset.getX(), renderOffset.getY(), renderOffset.getZ(),
-                MathHelper.lerp(tickDelta, player.prevYaw, player.getYaw()), tickDelta, matrixStack, consumers, dispatcher.getLight(player, tickDelta));
+                MathHelper.lerp(tickDelta, player.prevYaw, player.getYaw()), tickDelta, matrixStack, recorder, dispatcher.getLight(player, tickDelta));
         matrixStack.pop();
         // EntityRenderDispatcher.render
         if (config().compatPhysicsMod())

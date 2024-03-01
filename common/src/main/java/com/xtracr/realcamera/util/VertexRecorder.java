@@ -24,6 +24,12 @@ public class VertexRecorder implements VertexConsumerProvider {
     protected BuiltRecord currentRecord;
     private VertexRecord lastRecord;
 
+    public void clear() {
+        records.clear();
+        currentRecord = null;
+        lastRecord = null;
+    }
+
     public int quadCount() {
         if (currentRecord == null) return 0;
         return currentRecord.quadCount;

@@ -96,10 +96,6 @@
     "config.tooltip.xtracr_realcamera.autoBind": "根据当前玩家模型纹理，自动在已保存的配置中搜索合适项",
     "config.tooltip.xtracr_realcamera.depth": "全部顶点到屏幕距离均小于该值的面不会被渲染",
 
-    "message.xtracr_realcamera.command_delete_failure": "未能找到'%s'",
-    "message.xtracr_realcamera.command_delete_success": "成功删除'%s'",
-    "message.xtracr_realcamera.command_listAll": "找到了%d个结果: %s",
-
     "screen.xtracr_realcamera.modelView_title": "模型视图",
     "screen.widget.xtracr_realcamera.modelView_selectMode": "选择",
     "screen.widget.xtracr_realcamera.modelView_forwardMode": "向前矢量",

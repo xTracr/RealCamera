@@ -96,10 +96,6 @@
     "config.tooltip.xtracr_realcamera.autoBind": "Automatically searches through saved lists based on the current player model texture",
     "config.tooltip.xtracr_realcamera.depth": "Planes where all vertex-to-screen distances are less than this value will not be rendered",
 
-    "message.xtracr_realcamera.command_delete_failure": "Failed to find '%s'",
-    "message.xtracr_realcamera.command_delete_success": "Successfully deleted '%s'",
-    "message.xtracr_realcamera.command_listAll": "Found %d results: %s",
-
     "screen.xtracr_realcamera.modelView_title": "Model View",
     "screen.widget.xtracr_realcamera.modelView_selectMode": "Selecting",
     "screen.widget.xtracr_realcamera.modelView_forwardMode": "Forward Vector",
