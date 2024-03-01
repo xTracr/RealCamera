@@ -24,9 +24,9 @@ public abstract class MixinWorldRenderer {
     @Final private BufferBuilderStorage bufferBuilders;
 
     @Inject(method = "render",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;drawCurrentLayer()V",  ordinal = 0))
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;drawCurrentLayer()V", ordinal = 0))
     private void realcamera$renderClientPlayer(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline,
-            Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix, CallbackInfo cInfo) {
+                                               Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix, CallbackInfo cInfo) {
         ModConfig config = ConfigFile.modConfig;
         if (camera.isThirdPerson() || !RealCameraCore.isActive() || !config.isRendering() || config.shouldDisableRendering(this.client)) return;
         VertexConsumerProvider.Immediate immediate = this.bufferBuilders.getEntityVertexConsumers();

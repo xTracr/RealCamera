@@ -38,12 +38,12 @@ public class ModelViewScreen extends Screen {
     private float xRot, yRot;
     private String focusedTextureId;
     private Vec2f focusedUV;
-    private NumberFieldWidget<Float> forwardUField, forwardVField, upwardUField, upwardVField, posUField, posVField, scaleField, depthField;
     private TextFieldWidget textureIdField, nameField;
+    private NumberFieldWidget<Float> forwardUField, forwardVField, upwardUField, upwardVField, posUField, posVField, scaleField, depthField;
     private final CyclingButtonWidget<Integer> selectingButton = createCyclingButton(Map.of(
-            0, Text.translatable(KEY_WIDGET + "forwardMode").styled(s -> s.withColor(Formatting.GREEN)),
-            1, Text.translatable(KEY_WIDGET + "upwardMode").styled(s -> s.withColor(Formatting.RED)),
-            2, Text.translatable(KEY_WIDGET + "posMode").styled(s -> s.withColor(Formatting.BLUE))),
+                    0, Text.translatable(KEY_WIDGET + "forwardMode").styled(s -> s.withColor(Formatting.GREEN)),
+                    1, Text.translatable(KEY_WIDGET + "upwardMode").styled(s -> s.withColor(Formatting.RED)),
+                    2, Text.translatable(KEY_WIDGET + "posMode").styled(s -> s.withColor(Formatting.BLUE))),
             widgetWidth * 2 + 4, Text.translatable(KEY_WIDGET + "selectMode"));
     private final CyclingTexturedButton pauseButton = new CyclingTexturedButton(0, 0, 2);
     private final CyclingTexturedButton bindXButton = new CyclingTexturedButton(16, 0, 2);
@@ -117,7 +117,7 @@ public class ModelViewScreen extends Screen {
             adder.add(upwardVField, 1, smallPositioner);
             adder.add(posUField, 1, smallPositioner);
             adder.add(posVField, 1, smallPositioner);
-            adder.add(textureIdField,2, smallPositioner).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "textureId")));
+            adder.add(textureIdField, 2, smallPositioner).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "textureId")));
         } else if (category == 1) {
             Positioner sliderPositioner = gridWidget.copyPositioner().margin(-20, 2, 0, 0);
             adder.add(bindXButton, 1, smallPositioner).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "bindButtons")));
@@ -128,8 +128,8 @@ public class ModelViewScreen extends Screen {
             adder.add(offsetZSlider, 1, sliderPositioner);
             adder.add(bindRotButton, 1, smallPositioner).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "bindButtons")));
             adder.add(pitchSlider, 1, sliderPositioner);
-            adder.add(yawSlider,2, gridWidget.copyPositioner().margin(26, 2, 0, 0));
-            adder.add(rollSlider,2, gridWidget.copyPositioner().margin(26, 2, 0, 0));
+            adder.add(yawSlider, 2, gridWidget.copyPositioner().margin(26, 2, 0, 0));
+            adder.add(rollSlider, 2, gridWidget.copyPositioner().margin(26, 2, 0, 0));
             adder.add(scaleField, 1, smallPositioner).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "scale")));
             adder.add(depthField, 1, smallPositioner).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "depth")));
         }
@@ -143,7 +143,7 @@ public class ModelViewScreen extends Screen {
             ConfigFile.save();
             initWidgets(category, page);
         })).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "bind", "Auto Bind")));
-        adder.add(nameField = createTextField(widgetWidth * 2 + 4, nameField),2, smallPositioner)
+        adder.add(nameField = createTextField(widgetWidth * 2 + 4, nameField), 2, smallPositioner)
                 .setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "listName")));
         nameField.setMaxLength(20);
         gridWidget.refreshPositions();
@@ -194,10 +194,10 @@ public class ModelViewScreen extends Screen {
     }
 
     protected void drawEntity(DrawContext context, int x1, int y1, int x2, int y2, int mouseX, int mouseY, LivingEntity entity) {
-        float centerX = (float)(x1 + x2) / 2.0f;
-        float centerY = (float)(y1 + y2) / 2.0f;
+        float centerX = (float) (x1 + x2) / 2.0f;
+        float centerY = (float) (y1 + y2) / 2.0f;
         context.enableScissor(x1, y1, x2, y2);
-        Quaternionf quaternionf = new Quaternionf().rotateX((float) Math.PI/6 + xRot).rotateY((float) Math.PI/6 + yRot).rotateZ((float) Math.PI);
+        Quaternionf quaternionf = new Quaternionf().rotateX((float) Math.PI / 6 + xRot).rotateY((float) Math.PI / 6 + yRot).rotateZ((float) Math.PI);
         float entityBodyYaw = entity.bodyYaw;
         float entityYaw = entity.getYaw();
         float entityPitch = entity.getPitch();
@@ -248,15 +248,15 @@ public class ModelViewScreen extends Screen {
     }
 
     protected BindingTarget generateBindingTarget() {
-        return new BindingTarget(nameField.getText(), textureIdField.getText(), forwardUField.getValue(),
-                forwardVField.getValue(), upwardUField.getValue(), upwardVField.getValue(), posUField.getValue(), posVField.getValue(),
+        return new BindingTarget(nameField.getText(), textureIdField.getText(), forwardUField.getValue(), forwardVField.getValue(), upwardUField.getValue(),
+                upwardVField.getValue(), posUField.getValue(), posVField.getValue(), depthField.getValue(),
                 bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0,
                 scaleField.getValue(), offsetXSlider.getValue(), offsetYSlider.getValue(), offsetZSlider.getValue(),
-                (float) pitchSlider.getValue(), (float) yawSlider.getValue(), (float) rollSlider.getValue(), depthField.getValue());
+                (float) pitchSlider.getValue(), (float) yawSlider.getValue(), (float) rollSlider.getValue());
     }
 
     protected void loadBindingTarget(BindingTarget target) {
-        if (target.name() == null) return;
+        if (target.isEmpty()) return;
         nameField.setText(target.name());
         textureIdField.setText(target.textureId());
         forwardUField.setValue(target.forwardU());
@@ -265,6 +265,7 @@ public class ModelViewScreen extends Screen {
         upwardVField.setValue(target.upwardV());
         posUField.setValue(target.posU());
         posVField.setValue(target.posV());
+        depthField.setValue(target.disablingDepth());
         scaleField.setValue((float) target.scale());
         bindXButton.setValue(target.bindX() ? 0 : 1);
         offsetXSlider.setValue(target.offsetX());
@@ -276,7 +277,6 @@ public class ModelViewScreen extends Screen {
         pitchSlider.setValue(target.pitch());
         yawSlider.setValue(target.yaw());
         rollSlider.setValue(target.roll());
-        depthField.setValue(target.disablingDepth());
     }
 
     private ButtonWidget createButton(Text message, int width, ButtonWidget.PressAction onPress) {
@@ -356,4 +356,6 @@ public class ModelViewScreen extends Screen {
     public boolean shouldPause() {
         return pauseButton.getValue() == 1;
     }
+
+
 }

@@ -24,6 +24,32 @@ public class VertexRecorder implements VertexConsumerProvider {
     protected BuiltRecord currentRecord;
     private VertexRecord lastRecord;
 
+    protected static Vertex[] getQuad(BuiltRecord record, float u, float v) {
+        final int resolution = 1000000;
+        for (Vertex[] quad : record.vertices) {
+            Polygon polygon = new Polygon();
+            for (Vertex vertex : quad) polygon.addPoint((int) (resolution * vertex.u), (int) (resolution * vertex.v));
+            if (polygon.contains(resolution * u, resolution * v)) return quad;
+        }
+        return null;
+    }
+
+    protected static Vec3d getPos(Vertex[] quad, float u, float v) {
+        if (quad.length < 3) return quad[0].pos();
+        float u0 = quad[0].u, v0 = quad[0].v, u1 = quad[1].u, v1 = quad[1].v, u2 = quad[2].u, v2 = quad[2].v;
+        float alpha = ((u - u1) * (v1 - v2) - (v - v1) * (u1 - u2)) / ((u0 - u1) * (v1 - v2) - (v0 - v1) * (u1 - u2)),
+                beta = ((u - u2) * (v2 - v0) - (v - v2) * (u2 - u0)) / ((u1 - u2) * (v2 - v0) - (v1 - v2) * (u2 - u0));
+        return quad[0].pos().multiply(alpha).add(quad[1].pos().multiply(beta)).add(quad[2].pos().multiply(1 - alpha - beta));
+    }
+
+    protected static String getTextureId(BuiltRecord record) {
+        String name = record.renderLayer.toString();
+        Pattern pattern = Pattern.compile("texture\\[Optional\\[(.*?)]");
+        Matcher matcher = pattern.matcher(name);
+        if (matcher.find()) return matcher.group(1);
+        return name;
+    }
+
     public void clear() {
         records.clear();
         currentRecord = null;
@@ -92,32 +118,6 @@ public class VertexRecorder implements VertexConsumerProvider {
                 }
             }
         });
-    }
-
-    protected static Vertex[] getQuad(BuiltRecord record, float u, float v) {
-        final int resolution = 1000000;
-        for (Vertex[] quad : record.vertices) {
-            Polygon polygon = new Polygon();
-            for (Vertex vertex : quad) polygon.addPoint((int) (resolution * vertex.u), (int) (resolution * vertex.v));
-            if (polygon.contains(resolution * u, resolution * v)) return quad;
-        }
-        return null;
-    }
-
-    protected static Vec3d getPos(Vertex[] quad, float u, float v) {
-        if (quad.length < 3) return quad[0].pos();
-        float u0 = quad[0].u, v0 = quad[0].v, u1 = quad[1].u, v1 = quad[1].v, u2 = quad[2].u, v2 = quad[2].v;
-        float alpha = ((u - u1) * (v1 - v2) - (v - v1) * (u1 - u2)) / ((u0 - u1) * (v1 - v2) - (v0 - v1) * (u1 - u2)),
-                beta = ((u - u2) * (v2 - v0) - (v - v2) * (u2 - u0)) / ((u1 - u2) * (v2 - v0) - (v1 - v2) * (u2 - u0));
-        return quad[0].pos().multiply(alpha).add(quad[1].pos().multiply(beta)).add(quad[2].pos().multiply(1 - alpha - beta));
-    }
-
-    protected static String getTextureId(BuiltRecord record) {
-        String name = record.renderLayer.toString();
-        Pattern pattern = Pattern.compile("texture\\[Optional\\[(.*?)]");
-        Matcher matcher = pattern.matcher(name);
-        if (matcher.find()) return matcher.group(1);
-        return name;
     }
 
     @Override

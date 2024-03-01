@@ -35,7 +35,7 @@ public abstract class MixinCamera {
 
     @Inject(method = "update", at = @At("RETURN"))
     private void realCamera$updateCamera(BlockView area, Entity focusedEntity, boolean thirdPerson, boolean inverseView,
-            float tickDelta, CallbackInfo cInfo) {
+                                         float tickDelta, CallbackInfo cInfo) {
         if (!RealCameraCore.isActive()) return;
         final ModConfig config = ConfigFile.modConfig;
         Vec3d startVec = pos;
@@ -80,7 +80,7 @@ public abstract class MixinCamera {
         }
         setPos(startVec.add(offset));
     }
-    
+
     @Shadow
     protected abstract void moveBy(double x, double y, double z);
 

@@ -21,7 +21,7 @@ public class CyclingTexturedButton extends PressableWidget {
     }
 
     public CyclingTexturedButton(int x, int y, int width, int height, int u, int v, int maximum) {
-        this(x, y, width, height, u, v, height, maximum,  ICON_TEXTURE, 256, 256, Text.empty());
+        this(x, y, width, height, u, v, height, maximum, ICON_TEXTURE, 256, 256, Text.empty());
     }
 
     public CyclingTexturedButton(int x, int y, int width, int height, int u, int v, int vOffset, int maximum, Identifier texture, int textureWidth, int textureHeight, Text message) {

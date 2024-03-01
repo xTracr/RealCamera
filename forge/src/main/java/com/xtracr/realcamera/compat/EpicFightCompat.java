@@ -22,7 +22,7 @@ public class EpicFightCompat {
         VirtualRenderer.register(modid, EpicFightCompat::virtualRender);
     }
 
-    @SuppressWarnings({ "unchecked", "null" })
+    @SuppressWarnings({"unchecked", "null"})
     public static boolean virtualRender(Float partialTicks, MatrixStack poseStack) {
         // RenderEngine.renderLivingEvent
         MinecraftClient mc = MinecraftClient.getInstance();

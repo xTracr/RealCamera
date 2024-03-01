@@ -4,8 +4,10 @@
 
 Make the camera more realistic in the first-person view.  
 Supported versions: 1.18-1.20 Forge & Fabric.  
-Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases), [Modrinth](https://modrinth.com/mod/real-camera) or [CurseForge](https://curseforge.com/minecraft/mc-mods/real-camera)  
-Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/build.yml)  
+Download the mod
+from [Releases](https://github.com/xTracr/RealCamera/releases), [Modrinth](https://modrinth.com/mod/real-camera)
+or [CurseForge](https://curseforge.com/minecraft/mc-mods/real-camera)  
+Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/build.yml)
 
 ## Features ##
 
@@ -14,7 +16,8 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 * Render player model in first-person perspective.
 * Use F6 to toggle the feature on or off and other hotkeys to adjust the camera.
 * Configure these features in the config screen (Cloth Config required).
-* Support most mod models in theory with the upcoming feature in 0.6+ (You can discuss it [here](https://github.com/xTracr/RealCamera/discussions))
+* Support most mod models in theory with the upcoming feature in 0.6+ (You can discuss
+  it [here](https://github.com/xTracr/RealCamera/discussions))
 
 > Learn more about [Configuration](https://github.com/xTracr/RealCamera/wiki/Configuration)
 

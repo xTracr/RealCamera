@@ -129,7 +129,7 @@ public class ModConfig {
     }
 
     public void putTarget(BindingTarget target) {
-        if (target.name() != null) binding.targetMap.put(target.name(), target);
+        if (!target.isEmpty()) binding.targetMap.put(target.name(), target);
     }
 
     public void adjustBindingX(boolean add) {
@@ -249,7 +249,7 @@ public class ModConfig {
             if (!triple.getRight().contains(action)) continue;
             String behavior = triple.getLeft();
             b = b || (client.player.isHolding(stack ->
-                            triple.getMiddle().contains(Registries.ITEM.getId(stack.getItem()).toString())) &&
+                    triple.getMiddle().contains(Registries.ITEM.getId(stack.getItem()).toString())) &&
                     (behavior.equals("holding") ||
                             (behavior.equals("attacking") && client.options.attackKey.isPressed()) ||
                             (behavior.equals("using") && client.options.useKey.isPressed())));
@@ -299,7 +299,6 @@ public class ModConfig {
     }
 
     public static class Binding {
-        protected static final List<BindingTarget> defaultTargets = List.of(BindingTarget.MINECRAFT_HEAD, BindingTarget.MINECRAFT_HEAD_2);
         public VanillaModelPart vanillaModelPart = VanillaModelPart.head;
         public boolean experimental = false;
         public boolean adjustOffset = true;
@@ -321,7 +320,7 @@ public class ModConfig {
             if (vanillaModelPart == null) vanillaModelPart = VanillaModelPart.head;
             if (targetMap == null || targetMap.isEmpty()) {
                 targetMap = new LinkedHashMap<>();
-                defaultTargets.forEach(target -> targetMap.put(target.name(), target));
+                BindingTarget.defaultTargets.forEach(target -> targetMap.put(target.name(), target));
             }
             cameraX = MathHelper.clamp(cameraX, MIN_DOUBLE, MAX_DOUBLE);
             cameraY = MathHelper.clamp(cameraY, MIN_DOUBLE, MAX_DOUBLE);

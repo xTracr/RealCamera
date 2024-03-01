@@ -26,7 +26,8 @@ public abstract class MixinGameRenderer {
     @Shadow
     @Final MinecraftClient client;
 
-    @Shadow @Final private Camera camera;
+    @Shadow
+    @Final private Camera camera;
 
     @ModifyVariable(method = "updateTargetedEntity", at = @At("STORE"), ordinal = 0)
     private EntityHitResult realCamera$modifyEntityHitResult(EntityHitResult entityHitResult) {

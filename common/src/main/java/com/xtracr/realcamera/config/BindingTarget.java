@@ -1,19 +1,24 @@
 package com.xtracr.realcamera.config;
 
+import java.util.List;
+
 public class BindingTarget {
-    public static final BindingTarget MINECRAFT_HEAD = new BindingTarget("minecraft_head", "minecraft:textures/entity/player/", 0.1875f, 0.2f, 0.1875f, 0.075f, 0.1875f, 0.2f, false, true, false, false, 1, -0.15f, 0, 0, 0, 0, 0, 0.2f);
-    public static final BindingTarget MINECRAFT_HEAD_2 = new BindingTarget("minecraft_head_2", "minecraft:textures/entity/player/", 0.1875f, 0.2f, 0.1875f, 0.075f, 0.1875f, 0.2f, true, true, true, true, 1, -0.15f, 0, 0, 0, 0, 0, 0.2f);
-    String name, textureId;
-    float forwardU, forwardV, upwardU, upwardV, posU, posV;
-    boolean bindX, bindY, bindZ, bindRotation;
-    double scale, offsetX, offsetY, offsetZ;
-    float pitch, yaw, roll, disablingDepth;
+    protected static final List<BindingTarget> defaultTargets = List.of(createDefaultTarget("minecraft_head", "minecraft:textures/entity/player/", false),
+            createDefaultTarget("minecraft_head_2", "minecraft:textures/entity/player/", true),
+            createDefaultTarget("skin_head", "minecraft:skins/", false),
+            createDefaultTarget("skin_head_2", "minecraft:skins/", true));
+    private final String name, textureId;
+    private final float forwardU, forwardV, upwardU, upwardV, posU, posV, disablingDepth;
+    private final boolean bindX, bindY, bindZ, bindRotation;
+    private final double scale;
+    private double offsetX, offsetY, offsetZ;
+    private float pitch, yaw, roll;
 
     public BindingTarget() {
-        this(null, null, 0, 0, 0, 0, 0, 0, true, true, true, true, 1, 0, 0, 0, 0, 0, 0, 0);
+        this(null, null, 0, 0, 0, 0, 0, 0, 0.2f, false, true, false, false, 1, 0, 0, 0, 0, 0, 0);
     }
 
-    public BindingTarget(String name, String textureId, float forwardU, float forwardV, float upwardU, float upwardV, float posU, float posV, boolean bindX, boolean bindY, boolean bindZ, boolean bindRotation, double scale, double offsetX, double offsetY, double offsetZ, float pitch, float yaw, float roll, float disablingDepth) {
+    public BindingTarget(String name, String textureId, float forwardU, float forwardV, float upwardU, float upwardV, float posU, float posV, float disablingDepth, boolean bindX, boolean bindY, boolean bindZ, boolean bindRotation, double scale, double offsetX, double offsetY, double offsetZ, float pitch, float yaw, float roll) {
         this.name = name;
         this.textureId = textureId;
         this.forwardU = forwardU;
@@ -22,6 +27,7 @@ public class BindingTarget {
         this.upwardV = upwardV;
         this.posU = posU;
         this.posV = posV;
+        this.disablingDepth = disablingDepth;
         this.bindX = bindX;
         this.bindY = bindY;
         this.bindZ = bindZ;
@@ -33,111 +39,74 @@ public class BindingTarget {
         this.pitch = pitch;
         this.yaw = yaw;
         this.roll = roll;
-        this.disablingDepth = disablingDepth;
+    }
+
+    private static ModConfig config() {
+        return ConfigFile.modConfig;
+    }
+
+    private static BindingTarget createDefaultTarget(String name, String textureId, boolean shouldBind) {
+        return new BindingTarget(name, textureId, 0.1875f, 0.2f, 0.1875f, 0.075f, 0.1875f, 0.2f, 0.2f, shouldBind, true, shouldBind, shouldBind, 1, -0.12, 0, 0, 0, 0, 0);
+    }
+
+    public boolean isEmpty() {
+        return name == null;
     }
 
     public String name() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String textureId() {
         return textureId;
-    }
-
-    public void setTextureId(String textureId) {
-        this.textureId = textureId;
     }
 
     public float forwardU() {
         return forwardU;
     }
 
-    public void setForwardU(float forwardU) {
-        this.forwardU = forwardU;
-    }
-
     public float forwardV() {
         return forwardV;
-    }
-
-    public void setForwardV(float forwardV) {
-        this.forwardV = forwardV;
     }
 
     public float upwardU() {
         return upwardU;
     }
 
-    public void setUpwardU(float upwardU) {
-        this.upwardU = upwardU;
-    }
-
     public float upwardV() {
         return upwardV;
-    }
-
-    public void setUpwardV(float upwardV) {
-        this.upwardV = upwardV;
     }
 
     public float posU() {
         return posU;
     }
 
-    public void setPosU(float posU) {
-        this.posU = posU;
-    }
-
     public float posV() {
         return posV;
     }
 
-    public void setPosV(float posV) {
-        this.posV = posV;
+    public float disablingDepth() {
+        return disablingDepth;
     }
 
     public boolean bindX() {
         return isExperimental() ? bindX : config().isXBound();
     }
 
-    public void setBindX(boolean bindX) {
-        this.bindX = bindX;
-    }
-
     public boolean bindY() {
         return isExperimental() ? bindY : config().isYBound();
-    }
-
-    public void setBindY(boolean bindY) {
-        this.bindY = bindY;
     }
 
     public boolean bindZ() {
         return isExperimental() ? bindZ : config().isZBound();
     }
 
-    public void setBindZ(boolean bindZ) {
-        this.bindZ = bindZ;
-    }
-
     public boolean bindRotation() {
         return isExperimental() ? bindRotation : config().isRotationBound();
     }
 
-    public void setBindRotation(boolean bindRotation) {
-        this.bindRotation = bindRotation;
-    }
-
     public double scale() {
         return isExperimental() ? scale : config().getScale();
-    }
-
-    public void setScale(double scale) {
-        this.scale = scale;
     }
 
     public double offsetX() {
@@ -188,19 +157,7 @@ public class BindingTarget {
         this.roll = roll;
     }
 
-    public float disablingDepth() {
-        return disablingDepth;
-    }
-
-    public void setDisablingDepth(float disablingDepth) {
-        this.disablingDepth = disablingDepth;
-    }
-
     private boolean isExperimental() {
         return config().binding.experimental && textureId != null;
-    }
-    
-    private static ModConfig config() {
-        return ConfigFile.modConfig;
     }
 }

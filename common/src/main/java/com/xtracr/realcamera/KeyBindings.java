@@ -25,7 +25,7 @@ public final class KeyBindings {
     private static final KeyBinding ADJUST_BACK = createKeyBinding("adjustBACK");
     private static final KeyBinding ADJUST_LEFT = createKeyBinding("adjustLEFT");
     private static final KeyBinding ADJUST_RIGHT = createKeyBinding("adjustRIGHT");
-    
+
     public static KeyBinding createKeyBinding(String id) {
         return createKeyBinding(id, GLFW.GLFW_KEY_UNKNOWN);
     }

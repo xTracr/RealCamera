@@ -25,7 +25,7 @@ public abstract class MixinHeldItemRenderer {
 
     @Inject(method = "renderFirstPersonItem", at = @At("HEAD"), cancellable = true)
     private void realcamera$cancelRendering(AbstractClientPlayerEntity player, float tickDelta, float pitch, Hand hand, float swingProgress,
-            ItemStack item, float equipProgress, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo cInfo) {
+                                            ItemStack item, float equipProgress, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo cInfo) {
         ModConfig config = ConfigFile.modConfig;
         if (player instanceof ClientPlayerEntity && RealCameraCore.isActive() && config.isRendering() &&
                 !config.shouldDisableRendering(client) && !config.allowRenderingHand(client)) {

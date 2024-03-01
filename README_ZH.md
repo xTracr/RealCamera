@@ -4,8 +4,9 @@
 
 使第一人称视角下的摄像头更加真实。  
 支持的版本: 1.18-1.20 Forge & Fabric  
-从[Releases](https://github.com/xTracr/RealCamera/releases)、[Modrinth](https://modrinth.com/mod/real-camera)或[CurseForge](https://curseforge.com/minecraft/mc-mods/real-camera)下载  
-快照版在[这里](https://github.com/xTracr/RealCamera/actions/workflows/build.yml)  
+从[Releases](https://github.com/xTracr/RealCamera/releases)、[Modrinth](https://modrinth.com/mod/real-camera)
+或[CurseForge](https://curseforge.com/minecraft/mc-mods/real-camera)下载  
+快照版在[这里](https://github.com/xTracr/RealCamera/actions/workflows/build.yml)
 
 ## 特性 ##
 

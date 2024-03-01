@@ -1,15 +1,15 @@
-modLoader="javafml"
-loaderVersion="[47,48)"
-license="MIT license"
-issueTrackerURL="https://github.com/xTracr/RealCamera/issues"
+modLoader = "javafml"
+loaderVersion = "[47,48)"
+license = "MIT license"
+issueTrackerURL = "https://github.com/xTracr/RealCamera/issues"
 [[mods]]
-modId="realcamera"
-version="${version}"
-displayName="Real Camera"
-displayURL="https://modrinth.com/mod/real-camera"
-logoFile="icon.png"
-credits=""
-authors="xTracr"
+modId = "realcamera"
+version = "${version}"
+displayName = "Real Camera"
+displayURL = "https://modrinth.com/mod/real-camera"
+logoFile = "icon.png"
+credits = ""
+authors = "xTracr"
 # Display Test controls the display for your mod in the server connection screen
 # MATCH_VERSION means that your mod will cause a red X if the versions on client and server differ. This is the default behaviour and should be what you choose if you have server and client elements to your mod.
 # IGNORE_SERVER_VERSION means that your mod will not cause a red X if it's present on the server but not on the client. This is what you should use if you're a server only mod.
@@ -17,35 +17,35 @@ authors="xTracr"
 # NONE means that no display test is set on your mod. You need to do this yourself, see IExtensionPoint.DisplayTest for more information. You can define any scheme you wish with this value.
 # IMPORTANT NOTE: this is NOT an instruction as to which environments (CLIENT or DEDICATED SERVER) your mod loads on. Your mod should load (and maybe do nothing!) whereever it finds itself.
 #displayTest="MATCH_VERSION" # MATCH_VERSION is the default if nothing is specified (#optional)
-description='''
+description = '''
 Make the camera more realistic in the first-person view.
 '''
 
 [[dependencies.realcamera]]
-    modId="forge" #mandatory
-    # Does this dependency have to exist - if not, ordering below must be specified
-    mandatory=true #mandatory
-    # The version range of the dependency
-    versionRange="[47,48)" #mandatory
-    # An ordering relationship for the dependency - BEFORE or AFTER required if the relationship is not mandatory
-    ordering="NONE"
-    # Side this dependency is applied on - BOTH, CLIENT or SERVER
-    side="BOTH"
+modId = "forge" #mandatory
+# Does this dependency have to exist - if not, ordering below must be specified
+mandatory = true #mandatory
+# The version range of the dependency
+versionRange = "[47,48)" #mandatory
+# An ordering relationship for the dependency - BEFORE or AFTER required if the relationship is not mandatory
+ordering = "NONE"
+# Side this dependency is applied on - BOTH, CLIENT or SERVER
+side = "BOTH"
 
 [[dependencies.realcamera]]
-    modId="minecraft"
-    mandatory=true
-    versionRange="[1.20.1,1.20.2)"
-    ordering="NONE"
-    side="BOTH"
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.20.1,1.20.2)"
+ordering = "NONE"
+side = "BOTH"
 
 [[dependencies.realcamera]]
-    modId="cloth_config"
-    mandatory=false
-    versionRange="[11.0.99,)"
-    ordering="NONE"
-    side="CLIENT"
-    [dependencies.realcamera.mc-publish]
-        ignore=false
-        modrinth="cloth-config"
-        curseforge="cloth-config"
+modId = "cloth_config"
+mandatory = false
+versionRange = "[11.0.99,)"
+ordering = "NONE"
+side = "CLIENT"
+[dependencies.realcamera.mc-publish]
+ignore = false
+modrinth = "cloth-config"
+curseforge = "cloth-config"

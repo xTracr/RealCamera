@@ -11,9 +11,9 @@ import java.util.function.Consumer;
 
 public class TexturedButton extends PressableWidget {
     private static final Identifier ICON_TEXTURE = new Identifier(RealCamera.MODID, "textures/gui/icon.png");
-    private final Consumer<TexturedButton> onPress;
     protected final Identifier texture;
     protected final int textureWidth, textureHeight;
+    private final Consumer<TexturedButton> onPress;
     protected int u, v;
 
     public TexturedButton(int u, int v, Consumer<TexturedButton> onPress) {
@@ -25,7 +25,7 @@ public class TexturedButton extends PressableWidget {
     }
 
     public TexturedButton(int x, int y, int width, int height, int u, int v, Identifier texture,
-            int textureWidth, int textureHeight, Consumer<TexturedButton> onPress, Text message) {
+                          int textureWidth, int textureHeight, Consumer<TexturedButton> onPress, Text message) {
         super(x, y, width, height, message);
         this.textureWidth = textureWidth;
         this.textureHeight = textureHeight;
@@ -33,11 +33,6 @@ public class TexturedButton extends PressableWidget {
         this.u = u;
         this.v = v;
         this.texture = texture;
-    }
-
-    public void setUV(int u, int v) {
-        this.u = u;
-        this.v = v;
     }
 
     @Override

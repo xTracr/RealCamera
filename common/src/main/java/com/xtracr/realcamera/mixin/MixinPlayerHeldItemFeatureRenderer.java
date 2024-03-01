@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinPlayerHeldItemFeatureRenderer {
     @Inject(method = "renderItem", at = @At("HEAD"), cancellable = true)
     private void realCamera$onRenderItemHEAD(LivingEntity entity, ItemStack stack, ModelTransformationMode transformationMode,
-            Arm arm, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo cInfo) {
+                                             Arm arm, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, CallbackInfo cInfo) {
         if (VirtualRenderer.shouldDisableRender("heldItem")) cInfo.cancel();
     }
 }

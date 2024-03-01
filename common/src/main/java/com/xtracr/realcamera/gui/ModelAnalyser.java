@@ -18,6 +18,32 @@ import java.util.List;
 public class ModelAnalyser extends VertexRecorder {
     private BuiltRecord focusedRecord;
 
+    private static boolean intersects(Vertex[] quad, List<Vertex[]> quads) {
+        final float precision = 0.00001f;
+        for (Vertex[] q : quads)
+            for (Vertex v1 : quad)
+                for (Vertex v2 : q) if (v1.pos().squaredDistanceTo(v2.pos()) < precision) return true;
+        return false;
+    }
+
+    private static void drawQuad(DrawContext context, Vertex[] quad, int argb, int offset) {
+        VertexConsumer vertexConsumer = context.getVertexConsumers().getBuffer(RenderLayer.getGui());
+        for (Vertex vertex : quad)
+            vertexConsumer.vertex(vertex.x(), vertex.y(), vertex.z() + offset).color(argb).next();
+        if (quad.length == 3) vertexConsumer.vertex(quad[2].x(), quad[2].y(), quad[2].z() + offset).color(argb).next();
+        context.draw();
+    }
+
+    private static void drawNormal(DrawContext context, Vec3d start, Vec3d normal, int length, int argb) {
+        Vec3d end = normal.multiply(length).add(start);
+        VertexConsumer vertexConsumer = context.getVertexConsumers().getBuffer(RenderLayer.getLineStrip());
+        vertexConsumer.vertex(start.getX(), start.getY(), start.getZ() + 1200f).color(argb)
+                .normal((float) normal.getX(), (float) normal.getY(), (float) normal.getZ()).next();
+        vertexConsumer.vertex(end.getX(), end.getY(), end.getZ() + 1200f).color(argb)
+                .normal((float) normal.getX(), (float) normal.getY(), (float) normal.getZ()).next();
+        context.draw();
+    }
+
     public String focusedTextureId() {
         if (focusedRecord == null) return null;
         return getTextureId(focusedRecord);
@@ -120,33 +146,9 @@ public class ModelAnalyser extends VertexRecorder {
         drawQuad(context, reversed, argb1, 1100);
     }
 
-    public void drawNormal(DrawContext context,  float u, float v, int length, int argb) {
+    public void drawNormal(DrawContext context, float u, float v, int length, int argb) {
         Vertex[] quad;
         if (currentRecord == null || (quad = getQuad(currentRecord, u, v)) == null) return;
         drawNormal(context, getPos(quad, u, v), quad[0].normal(), length, argb);
-    }
-
-    private static boolean intersects(Vertex[] quad, List<Vertex[]> quads) {
-        final float precision = 0.00001f;
-        for (Vertex[] q : quads) for (Vertex v1 : quad)
-            for (Vertex v2 : q) if (v1.pos().squaredDistanceTo(v2.pos()) < precision) return true;
-        return false;
-    }
-
-    private static void drawQuad(DrawContext context, Vertex[] quad, int argb, int offset) {
-        VertexConsumer vertexConsumer = context.getVertexConsumers().getBuffer(RenderLayer.getGui());
-        for (Vertex vertex : quad) vertexConsumer.vertex(vertex.x(), vertex.y(), vertex.z() + offset).color(argb).next();
-        if (quad.length == 3) vertexConsumer.vertex(quad[2].x(), quad[2].y(), quad[2].z() + offset).color(argb).next();
-        context.draw();
-    }
-
-    private static void drawNormal(DrawContext context, Vec3d start, Vec3d normal, int length, int argb) {
-        Vec3d end = normal.multiply(length).add(start);
-        VertexConsumer vertexConsumer = context.getVertexConsumers().getBuffer(RenderLayer.getLineStrip());
-        vertexConsumer.vertex(start.getX(), start.getY(), start.getZ() + 1200f).color(argb)
-                .normal((float) normal.getX(), (float) normal.getY(), (float) normal.getZ()).next();
-        vertexConsumer.vertex(end.getX(), end.getY(), end.getZ() + 1200f).color(argb)
-                .normal((float) normal.getX(), (float) normal.getY(), (float) normal.getZ()).next();
-        context.draw();
     }
 }

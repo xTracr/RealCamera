@@ -35,12 +35,12 @@ import java.util.function.BiFunction;
 
 public class RealCameraCore {
     private static final VertexRecorder recorder = new VertexRecorder();
+    public static BindingTarget currentTarget = new BindingTarget();
     private static String status = "Successful";
     private static boolean renderingPlayer = false;
     private static boolean active = false;
     private static float pitch, yaw, roll;
     private static Vec3d pos = Vec3d.ZERO, cameraPos = Vec3d.ZERO;
-    public static BindingTarget currentTarget = new BindingTarget();
 
     public static String getStatus() {
         return status;
