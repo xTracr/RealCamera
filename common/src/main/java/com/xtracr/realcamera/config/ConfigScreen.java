@@ -23,9 +23,9 @@ import java.util.List;
 import java.util.Optional;
 
 public class ConfigScreen {
-    private static final String CATEGORY = "config.category.xtracr_" + RealCamera.MODID + "_";
-    private static final String OPTION = "config.option.xtracr_" + RealCamera.MODID + "_";
-    private static final String TOOLTIP = "config.tooltip.xtracr_" + RealCamera.MODID + "_";
+    private static final String CATEGORY = "config.category." + RealCamera.FULL_ID + ".";
+    private static final String OPTION = "config.option." + RealCamera.FULL_ID + ".";
+    private static final String TOOLTIP = "config.tooltip." + RealCamera.FULL_ID + ".";
 
     public static Screen create(Screen parent) {
         ConfigFile.load();
@@ -34,7 +34,7 @@ public class ConfigScreen {
                 .setParentScreen(parent)
                 .transparentBackground()
                 .setSavingRunnable(ConfigFile::save)
-                .setTitle(Text.translatable("config.title.xtracr_" + RealCamera.MODID));
+                .setTitle(Text.translatable("config.title." + RealCamera.FULL_ID));
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
         ConfigCategory general = builder.getOrCreateCategory(Text.translatable(CATEGORY + "general"));
         ConfigCategory binding = builder.getOrCreateCategory(Text.translatable(CATEGORY + "binding"));

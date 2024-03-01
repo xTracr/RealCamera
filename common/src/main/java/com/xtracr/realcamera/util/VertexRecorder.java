@@ -8,7 +8,6 @@ import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import org.joml.Vector4f;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -220,7 +219,7 @@ public class VertexRecorder implements VertexConsumerProvider {
         }
 
         public Vertex transform(Matrix4f positionMatrix, Matrix3f normalMatrix) {
-            Vector4f pos = new Vector4f((float) x, (float) y, (float) z, 1.0f).mul(positionMatrix);
+            Vector3f pos = new Vector3f((float) x, (float) y, (float) z).mulPosition(positionMatrix);
             Vector3f normal = new Vector3f(normalX, normalY, normalZ).mul(normalMatrix);
             return new Vertex(pos.x(), pos.y(), pos.z(), argb, u, v, overlay, light, normal.x(), normal.y(), normal.z());
         }

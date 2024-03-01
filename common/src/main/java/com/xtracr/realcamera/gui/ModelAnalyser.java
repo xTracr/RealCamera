@@ -55,9 +55,11 @@ public class ModelAnalyser extends VertexRecorder {
         return result.getRight();
     }
 
-    public void preview(DrawContext context, BindingTarget target, int length, int forwardArgb, int upwardArgb, int leftArgb) {
-        if (currentRecord == null) return;
+    public void preview(DrawContext context, BindingTarget target, int entitySize, int forwardArgb, int upwardArgb, int leftArgb) {
         Matrix3f normal = new Matrix3f();
+        target.setOffsetX(entitySize * target.offsetX());
+        target.setOffsetY(entitySize * target.offsetY());
+        target.setOffsetZ(entitySize * target.offsetZ());
         Vec3d pos;
         try {
             pos = getTargetPosAndRot(target, normal);
@@ -71,9 +73,9 @@ public class ModelAnalyser extends VertexRecorder {
         normal.rotateLocal((float) Math.toRadians(target.roll()), normal.m20, normal.m21, normal.m22);
         drawByAnother(context.getVertexConsumers());
         context.draw();
-        drawNormal(context, pos, new Vec3d(normal.m20(), normal.m21(), normal.m22()), length, forwardArgb);
-        drawNormal(context, pos, new Vec3d(normal.m10(), normal.m11(), normal.m12()), length / 2, upwardArgb);
-        drawNormal(context, pos, new Vec3d(normal.m00(), normal.m01(), normal.m02()), length / 2, leftArgb);
+        drawNormal(context, pos, new Vec3d(normal.m20(), normal.m21(), -normal.m22()), entitySize / 3, forwardArgb);
+        drawNormal(context, pos, new Vec3d(normal.m10(), normal.m11(), -normal.m12()), entitySize / 6, upwardArgb);
+        drawNormal(context, pos, new Vec3d(normal.m00(), normal.m01(), -normal.m02()), entitySize / 6, leftArgb);
     }
 
     public void drawQuad(DrawContext context, float u, float v, int argb) {

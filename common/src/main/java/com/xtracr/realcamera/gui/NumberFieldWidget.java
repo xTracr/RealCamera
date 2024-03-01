@@ -12,10 +12,10 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class NumberFieldWidget<T extends Comparable<T>> extends TextFieldWidget {
     private final T defaultValue;
+    private Tooltip tooltip;
     protected T maximum, minimum;
 
-    NumberFieldWidget(TextRenderer textRenderer, int x, int y, int width, int height,
-                      @Nullable NumberFieldWidget<T> copyFrom, Text text, T defaultValue, T maximum, T minimum) {
+    NumberFieldWidget(TextRenderer textRenderer, int x, int y, int width, int height, T defaultValue, T maximum, T minimum, @Nullable NumberFieldWidget<T> copyFrom, Text text) {
         super(textRenderer, x, y, width, height, text);
         this.defaultValue = defaultValue;
         this.maximum = maximum;
@@ -54,16 +54,22 @@ public abstract class NumberFieldWidget<T extends Comparable<T>> extends TextFie
     abstract protected T getValueInternal();
 
     protected void checkText() {
-        setTooltip(null);
+        super.setTooltip(tooltip);
         setRenderTextProvider((string, firstCharacterIndex) -> OrderedText.styledForwardsVisitedString(string, Style.EMPTY));
         try {
             T value = getValueInternal();
-            if (value.compareTo(minimum) < 0) throw new Exception("<" + minimum + " !");
-            if (value.compareTo(maximum) > 0) throw new Exception(">" + maximum + " !");
+            if (value.compareTo(minimum) < 0) throw new Exception("<" + minimum);
+            if (value.compareTo(maximum) > 0) throw new Exception(">" + maximum);
         } catch (Exception exception) {
-            setTooltip(Tooltip.of(Text.literal("Invalid number: " + exception.getMessage()).styled(s -> s.withColor(Formatting.RED))));
+            super.setTooltip(Tooltip.of(Text.literal("Invalid number: " + exception.getMessage()).styled(s -> s.withColor(Formatting.RED))));
             setRenderTextProvider((string, firstCharacterIndex) -> OrderedText.styledForwardsVisitedString(string, Style.EMPTY.withColor(Formatting.RED)));
         }
+    }
+
+    @Override
+    public void setTooltip(Tooltip tooltip) {
+        this.tooltip = tooltip;
+        super.setTooltip(tooltip);
     }
 
     @Override

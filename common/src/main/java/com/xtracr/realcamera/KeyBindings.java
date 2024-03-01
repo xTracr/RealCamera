@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public final class KeyBindings {
-    private static final String KEY_CATEGORY = "key.category.xtracr_" + RealCamera.MODID;
-    private static final String KEY_ID = "key.xtracr_" + RealCamera.MODID + "_";
+    private static final String KEY_CATEGORY = "key.category." + RealCamera.FULL_ID;
+    private static final String KEY_ID = "key." + RealCamera.FULL_ID + ".";
     private static final List<KeyBinding> KEY_BINDINGS = new ArrayList<>();
     private static final KeyBinding MODEL_VIEW_GUI = createKeyBinding("modelViewGui");
     private static final KeyBinding TOGGLE_PERSPECTIVE = createKeyBinding("togglePerspective", GLFW.GLFW_KEY_F6);

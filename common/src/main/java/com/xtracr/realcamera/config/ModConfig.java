@@ -80,6 +80,10 @@ public class ModConfig {
         return binding.adjustOffset;
     }
 
+    public BindingTarget getTarget(String name) {
+        return binding.targetMap.get(name);
+    }
+
     public boolean isXBound() {
         return binding.bindX;
     }
@@ -122,6 +126,10 @@ public class ModConfig {
 
     public void setAdjustOffset(boolean value) {
         binding.adjustOffset = value;
+    }
+
+    public void putTarget(BindingTarget target) {
+        if (target.name() != null) binding.targetMap.put(target.name(), target);
     }
 
     public void adjustBindingX(boolean add) {
@@ -291,13 +299,13 @@ public class ModConfig {
     }
 
     public static class Binding {
-        protected static final Map<String, BindingTarget> defaultTargetMap = Map.of("minecraft_head", BindingTarget.MINECRAFT_HEAD);
+        protected static final List<BindingTarget> defaultTargets = List.of(BindingTarget.MINECRAFT_HEAD, BindingTarget.MINECRAFT_HEAD_2);
         public VanillaModelPart vanillaModelPart = VanillaModelPart.head;
         public boolean experimental = false;
         public boolean adjustOffset = true;
         public boolean autoBind = true;
         public String nameOfList = "minecraft_head";
-        public LinkedHashMap<String, BindingTarget> targetMap = new LinkedHashMap<>(defaultTargetMap);
+        public LinkedHashMap<String, BindingTarget> targetMap = new LinkedHashMap<>();
         public boolean bindX = true;
         public boolean bindY = true;
         public boolean bindZ = true;
@@ -311,7 +319,10 @@ public class ModConfig {
 
         private void clamp() {
             if (vanillaModelPart == null) vanillaModelPart = VanillaModelPart.head;
-            if (targetMap == null) targetMap = new LinkedHashMap<>(defaultTargetMap);
+            if (targetMap == null || targetMap.isEmpty()) {
+                targetMap = new LinkedHashMap<>();
+                defaultTargets.forEach(target -> targetMap.put(target.name(), target));
+            }
             cameraX = MathHelper.clamp(cameraX, MIN_DOUBLE, MAX_DOUBLE);
             cameraY = MathHelper.clamp(cameraY, MIN_DOUBLE, MAX_DOUBLE);
             cameraZ = MathHelper.clamp(cameraZ, MIN_DOUBLE, MAX_DOUBLE);

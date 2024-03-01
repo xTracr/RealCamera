@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 public class RealCamera {
     public static final String MODID = "realcamera";
+    public static final String FULL_ID = "xtracr_" + MODID;
     public static final Logger LOGGER = LoggerFactory.getLogger(MODID);
 
     public static void setup() {

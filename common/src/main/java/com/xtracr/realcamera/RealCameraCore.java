@@ -35,12 +35,12 @@ import java.util.function.BiFunction;
 
 public class RealCameraCore {
     private static VertexRecorder recorder = new VertexRecorder();
-    private static BindingTarget currentTarget = new BindingTarget();
     private static String status = "Successful";
     private static boolean renderingPlayer = false;
     private static boolean active = false;
     private static float pitch, yaw, roll;
     private static Vec3d pos = Vec3d.ZERO, cameraPos = Vec3d.ZERO;
+    public static BindingTarget currentTarget = new BindingTarget();
 
     public static String getStatus() {
         return status;
@@ -56,30 +56,30 @@ public class RealCameraCore {
 
     public static float getPitch(float f) {
         if (currentTarget.bindRotation()) return pitch;
-        else return f + currentTarget.pitch();
+        return f;
     }
 
     public static float getYaw(float f) {
         if (currentTarget.bindRotation()) return yaw;
-        else return f - currentTarget.yaw();
+        return f;
     }
 
     public static float getRoll(float f) {
         if (config().isClassic()) return f + config().getClassicRoll();
-        else if (currentTarget.bindRotation()) return roll;
-        else return f + currentTarget.roll();
+        if (currentTarget.bindRotation()) return roll;
+        return f;
     }
 
     public static Vec3d getPos(Vec3d vec3d) {
-        return new Vec3d(currentTarget.bindX() ? pos.getX() : vec3d.getX() + currentTarget.offsetX(),
-                currentTarget.bindY() ? pos.getY() : vec3d.getY() + currentTarget.offsetY(),
-                currentTarget.bindZ() ? pos.getZ() : vec3d.getZ() + currentTarget.offsetZ());
+        return new Vec3d(currentTarget.bindX() ? pos.getX() : vec3d.getX(),
+                currentTarget.bindY() ? pos.getY() : vec3d.getY(),
+                currentTarget.bindZ() ? pos.getZ() : vec3d.getZ());
     }
 
     public static Vec3d getCameraPos(Vec3d vec3d) {
-        return new Vec3d(currentTarget.bindX() ? cameraPos.getX() : vec3d.getX() + currentTarget.offsetX(),
-                currentTarget.bindY() ? cameraPos.getY() : vec3d.getY() + currentTarget.offsetY(),
-                currentTarget.bindZ() ? cameraPos.getZ() : vec3d.getZ() + currentTarget.offsetZ());
+        return new Vec3d(currentTarget.bindX() ? cameraPos.getX() : vec3d.getX(),
+                currentTarget.bindY() ? cameraPos.getY() : vec3d.getY(),
+                currentTarget.bindZ() ? cameraPos.getZ() : vec3d.getZ());
     }
 
     public static void setCameraPos(Vec3d vec3d) {
@@ -100,19 +100,19 @@ public class RealCameraCore {
         matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(roll));
         matrixStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(pitch));
         matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(yaw + 180.0f));
+        Matrix3f normalMatrix = matrixStack.peek().getNormalMatrix().transpose().invert();
         Matrix4f positionMatrix = matrixStack.peek().getPositionMatrix().transpose().invertAffine()
                 .translate((float) -pos.getX(), (float) -pos.getY(), (float) -pos.getZ());
-        Matrix3f normalMatrix = matrixStack.peek().getNormalMatrix().transpose().invert();
         BiFunction<RenderLayer, VertexRecorder.Vertex[], VertexRecorder.Vertex[]> function = (renderLayer, vertices) -> {
             double depth = currentTarget.disablingDepth(), centerZ = 0;
-            int size = vertices.length;
-            VertexRecorder.Vertex[] newQuad = new VertexRecorder.Vertex[size];
-            for (int i = 0; i < size; i++) newQuad[i] = vertices[i].transform(positionMatrix, normalMatrix);
-            for (VertexRecorder.Vertex vertex : newQuad) {
-                if (vertex.z() < -depth) return newQuad;
+            int count = vertices.length;
+            VertexRecorder.Vertex[] quad = new VertexRecorder.Vertex[count];
+            for (int i = 0; i < count; i++) quad[i] = vertices[i].transform(positionMatrix, normalMatrix);
+            for (VertexRecorder.Vertex vertex : quad) {
+                if (vertex.z() < -depth) return quad;
                 centerZ += vertex.z();
             }
-            return centerZ < -depth * vertices.length ? newQuad : null;
+            return centerZ < -depth * count ? quad : null;
         };
         recorder.drawByAnother(vertexConsumers, renderLayer -> true, function);
     }
@@ -142,7 +142,7 @@ public class RealCameraCore {
                 String textureId = recorder.currentTextureId();
                 if (textureId != null) targetList.addAll(targetSet.stream().filter(t -> textureId.contains(t.textureId())).toList());
             }
-            targetList.add(config().binding.targetMap.get(config().binding.nameOfList));
+            targetList.add(config().getTarget(config().binding.nameOfList));
             for (BindingTarget target : targetList) {
                 try {
                     recorder.setCurrent(renderLayer -> renderLayer.toString().contains(target.textureId()));

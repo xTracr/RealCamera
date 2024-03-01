@@ -15,7 +15,7 @@ import net.minecraft.command.CommandSource;
 import net.minecraft.text.Text;
 
 public class ClientCommand<S extends CommandSource>{
-    private static final String KEY_COMMAND = "message.xtracr_" + RealCamera.MODID + "_command_";
+    private static final String KEY_COMMAND = "message." + RealCamera.FULL_ID + ".command_";
     private static final ModConfig config = ConfigFile.modConfig;
 
     public void register(CommandDispatcher<S> dispatcher, CommandRegistryAccess access) {
