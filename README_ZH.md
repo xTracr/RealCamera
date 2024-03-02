@@ -15,13 +15,11 @@
 * 在第一人称视角下渲染玩家模型
 * 按下F6来开关，另外一些键来调整摄像头
 * 在Config界面配置以上特性（需Cloth Config）
-* 在未来的0.6+版本中在理论上支持大多数模组模型
+* 在0.6+版本中理论上支持大多数模组模型（你可以在[这里](https://github.com/xTracr/RealCamera/discussions)讨论）
 
 > 详细了解[如何配置](https://github.com/xTracr/RealCamera/wiki/Configuration)
 
 ### 依赖项目 ###
-
-#### (建议使用最新版本) ####
 
 * Fabric:
   * [Fabric Loader](https://fabricmc.net/use/installer/)

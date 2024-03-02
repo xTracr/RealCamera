@@ -7,9 +7,28 @@
 ### Test Versions ###
 
 * 0.6.0-beta:
-* 0.6.0-alpha.1:
-* Added model view screen
-* Allowed to select the model part you want to bind directly in the screen
+  * 0.6.0-alpha.1:
+  * Added model view screen
+  * Allowed to select the model part you want to bind directly in the screen
+  * 0.6.0-alpha.2:
+  * Fixed #41, #46 and #48
+  * Fix minor grammar errors (#44)
+  * Optimized the GUI display and changed logic of selection button
+  * Changed the way to render player
+  * Added pause button and show cube button
+  * Allowed to disable rendering vertices based on depth relative to screen
+  * Added 'AutoBind' feature
+  * 0.6.0-alpha.3:
+  * Changed to bind based on UV coordinates and improved GUI
+  * Fixed #54
+  * Improved Gui and Fixed a bug that would cause crash
+  * Added more icons and allowed selection or deletion of saved configs in the gui
+  * Changed the 'Offset Model' option to 'Bind X/Y/Z Coordinate' options
+  * Improved logic for 'Auto Bind' mode
+  * Combined the 'Bind Pitch/Yaw/Roll' options
+  * Added 'preview' feature
+  * Removed commands
+  * Improved default configs and reformatted code
 
 * 0.5.0-beta:
 * Redesigned config screen
@@ -93,9 +112,28 @@
 ### 测试版 ###
 
 * 0.6.0-beta:
-* 0.6.0-alpha.1:
-* 添加了模型视图界面
-* 允许在界面中选择想要绑定的模型部位
+  * 0.6.0-alpha.1:
+  * 添加了模型视图界面
+  * 允许在界面中选择想要绑定的模型部位
+  * 0.6.0-alpha.2:
+  * 修复了#41、#46和#48
+  * 修复了一些语法问题（#44）
+  * 优化了GUI显示效果以及修改了选择按钮的逻辑
+  * 修改了渲染玩家的方式
+  * 添加了暂停按钮和显示立方体按钮
+  * 允许根据相对于屏幕的距离禁用渲染部分顶点
+  * 添加了'自动绑定'功能
+  * 0.6.0-alpha.3:
+  * 改为基于UV坐标绑定并且改进了GUI
+  * 修复了#54
+  * 改进了GUI，修复了一个会导致崩溃的问题
+  * 添加了更多图标，允许在GUI内选择和删除已保存的配置
+  * 将'偏移模型'选项改为'绑定X/Y/Z坐标'选项
+  * 改进了'自动绑定'的逻辑
+  * 合并了'绑定俯仰角/偏航角/翻滚角'选项
+  * 添加了'预览'功能
+  * 移除了命令
+  * 改进了默认配置，重新格式化代码
 
 * 0.5.0-beta:
 * 重新设计了配置屏幕
