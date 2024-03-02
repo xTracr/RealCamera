@@ -1,7 +1,6 @@
 package com.xtracr.realcamera.gui;
 
 import com.xtracr.realcamera.config.BindingTarget;
-import com.xtracr.realcamera.util.Triple;
 import com.xtracr.realcamera.util.VertexRecorder;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderLayer;
@@ -19,7 +18,7 @@ public class ModelAnalyser extends VertexRecorder {
     private BuiltRecord focusedRecord;
 
     private static boolean intersects(Vertex[] quad, List<Vertex[]> quads) {
-        final float precision = 0.00001f;
+        final float precision = 1.0E-05f;
         for (Vertex[] q : quads)
             for (Vertex v1 : quad)
                 for (Vertex v2 : q) if (v1.pos().squaredDistanceTo(v2.pos()) < precision) return true;
@@ -28,8 +27,7 @@ public class ModelAnalyser extends VertexRecorder {
 
     private static void drawQuad(DrawContext context, Vertex[] quad, int argb, int offset) {
         VertexConsumer vertexConsumer = context.getVertexConsumers().getBuffer(RenderLayer.getGui());
-        for (Vertex vertex : quad)
-            vertexConsumer.vertex(vertex.x(), vertex.y(), vertex.z() + offset).color(argb).next();
+        for (Vertex vertex : quad) vertexConsumer.vertex(vertex.x(), vertex.y(), vertex.z() + offset).color(argb).next();
         if (quad.length == 3) vertexConsumer.vertex(quad[2].x(), quad[2].y(), quad[2].z() + offset).color(argb).next();
         context.draw();
     }
@@ -61,7 +59,7 @@ public class ModelAnalyser extends VertexRecorder {
     }
 
     public int getFocusedIndex(int mouseX, int mouseY, int layers) {
-        List<Triple<Double, BuiltRecord, Integer>> sortByDepth = new ArrayList<>();
+        List<Triple> sortByDepth = new ArrayList<>();
         records.forEach(record -> {
             Vertex[][] vertices = record.vertices();
             for (int i = 0, size = vertices.length; i < size; i++) {
@@ -71,34 +69,32 @@ public class ModelAnalyser extends VertexRecorder {
                 Vertex point = quad[0];
                 double deltaZ = 0;
                 if (point.normalZ() != 0) deltaZ = (point.normalX() * (mouseX - point.x()) + point.normalY() * (mouseY - point.y())) / point.normalZ();
-                if (polygon.contains(mouseX, mouseY)) sortByDepth.add(new Triple<>(point.z() + deltaZ, record, i));
+                if (polygon.contains(mouseX, mouseY)) sortByDepth.add(new Triple(point.z() + deltaZ, record, i));
             }
         });
         if (sortByDepth.isEmpty()) return -1;
-        sortByDepth.sort(Comparator.comparingDouble(triple -> -triple.getLeft()));
-        Triple<Double, BuiltRecord, Integer> result = sortByDepth.get(Math.min(sortByDepth.size() - 1, layers));
-        focusedRecord = result.getMiddle();
-        return result.getRight();
+        sortByDepth.sort(Comparator.comparingDouble(triple -> -triple.depth));
+        Triple result = sortByDepth.get(Math.min(sortByDepth.size() - 1, layers));
+        focusedRecord = result.record;
+        return result.index;
     }
 
     public void preview(DrawContext context, BindingTarget target, int entitySize, int forwardArgb, int upwardArgb, int leftArgb) {
-        Matrix3f normal = new Matrix3f();
+        drawByAnother(context.getVertexConsumers());
+        context.draw();
         target.setOffsetX(entitySize * target.offsetX());
         target.setOffsetY(entitySize * target.offsetY());
         target.setOffsetZ(entitySize * target.offsetZ());
+        Matrix3f normal = new Matrix3f();
         Vec3d pos;
         try {
             pos = getTargetPosAndRot(target, normal);
         } catch (Exception exception) {
-            drawByAnother(context.getVertexConsumers());
-            context.draw();
             return;
         }
         normal.rotateLocal((float) Math.toRadians(target.yaw()), normal.m10, normal.m11, normal.m12);
         normal.rotateLocal((float) Math.toRadians(target.pitch()), normal.m00, normal.m01, normal.m02);
         normal.rotateLocal((float) Math.toRadians(target.roll()), normal.m20, normal.m21, normal.m22);
-        drawByAnother(context.getVertexConsumers());
-        context.draw();
         drawNormal(context, pos, new Vec3d(normal.m20(), normal.m21(), -normal.m22()), entitySize / 3, forwardArgb);
         drawNormal(context, pos, new Vec3d(normal.m10(), normal.m11(), -normal.m12()), entitySize / 6, upwardArgb);
         drawNormal(context, pos, new Vec3d(normal.m00(), normal.m01(), -normal.m02()), entitySize / 6, leftArgb);
@@ -151,4 +147,6 @@ public class ModelAnalyser extends VertexRecorder {
         if (currentRecord == null || (quad = getQuad(currentRecord, u, v)) == null) return;
         drawNormal(context, getPos(quad, u, v), quad[0].normal(), length, argb);
     }
+
+    record Triple(double depth, BuiltRecord record, int index) {}
 }

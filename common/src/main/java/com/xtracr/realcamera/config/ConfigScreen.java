@@ -314,7 +314,7 @@ public class ConfigScreen {
         disable.addEntry(disableModWhen.build());
 
         experimental.addEntry(entryBuilder.startBooleanToggle(Text.literal("Enabled"), config.binding.experimental)
-                .setDefaultValue(false)
+                .setDefaultValue(true)
                 .setSaveConsumer(b -> config.binding.experimental = b)
                 .build());
         experimental.addEntry(entryBuilder.startBooleanToggle(Text.literal("Auto Bind"), config.binding.autoBind)

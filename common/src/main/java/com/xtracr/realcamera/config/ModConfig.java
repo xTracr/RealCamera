@@ -6,6 +6,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class ModConfig {
     protected static final double MIN_DOUBLE = -64.0d;
@@ -81,7 +82,7 @@ public class ModConfig {
     }
 
     public BindingTarget getTarget(String name) {
-        return binding.targetMap.get(name);
+        return binding.targetList.stream().filter(target -> target.name().equals(name)).findAny().orElse(null);
     }
 
     public boolean isXBound() {
@@ -129,7 +130,11 @@ public class ModConfig {
     }
 
     public void putTarget(BindingTarget target) {
-        if (!target.isEmpty()) binding.targetMap.put(target.name(), target);
+        if (target.isEmpty()) return;
+        IntStream.range(0, binding.targetList.size())
+                .filter(i -> binding.targetList.get(i).name().equals(target.name()))
+                .findAny()
+                .ifPresentOrElse(i -> binding.targetList.set(i, target), () -> binding.targetList.add(target));
     }
 
     public void adjustBindingX(boolean add) {
@@ -299,12 +304,12 @@ public class ModConfig {
     }
 
     public static class Binding {
+        public List<BindingTarget> targetList = new ArrayList<>(BindingTarget.defaultTargets);
         public VanillaModelPart vanillaModelPart = VanillaModelPart.head;
-        public boolean experimental = false;
+        public boolean experimental = true;
         public boolean adjustOffset = true;
         public boolean autoBind = true;
-        public String nameOfList = "minecraft_head";
-        public LinkedHashMap<String, BindingTarget> targetMap = new LinkedHashMap<>();
+        public String targetName = "minecraft_head";
         public boolean bindX = true;
         public boolean bindY = true;
         public boolean bindZ = true;
@@ -318,10 +323,7 @@ public class ModConfig {
 
         private void clamp() {
             if (vanillaModelPart == null) vanillaModelPart = VanillaModelPart.head;
-            if (targetMap == null || targetMap.isEmpty()) {
-                targetMap = new LinkedHashMap<>();
-                BindingTarget.defaultTargets.forEach(target -> targetMap.put(target.name(), target));
-            }
+            if (targetList == null || targetList.isEmpty()) targetList = new ArrayList<>(BindingTarget.defaultTargets);
             cameraX = MathHelper.clamp(cameraX, MIN_DOUBLE, MAX_DOUBLE);
             cameraY = MathHelper.clamp(cameraY, MIN_DOUBLE, MAX_DOUBLE);
             cameraZ = MathHelper.clamp(cameraZ, MIN_DOUBLE, MAX_DOUBLE);

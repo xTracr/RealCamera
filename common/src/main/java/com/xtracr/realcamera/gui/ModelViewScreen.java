@@ -24,7 +24,7 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ModelViewScreen extends Screen {
@@ -45,11 +45,11 @@ public class ModelViewScreen extends Screen {
                     1, Text.translatable(KEY_WIDGET + "upwardMode").styled(s -> s.withColor(Formatting.RED)),
                     2, Text.translatable(KEY_WIDGET + "posMode").styled(s -> s.withColor(Formatting.BLUE))),
             widgetWidth * 2 + 4, Text.translatable(KEY_WIDGET + "selectMode"));
-    private final CyclingTexturedButton pauseButton = new CyclingTexturedButton(0, 0, 2);
-    private final CyclingTexturedButton bindXButton = new CyclingTexturedButton(16, 0, 2);
-    private final CyclingTexturedButton bindYButton = new CyclingTexturedButton(16, 0, 2);
-    private final CyclingTexturedButton bindZButton = new CyclingTexturedButton(16, 0, 2);
-    private final CyclingTexturedButton bindRotButton = new CyclingTexturedButton(16, 0, 2);
+    private final CyclingTexturedButton pauseButton = new CyclingTexturedButton(0, 0, 0, 2);
+    private final CyclingTexturedButton bindXButton = new CyclingTexturedButton(16, 0, 1, 2);
+    private final CyclingTexturedButton bindYButton = new CyclingTexturedButton(16, 0, 0, 2);
+    private final CyclingTexturedButton bindZButton = new CyclingTexturedButton(16, 0, 1, 2);
+    private final CyclingTexturedButton bindRotButton = new CyclingTexturedButton(16, 0, 1, 2);
     private final DoubleSliderWidget entityPitchSlider = createSlider("pitch", widgetWidth * 2 + 4, -90.0d, 90.0d);
     private final DoubleSliderWidget entityYawSlider = createSlider("yaw", widgetWidth * 2 + 4, -60.0d, 60.0d);
     private final DoubleSliderWidget offsetXSlider = createSlider("offsetX", widgetWidth * 2 - 18, -1.0d, 1.0d);
@@ -129,7 +129,15 @@ public class ModelViewScreen extends Screen {
             adder.add(bindRotButton, 1, smallPositioner).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "bindButtons")));
             adder.add(pitchSlider, 1, sliderPositioner);
             adder.add(yawSlider, 2, gridWidget.copyPositioner().margin(26, 2, 0, 0));
-            adder.add(rollSlider, 2, gridWidget.copyPositioner().margin(26, 2, 0, 0));
+            adder.add(new TexturedButton(32, 0, button -> {
+                offsetXSlider.setValue(0);
+                offsetYSlider.setValue(0);
+                offsetZSlider.setValue(0);
+                pitchSlider.setValue(0);
+                yawSlider.setValue(0);
+                rollSlider.setValue(0);
+            }), 1, smallPositioner);
+            adder.add(rollSlider, 1, sliderPositioner);
             adder.add(scaleField, 1, smallPositioner).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "scale")));
             adder.add(depthField, 1, smallPositioner).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "depth")));
         }
@@ -139,7 +147,7 @@ public class ModelViewScreen extends Screen {
             initWidgets(category, page);
         }));
         adder.add(createButton(Text.translatable(KEY_WIDGET + "bind"), widgetWidth, button -> {
-            ConfigFile.modConfig.binding.nameOfList = nameField.getText();
+            ConfigFile.modConfig.binding.targetName = nameField.getText();
             ConfigFile.save();
             initWidgets(category, page);
         })).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "bind", "Auto Bind")));
@@ -152,8 +160,8 @@ public class ModelViewScreen extends Screen {
     }
 
     private void initRightWidgets(final int page) {
-        LinkedHashMap<String, BindingTarget> targetMap = ConfigFile.modConfig.binding.targetMap;
-        final int widgetsPerPage = 6, pages = (targetMap.size() - 1) / widgetsPerPage + 1;
+        List<BindingTarget> targetList = ConfigFile.modConfig.binding.targetList;
+        final int widgetsPerPage = 6, pages = (targetList.size() - 1) / widgetsPerPage + 1;
         GridWidget gridWidget = new GridWidget();
         gridWidget.getMainPositioner().margin(4, 2, 0, 0);
         Positioner smallPositioner = gridWidget.copyPositioner().margin(5, 3, 1, 1);
@@ -161,16 +169,15 @@ public class ModelViewScreen extends Screen {
         addDrawableChild(new TexturedButton(x + (xSize + ySize) / 2 + 8, y + 4, 16, 16, 0, 32, button -> initWidgets(category, (page - 1 + pages) % pages)));
         addDrawableChild(new TextWidget(x + (xSize + ySize) / 2 + 30, y + 4, widgetWidth * 2 - 40, widgetHeight, Text.of((page + 1) + " / " + pages), textRenderer));
         addDrawableChild(new TexturedButton(x + xSize - 21, y + 4, 16, 16, 16, 32, button -> initWidgets(category, (page + 1) % pages)));
-        String[] names = targetMap.keySet().toArray(String[]::new);
-        for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, targetMap.size()); i++) {
-            String name = names[i];
-            BindingTarget target = targetMap.get(name);
-            adder.add(createButton(Text.literal(name).styled(s -> name.equals(ConfigFile.modConfig.binding.nameOfList) ? s.withColor(Formatting.GREEN) : s),
+        for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, targetList.size()); i++) {
+            BindingTarget target = targetList.get(i);
+            String name = target.name();
+            adder.add(createButton(Text.literal(name).styled(s -> name.equals(ConfigFile.modConfig.binding.targetName) ? s.withColor(Formatting.GREEN) : s),
                     widgetWidth * 2 - 18, button -> loadBindingTarget(target)));
             adder.add(new TexturedButton(32, 32, button -> {
-                targetMap.remove(name);
+                targetList.remove(target);
                 ConfigFile.save();
-                initWidgets(category, page * widgetsPerPage >= targetMap.size() && !targetMap.isEmpty() ? page - 1 : page);
+                initWidgets(category, page * widgetsPerPage >= targetList.size() && !targetList.isEmpty() ? page - 1 : page);
             }), 1, smallPositioner);
         }
         gridWidget.refreshPositions();

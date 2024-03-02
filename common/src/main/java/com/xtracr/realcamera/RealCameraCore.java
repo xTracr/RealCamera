@@ -29,7 +29,6 @@ import org.joml.Matrix4f;
 import org.joml.Vector4f;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.function.BiFunction;
 
@@ -137,16 +136,15 @@ public class RealCameraCore {
         if (config().binding.experimental) {
             List<BindingTarget> targetList = new ArrayList<>();
             if (config().binding.autoBind) {
-                Collection<BindingTarget> targetSet = config().binding.targetMap.values();
-                recorder.setCurrent(renderLayer -> targetSet.stream().anyMatch(t -> renderLayer.toString().contains(t.textureId())));
+                List<BindingTarget> targets = config().binding.targetList;
+                recorder.setCurrent(renderLayer -> targets.stream().anyMatch(t -> renderLayer.toString().contains(t.textureId())));
                 String textureId = recorder.currentTextureId();
-                if (textureId != null) targetList.addAll(targetSet.stream().filter(t -> textureId.contains(t.textureId())).toList());
+                if (textureId != null) targetList.addAll(targets.stream().filter(t -> textureId.contains(t.textureId())).toList());
             }
-            targetList.add(config().getTarget(config().binding.nameOfList));
+            targetList.add(config().getTarget(config().binding.targetName));
             for (BindingTarget target : targetList) {
                 try {
                     recorder.setCurrent(renderLayer -> renderLayer.toString().contains(target.textureId()));
-                    if (recorder.quadCount() <= 0) throw new NullPointerException("Vertices not found");
                     pos = recorder.getTargetPosAndRot(target, normal);
                     currentTarget = target;
                     break;

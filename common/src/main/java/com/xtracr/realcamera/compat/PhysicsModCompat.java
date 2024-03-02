@@ -49,10 +49,13 @@ public class PhysicsModCompat {
 
     public static <E extends Entity> void renderStart(EntityRenderDispatcher dispatcher, E entity, double x, double y, double z, float yRot, float renderPercent, MatrixStack matrixStack) {
         if (!loaded) return;
-        Object world = ReflectUtil.getFieldValue(EntityRenderDispatcher_worldField, dispatcher).get();
-        if ((boolean) ReflectUtil.invokeMethod(ConfigClient_areOceanPhysicsEnabled, null).orElse(false) && world instanceof ClientWorld clientWorld) {
-            Object oceanWorld = ReflectUtil.invokeMethod(PhysicsWorld_getOceanWorld, ReflectUtil.invokeMethod(PhysicsMod_getPhysicsWorld, ReflectUtil.invokeMethod(PhysicsMod_getInstance, null, clientWorld).get()).get()).get();
-            ReflectUtil.invokeMethod(OceanWorld_computeEntityOffset, oceanWorld, matrixStack.peek().getPositionMatrix(), matrixStack.peek().getNormalMatrix(), clientWorld, entity, x, y, z, 0.0d, 0.0d, 0.0d, yRot, renderPercent);
+        try {
+            Object world = ReflectUtil.getFieldValue(EntityRenderDispatcher_worldField, dispatcher).get();
+            if ((boolean) ReflectUtil.invokeMethod(ConfigClient_areOceanPhysicsEnabled, null).orElse(false) && world instanceof ClientWorld clientWorld) {
+                Object oceanWorld = ReflectUtil.invokeMethod(PhysicsWorld_getOceanWorld, ReflectUtil.invokeMethod(PhysicsMod_getPhysicsWorld, ReflectUtil.invokeMethod(PhysicsMod_getInstance, null, clientWorld).get()).get()).get();
+                ReflectUtil.invokeMethod(OceanWorld_computeEntityOffset, oceanWorld, matrixStack.peek().getPositionMatrix(), matrixStack.peek().getNormalMatrix(), clientWorld, entity, x, y, z, 0.0d, 0.0d, 0.0d, yRot, renderPercent);
+            }
+        } catch (Exception ignored) {
         }
     }
 }

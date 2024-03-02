@@ -10,10 +10,8 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -26,12 +24,11 @@ public class VertexRecorder implements VertexConsumerProvider {
 
     protected static Vertex[] getQuad(BuiltRecord record, float u, float v) {
         final int resolution = 1000000;
-        for (Vertex[] quad : record.vertices) {
+        return Arrays.stream(record.vertices).filter(quad -> {
             Polygon polygon = new Polygon();
             for (Vertex vertex : quad) polygon.addPoint((int) (resolution * vertex.u), (int) (resolution * vertex.v));
-            if (polygon.contains(resolution * u, resolution * v)) return quad;
-        }
-        return null;
+            return polygon.contains(resolution * u, resolution * v);
+        }).findAny().orElse(null);
     }
 
     protected static Vec3d getPos(Vertex[] quad, float u, float v) {
@@ -56,26 +53,9 @@ public class VertexRecorder implements VertexConsumerProvider {
         lastRecord = null;
     }
 
-    public int quadCount() {
-        if (currentRecord == null) return 0;
-        return currentRecord.quadCount;
-    }
-
     public String currentTextureId() {
         if (currentRecord == null) return null;
         return getTextureId(currentRecord);
-    }
-
-    public Vec3d getPos(float u, float v) {
-        Vertex[] quad;
-        if (currentRecord == null || (quad = getQuad(currentRecord, u, v)) == null) return null;
-        return getPos(quad, u, v);
-    }
-
-    public Vec3d getNormal(float u, float v) {
-        Vertex[] quad;
-        if (currentRecord == null || (quad = getQuad(currentRecord, u, v)) == null) return null;
-        return quad[0].normal();
     }
 
     public void buildLastRecord() {
@@ -87,14 +67,14 @@ public class VertexRecorder implements VertexConsumerProvider {
         currentRecord = records.stream().filter(record -> predicate.test(record.renderLayer)).max(Comparator.comparingInt(BuiltRecord::quadCount)).orElse(null);
     }
 
-    public Vec3d getTargetPosAndRot(BindingTarget target, Matrix3f normal) throws ArithmeticException {
-        Vec3d front = getNormal(target.forwardU(), target.forwardV());
-        Vec3d up = getNormal(target.upwardU(), target.upwardV());
-        Vec3d center = getPos(target.posU(), target.posV());
+    public Vec3d getTargetPosAndRot(BindingTarget target, Matrix3f normal) throws NullPointerException, ArithmeticException {
+        Vec3d front = Objects.requireNonNull(getQuad(currentRecord, target.forwardU(), target.forwardV()))[0].normal();
+        Vec3d up = Objects.requireNonNull(getQuad(currentRecord, target.upwardU(), target.upwardV()))[0].normal();
+        Vec3d center = getPos(Objects.requireNonNull(getQuad(currentRecord, target.posU(), target.posV())), target.posU(), target.posV());
         if (!MathUtil.isFinite(front) || !MathUtil.isFinite(up) || !MathUtil.isFinite(center)) throw new ArithmeticException();
         normal.set(up.crossProduct(front).toVector3f(), up.toVector3f(), front.toVector3f());
-        Vector3f vec3f = normal.transform(new Vector3f((float) target.offsetZ(), (float) target.offsetY(), (float) target.offsetX()));
-        return center.add(vec3f.x(), vec3f.y(), vec3f.z());
+        Vector3f offset = new Vector3f((float) target.offsetZ(), (float) target.offsetY(), (float) target.offsetX()).mul(normal);
+        return center.add(offset.x(), offset.y(), offset.z());
     }
 
     public void drawByAnother(VertexConsumerProvider anotherProvider) {
@@ -132,7 +112,7 @@ public class VertexRecorder implements VertexConsumerProvider {
     private static class VertexRecord implements VertexConsumer {
         private final List<Vertex> vertices = new ArrayList<>();
         private final RenderLayer renderLayer;
-        private Vec3d pos = net.minecraft.util.math.Vec3d.ZERO, normal = net.minecraft.util.math.Vec3d.ZERO;
+        private Vec3d pos = Vec3d.ZERO, normal = Vec3d.ZERO;
         private int argb, overlay, light;
         private float u, v;
 
@@ -194,7 +174,7 @@ public class VertexRecorder implements VertexConsumerProvider {
         public void next() {
             vertices.add(new Vertex(pos.getX(), pos.getY(), pos.getZ(), argb, u, v, overlay, light,
                     (float) normal.getX(), (float) normal.getY(), (float) normal.getZ()));
-            pos = normal = net.minecraft.util.math.Vec3d.ZERO;
+            pos = normal = Vec3d.ZERO;
             u = v = overlay = light = argb = 0;
         }
 

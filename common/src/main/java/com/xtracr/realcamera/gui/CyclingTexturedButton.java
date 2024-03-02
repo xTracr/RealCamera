@@ -12,27 +12,27 @@ import net.minecraft.util.Identifier;
 public class CyclingTexturedButton extends PressableWidget {
     private static final Identifier ICON_TEXTURE = new Identifier(RealCamera.MODID, "textures/gui/icon.png");
     protected final Identifier texture;
-    protected final int textureWidth, textureHeight, vOffset, maximum;
-    protected int u, v;
-    private int value = 0;
+    protected final int textureWidth, textureHeight, vOffset, size;
+    protected int u, v, value;
 
-    public CyclingTexturedButton(int u, int v, int maximum) {
-        this(0, 0, 16, 16, u, v, maximum);
+    public CyclingTexturedButton(int u, int v, int value, int size) {
+        this(0, 0, 16, 16, u, v, value, size);
     }
 
-    public CyclingTexturedButton(int x, int y, int width, int height, int u, int v, int maximum) {
-        this(x, y, width, height, u, v, height, maximum, ICON_TEXTURE, 256, 256, Text.empty());
+    public CyclingTexturedButton(int x, int y, int width, int height, int u, int v, int value, int size) {
+        this(x, y, width, height, u, v, height, value, size, ICON_TEXTURE, 256, 256, Text.empty());
     }
 
-    public CyclingTexturedButton(int x, int y, int width, int height, int u, int v, int vOffset, int maximum, Identifier texture, int textureWidth, int textureHeight, Text message) {
+    public CyclingTexturedButton(int x, int y, int width, int height, int u, int v, int vOffset, int value, int size, Identifier texture, int textureWidth, int textureHeight, Text message) {
         super(x, y, width, height, message);
         this.u = u;
         this.v = v;
         this.vOffset = vOffset;
-        this.maximum = maximum;
+        this.size = size;
         this.texture = texture;
         this.textureWidth = textureWidth;
         this.textureHeight = textureHeight;
+        setValue(value);
     }
 
     public int getValue() {
@@ -40,17 +40,13 @@ public class CyclingTexturedButton extends PressableWidget {
     }
 
     public void setValue(int value) {
-        this.value = (value % maximum + maximum) % maximum;
-    }
-
-    private void cycle(int amount) {
-        value = (value + amount % maximum + maximum) % maximum;
+        this.value = (value % size + size) % size;
     }
 
     @Override
     public void onPress() {
-        if (Screen.hasShiftDown()) cycle(-1);
-        else cycle(1);
+        if (Screen.hasShiftDown()) setValue(value - 1);
+        else setValue(value + 1);
     }
 
     @Override
