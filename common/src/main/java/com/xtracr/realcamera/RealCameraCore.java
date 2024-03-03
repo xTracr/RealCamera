@@ -95,13 +95,11 @@ public class RealCameraCore {
     }
 
     public static void renderPlayer(VertexConsumerProvider vertexConsumers) {
-        MatrixStack matrixStack = new MatrixStack();
-        matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(roll));
-        matrixStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(pitch));
-        matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(yaw + 180.0f));
-        Matrix3f normalMatrix = matrixStack.peek().getNormalMatrix().transpose().invert();
-        Matrix4f positionMatrix = matrixStack.peek().getPositionMatrix().transpose().invertAffine()
-                .translate((float) -pos.getX(), (float) -pos.getY(), (float) -pos.getZ());
+        Matrix3f normalMatrix = new Matrix3f().rotate(RotationAxis.POSITIVE_Z.rotationDegrees(roll))
+                .rotate(RotationAxis.POSITIVE_X.rotationDegrees(pitch))
+                .rotate(RotationAxis.POSITIVE_Y.rotationDegrees(yaw + 180.0f))
+                .transpose().invert();
+        Matrix4f positionMatrix = new Matrix4f(normalMatrix).translate((float) -pos.getX(), (float) -pos.getY(), (float) -pos.getZ());
         BiFunction<RenderLayer, VertexRecorder.Vertex[], VertexRecorder.Vertex[]> function = (renderLayer, vertices) -> {
             double depth = currentTarget.disablingDepth(), centerZ = 0;
             int count = vertices.length;
@@ -134,14 +132,13 @@ public class RealCameraCore {
         pos = new Vec3d(offset.x(), offset.y(), offset.z());
         Matrix3f normal = matrixStack.peek().getNormalMatrix().scale(1.0f, -1.0f, -1.0f);
         if (config().binding.experimental) {
-            List<BindingTarget> targetList = new ArrayList<>();
+            List<BindingTarget> targetList = new ArrayList<>(List.of(config().getTarget()));
             if (config().binding.autoBind) {
                 List<BindingTarget> targets = config().binding.targetList;
                 recorder.setCurrent(renderLayer -> targets.stream().anyMatch(t -> renderLayer.toString().contains(t.textureId())));
                 String textureId = recorder.currentTextureId();
                 if (textureId != null) targetList.addAll(targets.stream().filter(t -> textureId.contains(t.textureId())).toList());
             }
-            targetList.add(config().getTarget(config().binding.targetName));
             for (BindingTarget target : targetList) {
                 try {
                     recorder.setCurrent(renderLayer -> renderLayer.toString().contains(target.textureId()));
@@ -156,7 +153,7 @@ public class RealCameraCore {
         normal.rotateLocal((float) Math.toRadians(currentTarget.yaw()), normal.m10, normal.m11, normal.m12);
         normal.rotateLocal((float) Math.toRadians(currentTarget.pitch()), normal.m00, normal.m01, normal.m02);
         normal.rotateLocal((float) Math.toRadians(currentTarget.roll()), normal.m20, normal.m21, normal.m22);
-        Vec3d eulerAngle = MathUtil.getEulerAngleYXZ(normal).multiply(180.0d / Math.PI);
+        Vec3d eulerAngle = MathUtil.getEulerAngleYXZ(normal).multiply(Math.toDegrees(1));
         pitch = (float) eulerAngle.getX();
         yaw = (float) -eulerAngle.getY();
         roll = (float) eulerAngle.getZ();

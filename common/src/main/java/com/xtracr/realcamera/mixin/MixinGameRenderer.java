@@ -25,7 +25,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinGameRenderer {
     @Shadow
     @Final MinecraftClient client;
-
     @Shadow
     @Final private Camera camera;
 
@@ -35,11 +34,9 @@ public abstract class MixinGameRenderer {
         if (!ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
             Vec3d startVec = RaycastUtil.getStartVec();
             Vec3d endVec = RaycastUtil.getEndVec();
-            double sqDistance = (client.crosshairTarget != null ?
-                    client.crosshairTarget.getPos().squaredDistanceTo(startVec) : endVec.squaredDistanceTo(startVec));
+            double sqDistance = (client.crosshairTarget != null ? client.crosshairTarget.getPos().squaredDistanceTo(startVec) : endVec.squaredDistanceTo(startVec));
             Entity cameraEntity = client.getCameraEntity();
-            Box box = cameraEntity.getBoundingBox().stretch(cameraEntity.getRotationVec(client.getTickDelta())
-                    .multiply(client.interactionManager.getReachDistance())).expand(1.0, 1.0, 1.0);
+            Box box = cameraEntity.getBoundingBox().stretch(cameraEntity.getRotationVec(client.getTickDelta()).multiply(client.interactionManager.getReachDistance())).expand(1.0, 1.0, 1.0);
             CrosshairUtil.capturedEntityHitResult = ProjectileUtil.raycast(cameraEntity, startVec, endVec, box, entity -> !entity.isSpectator() && entity.canHit(), sqDistance);
         }
         return CrosshairUtil.capturedEntityHitResult;

@@ -334,12 +334,12 @@ public class ModelViewScreen extends Screen {
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
         if (mouseInViewArea(mouseX, mouseY)) {
             if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && !InputUtil.isKeyPressed(client.getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_ALT)) {
-                xRot = MathHelper.wrapDegrees(xRot + (float) deltaY / 90f);
-                yRot = MathHelper.wrapDegrees(yRot - (float) deltaX / 90f);
+                xRot += (float) (Math.PI * deltaY / ySize);
+                yRot -= (float) (Math.PI * deltaX / ySize);
                 return true;
             } else if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
-                entityX = entityX + deltaX / entitySize;
-                entityY = entityY + deltaY / entitySize;
+                entityX += deltaX / entitySize;
+                entityY += deltaY / entitySize;
                 return true;
             }
         }

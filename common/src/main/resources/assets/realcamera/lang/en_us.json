@@ -104,6 +104,6 @@
   "screen.tooltip.xtracr_realcamera.modelView_bindButtons": "When disabled, the camera's relative relationship to the model will not change, but the camera's corresponding attributes will not be modified by this mod",
   "screen.tooltip.xtracr_realcamera.modelView_scale": "Scale, which controls the size of the offsets",
   "screen.tooltip.xtracr_realcamera.modelView_depth": "Planes where all vertex-to-screen distances are less than this value will not be rendered",
-  "screen.tooltip.xtracr_realcamera.modelView_bind": "Displayed in green on the right is the currently bound one. Will be ignored if '%s' is enabled",
+  "screen.tooltip.xtracr_realcamera.modelView_bind": "Prioritized when binding, and displayed in green on the right side",
   "screen.tooltip.xtracr_realcamera.modelView_listName": "Name of the config"
 }

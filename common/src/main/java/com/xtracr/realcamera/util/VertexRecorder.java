@@ -68,11 +68,11 @@ public class VertexRecorder implements VertexConsumerProvider {
     }
 
     public Vec3d getTargetPosAndRot(BindingTarget target, Matrix3f normal) throws NullPointerException, ArithmeticException {
-        Vec3d front = Objects.requireNonNull(getQuad(currentRecord, target.forwardU(), target.forwardV()))[0].normal();
-        Vec3d up = Objects.requireNonNull(getQuad(currentRecord, target.upwardU(), target.upwardV()))[0].normal();
+        Vec3d forward = Objects.requireNonNull(getQuad(currentRecord, target.forwardU(), target.forwardV()))[0].normal().normalize();
+        Vec3d left = Objects.requireNonNull(getQuad(currentRecord, target.upwardU(), target.upwardV()))[0].normal().crossProduct(forward).normalize();
         Vec3d center = getPos(Objects.requireNonNull(getQuad(currentRecord, target.posU(), target.posV())), target.posU(), target.posV());
-        if (!MathUtil.isFinite(front) || !MathUtil.isFinite(up) || !MathUtil.isFinite(center)) throw new ArithmeticException();
-        normal.set(up.crossProduct(front).toVector3f(), up.toVector3f(), front.toVector3f());
+        if (!MathUtil.isFinite(forward) || !MathUtil.isFinite(left) || !MathUtil.isFinite(center)) throw new ArithmeticException();
+        normal.set(left.toVector3f(), forward.crossProduct(left).toVector3f(), forward.toVector3f());
         Vector3f offset = new Vector3f((float) target.offsetZ(), (float) target.offsetY(), (float) target.offsetX()).mul(normal);
         return center.add(offset.x(), offset.y(), offset.z());
     }

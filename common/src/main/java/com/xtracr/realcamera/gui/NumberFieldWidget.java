@@ -58,8 +58,8 @@ public abstract class NumberFieldWidget<T extends Comparable<T>> extends TextFie
         setRenderTextProvider((string, firstCharacterIndex) -> OrderedText.styledForwardsVisitedString(string, Style.EMPTY));
         try {
             T value = getValueInternal();
-            if (value.compareTo(minimum) < 0) throw new Exception("<" + minimum);
-            if (value.compareTo(maximum) > 0) throw new Exception(">" + maximum);
+            if (value.compareTo(minimum) < 0) throw new Exception("< " + minimum);
+            if (value.compareTo(maximum) > 0) throw new Exception("> " + maximum);
         } catch (Exception exception) {
             super.setTooltip(Tooltip.of(Text.literal("Invalid number: " + exception.getMessage()).styled(s -> s.withColor(Formatting.RED))));
             setRenderTextProvider((string, firstCharacterIndex) -> OrderedText.styledForwardsVisitedString(string, Style.EMPTY.withColor(Formatting.RED)));

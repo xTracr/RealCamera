@@ -81,8 +81,8 @@ public class ModConfig {
         return binding.adjustOffset;
     }
 
-    public BindingTarget getTarget(String name) {
-        return binding.targetList.stream().filter(target -> target.name().equals(name)).findAny().orElse(null);
+    public BindingTarget getTarget() {
+        return binding.targetList.stream().filter(t -> t.name().equals(binding.targetName)).findAny().orElse(null);
     }
 
     public boolean isXBound() {
@@ -306,7 +306,7 @@ public class ModConfig {
     public static class Binding {
         public List<BindingTarget> targetList = new ArrayList<>(BindingTarget.defaultTargets);
         public VanillaModelPart vanillaModelPart = VanillaModelPart.head;
-        public boolean experimental = true;
+        public boolean experimental = false;
         public boolean adjustOffset = true;
         public boolean autoBind = true;
         public String targetName = "minecraft_head";

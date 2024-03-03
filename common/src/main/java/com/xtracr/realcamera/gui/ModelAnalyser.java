@@ -66,10 +66,11 @@ public class ModelAnalyser extends VertexRecorder {
                 Polygon polygon = new Polygon();
                 Vertex[] quad = vertices[i];
                 for (Vertex vertex : quad) polygon.addPoint((int) vertex.x(), (int) vertex.y());
+                if (!polygon.contains(mouseX, mouseY)) continue;
                 Vertex point = quad[0];
                 double deltaZ = 0;
                 if (point.normalZ() != 0) deltaZ = (point.normalX() * (mouseX - point.x()) + point.normalY() * (mouseY - point.y())) / point.normalZ();
-                if (polygon.contains(mouseX, mouseY)) sortByDepth.add(new Triple(point.z() + deltaZ, record, i));
+                sortByDepth.add(new Triple(point.z() + deltaZ, record, i));
             }
         });
         if (sortByDepth.isEmpty()) return -1;
