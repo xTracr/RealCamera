@@ -25,7 +25,7 @@ public abstract class MixinWorldRenderer {
     private void realcamera$renderClientPlayer(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline,
                                                Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix, CallbackInfo cInfo) {
         final ModConfig config = ConfigFile.modConfig;
-        if (camera.isThirdPerson() || !RealCameraCore.isActive() || !config.isRendering() || (camera.getFocusedEntity() instanceof PlayerEntity player && player.isUsingSpyglass())) return;
+        if (!RealCameraCore.isActive() || !config.isRendering() || (camera.getFocusedEntity() instanceof PlayerEntity player && player.isUsingSpyglass())) return;
         VertexConsumerProvider.Immediate immediate = this.bufferBuilders.getEntityVertexConsumers();
         Vec3d cameraPos = camera.getPos();
         if (!config.isClassic()) RealCameraCore.renderPlayer(immediate);

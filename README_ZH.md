@@ -16,8 +16,6 @@
 * 按下F6来开关，另外一些键来调整摄像头
 * 在Config界面配置以上特性（需Cloth Config）
 
-> 详细了解[如何配置](https://github.com/xTracr/RealCamera/wiki/Configuration)
-
 ### 依赖项目 ###
 
 * Fabric:
@@ -39,7 +37,8 @@
 * 兼容:
   * 多数摄像头模组
   * 多数模型模组
+  * Not Enough Animations[^1]
 
-## [更多信息](https://github.com/xTracr/RealCamera/wiki) ##
+[^1]:建议在 *更多动画* 的配置内禁用`Animation Smoothing`选项。
 
 ## [更新日志](changelog.md#中文) ##

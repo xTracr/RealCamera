@@ -17,8 +17,6 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 * Use F6 to toggle the feature on or off and other hotkeys to adjust the camera.
 * Configure these features in the config screen (Cloth Config required).
 
-> Learn more about [Configuration](https://github.com/xTracr/RealCamera/wiki/Configuration)
-
 ### Dependencies ###
 
 * Fabric:
@@ -42,7 +40,8 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 * Compatible:
   * most camera mods
   * most player model mods
+  * Not Enough Animations[^1]
 
-## [More Information](https://github.com/xTracr/RealCamera/wiki) ##
+[^1]: It is suggested to disable the `Animation Smoothing` option in the config of *Not Enough Animations*.
 
 ## [Change Log](changelog.md#English) ##

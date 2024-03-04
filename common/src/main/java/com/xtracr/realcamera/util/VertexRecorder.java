@@ -10,8 +10,8 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -53,18 +53,14 @@ public class VertexRecorder implements VertexConsumerProvider {
         lastRecord = null;
     }
 
-    public String currentTextureId() {
-        if (currentRecord == null) return null;
-        return getTextureId(currentRecord);
-    }
-
     public void buildLastRecord() {
         if (lastRecord != null && !lastRecord.vertices.isEmpty()) records.add(lastRecord.build());
         lastRecord = null;
     }
 
-    public void setCurrent(Predicate<RenderLayer> predicate) {
+    public boolean setCurrent(Predicate<RenderLayer> predicate) {
         currentRecord = records.stream().filter(record -> predicate.test(record.renderLayer)).max(Comparator.comparingInt(BuiltRecord::quadCount)).orElse(null);
+        return currentRecord != null;
     }
 
     public Vec3d getTargetPosAndRot(BindingTarget target, Matrix3f normal) throws NullPointerException, ArithmeticException {

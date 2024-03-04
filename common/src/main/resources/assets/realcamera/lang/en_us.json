@@ -53,7 +53,6 @@
   "screen.widget.xtracr_realcamera.modelView_upwardMode": "Upward Vector",
   "screen.widget.xtracr_realcamera.modelView_posMode": "Plane",
   "screen.widget.xtracr_realcamera.modelView_save": "Save",
-  "screen.widget.xtracr_realcamera.modelView_bind": "Bind",
   "screen.widget.xtracr_realcamera.modelView_settings": "Settings",
   "screen.widget.xtracr_realcamera.modelView_preview": "Preview",
   "screen.widget.xtracr_realcamera.modelView_offsetX": "X Offset = %s",
@@ -67,6 +66,6 @@
   "screen.tooltip.xtracr_realcamera.modelView_bindButtons": "When disabled, the camera's relative relationship to the model will not change, but the camera's corresponding attributes will not be modified by this mod",
   "screen.tooltip.xtracr_realcamera.modelView_scale": "Scale, which controls the size of the offsets",
   "screen.tooltip.xtracr_realcamera.modelView_depth": "Planes where all vertex-to-screen distances are less than this value will not be rendered",
-  "screen.tooltip.xtracr_realcamera.modelView_bind": "Prioritized when binding, and displayed in green on the right side",
+  "screen.tooltip.xtracr_realcamera.modelView_priority": "Priority when binding, the larger the value the higher the priority, and the higher the sorting on the right side",
   "screen.tooltip.xtracr_realcamera.modelView_targetName": "Name of the config"
 }

@@ -4,6 +4,7 @@ import com.xtracr.realcamera.RealCameraCore;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -149,16 +150,9 @@ public class ModConfig {
     }
 
     // binding
-    public String getTargetName() {
-        return binding.targetName;
-    }
-
-    public void setTargetName(String targetName) {
-        binding.targetName = targetName;
-    }
-
-    public BindingTarget getTarget() {
-        return binding.targetList.stream().filter(t -> t.name().equals(binding.targetName)).findAny().orElse(null);
+    public List<BindingTarget> getTargetList() {
+        binding.clamp();
+        return binding.targetList;
     }
 
     public void putTarget(BindingTarget target) {
@@ -167,6 +161,7 @@ public class ModConfig {
                 .filter(i -> binding.targetList.get(i).name().equals(target.name()))
                 .findAny()
                 .ifPresentOrElse(i -> binding.targetList.set(i, target), () -> binding.targetList.add(target));
+        binding.targetList.sort(Comparator.comparingInt(t -> -t.priority()));
     }
 
     public static class Classic {
@@ -209,7 +204,6 @@ public class ModConfig {
 
     public static class Binding {
         public boolean adjustOffset = true;
-        public String targetName = "minecraft_head";
         public List<BindingTarget> targetList = new ArrayList<>(BindingTarget.defaultTargets);
 
         private void clamp() {

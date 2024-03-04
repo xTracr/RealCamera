@@ -41,6 +41,7 @@ public class ModelViewScreen extends Screen {
     private Vec2f focusedUV;
     private TextFieldWidget textureIdField, nameField;
     private NumberFieldWidget<Float> forwardUField, forwardVField, upwardUField, upwardVField, posUField, posVField, scaleField, depthField;
+    private NumberFieldWidget<Integer> priorityField;
     private final CyclingButtonWidget<Integer> selectingButton = createCyclingButton(Map.of(
                     0, Text.translatable(KEY_WIDGET + "forwardMode").styled(s -> s.withColor(Formatting.GREEN)),
                     1, Text.translatable(KEY_WIDGET + "upwardMode").styled(s -> s.withColor(Formatting.RED)),
@@ -147,11 +148,8 @@ public class ModelViewScreen extends Screen {
             ConfigFile.save();
             initWidgets(category, page);
         }));
-        adder.add(createButton(Text.translatable(KEY_WIDGET + "bind"), widgetWidth, button -> {
-            ConfigFile.modConfig.setTargetName(nameField.getText());
-            ConfigFile.save();
-            initWidgets(category, page);
-        })).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "bind")));
+        adder.add(priorityField = NumberFieldWidget.ofInt(textRenderer, widgetWidth - 2, widgetHeight - 2, 0, priorityField))
+                .setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "priority")));
         adder.add(nameField = createTextField(widgetWidth * 2 + 4, nameField), 2, smallPositioner)
                 .setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "targetName")));
         nameField.setMaxLength(20);
@@ -161,7 +159,7 @@ public class ModelViewScreen extends Screen {
     }
 
     private void initRightWidgets(final int page) {
-        List<BindingTarget> targetList = ConfigFile.modConfig.binding.targetList;
+        List<BindingTarget> targetList = ConfigFile.modConfig.getTargetList();
         final int widgetsPerPage = 6, pages = (targetList.size() - 1) / widgetsPerPage + 1;
         GridWidget gridWidget = new GridWidget();
         gridWidget.getMainPositioner().margin(4, 2, 0, 0);
@@ -173,8 +171,7 @@ public class ModelViewScreen extends Screen {
         for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, targetList.size()); i++) {
             BindingTarget target = targetList.get(i);
             String name = target.name();
-            adder.add(createButton(Text.literal(name).styled(s -> name.equals(ConfigFile.modConfig.getTargetName()) ? s.withColor(Formatting.GREEN) : s),
-                    widgetWidth * 2 - 18, button -> loadBindingTarget(target)));
+            adder.add(createButton(Text.literal(name), widgetWidth * 2 - 18, button -> loadBindingTarget(target)));
             adder.add(new TexturedButton(32, 32, button -> {
                 targetList.remove(target);
                 ConfigFile.save();
@@ -256,8 +253,8 @@ public class ModelViewScreen extends Screen {
     }
 
     protected BindingTarget generateBindingTarget() {
-        return new BindingTarget(nameField.getText(), textureIdField.getText(), forwardUField.getValue(), forwardVField.getValue(), upwardUField.getValue(),
-                upwardVField.getValue(), posUField.getValue(), posVField.getValue(), depthField.getValue(),
+        return new BindingTarget(nameField.getText(), textureIdField.getText(), priorityField.getValue(), forwardUField.getValue(), forwardVField.getValue(),
+                upwardUField.getValue(), upwardVField.getValue(), posUField.getValue(), posVField.getValue(), depthField.getValue(),
                 bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0,
                 scaleField.getValue(), offsetXSlider.getValue(), offsetYSlider.getValue(), offsetZSlider.getValue(),
                 (float) pitchSlider.getValue(), (float) yawSlider.getValue(), (float) rollSlider.getValue());
@@ -267,6 +264,7 @@ public class ModelViewScreen extends Screen {
         if (target.isEmpty()) return;
         nameField.setText(target.name());
         textureIdField.setText(target.textureId());
+        priorityField.setValue(target.priority());
         forwardUField.setValue(target.forwardU());
         forwardVField.setValue(target.forwardV());
         upwardUField.setValue(target.upwardU());
@@ -300,7 +298,7 @@ public class ModelViewScreen extends Screen {
     }
 
     private NumberFieldWidget<Float> createFloatField(int width, float defaultValue, @Nullable NumberFieldWidget<Float> copyFrom) {
-        return new FloatFieldWidget(textRenderer, width - 2, widgetHeight - 2, defaultValue, copyFrom, Text.empty()).setMax(1.0f).setMin(0f);
+        return NumberFieldWidget.ofFloat(textRenderer, width - 2, widgetHeight - 2, defaultValue, copyFrom).setMax(1.0f).setMin(0f);
     }
 
     private TextFieldWidget createTextField(int width, @Nullable TextFieldWidget copyFrom) {

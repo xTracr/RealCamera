@@ -53,7 +53,6 @@
   "screen.widget.xtracr_realcamera.modelView_upwardMode": "向上矢量",
   "screen.widget.xtracr_realcamera.modelView_posMode": "平面",
   "screen.widget.xtracr_realcamera.modelView_save": "保存",
-  "screen.widget.xtracr_realcamera.modelView_bind": "绑定",
   "screen.widget.xtracr_realcamera.modelView_settings": "设置",
   "screen.widget.xtracr_realcamera.modelView_preview": "预览",
   "screen.widget.xtracr_realcamera.modelView_offsetX": "X偏移量 = %s",
@@ -67,6 +66,6 @@
   "screen.tooltip.xtracr_realcamera.modelView_bindButtons": "当禁用时，摄像头与模型的相对关系不会变化，但摄像头的对应属性不会被本模组修改",
   "screen.tooltip.xtracr_realcamera.modelView_scale": "缩放比例，控制偏移量的大小",
   "screen.tooltip.xtracr_realcamera.modelView_depth": "全部顶点到屏幕距离均小于该值的面不会被渲染",
-  "screen.tooltip.xtracr_realcamera.modelView_bind": "绑定时优先考虑，在右侧显示为绿色",
+  "screen.tooltip.xtracr_realcamera.modelView_priority": "绑定时的优先级，值越大优先级越高，并且在右侧排序越靠前",
   "screen.tooltip.xtracr_realcamera.modelView_targetName": "配置的名称"
 }

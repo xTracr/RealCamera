@@ -5,24 +5,25 @@ import net.minecraft.util.math.MathHelper;
 import java.util.List;
 
 public class BindingTarget {
-    protected static final List<BindingTarget> defaultTargets = List.of(createDefaultTarget("minecraft_head", "minecraft:textures/entity/player/", false),
-            createDefaultTarget("minecraft_head_2", "minecraft:textures/entity/player/", true),
-            createDefaultTarget("skin_head", "minecraft:skins/", false),
-            createDefaultTarget("skin_head_2", "minecraft:skins/", true));
+    protected static final List<BindingTarget> defaultTargets = List.of(createDefaultTarget("minecraft_head", "minecraft:textures/entity/player/", 5, false),
+            createDefaultTarget("skin_head", "minecraft:skins/", 5, false),
+            createDefaultTarget("minecraft_head_2", "minecraft:textures/entity/player/", 0, true),
+            createDefaultTarget("skin_head_2", "minecraft:skins/", 0, true));
     private final String name, textureId;
+    private final int priority;
     private final float forwardU, forwardV, upwardU, upwardV, posU, posV, disablingDepth;
     private final boolean bindX, bindY, bindZ, bindRotation;
-    private final double scale;
-    protected double offsetX, offsetY, offsetZ;
+    protected double scale, offsetX, offsetY, offsetZ;
     protected float pitch, yaw, roll;
 
     public BindingTarget() {
-        this(null, null, 0, 0, 0, 0, 0, 0, 0.2f, false, true, false, false, 1, 0, 0, 0, 0, 0, 0);
+        this(null, null, 0, 0, 0, 0, 0, 0, 0, 0.2f, false, true, false, false, 1, 0, 0, 0, 0, 0, 0);
     }
 
-    public BindingTarget(String name, String textureId, float forwardU, float forwardV, float upwardU, float upwardV, float posU, float posV, float disablingDepth, boolean bindX, boolean bindY, boolean bindZ, boolean bindRotation, double scale, double offsetX, double offsetY, double offsetZ, float pitch, float yaw, float roll) {
+    public BindingTarget(String name, String textureId, int priority, float forwardU, float forwardV, float upwardU, float upwardV, float posU, float posV, float disablingDepth, boolean bindX, boolean bindY, boolean bindZ, boolean bindRotation, double scale, double offsetX, double offsetY, double offsetZ, float pitch, float yaw, float roll) {
         this.name = name;
         this.textureId = textureId;
+        this.priority = priority;
         this.forwardU = forwardU;
         this.forwardV = forwardV;
         this.upwardU = upwardU;
@@ -43,8 +44,8 @@ public class BindingTarget {
         this.roll = roll;
     }
 
-    private static BindingTarget createDefaultTarget(String name, String textureId, boolean shouldBind) {
-        return new BindingTarget(name, textureId, 0.1875f, 0.2f, 0.1875f, 0.075f, 0.1875f, 0.2f, 0.2f, shouldBind, true, shouldBind, shouldBind, 1, -0.12, 0, 0, 0, 0, 0);
+    private static BindingTarget createDefaultTarget(String name, String textureId, int priority, boolean shouldBind) {
+        return new BindingTarget(name, textureId, priority, 0.1875f, 0.2f, 0.1875f, 0.075f, 0.1875f, 0.2f, 0.2f, shouldBind, true, shouldBind, shouldBind, 1, -0.12, 0, 0, 0, 0, 0);
     }
 
     public boolean isEmpty() {
@@ -57,6 +58,10 @@ public class BindingTarget {
 
     public String textureId() {
         return textureId;
+    }
+
+    public int priority() {
+        return priority;
     }
 
     public float forwardU() {
@@ -105,6 +110,10 @@ public class BindingTarget {
 
     public double scale() {
         return scale;
+    }
+
+    public void setScale(double scale) {
+        this.scale = scale;
     }
 
     public double offsetX() {

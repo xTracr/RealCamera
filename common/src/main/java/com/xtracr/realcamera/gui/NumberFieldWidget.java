@@ -15,13 +15,21 @@ public abstract class NumberFieldWidget<T extends Comparable<T>> extends TextFie
     protected T maximum, minimum;
     private Tooltip tooltip;
 
-    NumberFieldWidget(TextRenderer textRenderer, int x, int y, int width, int height, T defaultValue, T maximum, T minimum, @Nullable NumberFieldWidget<T> copyFrom, Text text) {
-        super(textRenderer, x, y, width, height, text);
+    NumberFieldWidget(TextRenderer textRenderer, int x, int y, int width, int height, T defaultValue, T maximum, T minimum, @Nullable NumberFieldWidget<T> copyFrom) {
+        super(textRenderer, x, y, width, height, Text.empty());
         this.defaultValue = defaultValue;
         this.maximum = maximum;
         this.minimum = minimum;
         setValue(defaultValue);
         if (copyFrom != null) setValue(copyFrom.getValue());
+    }
+
+    public static NumberFieldWidget<Float> ofFloat(TextRenderer textRenderer, int width, int height, float defaultValue, @Nullable NumberFieldWidget<Float> copyFrom) {
+        return new FloatFieldWidget(textRenderer, 0, 0, width, height, defaultValue, copyFrom);
+    }
+
+    public static NumberFieldWidget<Integer> ofInt(TextRenderer textRenderer, int width, int height, int defaultValue, @Nullable NumberFieldWidget<Integer> copyFrom) {
+        return new IntFieldWidget(textRenderer, 0, 0, width, height, defaultValue, copyFrom);
     }
 
     public T getValue() {
@@ -56,6 +64,7 @@ public abstract class NumberFieldWidget<T extends Comparable<T>> extends TextFie
     protected void checkText() {
         super.setTooltip(tooltip);
         setRenderTextProvider((string, firstCharacterIndex) -> OrderedText.styledForwardsVisitedString(string, Style.EMPTY));
+        if (getText().isEmpty()) return;
         try {
             T value = getValueInternal();
             if (value.compareTo(minimum) < 0) throw new Exception("< " + minimum);
@@ -82,5 +91,29 @@ public abstract class NumberFieldWidget<T extends Comparable<T>> extends TextFie
     public void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
         checkText();
         super.renderButton(context, mouseX, mouseY, delta);
+    }
+
+    private static class FloatFieldWidget extends NumberFieldWidget<Float> {
+        FloatFieldWidget(TextRenderer textRenderer, int x, int y, int width, int height, float defaultValue, @Nullable NumberFieldWidget<Float> copyFrom) {
+            super(textRenderer, x, y, width, height, defaultValue, Float.MAX_VALUE, -Float.MAX_VALUE, copyFrom);
+            setMaxLength(8);
+        }
+
+        @Override
+        protected Float getValueInternal() {
+            return Float.parseFloat(getText());
+        }
+    }
+
+    private static class IntFieldWidget extends NumberFieldWidget<Integer> {
+        IntFieldWidget(TextRenderer textRenderer, int x, int y, int width, int height, int defaultValue, @Nullable NumberFieldWidget<Integer> copyFrom) {
+            super(textRenderer, x, y, width, height, defaultValue, Integer.MAX_VALUE, Integer.MIN_VALUE, copyFrom);
+            setMaxLength(8);
+        }
+
+        @Override
+        protected Integer getValueInternal() {
+            return Integer.parseInt(getText());
+        }
     }
 }

@@ -17,8 +17,6 @@ import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.BiFunction;
 
 public class RealCameraCore {
@@ -66,8 +64,7 @@ public class RealCameraCore {
     }
 
     public static void init(MinecraftClient client) {
-        active = config().isEnabled() && client.options.getPerspective().isFirstPerson()
-                && client.gameRenderer.getCamera() != null && client.player != null;
+        active = config().isEnabled() && client.options.getPerspective().isFirstPerson() && client.gameRenderer.getCamera() != null && client.player != null;
     }
 
     public static boolean isActive() {
@@ -120,14 +117,9 @@ public class RealCameraCore {
         recorder.buildLastRecord();
 
         Matrix3f normal = new Matrix3f();
-        List<BindingTarget> targets = new ArrayList<>(List.of(config().getTarget()));
-        List<BindingTarget> targetList = config().binding.targetList;
-        recorder.setCurrent(renderLayer -> targetList.stream().anyMatch(t -> renderLayer.toString().contains(t.textureId())));
-        String textureId = recorder.currentTextureId();
-        if (textureId != null) targets.addAll(targetList.stream().filter(t -> textureId.contains(t.textureId())).toList());
-        for (BindingTarget target : targets) {
+        for (BindingTarget target : config().getTargetList()) {
             try {
-                recorder.setCurrent(renderLayer -> renderLayer.toString().contains(target.textureId()));
+                if (!recorder.setCurrent(renderLayer -> renderLayer.toString().contains(target.textureId()))) continue;
                 pos = recorder.getTargetPosAndRot(target, normal);
                 currentTarget = target;
                 break;
