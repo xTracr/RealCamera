@@ -28,7 +28,7 @@ public abstract class MixinWorldRenderer {
         if (!RealCameraCore.isActive() || !config.isRendering() || (camera.getFocusedEntity() instanceof PlayerEntity player && player.isUsingSpyglass())) return;
         VertexConsumerProvider.Immediate immediate = this.bufferBuilders.getEntityVertexConsumers();
         Vec3d cameraPos = camera.getPos();
-        if (!config.isClassic()) RealCameraCore.renderPlayer(immediate);
+        if (!config.isClassic()) RealCameraCore.renderEntity(immediate);
         else renderEntity(camera.getFocusedEntity(), cameraPos.getX(), cameraPos.getY(), cameraPos.getZ(), tickDelta, matrices, immediate);
     }
 

@@ -15,11 +15,8 @@ public class MathUtil {
     }
 
     public static Vec3d getEulerAngleYXZ(Matrix3f normal) {
-        if (normal.m21 <= -1.0) {
-            return new Vec3d(Math.PI / 2, Math.atan2(normal.m10, normal.m00), 0.0);
-        } else if (normal.m21 >= 1.0) {
-            return new Vec3d(-Math.PI / 2, -Math.atan2(normal.m10, normal.m00), 0.0);
-        }
+        if (normal.m21 <= -1.0) return new Vec3d(Math.PI / 2, Math.atan2(normal.m10, normal.m00), 0.0);
+        else if (normal.m21 >= 1.0) return new Vec3d(-Math.PI / 2, -Math.atan2(normal.m10, normal.m00), 0.0);
         double xRot = Math.asin(-normal.m21);
         double yRot = Math.atan2(normal.m20, normal.m22);
         double zRot = Math.atan2(normal.m01, normal.m11);

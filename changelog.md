@@ -29,6 +29,9 @@
   * Added 'preview' feature
   * Removed commands
   * Improved default configs and reformatted code
+* 0.6.0-alpha.4:
+  * Removed deprecated code
+  * Added 'priority' to binding targets
 * 0.6.0-beta:
   * Optimized some codes
 
@@ -145,6 +148,9 @@
   * 添加了'预览'功能
   * 移除了命令
   * 改进了默认配置，重新格式化代码
+* 0.6.0-alpha.4:
+  * 移除了已弃用的代码
+  * 为绑定目标添加了'优先级'
 * 0.6.0-beta:
   * 优化了部分代码
 

@@ -130,7 +130,7 @@ public class ConfigScreen {
         classic.addEntry(classicCameraRotation.build());
 
         binding.addEntry(entryBuilder.startTextDescription(Text.translatable(OPTION + "toModelViewGui",
-                Text.translatable("screen." + RealCamera.FULL_ID + ".modelView_title").styled(s -> s.withColor(Formatting.BLUE))))
+                        Text.translatable("screen." + RealCamera.FULL_ID + ".modelView_title").styled(s -> s.withColor(Formatting.BLUE))))
                 .build());
         binding.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "adjustOffset"), config.binding.adjustOffset)
                 .setDefaultValue(true)

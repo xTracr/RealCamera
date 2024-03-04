@@ -101,7 +101,7 @@ public class ModelAnalyser extends VertexRecorder {
 
     public void drawQuad(DrawContext context, float u, float v, int argb) {
         Vertex[] quad;
-        if (currentRecord == null || (quad = getQuad(currentRecord, u, v)) == null) return;
+        if ((quad = getQuad(u, v)) == null) return;
         drawQuad(context, quad, argb, 1000);
     }
 
@@ -143,7 +143,7 @@ public class ModelAnalyser extends VertexRecorder {
 
     public void drawNormal(DrawContext context, float u, float v, int length, int argb) {
         Vertex[] quad;
-        if (currentRecord == null || (quad = getQuad(currentRecord, u, v)) == null) return;
+        if ((quad = getQuad(u, v)) == null) return;
         drawNormal(context, getPos(quad, u, v), quad[0].normal(), length, argb);
     }
 

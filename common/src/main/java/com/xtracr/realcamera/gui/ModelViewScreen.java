@@ -148,7 +148,7 @@ public class ModelViewScreen extends Screen {
             ConfigFile.save();
             initWidgets(category, page);
         }));
-        adder.add(priorityField = NumberFieldWidget.ofInt(textRenderer, widgetWidth - 2, widgetHeight - 2, 0, priorityField))
+        adder.add(priorityField = NumberFieldWidget.ofInt(textRenderer, widgetWidth - 2, widgetHeight - 2, 0, priorityField), 1, smallPositioner)
                 .setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "priority")));
         adder.add(nameField = createTextField(widgetWidth * 2 + 4, nameField), 2, smallPositioner)
                 .setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "targetName")));
@@ -362,6 +362,4 @@ public class ModelViewScreen extends Screen {
     public boolean shouldPause() {
         return pauseButton.getValue() == 1;
     }
-
-
 }

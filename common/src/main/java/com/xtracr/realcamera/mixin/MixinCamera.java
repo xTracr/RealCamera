@@ -34,8 +34,7 @@ public abstract class MixinCamera {
     private float yaw;
 
     @Inject(method = "update", at = @At("RETURN"))
-    private void realCamera$updateCamera(BlockView area, Entity focusedEntity, boolean thirdPerson, boolean inverseView,
-                                         float tickDelta, CallbackInfo cInfo) {
+    private void realCamera$updateCamera(BlockView area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float tickDelta, CallbackInfo cInfo) {
         if (!RealCameraCore.isActive()) return;
         final ModConfig config = ConfigFile.modConfig;
         Vec3d startVec = pos;
@@ -72,8 +71,7 @@ public abstract class MixinCamera {
             float h = depth * ((i >> 2 & 1) * 2 - 1);
             Vec3d start = startVec.add(f, g, h);
             Vec3d end = startVec.add(offset).add(f, g, h);
-            HitResult hitResult = area.raycast(new RaycastContext(start, end,
-                    RaycastContext.ShapeType.VISUAL, RaycastContext.FluidHandling.NONE, focusedEntity));
+            HitResult hitResult = area.raycast(new RaycastContext(start, end, RaycastContext.ShapeType.VISUAL, RaycastContext.FluidHandling.NONE, focusedEntity));
             double l = hitResult.getPos().distanceTo(start);
             if (hitResult.getType() == HitResult.Type.MISS || l >= offset.length()) continue;
             offset = offset.multiply(l / offset.length());

@@ -42,14 +42,10 @@ public abstract class MixinGameRenderer {
         return CrosshairUtil.capturedEntityHitResult;
     }
 
-    @Inject(method = "renderWorld", at = @At("HEAD"))
-    private void realCamera$onRenderWorldHEAD(float tickDelta, long limitTime, MatrixStack matrices, CallbackInfo cInfo) {
-        RealCameraCore.init(client);
-    }
-
     @Inject(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/Camera;update(Lnet/minecraft/world/BlockView;Lnet/minecraft/entity/Entity;ZZF)V"))
     private void realCamera$onBeforeCameraUpdate(float tickDelta, long limitTime, MatrixStack matrices, CallbackInfo cInfo) {
-        if (RealCameraCore.isActive()) {
+        RealCameraCore.init(client);
+        if (RealCameraCore.isActive() && !ConfigFile.modConfig.isClassic()) {
             RealCameraCore.computeCamera(client, tickDelta);
         }
     }

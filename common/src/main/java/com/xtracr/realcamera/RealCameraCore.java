@@ -6,11 +6,11 @@ import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.util.MathUtil;
 import com.xtracr.realcamera.util.VertexRecorder;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.Entity;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
@@ -23,13 +23,8 @@ public class RealCameraCore {
     private static final VertexRecorder recorder = new VertexRecorder();
     public static BindingTarget currentTarget = new BindingTarget();
     private static Vec3d pos = Vec3d.ZERO, cameraPos = Vec3d.ZERO;
-    private static boolean renderingPlayer = false;
     private static boolean active = false;
     private static float pitch, yaw, roll;
-
-    public static boolean isRenderingPlayer() {
-        return renderingPlayer;
-    }
 
     public static float getPitch(float f) {
         if (currentTarget.bindRotation()) return pitch;
@@ -48,15 +43,11 @@ public class RealCameraCore {
     }
 
     public static Vec3d getPos(Vec3d vec3d) {
-        return new Vec3d(currentTarget.bindX() ? pos.getX() : vec3d.getX(),
-                currentTarget.bindY() ? pos.getY() : vec3d.getY(),
-                currentTarget.bindZ() ? pos.getZ() : vec3d.getZ());
+        return new Vec3d(currentTarget.bindX() ? pos.getX() : vec3d.getX(), currentTarget.bindY() ? pos.getY() : vec3d.getY(), currentTarget.bindZ() ? pos.getZ() : vec3d.getZ());
     }
 
     public static Vec3d getCameraPos(Vec3d vec3d) {
-        return new Vec3d(currentTarget.bindX() ? cameraPos.getX() : vec3d.getX(),
-                currentTarget.bindY() ? cameraPos.getY() : vec3d.getY(),
-                currentTarget.bindZ() ? cameraPos.getZ() : vec3d.getZ());
+        return new Vec3d(currentTarget.bindX() ? cameraPos.getX() : vec3d.getX(), currentTarget.bindY() ? cameraPos.getY() : vec3d.getY(), currentTarget.bindZ() ? cameraPos.getZ() : vec3d.getZ());
     }
 
     public static void setCameraPos(Vec3d vec3d) {
@@ -64,62 +55,55 @@ public class RealCameraCore {
     }
 
     public static void init(MinecraftClient client) {
-        active = config().isEnabled() && client.options.getPerspective().isFirstPerson() && client.gameRenderer.getCamera() != null && client.player != null;
+        active = config().isEnabled() && client.options.getPerspective().isFirstPerson() && client.gameRenderer.getCamera() != null && client.getCameraEntity() != null;
     }
 
     public static boolean isActive() {
         return active;
     }
 
-    public static void renderPlayer(VertexConsumerProvider vertexConsumers) {
+    public static void renderEntity(VertexConsumerProvider vertexConsumers) {
         Matrix3f normalMatrix = new Matrix3f().rotate(RotationAxis.POSITIVE_Z.rotationDegrees(roll))
                 .rotate(RotationAxis.POSITIVE_X.rotationDegrees(pitch))
                 .rotate(RotationAxis.POSITIVE_Y.rotationDegrees(yaw + 180.0f))
                 .transpose().invert();
         Matrix4f positionMatrix = new Matrix4f(normalMatrix).translate((float) -pos.getX(), (float) -pos.getY(), (float) -pos.getZ());
         BiFunction<RenderLayer, VertexRecorder.Vertex[], VertexRecorder.Vertex[]> function = (renderLayer, vertices) -> {
-            double depth = currentTarget.disablingDepth(), centerZ = 0;
+            double depth = currentTarget.disablingDepth();
             int count = vertices.length;
             VertexRecorder.Vertex[] quad = new VertexRecorder.Vertex[count];
             for (int i = 0; i < count; i++) quad[i] = vertices[i].transform(positionMatrix, normalMatrix);
-            for (VertexRecorder.Vertex vertex : quad) {
-                if (vertex.z() < -depth) return quad;
-                centerZ += vertex.z();
-            }
-            return centerZ < -depth * count ? quad : null;
+            for (VertexRecorder.Vertex vertex : quad) if (vertex.z() < -depth) return quad;
+            return null;
         };
         recorder.drawByAnother(vertexConsumers, renderLayer -> true, function);
     }
 
     public static void computeCamera(MinecraftClient client, float tickDelta) {
-        currentTarget = new BindingTarget();
-        if (config().isClassic()) return;
-
         // GameRenderer.renderWorld
         recorder.clear();
-        ClientPlayerEntity player = client.player;
+        Entity entity = client.getCameraEntity();
         // WorldRenderer.render
-        if (player.age == 0) {
-            player.lastRenderX = player.getX();
-            player.lastRenderY = player.getY();
-            player.lastRenderZ = player.getZ();
+        EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
+        dispatcher.configure(client.world, client.gameRenderer.getCamera(), client.targetedEntity);
+        if (entity.age == 0) {
+            entity.lastRenderX = entity.getX();
+            entity.lastRenderY = entity.getY();
+            entity.lastRenderZ = entity.getZ();
         }
         // WorldRenderer.renderEntity
-        EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
-        dispatcher.configure(client.world, client.gameRenderer.getCamera(), player);
-        renderingPlayer = true;
-        dispatcher.render(player, MathHelper.lerp(tickDelta, player.lastRenderX, player.getX()),
-                MathHelper.lerp(tickDelta, player.lastRenderY, player.getY()),
-                MathHelper.lerp(tickDelta, player.lastRenderZ, player.getZ()),
-                MathHelper.lerp(tickDelta, player.prevYaw, player.getYaw()),
-                tickDelta, new MatrixStack(), recorder, dispatcher.getLight(player, tickDelta));
-        renderingPlayer = false;
+        dispatcher.render(entity, MathHelper.lerp(tickDelta, entity.lastRenderX, entity.getX()),
+                MathHelper.lerp(tickDelta, entity.lastRenderY, entity.getY()),
+                MathHelper.lerp(tickDelta, entity.lastRenderZ, entity.getZ()),
+                MathHelper.lerp(tickDelta, entity.prevYaw, entity.getYaw()),
+                tickDelta, new MatrixStack(), recorder, dispatcher.getLight(entity, tickDelta));
         recorder.buildLastRecord();
 
+        currentTarget = new BindingTarget();
         Matrix3f normal = new Matrix3f();
         for (BindingTarget target : config().getTargetList()) {
+            if (!recorder.setCurrent(renderLayer -> renderLayer.toString().contains(target.textureId()))) continue;
             try {
-                if (!recorder.setCurrent(renderLayer -> renderLayer.toString().contains(target.textureId()))) continue;
                 pos = recorder.getTargetPosAndRot(target, normal);
                 currentTarget = target;
                 break;
