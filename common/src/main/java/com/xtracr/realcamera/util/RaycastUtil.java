@@ -10,15 +10,10 @@ import net.minecraft.world.RaycastContext.ShapeType;
 
 public class RaycastUtil {
     private static Vec3d startVec = Vec3d.ZERO;
-    private static Vec3d direction = Vec3d.ZERO;
     private static Vec3d endVec = Vec3d.ZERO;
 
     public static Vec3d getStartVec() {
         return startVec;
-    }
-
-    public static Vec3d getDirection() {
-        return direction;
     }
 
     public static Vec3d getEndVec() {
@@ -33,8 +28,7 @@ public class RaycastUtil {
         final Camera camera = MinecraftClient.getInstance().gameRenderer.getCamera();
         final Vec3d eyePos = entity.getCameraPosVec(tickDelta);
         startVec = camera.getPos();
-        direction = Vec3d.fromPolar(camera.getPitch(), camera.getYaw());
-
+        Vec3d direction = Vec3d.fromPolar(camera.getPitch(), camera.getYaw());
         final Vec3d offset = startVec.subtract(eyePos);
         final Vec3d footPoint = MathUtil.getIntersectionPoint(Vec3d.ZERO, direction, offset, direction);
         if (footPoint.lengthSquared() > sqDistance) {

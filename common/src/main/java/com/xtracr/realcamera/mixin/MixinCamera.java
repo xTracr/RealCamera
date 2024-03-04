@@ -42,7 +42,7 @@ public abstract class MixinCamera {
         Box box = focusedEntity.getBoundingBox();
         if (config.isClassic()) {
             EntityDimensions playerDimensions = EntityType.PLAYER.getDimensions();
-            double scale = config.getScale() * 2 * box.getAverageSideLength() / (playerDimensions.height + playerDimensions.width);
+            double scale = 2 * box.getAverageSideLength() / (playerDimensions.height + playerDimensions.width);
             Vec3d offset = new Vec3d(config.getClassicX(), config.getClassicY(), config.getClassicZ()).multiply(scale);
             Vec3d center = new Vec3d(config.getCenterX(), config.getCenterY(), config.getCenterZ()).multiply(scale);
             float newPitch = pitch + config.getClassicPitch();

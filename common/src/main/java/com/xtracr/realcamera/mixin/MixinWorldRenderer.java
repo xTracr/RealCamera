@@ -3,10 +3,10 @@ package com.xtracr.realcamera.mixin;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Final;
@@ -19,22 +19,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(WorldRenderer.class)
 public abstract class MixinWorldRenderer {
     @Shadow
-    @Final private MinecraftClient client;
-    @Shadow
     @Final private BufferBuilderStorage bufferBuilders;
 
-    @Inject(method = "render",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;drawCurrentLayer()V", ordinal = 0))
+    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;drawCurrentLayer()V", ordinal = 0))
     private void realcamera$renderClientPlayer(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline,
                                                Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix, CallbackInfo cInfo) {
-        ModConfig config = ConfigFile.modConfig;
-        if (camera.isThirdPerson() || !RealCameraCore.isActive() || !config.isRendering() || config.shouldDisableRendering(this.client)) return;
+        final ModConfig config = ConfigFile.modConfig;
+        if (camera.isThirdPerson() || !RealCameraCore.isActive() || !config.isRendering() || (camera.getFocusedEntity() instanceof PlayerEntity player && player.isUsingSpyglass())) return;
         VertexConsumerProvider.Immediate immediate = this.bufferBuilders.getEntityVertexConsumers();
         Vec3d cameraPos = camera.getPos();
-        RealCameraCore.setRenderingPlayer(true);
-        if (config.binding.experimental && !config.isClassic()) RealCameraCore.renderPlayer(immediate);
+        if (!config.isClassic()) RealCameraCore.renderPlayer(immediate);
         else renderEntity(camera.getFocusedEntity(), cameraPos.getX(), cameraPos.getY(), cameraPos.getZ(), tickDelta, matrices, immediate);
-        RealCameraCore.setRenderingPlayer(false);
     }
 
     @Shadow

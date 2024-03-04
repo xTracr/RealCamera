@@ -11,13 +11,11 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 
 ## Features ##
 
-* Bind the camera to a specific part of the body.
+* Bind the camera to a specific part of the body (support most mod models in theory).
 * Customize the position and rotation of the camera.
 * Render player model in first-person perspective.
 * Use F6 to toggle the feature on or off and other hotkeys to adjust the camera.
 * Configure these features in the config screen (Cloth Config required).
-* Support most mod models in theory in 0.6+ (You can discuss
-  it [here](https://github.com/xTracr/RealCamera/discussions))
 
 > Learn more about [Configuration](https://github.com/xTracr/RealCamera/wiki/Configuration)
 
@@ -43,10 +41,7 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
   * OptiFine
 * Compatible:
   * most camera mods
-  * most player model mods (0.6+)
-  * Not Enough Animations[^1]
-
-[^1]: It is suggested to disable the `Animation Smoothing` option in the config of *Not Enough Animations*.
+  * most player model mods
 
 ## [More Information](https://github.com/xTracr/RealCamera/wiki) ##
 

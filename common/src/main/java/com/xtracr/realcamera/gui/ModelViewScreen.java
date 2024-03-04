@@ -4,6 +4,7 @@ import com.xtracr.realcamera.RealCamera;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.BindingTarget;
 import com.xtracr.realcamera.config.ConfigFile;
+import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.util.MathUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -50,14 +51,14 @@ public class ModelViewScreen extends Screen {
     private final CyclingTexturedButton bindYButton = new CyclingTexturedButton(16, 0, 0, 2);
     private final CyclingTexturedButton bindZButton = new CyclingTexturedButton(16, 0, 1, 2);
     private final CyclingTexturedButton bindRotButton = new CyclingTexturedButton(16, 0, 1, 2);
-    private final DoubleSliderWidget entityPitchSlider = createSlider("pitch", widgetWidth * 2 + 4, -90.0d, 90.0d);
-    private final DoubleSliderWidget entityYawSlider = createSlider("yaw", widgetWidth * 2 + 4, -60.0d, 60.0d);
-    private final DoubleSliderWidget offsetXSlider = createSlider("offsetX", widgetWidth * 2 - 18, -1.0d, 1.0d);
-    private final DoubleSliderWidget offsetYSlider = createSlider("offsetY", widgetWidth * 2 - 18, -1.0d, 1.0d);
-    private final DoubleSliderWidget offsetZSlider = createSlider("offsetZ", widgetWidth * 2 - 18, -1.0d, 1.0d);
-    private final DoubleSliderWidget pitchSlider = createSlider("pitch", widgetWidth * 2 - 18, -180.0d, 180.0d);
-    private final DoubleSliderWidget yawSlider = createSlider("yaw", widgetWidth * 2 - 18, -180.0d, 180.0d);
-    private final DoubleSliderWidget rollSlider = createSlider("roll", widgetWidth * 2 - 18, -180.0d, 180.0d);
+    private final DoubleSliderWidget entityPitchSlider = createSlider("pitch", widgetWidth * 2 + 4, -90.0, 90.0);
+    private final DoubleSliderWidget entityYawSlider = createSlider("yaw", widgetWidth * 2 + 4, -60.0, 60.0);
+    private final DoubleSliderWidget offsetXSlider = createSlider("offsetX", widgetWidth * 2 - 18, ModConfig.MIN_DOUBLE, ModConfig.MAX_DOUBLE);
+    private final DoubleSliderWidget offsetYSlider = createSlider("offsetY", widgetWidth * 2 - 18, ModConfig.MIN_DOUBLE, ModConfig.MAX_DOUBLE);
+    private final DoubleSliderWidget offsetZSlider = createSlider("offsetZ", widgetWidth * 2 - 18, ModConfig.MIN_DOUBLE, ModConfig.MAX_DOUBLE);
+    private final DoubleSliderWidget pitchSlider = createSlider("pitch", widgetWidth * 2 - 18, -180.0, 180.0);
+    private final DoubleSliderWidget yawSlider = createSlider("yaw", widgetWidth * 2 - 18, -180.0, 180.0);
+    private final DoubleSliderWidget rollSlider = createSlider("roll", widgetWidth * 2 - 18, -180.0, 180.0);
 
     public ModelViewScreen() {
         super(Text.translatable("screen." + RealCamera.FULL_ID + ".modelView_title"));
@@ -105,8 +106,8 @@ public class ModelViewScreen extends Screen {
         posVField = createFloatField(widgetWidth, 0, posVField);
         textureIdField = createTextField(widgetWidth * 2 + 4, textureIdField);
         textureIdField.setMaxLength(1024);
-        scaleField = createFloatField(widgetWidth, 1.0f, scaleField).setMax(64.0f).setMin(0.0f);
-        depthField = createFloatField(widgetWidth, 0.2f, depthField).setMax(4.0f).setMin(0.0f);
+        scaleField = createFloatField(widgetWidth, 1.0f, scaleField).setMax(64.0f);
+        depthField = createFloatField(widgetWidth, 0.2f, depthField).setMax(4.0f);
         if (category == 0) {
             adder.add(entityPitchSlider, 2);
             adder.add(entityYawSlider, 2);
@@ -147,12 +148,12 @@ public class ModelViewScreen extends Screen {
             initWidgets(category, page);
         }));
         adder.add(createButton(Text.translatable(KEY_WIDGET + "bind"), widgetWidth, button -> {
-            ConfigFile.modConfig.binding.targetName = nameField.getText();
+            ConfigFile.modConfig.setTargetName(nameField.getText());
             ConfigFile.save();
             initWidgets(category, page);
-        })).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "bind", "Auto Bind")));
+        })).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "bind")));
         adder.add(nameField = createTextField(widgetWidth * 2 + 4, nameField), 2, smallPositioner)
-                .setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "listName")));
+                .setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "targetName")));
         nameField.setMaxLength(20);
         gridWidget.refreshPositions();
         SimplePositioningWidget.setPos(gridWidget, x, y + 2, x + (xSize - ySize) / 2 - 4, y + ySize, 0, 0);
@@ -172,7 +173,7 @@ public class ModelViewScreen extends Screen {
         for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, targetList.size()); i++) {
             BindingTarget target = targetList.get(i);
             String name = target.name();
-            adder.add(createButton(Text.literal(name).styled(s -> name.equals(ConfigFile.modConfig.binding.targetName) ? s.withColor(Formatting.GREEN) : s),
+            adder.add(createButton(Text.literal(name).styled(s -> name.equals(ConfigFile.modConfig.getTargetName()) ? s.withColor(Formatting.GREEN) : s),
                     widgetWidth * 2 - 18, button -> loadBindingTarget(target)));
             adder.add(new TexturedButton(32, 32, button -> {
                 targetList.remove(target);

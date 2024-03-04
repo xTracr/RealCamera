@@ -10,12 +10,11 @@
 
 ## 特性 ##
 
-* 将摄像头绑定到身体的某个部位
+* 将摄像头绑定到身体的某个部位（理论上支持大多数模组模型）
 * 自定义摄像头的位置和旋转角度
 * 在第一人称视角下渲染玩家模型
 * 按下F6来开关，另外一些键来调整摄像头
 * 在Config界面配置以上特性（需Cloth Config）
-* 在0.6+版本中理论上支持大多数模组模型（你可以在[这里](https://github.com/xTracr/RealCamera/discussions)讨论）
 
 > 详细了解[如何配置](https://github.com/xTracr/RealCamera/wiki/Configuration)
 
@@ -39,10 +38,7 @@
   * OptiFine
 * 兼容:
   * 多数摄像头模组
-  * 多数模型模组(0.6+)
-  * Not Enough Animations[^1]
-
-[^1]:建议在 *更多动画* 的配置内禁用`Animation Smoothing`选项。
+  * 多数模型模组
 
 ## [更多信息](https://github.com/xTracr/RealCamera/wiki) ##
 

@@ -9,16 +9,11 @@
     "CameraAccessor",
     "MixinCamera",
     "MixinClientPlayerEntity",
-    "MixinEntityRenderer",
     "MixinGameRenderer",
     "MixinHeldItemRenderer",
     "MixinInGameHud",
     "MixinItem",
-    "MixinPlayerEntity",
-    "MixinPlayerEntityRenderer",
-    "MixinPlayerHeldItemFeatureRenderer",
-    "MixinWorldRenderer",
-    "PlayerEntityRendererAccessor"
+    "MixinWorldRenderer"
   ],
   "server": [
   ],

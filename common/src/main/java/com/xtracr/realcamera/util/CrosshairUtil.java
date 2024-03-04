@@ -19,13 +19,9 @@ public class CrosshairUtil {
 
     public static void update(MinecraftClient client, Camera camera, Matrix4f... projectionMatrices) {
         HitResult hitResult = client.crosshairTarget;
-        if (client.targetedEntity != null) {
-            hitResult = capturedEntityHitResult;
-        }
-        if (hitResult == null) {
-            offset = Vec3d.ZERO;
-            return;
-        }
+        offset = Vec3d.ZERO;
+        if (client.targetedEntity != null) hitResult = capturedEntityHitResult;
+        if (hitResult == null) return;
         Window window = client.getWindow();
         offset = MathUtil.projectToVec2d(hitResult.getPos().subtract(camera.getPos()), projectionMatrices)
                 .multiply(0.5 * window.getScaledWidth(), 0.5 * window.getScaledHeight(), 0.0d);

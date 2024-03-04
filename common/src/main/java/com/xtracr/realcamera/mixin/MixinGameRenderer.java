@@ -47,16 +47,14 @@ public abstract class MixinGameRenderer {
         RealCameraCore.init(client);
     }
 
-    @Inject(method = "renderWorld", at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/client/render/Camera;update(Lnet/minecraft/world/BlockView;Lnet/minecraft/entity/Entity;ZZF)V"))
+    @Inject(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/Camera;update(Lnet/minecraft/world/BlockView;Lnet/minecraft/entity/Entity;ZZF)V"))
     private void realCamera$onBeforeCameraUpdate(float tickDelta, long limitTime, MatrixStack matrices, CallbackInfo cInfo) {
         if (RealCameraCore.isActive()) {
             RealCameraCore.computeCamera(client, tickDelta);
         }
     }
 
-    @Inject(method = "renderWorld", at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/client/render/WorldRenderer;setupFrustum(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/util/math/Vec3d;Lorg/joml/Matrix4f;)V"))
+    @Inject(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/WorldRenderer;setupFrustum(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/util/math/Vec3d;Lorg/joml/Matrix4f;)V"))
     private void realCamera$onBeforeSetupFrustum(CallbackInfo cInfo) {
         if (RealCameraCore.isActive() && !ConfigFile.modConfig.isClassic()) {
             ((CameraAccessor) camera).invokeSetPos(RealCameraCore.getCameraPos(camera.getPos()));

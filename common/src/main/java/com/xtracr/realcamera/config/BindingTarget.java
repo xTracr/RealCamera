@@ -1,5 +1,7 @@
 package com.xtracr.realcamera.config;
 
+import net.minecraft.util.math.MathHelper;
+
 import java.util.List;
 
 public class BindingTarget {
@@ -11,8 +13,8 @@ public class BindingTarget {
     private final float forwardU, forwardV, upwardU, upwardV, posU, posV, disablingDepth;
     private final boolean bindX, bindY, bindZ, bindRotation;
     private final double scale;
-    private double offsetX, offsetY, offsetZ;
-    private float pitch, yaw, roll;
+    protected double offsetX, offsetY, offsetZ;
+    protected float pitch, yaw, roll;
 
     public BindingTarget() {
         this(null, null, 0, 0, 0, 0, 0, 0, 0.2f, false, true, false, false, 1, 0, 0, 0, 0, 0, 0);
@@ -39,10 +41,6 @@ public class BindingTarget {
         this.pitch = pitch;
         this.yaw = yaw;
         this.roll = roll;
-    }
-
-    private static ModConfig config() {
-        return ConfigFile.modConfig;
     }
 
     private static BindingTarget createDefaultTarget(String name, String textureId, boolean shouldBind) {
@@ -90,74 +88,70 @@ public class BindingTarget {
     }
 
     public boolean bindX() {
-        return isExperimental() ? bindX : config().isXBound();
+        return bindX;
     }
 
     public boolean bindY() {
-        return isExperimental() ? bindY : config().isYBound();
+        return bindY;
     }
 
     public boolean bindZ() {
-        return isExperimental() ? bindZ : config().isZBound();
+        return bindZ;
     }
 
     public boolean bindRotation() {
-        return isExperimental() ? bindRotation : config().isRotationBound();
+        return bindRotation;
     }
 
     public double scale() {
-        return isExperimental() ? scale : config().getScale();
+        return scale;
     }
 
     public double offsetX() {
-        return isExperimental() ? offsetX * scale : config().getBindingX() * config().getScale();
+        return offsetX * scale;
     }
 
     public void setOffsetX(double offsetX) {
-        this.offsetX = offsetX;
+        this.offsetX = MathHelper.clamp(offsetX, ModConfig.MIN_DOUBLE, ModConfig.MAX_DOUBLE);
     }
 
     public double offsetY() {
-        return isExperimental() ? offsetY * scale : config().getBindingY() * config().getScale();
+        return offsetY * scale;
     }
 
     public void setOffsetY(double offsetY) {
-        this.offsetY = offsetY;
+        this.offsetY = MathHelper.clamp(offsetY, ModConfig.MIN_DOUBLE, ModConfig.MAX_DOUBLE);
     }
 
     public double offsetZ() {
-        return isExperimental() ? offsetZ * scale : config().getBindingZ() * config().getScale();
+        return offsetZ * scale;
     }
 
     public void setOffsetZ(double offsetZ) {
-        this.offsetZ = offsetZ;
+        this.offsetZ = MathHelper.clamp(offsetZ, ModConfig.MIN_DOUBLE, ModConfig.MAX_DOUBLE);
     }
 
     public float pitch() {
-        return isExperimental() ? pitch : config().getBindingPitch();
+        return pitch;
     }
 
     public void setPitch(float pitch) {
-        this.pitch = pitch;
+        this.pitch = MathHelper.wrapDegrees(pitch);
     }
 
     public float yaw() {
-        return isExperimental() ? yaw : config().getBindingYaw();
+        return yaw;
     }
 
     public void setYaw(float yaw) {
-        this.yaw = yaw;
+        this.yaw = MathHelper.wrapDegrees(yaw);
     }
 
     public float roll() {
-        return isExperimental() ? roll : config().getBindingRoll();
+        return roll;
     }
 
     public void setRoll(float roll) {
-        this.roll = roll;
-    }
-
-    private boolean isExperimental() {
-        return config().binding.experimental && textureId != null;
+        this.roll = MathHelper.wrapDegrees(roll);
     }
 }
