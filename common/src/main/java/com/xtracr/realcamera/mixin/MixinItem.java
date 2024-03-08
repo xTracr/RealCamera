@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(Item.class)
 public abstract class MixinItem {
     @Inject(method = "raycast", at = @At("HEAD"), cancellable = true)
-    private static void realCamera$coverRaycast(World world, PlayerEntity player, RaycastContext.FluidHandling fluidHandling,
+    private static void realcamera$coverRaycast(World world, PlayerEntity player, RaycastContext.FluidHandling fluidHandling,
                                                 CallbackInfoReturnable<BlockHitResult> cInfo) {
         if (!ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
             RaycastUtil.update(player, 25.0d, 1.0f);

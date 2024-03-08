@@ -83,7 +83,7 @@ public class ModelAnalyser extends VertexRecorder {
     public void preview(DrawContext context, BindingTarget target, int entitySize, int forwardArgb, int upwardArgb, int leftArgb) {
         drawByAnother(context.getVertexConsumers());
         context.draw();
-        target.setScale(entitySize * target.scale());
+        target.scale *= entitySize;
         Matrix3f normal = new Matrix3f();
         Vec3d pos;
         try {

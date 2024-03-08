@@ -34,7 +34,7 @@ public abstract class MixinCamera {
     private float yaw;
 
     @Inject(method = "update", at = @At("RETURN"))
-    private void realCamera$updateCamera(BlockView area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float tickDelta, CallbackInfo cInfo) {
+    private void realcamera$updateCamera(BlockView area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float tickDelta, CallbackInfo cInfo) {
         if (!RealCameraCore.isActive()) return;
         final ModConfig config = ConfigFile.modConfig;
         Vec3d startVec = pos;
@@ -57,12 +57,12 @@ public abstract class MixinCamera {
             setPos(prevPos);
             setRotation(RealCameraCore.getYaw(yaw), RealCameraCore.getPitch(pitch));
         }
-        realCamera$clipToSpace(startVec);
+        realcamera$clipToSpace(startVec);
         RealCameraCore.setCameraPos(pos);
     }
 
     @Unique
-    private void realCamera$clipToSpace(Vec3d startVec) {
+    private void realcamera$clipToSpace(Vec3d startVec) {
         Vec3d offset = pos.subtract(startVec);
         final float depth = 0.085F;
         for (int i = 0; i < 8; ++i) {

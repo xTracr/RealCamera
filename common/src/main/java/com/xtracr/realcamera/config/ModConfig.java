@@ -150,6 +150,10 @@ public class ModConfig {
     }
 
     // binding
+    public boolean updateModelAgain() {
+        return binding.updateModel;
+    }
+
     public List<BindingTarget> getTargetList() {
         binding.clamp();
         return binding.targetList;
@@ -158,10 +162,10 @@ public class ModConfig {
     public void putTarget(BindingTarget target) {
         if (target.isEmpty()) return;
         IntStream.range(0, binding.targetList.size())
-                .filter(i -> binding.targetList.get(i).name().equals(target.name()))
+                .filter(i -> binding.targetList.get(i).name.equals(target.name))
                 .findAny()
                 .ifPresentOrElse(i -> binding.targetList.set(i, target), () -> binding.targetList.add(target));
-        binding.targetList.sort(Comparator.comparingInt(t -> -t.priority()));
+        binding.targetList.sort(Comparator.comparingInt(t -> -t.priority));
     }
 
     public static class Classic {
@@ -204,6 +208,7 @@ public class ModConfig {
 
     public static class Binding {
         public boolean adjustOffset = true;
+        public boolean updateModel = true;
         public List<BindingTarget> targetList = new ArrayList<>(BindingTarget.defaultTargets);
 
         private void clamp() {

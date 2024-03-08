@@ -9,12 +9,12 @@ public class BindingTarget {
             createDefaultTarget("skin_head", "minecraft:skins/", 5, false),
             createDefaultTarget("minecraft_head_2", "minecraft:textures/entity/player/", 0, true),
             createDefaultTarget("skin_head_2", "minecraft:skins/", 0, true));
-    private final String name, textureId;
-    private final int priority;
-    private final float forwardU, forwardV, upwardU, upwardV, posU, posV, disablingDepth;
-    private final boolean bindX, bindY, bindZ, bindRotation;
-    protected double scale, offsetX, offsetY, offsetZ;
-    protected float pitch, yaw, roll;
+    public final String name, textureId;
+    public final int priority;
+    public final float forwardU, forwardV, upwardU, upwardV, posU, posV, disablingDepth;
+    public final boolean bindX, bindY, bindZ, bindRotation;
+    public double scale, offsetX, offsetY, offsetZ;
+    public float pitch, yaw, roll;
 
     public BindingTarget() {
         this(null, null, 0, 0, 0, 0, 0, 0, 0, 0.2f, false, true, false, false, 1, 0, 0, 0, 0, 0, 0);
@@ -50,70 +50,6 @@ public class BindingTarget {
 
     public boolean isEmpty() {
         return name == null;
-    }
-
-    public String name() {
-        return name;
-    }
-
-    public String textureId() {
-        return textureId;
-    }
-
-    public int priority() {
-        return priority;
-    }
-
-    public float forwardU() {
-        return forwardU;
-    }
-
-    public float forwardV() {
-        return forwardV;
-    }
-
-    public float upwardU() {
-        return upwardU;
-    }
-
-    public float upwardV() {
-        return upwardV;
-    }
-
-    public float posU() {
-        return posU;
-    }
-
-    public float posV() {
-        return posV;
-    }
-
-    public float disablingDepth() {
-        return disablingDepth;
-    }
-
-    public boolean bindX() {
-        return bindX;
-    }
-
-    public boolean bindY() {
-        return bindY;
-    }
-
-    public boolean bindZ() {
-        return bindZ;
-    }
-
-    public boolean bindRotation() {
-        return bindRotation;
-    }
-
-    public double scale() {
-        return scale;
-    }
-
-    public void setScale(double scale) {
-        this.scale = scale;
     }
 
     public double offsetX() {

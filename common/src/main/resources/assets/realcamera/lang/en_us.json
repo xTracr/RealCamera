@@ -38,7 +38,7 @@
   "config.option.xtracr_realcamera.roll": "Roll",
   "config.option.xtracr_realcamera.toModelViewGui": "For detailed settings, please go to the %s screen (key bind need to be set to open it)",
   "config.option.xtracr_realcamera.adjustOffset": "Adjust Camera Offset",
-  "config.option.xtracr_realcamera.autoBind": "Auto Bind",
+  "config.option.xtracr_realcamera.updateModel": "Update Model State Again Before Rendering",
   "config.tooltip.xtracr_realcamera.isClassic": "Classic mode only makes simple changes to the position and rotation of camera",
   "config.tooltip.xtracr_realcamera.dynamicCrosshair": "When enabled, the crosshair will follow the player's view, ensuring consistent hit result\nRecommended to enable when Jade, WTHIT or similar mods are installed",
   "config.tooltip.xtracr_realcamera.renderModel": "Render player model in first-person perspective",
@@ -46,6 +46,7 @@
   "config.tooltip.xtracr_realcamera.classicAdjustMode": "Determine which to adjust when pressing the adjustment key",
   "config.tooltip.xtracr_realcamera.scale": "Control the size of the offsets",
   "config.tooltip.xtracr_realcamera.adjustOffset": "When pressing the adjustment key, adjust the offset or rotation of camera",
+  "config.tooltip.xtracr_realcamera.updateModel": "Have some impact on performance, recommended to turn off, if no visible difference after turned off\nCode running order: update player model (advanced here by RealCamera) -> update camera -> some mods may be initialized here -> (update player model again) -> render player model",
 
   "screen.xtracr_realcamera.modelView_title": "Model View",
   "screen.widget.xtracr_realcamera.modelView_selectMode": "Selecting",

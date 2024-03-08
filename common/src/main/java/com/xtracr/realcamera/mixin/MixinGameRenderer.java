@@ -29,7 +29,7 @@ public abstract class MixinGameRenderer {
     @Final private Camera camera;
 
     @ModifyVariable(method = "updateTargetedEntity", at = @At("STORE"), ordinal = 0)
-    private EntityHitResult realCamera$modifyEntityHitResult(EntityHitResult entityHitResult) {
+    private EntityHitResult realcamera$modifyEntityHitResult(EntityHitResult entityHitResult) {
         CrosshairUtil.capturedEntityHitResult = entityHitResult;
         if (!ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
             Vec3d startVec = RaycastUtil.getStartVec();
@@ -43,15 +43,16 @@ public abstract class MixinGameRenderer {
     }
 
     @Inject(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/Camera;update(Lnet/minecraft/world/BlockView;Lnet/minecraft/entity/Entity;ZZF)V"))
-    private void realCamera$onBeforeCameraUpdate(float tickDelta, long limitTime, MatrixStack matrices, CallbackInfo cInfo) {
+    private void realcamera$onBeforeCameraUpdate(float tickDelta, long limitTime, MatrixStack matrices, CallbackInfo cInfo) {
         RealCameraCore.init(client);
         if (RealCameraCore.isActive() && !ConfigFile.modConfig.isClassic()) {
-            RealCameraCore.computeCamera(client, tickDelta);
+            RealCameraCore.updateModel(client, tickDelta);
+            RealCameraCore.computeCamera();
         }
     }
 
     @Inject(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/WorldRenderer;setupFrustum(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/util/math/Vec3d;Lorg/joml/Matrix4f;)V"))
-    private void realCamera$onBeforeSetupFrustum(CallbackInfo cInfo) {
+    private void realcamera$onBeforeSetupFrustum(CallbackInfo cInfo) {
         if (RealCameraCore.isActive() && !ConfigFile.modConfig.isClassic()) {
             ((CameraAccessor) camera).invokeSetPos(RealCameraCore.getCameraPos(camera.getPos()));
         }

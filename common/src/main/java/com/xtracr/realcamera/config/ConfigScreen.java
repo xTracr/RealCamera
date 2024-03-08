@@ -137,6 +137,11 @@ public class ConfigScreen {
                 .setTooltip(Text.translatable(TOOLTIP + "adjustOffset"))
                 .setSaveConsumer(b -> config.binding.adjustOffset = b)
                 .build());
+        binding.addEntry(entryBuilder.startBooleanToggle(Text.translatable(OPTION + "updateModel"), config.binding.updateModel)
+                .setDefaultValue(true)
+                .setTooltip(Text.translatable(TOOLTIP + "updateModel"))
+                .setSaveConsumer(b -> config.binding.updateModel = b)
+                .build());
 
         return builder.build();
     }

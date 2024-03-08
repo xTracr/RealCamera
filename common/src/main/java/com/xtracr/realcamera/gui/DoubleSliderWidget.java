@@ -7,14 +7,14 @@ import net.minecraft.util.math.MathHelper;
 import java.util.function.Function;
 
 public class DoubleSliderWidget extends SliderWidget {
+    private final Function<Double, Text> textFactory;
     private final double min, max;
-    private final Function<Double, Text> textFunction;
 
-    public DoubleSliderWidget(int width, int height, double value, double min, double max, Function<Double, Text> textFunction) {
-        super(0, 0, width, height, textFunction.apply(value), MathHelper.clamp(0, (value - min) / (max - min), 1));
+    public DoubleSliderWidget(int width, int height, double value, double min, double max, Function<Double, Text> textFactory) {
+        super(0, 0, width, height, textFactory.apply(value), MathHelper.clamp(0, (value - min) / (max - min), 1));
+        this.textFactory = textFactory;
         this.min = min;
         this.max = max;
-        this.textFunction = textFunction;
     }
 
     public double getValue() {
@@ -28,7 +28,7 @@ public class DoubleSliderWidget extends SliderWidget {
 
     @Override
     protected void updateMessage() {
-        setMessage(textFunction.apply(getValue()));
+        setMessage(textFactory.apply(getValue()));
     }
 
     @Override

@@ -27,27 +27,27 @@ public class RealCameraCore {
     private static float pitch, yaw, roll;
 
     public static float getPitch(float f) {
-        if (currentTarget.bindRotation()) return pitch;
+        if (currentTarget.bindRotation) return pitch;
         return f;
     }
 
     public static float getYaw(float f) {
-        if (currentTarget.bindRotation()) return yaw;
+        if (currentTarget.bindRotation) return yaw;
         return f;
     }
 
     public static float getRoll(float f) {
         if (config().isClassic()) return f + config().getClassicRoll();
-        if (currentTarget.bindRotation()) return roll;
+        if (currentTarget.bindRotation) return roll;
         return f;
     }
 
     public static Vec3d getPos(Vec3d vec3d) {
-        return new Vec3d(currentTarget.bindX() ? pos.getX() : vec3d.getX(), currentTarget.bindY() ? pos.getY() : vec3d.getY(), currentTarget.bindZ() ? pos.getZ() : vec3d.getZ());
+        return new Vec3d(currentTarget.bindX ? pos.getX() : vec3d.getX(), currentTarget.bindY ? pos.getY() : vec3d.getY(), currentTarget.bindZ ? pos.getZ() : vec3d.getZ());
     }
 
     public static Vec3d getCameraPos(Vec3d vec3d) {
-        return new Vec3d(currentTarget.bindX() ? cameraPos.getX() : vec3d.getX(), currentTarget.bindY() ? cameraPos.getY() : vec3d.getY(), currentTarget.bindZ() ? cameraPos.getZ() : vec3d.getZ());
+        return new Vec3d(currentTarget.bindX ? cameraPos.getX() : vec3d.getX(), currentTarget.bindY ? cameraPos.getY() : vec3d.getY(), currentTarget.bindZ ? cameraPos.getZ() : vec3d.getZ());
     }
 
     public static void setCameraPos(Vec3d vec3d) {
@@ -62,28 +62,10 @@ public class RealCameraCore {
         return active;
     }
 
-    public static void renderEntity(VertexConsumerProvider vertexConsumers) {
-        Matrix3f normalMatrix = new Matrix3f().rotate(RotationAxis.POSITIVE_Z.rotationDegrees(roll))
-                .rotate(RotationAxis.POSITIVE_X.rotationDegrees(pitch))
-                .rotate(RotationAxis.POSITIVE_Y.rotationDegrees(yaw + 180.0f))
-                .transpose().invert();
-        Matrix4f positionMatrix = new Matrix4f(normalMatrix).translate((float) -pos.getX(), (float) -pos.getY(), (float) -pos.getZ());
-        BiFunction<RenderLayer, VertexRecorder.Vertex[], VertexRecorder.Vertex[]> function = (renderLayer, vertices) -> {
-            double depth = currentTarget.disablingDepth();
-            int count = vertices.length;
-            VertexRecorder.Vertex[] quad = new VertexRecorder.Vertex[count];
-            for (int i = 0; i < count; i++) quad[i] = vertices[i].transform(positionMatrix, normalMatrix);
-            for (VertexRecorder.Vertex vertex : quad) if (vertex.z() < -depth) return quad;
-            return null;
-        };
-        recorder.drawByAnother(vertexConsumers, renderLayer -> true, function);
-    }
-
-    public static void computeCamera(MinecraftClient client, float tickDelta) {
-        // GameRenderer.renderWorld
+    public static void updateModel(MinecraftClient client, float tickDelta) {
         recorder.clear();
-        Entity entity = client.getCameraEntity();
         // WorldRenderer.render
+        Entity entity = client.getCameraEntity();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         dispatcher.configure(client.world, client.gameRenderer.getCamera(), client.targetedEntity);
         if (entity.age == 0) {
@@ -98,11 +80,30 @@ public class RealCameraCore {
                 MathHelper.lerp(tickDelta, entity.prevYaw, entity.getYaw()),
                 tickDelta, new MatrixStack(), recorder, dispatcher.getLight(entity, tickDelta));
         recorder.buildLastRecord();
+    }
 
+    public static void renderCameraEntity(VertexConsumerProvider vertexConsumers) {
+        Matrix3f normalMatrix = new Matrix3f().rotate(RotationAxis.POSITIVE_Z.rotationDegrees(roll))
+                .rotate(RotationAxis.POSITIVE_X.rotationDegrees(pitch))
+                .rotate(RotationAxis.POSITIVE_Y.rotationDegrees(yaw + 180.0f))
+                .transpose().invert();
+        Matrix4f positionMatrix = new Matrix4f(normalMatrix).translate((float) -pos.getX(), (float) -pos.getY(), (float) -pos.getZ());
+        BiFunction<RenderLayer, VertexRecorder.Vertex[], VertexRecorder.Vertex[]> function = (renderLayer, vertices) -> {
+            double depth = currentTarget.disablingDepth;
+            int count = vertices.length;
+            VertexRecorder.Vertex[] quad = new VertexRecorder.Vertex[count];
+            for (int i = 0; i < count; i++) quad[i] = vertices[i].transform(positionMatrix, normalMatrix);
+            for (VertexRecorder.Vertex vertex : quad) if (vertex.z() < -depth) return quad;
+            return null;
+        };
+        recorder.drawByAnother(vertexConsumers, renderLayer -> true, function);
+    }
+
+    public static void computeCamera() {
         currentTarget = new BindingTarget();
         Matrix3f normal = new Matrix3f();
         for (BindingTarget target : config().getTargetList()) {
-            if (!recorder.setCurrent(renderLayer -> renderLayer.toString().contains(target.textureId()))) continue;
+            if (!recorder.setCurrent(renderLayer -> renderLayer.toString().contains(target.textureId))) continue;
             try {
                 pos = recorder.getTargetPosAndRot(target, normal);
                 currentTarget = target;

@@ -170,7 +170,7 @@ public class ModelViewScreen extends Screen {
         addDrawableChild(new TexturedButton(x + xSize - 21, y + 4, 16, 16, 16, 32, button -> initWidgets(category, (page + 1) % pages)));
         for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, targetList.size()); i++) {
             BindingTarget target = targetList.get(i);
-            String name = target.name();
+            String name = target.name;
             adder.add(createButton(Text.literal(name), widgetWidth * 2 - 18, button -> loadBindingTarget(target)));
             adder.add(new TexturedButton(32, 32, button -> {
                 targetList.remove(target);
@@ -262,27 +262,27 @@ public class ModelViewScreen extends Screen {
 
     protected void loadBindingTarget(BindingTarget target) {
         if (target.isEmpty()) return;
-        nameField.setText(target.name());
-        textureIdField.setText(target.textureId());
-        priorityField.setValue(target.priority());
-        forwardUField.setValue(target.forwardU());
-        forwardVField.setValue(target.forwardV());
-        upwardUField.setValue(target.upwardU());
-        upwardVField.setValue(target.upwardV());
-        posUField.setValue(target.posU());
-        posVField.setValue(target.posV());
-        depthField.setValue(target.disablingDepth());
-        scaleField.setValue((float) target.scale());
-        bindXButton.setValue(target.bindX() ? 0 : 1);
-        offsetXSlider.setValue(target.offsetX());
-        bindYButton.setValue(target.bindY() ? 0 : 1);
-        offsetYSlider.setValue(target.offsetY());
-        bindZButton.setValue(target.bindZ() ? 0 : 1);
-        offsetZSlider.setValue(target.offsetZ());
-        bindRotButton.setValue(target.bindRotation() ? 0 : 1);
-        pitchSlider.setValue(target.pitch());
-        yawSlider.setValue(target.yaw());
-        rollSlider.setValue(target.roll());
+        nameField.setText(target.name);
+        textureIdField.setText(target.textureId);
+        priorityField.setValue(target.priority);
+        forwardUField.setValue(target.forwardU);
+        forwardVField.setValue(target.forwardV);
+        upwardUField.setValue(target.upwardU);
+        upwardVField.setValue(target.upwardV);
+        posUField.setValue(target.posU);
+        posVField.setValue(target.posV);
+        depthField.setValue(target.disablingDepth);
+        scaleField.setValue((float) target.scale);
+        bindXButton.setValue(target.bindX ? 0 : 1);
+        offsetXSlider.setValue(target.offsetX);
+        bindYButton.setValue(target.bindY ? 0 : 1);
+        offsetYSlider.setValue(target.offsetY);
+        bindZButton.setValue(target.bindZ ? 0 : 1);
+        offsetZSlider.setValue(target.offsetZ);
+        bindRotButton.setValue(target.bindRotation ? 0 : 1);
+        pitchSlider.setValue(target.pitch);
+        yawSlider.setValue(target.yaw);
+        rollSlider.setValue(target.roll);
     }
 
     private ButtonWidget createButton(Text message, int width, ButtonWidget.PressAction onPress) {

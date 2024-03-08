@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(InGameHud.class)
 public abstract class MixinInGameHud {
     @Inject(method = "renderCrosshair(Lnet/minecraft/client/gui/DrawContext;)V", at = @At("HEAD"))
-    private void realCamera$onRenderCrosshairHEAD(DrawContext context, CallbackInfo cInfo) {
+    private void realcamera$onRenderCrosshairHEAD(DrawContext context, CallbackInfo cInfo) {
         if (ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
             context.getMatrices().push();
             CrosshairUtil.translateMatrices(context.getMatrices());
@@ -21,7 +21,7 @@ public abstract class MixinInGameHud {
     }
 
     @Inject(method = "renderCrosshair(Lnet/minecraft/client/gui/DrawContext;)V", at = @At("RETURN"))
-    private void realCamera$onRenderCrosshairRETURN(DrawContext context, CallbackInfo cInfo) {
+    private void realcamera$onRenderCrosshairRETURN(DrawContext context, CallbackInfo cInfo) {
         if (ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
             context.getMatrices().pop();
         }

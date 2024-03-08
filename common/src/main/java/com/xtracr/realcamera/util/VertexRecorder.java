@@ -65,9 +65,9 @@ public class VertexRecorder implements VertexConsumerProvider {
     }
 
     public Vec3d getTargetPosAndRot(BindingTarget target, Matrix3f normal) throws NullPointerException, ArithmeticException {
-        Vec3d forward = Objects.requireNonNull(getQuad(target.forwardU(), target.forwardV()))[0].normal().normalize();
-        Vec3d left = Objects.requireNonNull(getQuad(target.upwardU(), target.upwardV()))[0].normal().crossProduct(forward).normalize();
-        Vec3d center = getPos(Objects.requireNonNull(getQuad(target.posU(), target.posV())), target.posU(), target.posV());
+        Vec3d forward = Objects.requireNonNull(getQuad(target.forwardU, target.forwardV))[0].normal().normalize();
+        Vec3d left = Objects.requireNonNull(getQuad(target.upwardU, target.upwardV))[0].normal().crossProduct(forward).normalize();
+        Vec3d center = getPos(Objects.requireNonNull(getQuad(target.posU, target.posV)), target.posU, target.posV);
         if (!MathUtil.isFinite(forward) || !MathUtil.isFinite(left) || !MathUtil.isFinite(center)) throw new ArithmeticException();
         normal.set(left.toVector3f(), forward.crossProduct(left).toVector3f(), forward.toVector3f());
         Vector3f offset = new Vector3f((float) target.offsetZ(), (float) target.offsetY(), (float) target.offsetX()).mul(normal);
