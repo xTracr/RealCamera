@@ -38,7 +38,6 @@
   "config.option.xtracr_realcamera.roll": "翻滚角",
   "config.option.xtracr_realcamera.toModelViewGui": "详细设置请前往%s界面（需设置快捷键来打开它）",
   "config.option.xtracr_realcamera.adjustOffset": "调整摄像头偏移",
-  "config.option.xtracr_realcamera.updateModel": "在渲染前再次更新模型状态",
   "config.tooltip.xtracr_realcamera.isClassic": "经典模式只对摄像头的位置和旋转做简单的修改",
   "config.tooltip.xtracr_realcamera.dynamicCrosshair": "在开启状态下，十字准心会随着玩家的视线移动，确保命中结果不受影响\n在安装了Jade、WTHIT或类似模组时建议启用",
   "config.tooltip.xtracr_realcamera.renderModel": "在第一人称视角下渲染玩家模型",
@@ -46,7 +45,6 @@
   "config.tooltip.xtracr_realcamera.classicAdjustMode": "决定当前按下调整键时调整哪一个",
   "config.tooltip.xtracr_realcamera.scale": "控制偏移量的大小",
   "config.tooltip.xtracr_realcamera.adjustOffset": "当前按下调整键时是调整摄像头的偏移还是旋转",
-  "config.tooltip.xtracr_realcamera.updateModel": "会对性能产生一定影响，建议关闭，如果关闭后没有可见的区别\n代码运行顺序：更新玩家模型（被RealCamera提前至此）->更新摄像头->部分模组可能在此处初始化->（再次更新玩家模型）->渲染玩家模型",
 
   "screen.xtracr_realcamera.modelView_title": "模型视图",
   "screen.widget.xtracr_realcamera.modelView_selectMode": "选择",

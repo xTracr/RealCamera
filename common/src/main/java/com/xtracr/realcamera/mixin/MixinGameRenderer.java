@@ -1,6 +1,7 @@
 package com.xtracr.realcamera.mixin;
 
 import com.xtracr.realcamera.RealCameraCore;
+import com.xtracr.realcamera.compat.CompatibilityHelper;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.util.CrosshairUtil;
 import com.xtracr.realcamera.util.RaycastUtil;
@@ -44,6 +45,7 @@ public abstract class MixinGameRenderer {
 
     @Inject(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/Camera;update(Lnet/minecraft/world/BlockView;Lnet/minecraft/entity/Entity;ZZF)V"))
     private void realcamera$onBeforeCameraUpdate(float tickDelta, long limitTime, MatrixStack matrices, CallbackInfo cInfo) {
+        CompatibilityHelper.NEA_setDeltaTick(tickDelta);
         RealCameraCore.init(client);
         if (RealCameraCore.isActive() && !ConfigFile.modConfig.isClassic()) {
             RealCameraCore.updateModel(client, tickDelta);

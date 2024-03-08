@@ -11,7 +11,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 public class RealCameraFabric implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
-        RealCamera.setup();
+        RealCamera.initialize();
         KeyBindings.register(KeyBindingHelper::registerKeyBinding);
 
         ClientTickEvents.END_CLIENT_TICK.register(KeyBindings::handle);

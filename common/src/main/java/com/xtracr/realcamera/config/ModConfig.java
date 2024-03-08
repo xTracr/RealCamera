@@ -150,10 +150,6 @@ public class ModConfig {
     }
 
     // binding
-    public boolean updateModelAgain() {
-        return binding.updateModel;
-    }
-
     public List<BindingTarget> getTargetList() {
         binding.clamp();
         return binding.targetList;
@@ -208,7 +204,6 @@ public class ModConfig {
 
     public static class Binding {
         public boolean adjustOffset = true;
-        public boolean updateModel = true;
         public List<BindingTarget> targetList = new ArrayList<>(BindingTarget.defaultTargets);
 
         private void clamp() {

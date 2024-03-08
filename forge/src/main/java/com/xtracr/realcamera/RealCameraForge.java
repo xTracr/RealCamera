@@ -23,7 +23,7 @@ public class RealCameraForge {
 
     @SubscribeEvent
     public void clientSetup(FMLClientSetupEvent event) {
-        RealCamera.setup();
+        RealCamera.initialize();
 
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onKeyInput);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, EventHandler::onCameraUpdate);
