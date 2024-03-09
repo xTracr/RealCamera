@@ -232,21 +232,13 @@ public class ModelViewScreen extends Screen {
         DiffuseLighting.method_34742();
         EntityRenderDispatcher entityRenderDispatcher = MinecraftClient.getInstance().getEntityRenderDispatcher();
         entityRenderDispatcher.setRenderShadows(false);
-        ModelAnalyser analyser = new ModelAnalyser();
+        ModelAnalyser analyser = new ModelAnalyser(generateBindingTarget());
         entityRenderDispatcher.render(entity, 0, -entity.getHeight() / 2.0f, 0, 0.0f, 1.0f, context.getMatrices(), analyser, 0xF000f0);
-        analyser.buildLastRecord();
-        analyser.setCurrent(renderLayer -> renderLayer.toString().contains(textureIdField.getText()));
-        int focusedIndex = analyser.getFocusedIndex(mouseX, mouseY, layers);
-        focusedUV = analyser.getCenterUV(focusedIndex);
+        analyser.initialize(entitySize, mouseX, mouseY, layers);
+        focusedUV = analyser.getFocusedUV();
         focusedTextureId = analyser.focusedTextureId();
-        if (category == 0) {
-            analyser.drawByAnother(context.getVertexConsumers());
-            context.draw();
-            analyser.drawQuad(context, posUField.getValue(), posVField.getValue(), 0x6F3333CC);
-            if (focusedIndex != -1) analyser.drawPolyhedron(context, focusedIndex, 0x7FFFFFFF, 0x3FFFFFFF);
-            analyser.drawNormal(context, forwardUField.getValue(), forwardVField.getValue(), entitySize / 2, 0xFF00CC00);
-            analyser.drawNormal(context, upwardUField.getValue(), upwardVField.getValue(), entitySize / 2, 0xFFCC0000);
-        } else analyser.preview(context, generateBindingTarget(), entitySize, 0xFF00CC00, 0xFFCC0000, 0xFF0000CC);
+        if (category == 1) analyser.previewEffect(context, entitySize, 0xFF00CC00, 0xFFCC0000, 0xFF0000CC);
+        else analyser.drawModelWithNormals(context, entitySize, 0x6F3333CC, 0xFF00CC00, 0xFFCC0000, 0x7FFFFFFF, 0x3FFFFFFF);
         entityRenderDispatcher.setRenderShadows(true);
         context.getMatrices().pop();
         DiffuseLighting.enableGuiDepthLighting();

@@ -22,7 +22,7 @@ import java.util.function.BiFunction;
 public class RealCameraCore {
     private static final VertexRecorder recorder = new VertexRecorder();
     public static BindingTarget currentTarget = new BindingTarget();
-    private static Vec3d pos = Vec3d.ZERO, cameraPos = Vec3d.ZERO;
+    private static Vec3d pos = Vec3d.ZERO, cameraPos = Vec3d.ZERO, offset = Vec3d.ZERO;
     private static boolean active = false;
     private static float pitch, yaw, roll;
 
@@ -74,10 +74,10 @@ public class RealCameraCore {
             entity.lastRenderZ = entity.getZ();
         }
         // WorldRenderer.renderEntity
-        dispatcher.render(entity, MathHelper.lerp(tickDelta, entity.lastRenderX, entity.getX()),
+        offset = new Vec3d(MathHelper.lerp(tickDelta, entity.lastRenderX, entity.getX()),
                 MathHelper.lerp(tickDelta, entity.lastRenderY, entity.getY()),
-                MathHelper.lerp(tickDelta, entity.lastRenderZ, entity.getZ()),
-                MathHelper.lerp(tickDelta, entity.prevYaw, entity.getYaw()),
+                MathHelper.lerp(tickDelta, entity.lastRenderZ, entity.getZ()));
+        dispatcher.render(entity, 0, 0, 0, MathHelper.lerp(tickDelta, entity.prevYaw, entity.getYaw()),
                 tickDelta, new MatrixStack(), recorder, dispatcher.getLight(entity, tickDelta));
         recorder.buildLastRecord();
     }
@@ -87,7 +87,7 @@ public class RealCameraCore {
                 .rotate(RotationAxis.POSITIVE_X.rotationDegrees(pitch))
                 .rotate(RotationAxis.POSITIVE_Y.rotationDegrees(yaw + 180.0f))
                 .transpose().invert();
-        Matrix4f positionMatrix = new Matrix4f(normalMatrix).translate((float) -pos.getX(), (float) -pos.getY(), (float) -pos.getZ());
+        Matrix4f positionMatrix = new Matrix4f(normalMatrix).translate(offset.subtract(pos).toVector3f());
         BiFunction<RenderLayer, VertexRecorder.Vertex[], VertexRecorder.Vertex[]> function = (renderLayer, vertices) -> {
             double depth = currentTarget.disablingDepth;
             int count = vertices.length;
@@ -103,9 +103,8 @@ public class RealCameraCore {
         currentTarget = new BindingTarget();
         Matrix3f normal = new Matrix3f();
         for (BindingTarget target : config().getTargetList()) {
-            if (!recorder.setCurrent(renderLayer -> renderLayer.toString().contains(target.textureId))) continue;
             try {
-                pos = recorder.getTargetPosAndRot(target, normal);
+                pos = recorder.getTargetPosAndRot(target, normal).add(offset);
                 currentTarget = target;
                 break;
             } catch (Exception ignored) {

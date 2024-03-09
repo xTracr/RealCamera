@@ -5,13 +5,16 @@ import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.util.math.Vec3d;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.*;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -19,7 +22,7 @@ import java.util.regex.Pattern;
 
 public class VertexRecorder implements VertexConsumerProvider {
     protected final List<BuiltRecord> records = new ArrayList<>();
-    private BuiltRecord currentRecord;
+    @Nullable
     private VertexRecord lastRecord;
 
     protected static Vec3d getPos(Vertex[] quad, float u, float v) {
@@ -38,19 +41,40 @@ public class VertexRecorder implements VertexConsumerProvider {
         return name;
     }
 
-    protected Vertex[] getQuad(float u, float v) {
-        if (currentRecord == null) return null;
+    protected static Vertex[] getQuad(BuiltRecord record, float u, float v) {
         final int resolution = 1000000;
-        return Arrays.stream(currentRecord.vertices).filter(quad -> {
+        return Arrays.stream(record.vertices).filter(quad -> {
             Polygon polygon = new Polygon();
             for (Vertex vertex : quad) polygon.addPoint((int) (resolution * vertex.u), (int) (resolution * vertex.v));
             return polygon.contains(resolution * u, resolution * v);
         }).findAny().orElse(null);
     }
 
+    protected BuiltRecord checkAndGetTarget(BindingTarget target, Matrix3f normal, Vector3f position) throws NullPointerException, ArithmeticException {
+        Vertex[] forwardQuad = null, upwardQuad = null, positionQuad = null;
+        BuiltRecord retRecord = null;
+        for (BuiltRecord record : records) {
+            if (!record.renderLayer.toString().contains(target.textureId)) continue;
+            forwardQuad = getQuad(record, target.forwardU, target.forwardV);
+            upwardQuad = getQuad(record, target.upwardU, target.upwardV);
+            positionQuad = getQuad(record, target.posU, target.posV);
+            if (forwardQuad != null && upwardQuad != null && positionQuad != null) {
+                retRecord = record;
+                break;
+            }
+        }
+        if (forwardQuad == null || upwardQuad == null || positionQuad == null) throw new NullPointerException();
+        Vec3d forward = forwardQuad[0].normal().normalize();
+        Vec3d left = upwardQuad[0].normal().crossProduct(forward).normalize();
+        Vec3d center = getPos(positionQuad, target.posU, target.posV);
+        if (!MathUtil.isFinite(forward) || !MathUtil.isFinite(left) || !MathUtil.isFinite(center)) throw new ArithmeticException();
+        normal.set(left.toVector3f(), forward.crossProduct(left).toVector3f(), forward.toVector3f());
+        position.set((float) target.offsetZ(), (float) target.offsetY(), (float) target.offsetX()).mul(normal).add(center.toVector3f());
+        return retRecord;
+    }
+
     public void clear() {
         records.clear();
-        currentRecord = null;
         lastRecord = null;
     }
 
@@ -59,19 +83,10 @@ public class VertexRecorder implements VertexConsumerProvider {
         lastRecord = null;
     }
 
-    public boolean setCurrent(Predicate<RenderLayer> predicate) {
-        currentRecord = records.stream().filter(record -> predicate.test(record.renderLayer)).max(Comparator.comparingInt(BuiltRecord::quadCount)).orElse(null);
-        return currentRecord != null;
-    }
-
     public Vec3d getTargetPosAndRot(BindingTarget target, Matrix3f normal) throws NullPointerException, ArithmeticException {
-        Vec3d forward = Objects.requireNonNull(getQuad(target.forwardU, target.forwardV))[0].normal().normalize();
-        Vec3d left = Objects.requireNonNull(getQuad(target.upwardU, target.upwardV))[0].normal().crossProduct(forward).normalize();
-        Vec3d center = getPos(Objects.requireNonNull(getQuad(target.posU, target.posV)), target.posU, target.posV);
-        if (!MathUtil.isFinite(forward) || !MathUtil.isFinite(left) || !MathUtil.isFinite(center)) throw new ArithmeticException();
-        normal.set(left.toVector3f(), forward.crossProduct(left).toVector3f(), forward.toVector3f());
-        Vector3f offset = new Vector3f((float) target.offsetZ(), (float) target.offsetY(), (float) target.offsetX()).mul(normal);
-        return center.add(offset.x(), offset.y(), offset.z());
+        Vector3f offset = new Vector3f();
+        checkAndGetTarget(target, normal, offset);
+        return new Vec3d(offset);
     }
 
     public void drawByAnother(VertexConsumerProvider anotherProvider) {
