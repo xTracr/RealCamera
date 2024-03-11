@@ -108,7 +108,7 @@ public class ModelViewScreen extends Screen {
         textureIdField = createTextField(widgetWidth * 2 + 4, textureIdField);
         textureIdField.setMaxLength(1024);
         scaleField = createFloatField(widgetWidth, 1.0f, scaleField).setMax(64.0f);
-        depthField = createFloatField(widgetWidth, 0.2f, depthField).setMax(4.0f);
+        depthField = createFloatField(widgetWidth, 0.2f, depthField).setMax(16.0f);
         if (category == 0) {
             adder.add(entityPitchSlider, 2);
             adder.add(entityYawSlider, 2);

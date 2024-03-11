@@ -11,11 +11,17 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 
 ## Features ##
 
-* Bind the camera to a specific part of the body (support most mod models in theory).
+* Bind the camera to a specific part of the body.
 * Customize the position and rotation of the camera.
 * Render player model in first-person perspective.
 * Use F6 to toggle the feature on or off and other hotkeys to adjust the camera.
 * Configure these features in the config screen (Cloth Config required).
+* Theoretically, most mod models are supported, but need to be configured manually:
+  * First, set the key binding for `Open Model View GUI`.
+  * Open the model view gui and left click with left Alt held to select the corresponding face of the model, scroll with left Alt held to switch between the different layers of the model.
+  * By clicking the `Selecting` button on the left, switch between the three to select the `Forward Vector`, `Upward Vector`, and `Target Plane`.
+  * Enter the `Preview` section, where you can see the relative relationship between the camera and the model and make certain adjustments (you can also adjust through key bindings).
+  * Enter a name and save (if needed, other settings can be changed).
 
 ### Dependencies ###
 
@@ -40,8 +46,5 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 * Compatible:
   * most camera mods
   * most player model mods
-  * Not Enough Animations[^1]
-
-[^1]: It is suggested to disable the `Animation Smoothing` option in the config of *Not Enough Animations*.
 
 ## [Change Log](changelog.md#English) ##

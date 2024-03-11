@@ -7,10 +7,9 @@
 ### Test Versions ###
 
 * 0.6:
-* 0.6.0-alpha.1:
+* 0.6.0-alpha:
   * Added model view screen
   * Allowed to select the model part you want to bind directly in the screen
-* 0.6.0-alpha.2:
   * Fixed #41, #46 and #48
   * Fix minor grammar errors (#44)
   * Optimized the GUI display and changed logic of selection button
@@ -18,7 +17,6 @@
   * Added pause button and show cube button
   * Allowed to disable rendering vertices based on depth relative to screen
   * Added 'AutoBind' feature
-* 0.6.0-alpha.3:
   * Changed to bind based on UV coordinates and improved GUI
   * Fixed #54
   * Improved Gui and Fixed a bug that would cause crash
@@ -29,9 +27,10 @@
   * Added 'preview' feature
   * Removed commands
   * Improved default configs and reformatted code
-* 0.6.0-alpha.4:
   * Removed deprecated code
   * Added 'priority' to binding targets
+  * Fixed #59
+  * Fixed #60
 * 0.6.0-beta:
   * Optimized some codes
 
@@ -126,10 +125,9 @@
 ### 测试版 ###
 
 * 0.6:
-* 0.6.0-alpha.1:
+* 0.6.0-alpha:
   * 添加了模型视图界面
   * 允许在界面中选择想要绑定的模型部位
-* 0.6.0-alpha.2:
   * 修复了#41、#46和#48
   * 修复了一些语法问题（#44）
   * 优化了GUI显示效果以及修改了选择按钮的逻辑
@@ -137,7 +135,6 @@
   * 添加了暂停按钮和显示立方体按钮
   * 允许根据相对于屏幕的距离禁用渲染部分顶点
   * 添加了'自动绑定'功能
-* 0.6.0-alpha.3:
   * 改为基于UV坐标绑定并且改进了GUI
   * 修复了#54
   * 改进了GUI，修复了一个会导致崩溃的问题
@@ -148,9 +145,10 @@
   * 添加了'预览'功能
   * 移除了命令
   * 改进了默认配置，重新格式化代码
-* 0.6.0-alpha.4:
   * 移除了已弃用的代码
   * 为绑定目标添加了'优先级'
+  * 修复了#59
+  * 修复了#60
 * 0.6.0-beta:
   * 优化了部分代码
 
