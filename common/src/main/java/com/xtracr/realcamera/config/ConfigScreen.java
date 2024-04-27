@@ -137,6 +137,11 @@ public class ConfigScreen {
                 .setTooltip(Text.translatable(TOOLTIP + "adjustOffset"))
                 .setSaveConsumer(b -> config.binding.adjustOffset = b)
                 .build());
+        binding.addEntry(entryBuilder.startStrList(Text.translatable(OPTION + "disableRenderItems"), config.binding.disableRenderItems)
+                .setDefaultValue(ModConfig.Binding.defaultDisableRenderItems)
+                .setTooltip(Text.translatable(TOOLTIP + "disableRenderItems"))
+                .setSaveConsumer(l -> config.binding.disableRenderItems = l)
+                .build());
 
         return builder.build();
     }

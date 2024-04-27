@@ -32,7 +32,7 @@ public abstract class MixinGameRenderer {
     @ModifyVariable(method = "updateTargetedEntity", at = @At("STORE"), ordinal = 0)
     private EntityHitResult realcamera$modifyEntityHitResult(EntityHitResult entityHitResult) {
         CrosshairUtil.capturedEntityHitResult = entityHitResult;
-        if (!ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
+        if (!ConfigFile.modConfig.dynamicCrosshair() && RealCameraCore.isActive()) {
             Vec3d startVec = RaycastUtil.getStartVec();
             Vec3d endVec = RaycastUtil.getEndVec();
             double sqDistance = (client.crosshairTarget != null ? client.crosshairTarget.getPos().squaredDistanceTo(startVec) : endVec.squaredDistanceTo(startVec));

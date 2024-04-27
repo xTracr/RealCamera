@@ -1,7 +1,6 @@
 package com.xtracr.realcamera.mixin;
 
 import com.xtracr.realcamera.RealCameraCore;
-import com.xtracr.realcamera.config.ConfigFile;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.item.HeldItemRenderer;
@@ -15,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinHeldItemRenderer {
     @Inject(method = "renderItem(FLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;Lnet/minecraft/client/network/ClientPlayerEntity;I)V", at = @At("HEAD"), cancellable = true)
     private void realcamera$cancelRender(float tickDelta, MatrixStack matrices, VertexConsumerProvider.Immediate vertexConsumers, ClientPlayerEntity player, int light, CallbackInfo cInfo) {
-        if (player instanceof ClientPlayerEntity && RealCameraCore.isActive() && ConfigFile.modConfig.isRendering()) {
+        if (player instanceof ClientPlayerEntity && RealCameraCore.isRendering()) {
             cInfo.cancel();
         }
     }

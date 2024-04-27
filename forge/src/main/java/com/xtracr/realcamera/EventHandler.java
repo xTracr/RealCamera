@@ -24,7 +24,7 @@ public class EventHandler {
     @SubscribeEvent
     public static void onRenderWorldStage(RenderLevelStageEvent event) {
         if (RenderLevelStageEvent.Stage.AFTER_SKY.equals(event.getStage())) {
-            if (ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
+            if (ConfigFile.modConfig.dynamicCrosshair() && RealCameraCore.isActive()) {
                 CrosshairUtil.update(MinecraftClient.getInstance(), event.getCamera(),
                         event.getPoseStack().peek().getPositionMatrix(), event.getProjectionMatrix());
             }

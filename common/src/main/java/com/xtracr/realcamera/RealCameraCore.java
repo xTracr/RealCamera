@@ -1,5 +1,6 @@
 package com.xtracr.realcamera;
 
+import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.BindingTarget;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
@@ -23,7 +24,7 @@ public class RealCameraCore {
     private static final VertexRecorder recorder = new VertexRecorder();
     public static BindingTarget currentTarget = new BindingTarget();
     private static Vec3d pos = Vec3d.ZERO, cameraPos = Vec3d.ZERO, offset = Vec3d.ZERO;
-    private static boolean active = false;
+    private static boolean active = false, rendering = false;
     private static float pitch, yaw, roll;
 
     public static float getPitch(float f) {
@@ -55,11 +56,17 @@ public class RealCameraCore {
     }
 
     public static void init(MinecraftClient client) {
-        active = config().isEnabled() && client.options.getPerspective().isFirstPerson() && client.gameRenderer.getCamera() != null && client.getCameraEntity() != null;
+        Entity entity = client.getCameraEntity();
+        active = config().enabled() && client.options.getPerspective().isFirstPerson() && client.gameRenderer.getCamera() != null && entity != null && !DisableHelper.check("disableMod", entity);
+        rendering = config().renderModel() && entity != null && !DisableHelper.check("disableRender", entity);
     }
 
     public static boolean isActive() {
         return active;
+    }
+
+    public static boolean isRendering() {
+        return active && rendering;
     }
 
     public static void updateModel(MinecraftClient client, float tickDelta) {

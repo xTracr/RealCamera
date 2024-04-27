@@ -19,7 +19,7 @@ public final class KeyBindings {
     static {
         createKeyBinding("modelViewGui", client -> client.setScreen(new ModelViewScreen()));
         createKeyBinding("togglePerspective", GLFW.GLFW_KEY_F6, client -> {
-            boolean enabled = config().isEnabled();
+            boolean enabled = config().enabled();
             ConfigFile.load();
             config().setEnabled(!enabled);
         });

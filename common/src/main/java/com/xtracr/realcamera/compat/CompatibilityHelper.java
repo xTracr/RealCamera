@@ -1,13 +1,12 @@
 package com.xtracr.realcamera.compat;
 
 import com.xtracr.realcamera.RealCameraCore;
-import com.xtracr.realcamera.config.ConfigFile;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.function.Supplier;
 
-public class CompatibilityHelper {
+public final class CompatibilityHelper {
     private static Class<?> NEA_NEAnimationsLoader = null;
     private static Method NEA_playerTransformer_setDeltaTick = null;
 
@@ -17,7 +16,7 @@ public class CompatibilityHelper {
             Class<?> BetterCombat_CompatibilityFlags = Class.forName("net.bettercombat.compatibility.CompatibilityFlags");
             Field firstPersonRenderField = BetterCombat_CompatibilityFlags.getField("firstPersonRender");
             Supplier<Boolean> firstPersonRender = (Supplier<Boolean>) firstPersonRenderField.get(null);
-            Supplier<Boolean> newFirstPersonRender = () -> firstPersonRender.get() && !(RealCameraCore.isActive() && ConfigFile.modConfig.isRendering());
+            Supplier<Boolean> newFirstPersonRender = () -> firstPersonRender.get() && !RealCameraCore.isRendering();
             firstPersonRenderField.set(null, newFirstPersonRender);
         } catch (Exception ignored) {
         }

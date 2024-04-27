@@ -35,7 +35,7 @@ public class ModConfig {
         binding.clamp();
     }
 
-    public boolean isEnabled() {
+    public boolean enabled() {
         return enabled;
     }
 
@@ -51,11 +51,11 @@ public class ModConfig {
         isClassic = value;
     }
 
-    public boolean isCrosshairDynamic() {
+    public boolean dynamicCrosshair() {
         return dynamicCrosshair;
     }
 
-    public boolean isRendering() {
+    public boolean renderModel() {
         return renderModel;
     }
 
@@ -155,6 +155,10 @@ public class ModConfig {
         return binding.targetList;
     }
 
+    public List<String> getDisableRenderItems() {
+        return binding.disableRenderItems;
+    }
+
     public void putTarget(BindingTarget target) {
         if (target.isEmpty()) return;
         IntStream.range(0, binding.targetList.size())
@@ -203,10 +207,13 @@ public class ModConfig {
     }
 
     public static class Binding {
+        protected static final List<String> defaultDisableRenderItems = List.of("minecraft:filled_map");
         public boolean adjustOffset = true;
+        public List<String> disableRenderItems = new ArrayList<>(defaultDisableRenderItems);
         public List<BindingTarget> targetList = new ArrayList<>(BindingTarget.defaultTargets);
 
         private void clamp() {
+            if (disableRenderItems == null) disableRenderItems = new ArrayList<>();
             if (targetList == null || targetList.isEmpty()) targetList = new ArrayList<>(BindingTarget.defaultTargets);
         }
     }

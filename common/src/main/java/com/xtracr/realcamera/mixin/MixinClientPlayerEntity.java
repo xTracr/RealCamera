@@ -23,12 +23,12 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
 
     @Inject(method = "getLeashPos", at = @At("HEAD"), cancellable = true)
     private void realcamera$onGetLeashPosHEAD(float delta, CallbackInfoReturnable<Vec3d> cInfo) {
-        if (ConfigFile.modConfig.isRendering() && RealCameraCore.isActive()) cInfo.setReturnValue(super.getLeashPos(delta));
+        if (RealCameraCore.isRendering()) cInfo.setReturnValue(super.getLeashPos(delta));
     }
 
     @Override
     public HitResult raycast(double maxDistance, float tickDelta, boolean includeFluids) {
-        if (!ConfigFile.modConfig.isCrosshairDynamic() && RealCameraCore.isActive()) {
+        if (!ConfigFile.modConfig.dynamicCrosshair() && RealCameraCore.isActive()) {
             RaycastUtil.update(this, maxDistance * maxDistance, tickDelta);
             return getWorld().raycast(RaycastUtil.getRaycastContext(RaycastContext.ShapeType.OUTLINE,
                     includeFluids ? RaycastContext.FluidHandling.ANY : RaycastContext.FluidHandling.NONE, this));
