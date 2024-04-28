@@ -105,8 +105,10 @@ public class ModelViewScreen extends Screen {
         upwardVField = createFloatField(widgetWidth, 0, upwardVField);
         posUField = createFloatField(widgetWidth, 0, posUField);
         posVField = createFloatField(widgetWidth, 0, posVField);
-        textureIdField = createTextField(widgetWidth * 2 + 4, textureIdField);
+        String textureId = textureIdField != null ? textureIdField.getText() : "";
+        textureIdField = createTextField(widgetWidth * 2 + 4, null);
         textureIdField.setMaxLength(1024);
+        textureIdField.setText(textureId);
         scaleField = createFloatField(widgetWidth, 1.0f, scaleField).setMax(64.0f);
         depthField = createFloatField(widgetWidth, 0.2f, depthField).setMax(16.0f);
         if (category == 0) {

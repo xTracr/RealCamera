@@ -15,17 +15,17 @@ public final class DisableHelper {
     private static final Map<String, Predicate<LivingEntity>> predicates = new HashMap<>();
 
     public static void initialize() {
-        registerOr("disableMod", LivingEntity::isSleeping);
-        registerOr("disableRender", entity -> entity instanceof PlayerEntity player && player.isUsingSpyglass());
-        registerOr("disableRender", entity -> config().getDisableRenderItems().contains(Registries.ITEM.getId(entity.getMainHandStack().getItem()).toString()));
-        registerOr("disableRender", entity -> config().getDisableRenderItems().contains(Registries.ITEM.getId(entity.getOffHandStack().getItem()).toString()));
+        registerOr("mainFeature", LivingEntity::isSleeping);
+        registerOr("renderModel", entity -> entity instanceof PlayerEntity player && player.isUsingSpyglass());
+        registerOr("renderModel", entity -> config().getDisableRenderItems().contains(Registries.ITEM.getId(entity.getMainHandStack().getItem()).toString()));
+        registerOr("renderModel", entity -> config().getDisableRenderItems().contains(Registries.ITEM.getId(entity.getOffHandStack().getItem()).toString()));
     }
 
     public static void registerOr(String type, Predicate<LivingEntity> predicate) {
-        predicates.compute(type, (key, oldPredicate) -> oldPredicate != null ? predicate.or(oldPredicate) : predicate);
+        predicates.merge(type, predicate, Predicate::or);
     }
 
-    public static boolean check(String type, Entity cameraEntity) {
+    public static boolean isDisabled(String type, Entity cameraEntity) {
         Predicate<LivingEntity> predicate = predicates.get(type);
         if (config().isClassic() || predicate == null) return false;
         return cameraEntity instanceof LivingEntity entity && predicate.test(entity);

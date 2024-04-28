@@ -12,6 +12,7 @@ import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
@@ -24,7 +25,7 @@ public class RealCameraCore {
     private static final VertexRecorder recorder = new VertexRecorder();
     public static BindingTarget currentTarget = new BindingTarget();
     private static Vec3d pos = Vec3d.ZERO, cameraPos = Vec3d.ZERO, offset = Vec3d.ZERO;
-    private static boolean active = false, rendering = false;
+    private static boolean active = false, rendering = false, readyToSendMessage = true;
     private static float pitch, yaw, roll;
 
     public static float getPitch(float f) {
@@ -57,8 +58,12 @@ public class RealCameraCore {
 
     public static void init(MinecraftClient client) {
         Entity entity = client.getCameraEntity();
-        active = config().enabled() && client.options.getPerspective().isFirstPerson() && client.gameRenderer.getCamera() != null && entity != null && !DisableHelper.check("disableMod", entity);
-        rendering = config().renderModel() && entity != null && !DisableHelper.check("disableRender", entity);
+        active = config().enabled() && client.options.getPerspective().isFirstPerson() && client.gameRenderer.getCamera() != null && entity != null && !DisableHelper.isDisabled("mainFeature", entity);
+        rendering = active && config().renderModel() && !DisableHelper.isDisabled("renderModel", entity);
+    }
+
+    public static void readyToSendMessage() {
+        readyToSendMessage = config().enabled();
     }
 
     public static boolean isActive() {
@@ -66,7 +71,7 @@ public class RealCameraCore {
     }
 
     public static boolean isRendering() {
-        return active && rendering;
+        return rendering;
     }
 
     public static void updateModel(MinecraftClient client, float tickDelta) {
@@ -117,7 +122,11 @@ public class RealCameraCore {
             } catch (Exception ignored) {
             }
         }
-        if (currentTarget.isEmpty()) active = false;
+        if (currentTarget.isEmpty()) {
+            Entity player = MinecraftClient.getInstance().player;
+            if (readyToSendMessage && player != null) player.sendMessage(Text.translatable("message." + RealCamera.FULL_ID + ".bindingFailed"));
+            active = readyToSendMessage = false;
+        } else readyToSendMessage = true;
         normal.rotateLocal((float) Math.toRadians(currentTarget.yaw()), normal.m10, normal.m11, normal.m12);
         normal.rotateLocal((float) Math.toRadians(currentTarget.pitch()), normal.m00, normal.m01, normal.m02);
         normal.rotateLocal((float) Math.toRadians(currentTarget.roll()), normal.m20, normal.m21, normal.m22);

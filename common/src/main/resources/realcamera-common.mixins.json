@@ -13,6 +13,7 @@
     "MixinHeldItemRenderer",
     "MixinInGameHud",
     "MixinItem",
+    "MixinStuckObjectsFeatureRenderer",
     "MixinWorldRenderer"
   ],
   "server": [
