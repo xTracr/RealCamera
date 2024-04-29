@@ -1,7 +1,6 @@
 package com.xtracr.realcamera;
 
 import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.gui.ModelViewScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
@@ -19,23 +18,19 @@ public final class KeyBindings {
     static {
         createKeyBinding("modelViewGui", client -> client.setScreen(new ModelViewScreen()));
         createKeyBinding("togglePerspective", GLFW.GLFW_KEY_F6, client -> {
-            boolean enabled = config().enabled();
+            boolean enabled = ConfigFile.config().enabled();
             ConfigFile.load();
-            config().setEnabled(!enabled);
+            ConfigFile.config().setEnabled(!enabled);
             RealCameraCore.readyToSendMessage();
         });
-        createKeyBinding("toggleAdjustMode", client -> config().cycleAdjustMode());
-        createKeyBinding("toggleCameraMode", client -> config().setClassic(!config().isClassic()));
-        createKeyBinding("adjustFRONT", client -> config().adjustOffsetX(1));
-        createKeyBinding("adjustBACK", client -> config().adjustOffsetX(-1));
-        createKeyBinding("adjustUP", client -> config().adjustOffsetY(1));
-        createKeyBinding("adjustDOWN", client -> config().adjustOffsetY(-1));
-        createKeyBinding("adjustLEFT", client -> config().adjustOffsetZ(1));
-        createKeyBinding("adjustRIGHT", client -> config().adjustOffsetZ(-1));
-    }
-
-    private static ModConfig config() {
-        return ConfigFile.modConfig;
+        createKeyBinding("toggleAdjustMode", client -> ConfigFile.config().cycleAdjustMode());
+        createKeyBinding("toggleCameraMode", client -> ConfigFile.config().setClassic(!ConfigFile.config().isClassic()));
+        createKeyBinding("adjustFRONT", client -> ConfigFile.config().adjustOffsetX(1));
+        createKeyBinding("adjustBACK", client -> ConfigFile.config().adjustOffsetX(-1));
+        createKeyBinding("adjustUP", client -> ConfigFile.config().adjustOffsetY(1));
+        createKeyBinding("adjustDOWN", client -> ConfigFile.config().adjustOffsetY(-1));
+        createKeyBinding("adjustLEFT", client -> ConfigFile.config().adjustOffsetZ(1));
+        createKeyBinding("adjustRIGHT", client -> ConfigFile.config().adjustOffsetZ(-1));
     }
 
     private static void createKeyBinding(String id, Consumer<MinecraftClient> whenPressed) {

@@ -71,5 +71,6 @@
   "screen.tooltip.xtracr_realcamera.modelView_scale": "Scale, which controls the size of the offsets",
   "screen.tooltip.xtracr_realcamera.modelView_depth": "Planes where all vertex-to-screen distances are less than this value will not be rendered",
   "screen.tooltip.xtracr_realcamera.modelView_priority": "Priority when binding, the larger the value the higher the priority, and the higher the sorting on the right side",
-  "screen.tooltip.xtracr_realcamera.modelView_targetName": "Name of the config"
+  "screen.tooltip.xtracr_realcamera.modelView_targetName": "Name of the config",
+  "screen.tooltip.xtracr_realcamera.modelView_delete": "Delete"
 }

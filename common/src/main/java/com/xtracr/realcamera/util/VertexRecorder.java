@@ -47,30 +47,7 @@ public class VertexRecorder implements VertexConsumerProvider {
             Polygon polygon = new Polygon();
             for (Vertex vertex : quad) polygon.addPoint((int) (resolution * vertex.u), (int) (resolution * vertex.v));
             return polygon.contains(resolution * u, resolution * v);
-        }).findAny().orElse(null);
-    }
-
-    protected BuiltRecord checkAndGetTarget(BindingTarget target, Matrix3f normal, Vector3f position) throws NullPointerException, ArithmeticException {
-        Vertex[] forwardQuad = null, upwardQuad = null, positionQuad = null;
-        BuiltRecord retRecord = null;
-        for (BuiltRecord record : records) {
-            if (!record.renderLayer.toString().contains(target.textureId)) continue;
-            forwardQuad = getQuad(record, target.forwardU, target.forwardV);
-            upwardQuad = getQuad(record, target.upwardU, target.upwardV);
-            positionQuad = getQuad(record, target.posU, target.posV);
-            if (forwardQuad != null && upwardQuad != null && positionQuad != null) {
-                retRecord = record;
-                break;
-            }
-        }
-        if (forwardQuad == null || upwardQuad == null || positionQuad == null) throw new NullPointerException();
-        Vec3d forward = forwardQuad[0].normal().normalize();
-        Vec3d left = upwardQuad[0].normal().crossProduct(forward).normalize();
-        Vec3d center = getPos(positionQuad, target.posU, target.posV);
-        if (!MathUtil.isFinite(forward) || !MathUtil.isFinite(left) || !MathUtil.isFinite(center)) throw new ArithmeticException();
-        normal.set(left.toVector3f(), forward.crossProduct(left).toVector3f(), forward.toVector3f());
-        position.set((float) target.offsetZ(), (float) target.offsetY(), (float) target.offsetX()).mul(normal).add(center.toVector3f());
-        return retRecord;
+        }).findAny().orElse(new Vertex[]{new Vertex(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)});
     }
 
     public void clear() {
@@ -83,10 +60,19 @@ public class VertexRecorder implements VertexConsumerProvider {
         lastRecord = null;
     }
 
-    public Vec3d getTargetPosAndRot(BindingTarget target, Matrix3f normal) throws NullPointerException, ArithmeticException {
-        Vector3f offset = new Vector3f();
-        checkAndGetTarget(target, normal, offset);
-        return new Vec3d(offset);
+    public BuiltRecord getTargetPosAndRot(BindingTarget target, Matrix3f normal, Vector3f position) {
+        return records.stream().map(record -> {
+            if (!record.renderLayer.toString().contains(target.textureId)) return null;
+            Vec3d forward = getQuad(record, target.forwardU, target.forwardV)[0].normal().normalize();
+            Vec3d left = getQuad(record, target.upwardU, target.upwardV)[0].normal().crossProduct(forward).normalize();
+            Vertex[] positionQuad = getQuad(record, target.posU, target.posV);
+            if (positionQuad[0].normal().equals(Vec3d.ZERO) && forward.equals(Vec3d.ZERO) && left.equals(Vec3d.ZERO)) return null;
+            normal.set(left.toVector3f(), forward.crossProduct(left).toVector3f(), forward.toVector3f());
+            Vec3d center = getPos(positionQuad, target.posU, target.posV);
+            if (!Double.isFinite(center.lengthSquared())) return null;
+            position.set((float) target.offsetZ(), (float) target.offsetY(), (float) target.offsetX()).mul(normal).add(center.toVector3f());
+            return record;
+        }).filter(Objects::nonNull).findFirst().orElse(null);
     }
 
     public void drawByAnother(VertexConsumerProvider anotherProvider) {
@@ -205,7 +191,7 @@ public class VertexRecorder implements VertexConsumerProvider {
         }
     }
 
-    protected record BuiltRecord(RenderLayer renderLayer, Vertex[][] vertices, int quadCount, int additionalVertexCount) {}
+    public record BuiltRecord(RenderLayer renderLayer, Vertex[][] vertices, int quadCount, int additionalVertexCount) {}
 
     public record Vertex(double x, double y, double z, int argb, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) {
         public Vec3d pos() {

@@ -31,7 +31,7 @@ import java.util.Map;
 public class ModelViewScreen extends Screen {
     private static final String KEY_WIDGET = "screen.widget." + RealCamera.FULL_ID + ".modelView_";
     private static final String KEY_TOOLTIP = "screen.tooltip." + RealCamera.FULL_ID + ".modelView_";
-    protected int xSize = 420, ySize = 220, widgetWidth = (xSize - ySize) / 4 - 8, widgetHeight = 18;
+    protected int xSize = 406, ySize = 206, widgetWidth = (xSize - ySize) / 4 - 8, widgetHeight = 18;
     protected int x, y;
     private boolean initialized;
     private int entitySize = 80, layers = 0, category = 0, page = 0;
@@ -146,7 +146,7 @@ public class ModelViewScreen extends Screen {
             adder.add(depthField, 1, smallPositioner).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "depth")));
         }
         adder.add(createButton(Text.translatable(KEY_WIDGET + "save"), widgetWidth, button -> {
-            ConfigFile.modConfig.putTarget(generateBindingTarget());
+            ConfigFile.config().putTarget(generateBindingTarget());
             ConfigFile.save();
             initWidgets(category, page);
         }));
@@ -161,8 +161,8 @@ public class ModelViewScreen extends Screen {
     }
 
     private void initRightWidgets(final int page) {
-        List<BindingTarget> targetList = ConfigFile.modConfig.getTargetList();
-        final int widgetsPerPage = 6, pages = (targetList.size() - 1) / widgetsPerPage + 1;
+        List<BindingTarget> targetList = ConfigFile.config().getTargetList();
+        final int widgetsPerPage = 9, pages = (targetList.size() - 1) / widgetsPerPage + 1;
         GridWidget gridWidget = new GridWidget();
         gridWidget.getMainPositioner().margin(4, 2, 0, 0);
         Positioner smallPositioner = gridWidget.copyPositioner().margin(5, 3, 1, 1);
@@ -178,7 +178,7 @@ public class ModelViewScreen extends Screen {
                 targetList.remove(target);
                 ConfigFile.save();
                 initWidgets(category, page * widgetsPerPage >= targetList.size() && !targetList.isEmpty() ? page - 1 : page);
-            }), 1, smallPositioner);
+            }), 1, smallPositioner).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "delete")));
         }
         gridWidget.refreshPositions();
         SimplePositioningWidget.setPos(gridWidget, x + (xSize + ySize) / 2 + 4, y + 22, x + xSize, y + ySize, 0, 0);

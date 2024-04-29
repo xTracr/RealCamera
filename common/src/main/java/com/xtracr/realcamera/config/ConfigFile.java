@@ -12,15 +12,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class ConfigFile {
-    public static final ModConfig modConfig = new ModConfig();
+    private static final ModConfig modConfig = new ModConfig();
     private static final String FILE_NAME = RealCamera.MODID + ".json";
-    private static final Path PATH;
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final Path PATH;
 
     static {
         final File configDir = new File(MinecraftClient.getInstance().runDirectory, "config");
         if (!configDir.exists()) configDir.mkdirs();
         PATH = configDir.toPath().resolve(FILE_NAME);
+    }
+
+    public static ModConfig config() {
+        return modConfig;
     }
 
     public static void load() {

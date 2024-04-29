@@ -28,7 +28,7 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
 
     @Override
     public HitResult raycast(double maxDistance, float tickDelta, boolean includeFluids) {
-        if (!ConfigFile.modConfig.dynamicCrosshair() && RealCameraCore.isActive()) {
+        if (!ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
             RaycastUtil.update(this, maxDistance * maxDistance, tickDelta);
             return getWorld().raycast(RaycastUtil.getRaycastContext(RaycastContext.ShapeType.OUTLINE,
                     includeFluids ? RaycastContext.FluidHandling.ANY : RaycastContext.FluidHandling.NONE, this));

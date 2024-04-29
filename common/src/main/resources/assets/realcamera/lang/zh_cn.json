@@ -22,7 +22,7 @@
   "config.tooltip.xtracr_realcamera.classicOffset": "摄像头相对旋转中心的偏移值",
   "config.tooltip.xtracr_realcamera.classicOffset_n": "注: 玩家的的前方、上方和左方分别为X、Y和Z轴",
   "config.tooltip.xtracr_realcamera.centerOffset": "旋转中心相对头部的偏移值",
-  "config.tooltip.xtracr_realcamera.cameraRotation": "额外的摄像头旋转，以度数为单位",
+  "config.tooltip.xtracr_realcamera.cameraRotation": "额外的摄像头旋转角度",
   "config.tooltip.xtracr_realcamera.cameraRotation_n": "注: 俯仰、偏航和翻滚分别是以左方、上方和前方为轴的旋转",
   "config.option.xtracr_realcamera.enabled": "开启功能",
   "config.option.xtracr_realcamera.isClassic": "经典模式",
@@ -71,5 +71,6 @@
   "screen.tooltip.xtracr_realcamera.modelView_scale": "缩放比例，控制偏移量的大小",
   "screen.tooltip.xtracr_realcamera.modelView_depth": "全部顶点到屏幕距离均小于该值的面不会被渲染",
   "screen.tooltip.xtracr_realcamera.modelView_priority": "绑定时的优先级，值越大优先级越高，并且在右侧排序越靠前",
-  "screen.tooltip.xtracr_realcamera.modelView_targetName": "配置的名称"
+  "screen.tooltip.xtracr_realcamera.modelView_targetName": "配置的名称",
+  "screen.tooltip.xtracr_realcamera.modelView_delete": "删除"
 }

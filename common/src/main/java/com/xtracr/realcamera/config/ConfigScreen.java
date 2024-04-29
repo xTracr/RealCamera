@@ -16,7 +16,7 @@ public class ConfigScreen {
 
     public static Screen create(Screen parent) {
         ConfigFile.load();
-        final ModConfig config = ConfigFile.modConfig;
+        final ModConfig config = ConfigFile.config();
         final ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
                 .transparentBackground()

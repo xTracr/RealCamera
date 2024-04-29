@@ -3,7 +3,6 @@ package com.xtracr.realcamera;
 import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.BindingTarget;
 import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.util.MathUtil;
 import com.xtracr.realcamera.util.VertexRecorder;
 import net.minecraft.client.MinecraftClient;
@@ -18,6 +17,7 @@ import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 import java.util.function.BiFunction;
 
@@ -39,7 +39,7 @@ public class RealCameraCore {
     }
 
     public static float getRoll(float f) {
-        if (config().isClassic()) return f + config().getClassicRoll();
+        if (ConfigFile.config().isClassic()) return f + ConfigFile.config().getClassicRoll();
         if (currentTarget.bindRotation) return roll;
         return f;
     }
@@ -58,12 +58,12 @@ public class RealCameraCore {
 
     public static void init(MinecraftClient client) {
         Entity entity = client.getCameraEntity();
-        active = config().enabled() && client.options.getPerspective().isFirstPerson() && client.gameRenderer.getCamera() != null && entity != null && !DisableHelper.isDisabled("mainFeature", entity);
-        rendering = active && config().renderModel() && !DisableHelper.isDisabled("renderModel", entity);
+        active = ConfigFile.config().enabled() && client.options.getPerspective().isFirstPerson() && client.gameRenderer.getCamera() != null && entity != null && !DisableHelper.isDisabled("mainFeature", entity);
+        rendering = active && ConfigFile.config().renderModel() && !DisableHelper.isDisabled("renderModel", entity);
     }
 
     public static void readyToSendMessage() {
-        readyToSendMessage = config().enabled();
+        readyToSendMessage = ConfigFile.config().enabled();
     }
 
     public static boolean isActive() {
@@ -71,7 +71,7 @@ public class RealCameraCore {
     }
 
     public static boolean isRendering() {
-        return rendering;
+        return active && rendering;
     }
 
     public static void updateModel(MinecraftClient client, float tickDelta) {
@@ -114,13 +114,12 @@ public class RealCameraCore {
     public static void computeCamera() {
         currentTarget = new BindingTarget();
         Matrix3f normal = new Matrix3f();
-        for (BindingTarget target : config().getTargetList()) {
-            try {
-                pos = recorder.getTargetPosAndRot(target, normal).add(offset);
-                currentTarget = target;
-                break;
-            } catch (Exception ignored) {
-            }
+        for (BindingTarget target : ConfigFile.config().getTargetList()) {
+            Vector3f position  = new Vector3f();
+            if (recorder.getTargetPosAndRot(target, normal, position) == null || !(Math.abs(normal.determinant() - 1) <= 0.01f)) continue;
+            pos = new Vec3d(position).add(offset);
+            currentTarget = target;
+            break;
         }
         if (currentTarget.isEmpty()) {
             Entity player = MinecraftClient.getInstance().player;
@@ -134,9 +133,5 @@ public class RealCameraCore {
         pitch = (float) eulerAngle.getX();
         yaw = (float) -eulerAngle.getY();
         roll = (float) eulerAngle.getZ();
-    }
-
-    private static ModConfig config() {
-        return ConfigFile.modConfig;
     }
 }

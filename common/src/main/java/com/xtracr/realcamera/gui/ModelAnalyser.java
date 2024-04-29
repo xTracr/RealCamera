@@ -55,7 +55,6 @@ public class ModelAnalyser extends VertexRecorder {
 
     public void initialize(int entitySize, int mouseX, int mouseY, int layers) {
         buildLastRecord();
-
         List<Triple> sortByDepth = new ArrayList<>();
         records.forEach(record -> {
             Vertex[][] vertices = record.vertices();
@@ -77,15 +76,11 @@ public class ModelAnalyser extends VertexRecorder {
             focusedRecord = result.record;
             focusedIndex = result.index;
         }
-
         target.scale *= entitySize;
-        try {
-            currentRecord = checkAndGetTarget(target, normal, position);
-            normal.rotateLocal((float) Math.toRadians(target.yaw()), normal.m10, normal.m11, normal.m12);
-            normal.rotateLocal((float) Math.toRadians(target.pitch()), normal.m00, normal.m01, normal.m02);
-            normal.rotateLocal((float) Math.toRadians(target.roll()), normal.m20, normal.m21, normal.m22);
-        } catch (Exception ignored) {
-        }
+        currentRecord = getTargetPosAndRot(target, normal, position);
+        normal.rotateLocal((float) Math.toRadians(target.yaw()), normal.m10, normal.m11, normal.m12);
+        normal.rotateLocal((float) Math.toRadians(target.pitch()), normal.m00, normal.m01, normal.m02);
+        normal.rotateLocal((float) Math.toRadians(target.roll()), normal.m20, normal.m21, normal.m22);
     }
 
     public String focusedTextureId() {
@@ -164,5 +159,5 @@ public class ModelAnalyser extends VertexRecorder {
         drawQuad(context, reversed, argb1, 1100);
     }
 
-    record Triple(double depth, BuiltRecord record, int index) { }
+    record Triple(double depth, BuiltRecord record, int index) {}
 }

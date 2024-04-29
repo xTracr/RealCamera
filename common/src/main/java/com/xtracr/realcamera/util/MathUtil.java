@@ -10,10 +10,6 @@ public class MathUtil {
         return Math.round(d * Math.pow(10, digits)) / Math.pow(10, digits);
     }
 
-    public static boolean isFinite(Vec3d vec3d) {
-        return Double.isFinite(vec3d.getX()) && Double.isFinite(vec3d.getY()) && Double.isFinite(vec3d.getZ());
-    }
-
     public static Vec3d getEulerAngleYXZ(Matrix3f normal) {
         if (normal.m21 <= -1.0) return new Vec3d(Math.PI / 2, Math.atan2(normal.m10, normal.m00), 0.0);
         else if (normal.m21 >= 1.0) return new Vec3d(-Math.PI / 2, -Math.atan2(normal.m10, normal.m00), 0.0);

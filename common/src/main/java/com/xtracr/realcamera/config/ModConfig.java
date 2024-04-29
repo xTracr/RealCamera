@@ -64,43 +64,6 @@ public class ModConfig {
         else binding.adjustOffset = !binding.adjustOffset;
     }
 
-    // classic
-    public double getClassicX() {
-        return classic.cameraX * classic.scale;
-    }
-
-    public double getClassicY() {
-        return classic.cameraY * classic.scale;
-    }
-
-    public double getClassicZ() {
-        return classic.cameraZ * classic.scale;
-    }
-
-    public double getCenterX() {
-        return classic.centerX * classic.scale;
-    }
-
-    public double getCenterY() {
-        return classic.centerY * classic.scale;
-    }
-
-    public double getCenterZ() {
-        return classic.centerZ * classic.scale;
-    }
-
-    public float getClassicPitch() {
-        return classic.pitch;
-    }
-
-    public float getClassicYaw() {
-        return classic.yaw;
-    }
-
-    public float getClassicRoll() {
-        return classic.roll;
-    }
-
     public void adjustOffsetX(int count) {
         if (isClassic) {
             switch (classic.adjustMode) {
@@ -147,6 +110,43 @@ public class ModConfig {
             if (binding.adjustOffset) target.setOffsetZ(target.offsetZ + count * adjustStep);
             else target.setPitch(target.pitch + count * 100 * (float) adjustStep);
         }
+    }
+
+    // classic
+    public double getClassicX() {
+        return classic.cameraX * classic.scale;
+    }
+
+    public double getClassicY() {
+        return classic.cameraY * classic.scale;
+    }
+
+    public double getClassicZ() {
+        return classic.cameraZ * classic.scale;
+    }
+
+    public double getCenterX() {
+        return classic.centerX * classic.scale;
+    }
+
+    public double getCenterY() {
+        return classic.centerY * classic.scale;
+    }
+
+    public double getCenterZ() {
+        return classic.centerZ * classic.scale;
+    }
+
+    public float getClassicPitch() {
+        return classic.pitch;
+    }
+
+    public float getClassicYaw() {
+        return classic.yaw;
+    }
+
+    public float getClassicRoll() {
+        return classic.roll;
     }
 
     // binding
