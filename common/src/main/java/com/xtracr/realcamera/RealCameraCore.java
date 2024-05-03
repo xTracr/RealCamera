@@ -7,7 +7,6 @@ import com.xtracr.realcamera.util.LocUtil;
 import com.xtracr.realcamera.util.MathUtil;
 import com.xtracr.realcamera.util.VertexRecorder;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.util.math.MatrixStack;
@@ -18,8 +17,6 @@ import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-
-import java.util.function.BiFunction;
 
 public class RealCameraCore {
     private static final VertexRecorder recorder = new VertexRecorder();
@@ -100,15 +97,16 @@ public class RealCameraCore {
                 .rotate(RotationAxis.POSITIVE_Y.rotationDegrees(yaw + 180.0f))
                 .transpose().invert();
         Matrix4f positionMatrix = new Matrix4f(normalMatrix).translate(offset.subtract(pos).toVector3f());
-        BiFunction<RenderLayer, VertexRecorder.Vertex[], VertexRecorder.Vertex[]> function = (renderLayer, vertices) -> {
-            double depth = currentTarget.disablingDepth;
-            int count = vertices.length;
-            VertexRecorder.Vertex[] quad = new VertexRecorder.Vertex[count];
-            for (int i = 0; i < count; i++) quad[i] = vertices[i].transform(positionMatrix, normalMatrix);
-            for (VertexRecorder.Vertex vertex : quad) if (vertex.z() < -depth) return quad;
-            return null;
-        };
-        recorder.drawByAnother(vertexConsumers, renderLayer -> true, function);
+        recorder.drawByAnother(vertexConsumers,
+                renderLayer -> currentTarget.disabledTextureIds.stream().noneMatch(renderLayer.toString()::contains),
+                (renderLayer, vertices) -> {
+                    double depth = currentTarget.disablingDepth;
+                    int count = vertices.length;
+                    VertexRecorder.Vertex[] quad = new VertexRecorder.Vertex[count];
+                    for (int i = 0; i < count; i++) quad[i] = vertices[i].transform(positionMatrix, normalMatrix);
+                    for (VertexRecorder.Vertex vertex : quad) if (vertex.z() < -depth) return quad;
+                    return null;
+                });
     }
 
     public static void computeCamera() {

@@ -17,6 +17,8 @@ import java.util.Comparator;
 import java.util.List;
 
 public class ModelAnalyser extends VertexRecorder {
+    private static final int quadArgb = 0x6F3333CC, forwardArgb = 0xFF00CC00, upwardArgb = 0xFFCC0000, leftArgb = 0xFF0000CC;
+    private static final int focusedArgb = 0x7FFFFFFF, sideArgb = 0x3FFFFFFF;
     private final BindingTarget target;
     private final Matrix3f normal = new Matrix3f();
     private final Vector3f position = new Vector3f();
@@ -99,9 +101,12 @@ public class ModelAnalyser extends VertexRecorder {
         return new Vec2f(u / quad.length, v / quad.length);
     }
 
-    public void previewEffect(DrawContext context, int entitySize, int forwardArgb, int upwardArgb, int leftArgb) {
-        drawByAnother(context.getVertexConsumers());
+    public void previewEffect(DrawContext context, int entitySize, boolean canSelect, boolean hideDisabled, String disabledTextureId) {
+        drawByAnother(context.getVertexConsumers(),
+                renderLayer -> !canSelect || hideDisabled || disabledTextureId.isEmpty() || !renderLayer.toString().contains(disabledTextureId),
+                (renderLayer, vertices) -> vertices);
         context.draw();
+        if (canSelect) drawFocused(context);
         if (normal.m00() == 0 && normal.m11() == 0 && normal.m22() == 0) return;
         Vec3d start = new Vec3d(position);
         drawNormal(context, start, new Vec3d(normal.m20(), normal.m21(), -normal.m22()), entitySize / 3, forwardArgb);
@@ -109,10 +114,11 @@ public class ModelAnalyser extends VertexRecorder {
         drawNormal(context, start, new Vec3d(normal.m00(), normal.m01(), -normal.m02()), entitySize / 6, leftArgb);
     }
 
-    public void drawModelWithNormals(DrawContext context, int entitySize, int quadArgb, int forwardArgb, int upwardArgb, int faceArgb, int sideArgb) {
-        drawByAnother(context.getVertexConsumers());
+    public void drawModelWithNormals(DrawContext context, int entitySize) {
+        drawByAnother(context.getVertexConsumers(), renderLayer -> true, (renderLayer, vertices) -> vertices);
         context.draw();
-        drawPolyhedron(context, faceArgb, sideArgb);
+        drawPolyhedron(context);
+        drawFocused(context);
         if (currentRecord == null) return;
         Vertex[] quad;
         if ((quad = getQuad(currentRecord, target.posU, target.posV)) != null)
@@ -123,11 +129,20 @@ public class ModelAnalyser extends VertexRecorder {
             drawNormal(context, getPos(quad, target.upwardU, target.upwardV), quad[0].normal(), entitySize / 2, upwardArgb);
     }
 
-    private void drawPolyhedron(DrawContext context, int argb1, int argb2) {
+    private void drawFocused(DrawContext context) {
         if (focusedIndex == -1 || focusedRecord == null) return;
-        Vertex[] highlight = focusedRecord.vertices()[focusedIndex];
+        Vertex[] focused = focusedRecord.vertices()[focusedIndex];
+        drawQuad(context, focused, focusedArgb, 1100);
+        int size = focused.length;
+        Vertex[] reversed = new Vertex[size];
+        for (int i = 0; i < size; i++) reversed[i] = focused[size - 1 - i];
+        drawQuad(context, reversed, focusedArgb, 1100);
+    }
+
+    private void drawPolyhedron(DrawContext context) {
+        if (focusedIndex == -1 || focusedRecord == null) return;
         List<Vertex[]> polyhedron = new ArrayList<>();
-        polyhedron.add(highlight);
+        polyhedron.add(focusedRecord.vertices()[focusedIndex]);
         List<Integer> indexes = new ArrayList<>(List.of(focusedIndex));
         Vertex[][] vertices = focusedRecord.vertices();
         boolean added;
@@ -151,12 +166,7 @@ public class ModelAnalyser extends VertexRecorder {
             if (!indexes.contains(i)) break;
             resultIndexes.add(i);
         }
-        resultIndexes.forEach(i -> drawQuad(context, vertices[i], argb2, 1000));
-        drawQuad(context, highlight, argb1, 1100);
-        size = highlight.length;
-        Vertex[] reversed = new Vertex[size];
-        for (int i = 0; i < size; i++) reversed[i] = highlight[size - 1 - i];
-        drawQuad(context, reversed, argb1, 1100);
+        resultIndexes.forEach(i -> drawQuad(context, vertices[i], sideArgb, 1000));
     }
 
     record Triple(double depth, BuiltRecord record, int index) {}

@@ -64,6 +64,11 @@
   "screen.widget.xtracr_realcamera.modelView_pitch": "Pitch = %s",
   "screen.widget.xtracr_realcamera.modelView_yaw": "Yaw = %s",
   "screen.widget.xtracr_realcamera.modelView_roll": "Roll = %s",
+  "screen.widget.xtracr_realcamera.modelView_configs": "Configs",
+  "screen.widget.xtracr_realcamera.modelView_disable": "Disable",
+  "screen.widget.xtracr_realcamera.modelView_copy": "Copy",
+  "screen.widget.xtracr_realcamera.modelView_paste": "Paste",
+  "screen.widget.xtracr_realcamera.modelView_clear": "Clear",
   "screen.tooltip.xtracr_realcamera.modelView_selectMode": "Hold left Alt and left click to get the UV coordinates at the mouse pointer\nThe three sets of UV coordinates below are, from top to bottom, the UV coordinates of the forward vector, the upward vector, and a point on the target plane\nNote: Scroll with left Alt held to switch between the different layers of the model. Manually inputting UV coordinates allows you to bind more accurately to the target position",
   "screen.tooltip.xtracr_realcamera.modelView_textureId": "The texture id of the selected model (not necessary to be the full id), can be shortened when saving to make it easier to recognize.\nFor example, shorten minecraft:textures/entity/player/slim/alex.png to minecraft:textures/entity/player/.",
   "screen.tooltip.xtracr_realcamera.modelView_bindButtons": "When disabled, the camera's relative relationship to the model will not change, but the camera's corresponding attributes will not be modified by this mod",
@@ -71,5 +76,8 @@
   "screen.tooltip.xtracr_realcamera.modelView_depth": "Planes where all vertex-to-screen distances are less than this value will not be rendered",
   "screen.tooltip.xtracr_realcamera.modelView_priority": "Priority when binding, the larger the value the higher the priority, and the higher the sorting on the right side",
   "screen.tooltip.xtracr_realcamera.modelView_targetName": "Name of the config",
-  "screen.tooltip.xtracr_realcamera.modelView_delete": "Delete"
+  "screen.tooltip.xtracr_realcamera.modelView_configs": "Saved Configs",
+  "screen.tooltip.xtracr_realcamera.modelView_disable": "Disabling Settings\nGlobal disabling settings are in the config screen",
+  "screen.tooltip.xtracr_realcamera.modelView_copy": "Copy all entries",
+  "screen.tooltip.xtracr_realcamera.modelView_disabledIdField": "Hold left Alt and left click to get the texture id of the selected model, can be shortened to extend disabling range, but may cause the program to misjudge"
 }

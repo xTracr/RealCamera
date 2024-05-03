@@ -75,10 +75,6 @@ public class VertexRecorder implements VertexConsumerProvider {
         }).filter(Objects::nonNull).findFirst().orElse(null);
     }
 
-    public void drawByAnother(VertexConsumerProvider anotherProvider) {
-        drawByAnother(anotherProvider, renderLayer -> true, (renderLayer, vertices) -> vertices);
-    }
-
     public void drawByAnother(VertexConsumerProvider anotherProvider, Predicate<RenderLayer> layerPredicate, BiFunction<RenderLayer, Vertex[], Vertex[]> function) {
         records.forEach(record -> {
             RenderLayer renderLayer = record.renderLayer;

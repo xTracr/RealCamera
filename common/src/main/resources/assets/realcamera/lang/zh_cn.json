@@ -64,6 +64,11 @@
   "screen.widget.xtracr_realcamera.modelView_pitch": "俯仰角 = %s",
   "screen.widget.xtracr_realcamera.modelView_yaw": "偏航角 = %s",
   "screen.widget.xtracr_realcamera.modelView_roll": "翻滚角 = %s",
+  "screen.widget.xtracr_realcamera.modelView_configs": "配置",
+  "screen.widget.xtracr_realcamera.modelView_disable": "禁用",
+  "screen.widget.xtracr_realcamera.modelView_copy": "复制",
+  "screen.widget.xtracr_realcamera.modelView_paste": "粘贴",
+  "screen.widget.xtracr_realcamera.modelView_clear": "清空",
   "screen.tooltip.xtracr_realcamera.modelView_selectMode": "按住左Alt并左键可获取鼠标指针处的UV坐标\n下方三组UV坐标由上到下依次为向前矢量、向上矢量和目标平面上一个点的UV坐标\n注：按住左Alt键滚动可在模型的不同层间切换，手动输入UV坐标可以更加精确地绑定到目标位置",
   "screen.tooltip.xtracr_realcamera.modelView_textureId": "被选中的模型的纹理的id（不是完整的id也可以识别），保存时可以缩短一部分以便于程序识别\n比如将minecraft:textures/entity/player/slim/alex.png缩短为minecraft:textures/entity/player/",
   "screen.tooltip.xtracr_realcamera.modelView_bindButtons": "当禁用时，摄像头与模型的相对关系不会变化，但摄像头的对应属性不会被本模组修改",
@@ -71,5 +76,8 @@
   "screen.tooltip.xtracr_realcamera.modelView_depth": "全部顶点到屏幕距离均小于该值的面不会被渲染",
   "screen.tooltip.xtracr_realcamera.modelView_priority": "绑定时的优先级，值越大优先级越高，并且在右侧排序越靠前",
   "screen.tooltip.xtracr_realcamera.modelView_targetName": "配置的名称",
-  "screen.tooltip.xtracr_realcamera.modelView_delete": "删除"
+  "screen.tooltip.xtracr_realcamera.modelView_configs": "已保存的配置",
+  "screen.tooltip.xtracr_realcamera.modelView_disable": "禁用设置\n全局禁用设置在配置屏幕中",
+  "screen.tooltip.xtracr_realcamera.modelView_copy": "复制所有项",
+  "screen.tooltip.xtracr_realcamera.modelView_disabledIdField": "按住左Alt并左键以获取被选中的模型的纹理的id，可以缩短一部分来扩大禁用范围，但可能造成程序误判"
 }

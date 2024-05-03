@@ -2,6 +2,7 @@ package com.xtracr.realcamera.config;
 
 import net.minecraft.util.math.MathHelper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class BindingTarget {
@@ -9,6 +10,7 @@ public class BindingTarget {
             createDefaultTarget("skin_head", "minecraft:skins/", 5, false),
             createDefaultTarget("minecraft_head_2", "minecraft:textures/entity/player/", 0, true),
             createDefaultTarget("skin_head_2", "minecraft:skins/", 0, true));
+    public List<String> disabledTextureIds = new ArrayList<>();
     public final String name, textureId;
     public final int priority;
     public final float forwardU, forwardV, upwardU, upwardV, posU, posV, disablingDepth;
@@ -45,7 +47,9 @@ public class BindingTarget {
     }
 
     private static BindingTarget createDefaultTarget(String name, String textureId, int priority, boolean shouldBind) {
-        return new BindingTarget(name, textureId, priority, 0.1875f, 0.2f, 0.1875f, 0.075f, 0.1875f, 0.2f, 0.2f, shouldBind, true, shouldBind, shouldBind, 1, -0.12, 0, 0, 0, 0, 0);
+        BindingTarget target = new BindingTarget(name, textureId, priority, 0.1875f, 0.2f, 0.1875f, 0.075f, 0.1875f, 0.2f, 0.2f, shouldBind, true, shouldBind, shouldBind, 1, -0.12, 0, 0, 0, 0, 0);
+        target.disabledTextureIds.add("minecraft:textures/entity/enderdragon/dragon.png");
+        return target;
     }
 
     public boolean isEmpty() {
