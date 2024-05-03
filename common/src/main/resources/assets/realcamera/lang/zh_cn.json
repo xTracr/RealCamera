@@ -1,6 +1,6 @@
 {
-  "key.category.xtracr_realcamera": "Real Camera",
-  "key.xtracr_realcamera.modelViewGui": "打开模型视图界面",
+  "general.xtracr_realcamera.modName": "Real Camera",
+  "key.xtracr_realcamera.modelViewScreen": "打开模型视图界面",
   "key.xtracr_realcamera.togglePerspective": "开启/关闭",
   "key.xtracr_realcamera.toggleAdjustMode": "切换调整模式",
   "key.xtracr_realcamera.toggleCameraMode": "切换摄像头模式",
@@ -12,7 +12,6 @@
   "key.xtracr_realcamera.adjustRIGHT": "向右调整",
   "modmenu.descriptionTranslation.realcamera": "使第一人称视角下的摄像头更加真实。",
 
-  "config.title.xtracr_realcamera": "Real Camera",
   "config.category.xtracr_realcamera.general": "通用",
   "config.category.xtracr_realcamera.binding": "绑定模式",
   "config.category.xtracr_realcamera.classic": "经典模式",
@@ -36,7 +35,7 @@
   "config.option.xtracr_realcamera.pitch": "俯仰角",
   "config.option.xtracr_realcamera.yaw": "偏航角",
   "config.option.xtracr_realcamera.roll": "翻滚角",
-  "config.option.xtracr_realcamera.toModelViewGui": "详细设置请前往%s界面（需设置快捷键来打开它）",
+  "config.option.xtracr_realcamera.toModelViewScreen": "详细设置请前往%s界面（需设置快捷键来打开它）",
   "config.option.xtracr_realcamera.adjustOffset": "调整摄像头偏移",
   "config.option.xtracr_realcamera.renderStuckObjects": "渲染卡在身上的物体",
   "config.option.xtracr_realcamera.disableRenderItems": "在手持...时禁用渲染",

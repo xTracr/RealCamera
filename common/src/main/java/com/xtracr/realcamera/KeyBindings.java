@@ -2,6 +2,7 @@ package com.xtracr.realcamera;
 
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.gui.ModelViewScreen;
+import com.xtracr.realcamera.util.LocUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import org.lwjgl.glfw.GLFW;
@@ -11,12 +12,10 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public final class KeyBindings {
-    private static final String KEY_CATEGORY = "key.category." + RealCamera.FULL_ID;
-    private static final String KEY_ID = "key." + RealCamera.FULL_ID + ".";
     private static final Map<KeyBinding, Consumer<MinecraftClient>> KEY_BINDINGS = new HashMap<>();
 
     static {
-        createKeyBinding("modelViewGui", client -> client.setScreen(new ModelViewScreen()));
+        createKeyBinding("modelViewScreen", client -> client.setScreen(new ModelViewScreen()));
         createKeyBinding("togglePerspective", GLFW.GLFW_KEY_F6, client -> {
             boolean enabled = ConfigFile.config().enabled();
             ConfigFile.load();
@@ -38,7 +37,7 @@ public final class KeyBindings {
     }
 
     private static void createKeyBinding(String id, int code, Consumer<MinecraftClient> whenPressed) {
-        KEY_BINDINGS.put(new KeyBinding(KEY_ID + id, code, KEY_CATEGORY), whenPressed);
+        KEY_BINDINGS.put(new KeyBinding("key." + RealCamera.FULL_ID + "." + id, code, LocUtil.KEY_MOD_NAME), whenPressed);
     }
 
     public static void register(Consumer<KeyBinding> registerer) {

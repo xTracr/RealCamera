@@ -3,6 +3,7 @@ package com.xtracr.realcamera;
 import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.BindingTarget;
 import com.xtracr.realcamera.config.ConfigFile;
+import com.xtracr.realcamera.util.LocUtil;
 import com.xtracr.realcamera.util.MathUtil;
 import com.xtracr.realcamera.util.VertexRecorder;
 import net.minecraft.client.MinecraftClient;
@@ -11,7 +12,6 @@ import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
-import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
@@ -123,7 +123,7 @@ public class RealCameraCore {
         }
         if (currentTarget.isEmpty()) {
             Entity player = MinecraftClient.getInstance().player;
-            if (readyToSendMessage && player != null) player.sendMessage(Text.translatable("message." + RealCamera.FULL_ID + ".bindingFailed"));
+            if (readyToSendMessage && player != null) player.sendMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE()));
             active = readyToSendMessage = false;
         } else readyToSendMessage = true;
         normal.rotateLocal((float) Math.toRadians(currentTarget.yaw()), normal.m10, normal.m11, normal.m12);

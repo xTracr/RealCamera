@@ -1,15 +1,14 @@
 package com.xtracr.realcamera.gui;
 
-import com.xtracr.realcamera.RealCamera;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.BindingTarget;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
+import com.xtracr.realcamera.util.LocUtil;
 import com.xtracr.realcamera.util.MathUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.tooltip.Tooltip;
 import net.minecraft.client.gui.widget.*;
 import net.minecraft.client.render.DiffuseLighting;
 import net.minecraft.client.render.entity.EntityRenderDispatcher;
@@ -29,8 +28,6 @@ import java.util.List;
 import java.util.Map;
 
 public class ModelViewScreen extends Screen {
-    private static final String KEY_WIDGET = "screen.widget." + RealCamera.FULL_ID + ".modelView_";
-    private static final String KEY_TOOLTIP = "screen.tooltip." + RealCamera.FULL_ID + ".modelView_";
     protected int xSize = 406, ySize = 206, widgetWidth = (xSize - ySize) / 4 - 8, widgetHeight = 18;
     protected int x, y;
     private boolean initialized;
@@ -43,10 +40,10 @@ public class ModelViewScreen extends Screen {
     private NumberFieldWidget<Float> forwardUField, forwardVField, upwardUField, upwardVField, posUField, posVField, scaleField, depthField;
     private NumberFieldWidget<Integer> priorityField;
     private final CyclingButtonWidget<Integer> selectingButton = createCyclingButton(Map.of(
-                    0, Text.translatable(KEY_WIDGET + "forwardMode").styled(s -> s.withColor(Formatting.GREEN)),
-                    1, Text.translatable(KEY_WIDGET + "upwardMode").styled(s -> s.withColor(Formatting.RED)),
-                    2, Text.translatable(KEY_WIDGET + "posMode").styled(s -> s.withColor(Formatting.BLUE))),
-            widgetWidth * 2 + 4, Text.translatable(KEY_WIDGET + "selectMode"));
+                    0, LocUtil.MODEL_VIEW_WIDGET("forwardMode").styled(s -> s.withColor(Formatting.GREEN)),
+                    1, LocUtil.MODEL_VIEW_WIDGET("upwardMode").styled(s -> s.withColor(Formatting.RED)),
+                    2, LocUtil.MODEL_VIEW_WIDGET("posMode").styled(s -> s.withColor(Formatting.BLUE))),
+            widgetWidth * 2 + 4, LocUtil.MODEL_VIEW_WIDGET("selectMode"));
     private final CyclingTexturedButton pauseButton = new CyclingTexturedButton(0, 0, 0, 2);
     private final CyclingTexturedButton bindXButton = new CyclingTexturedButton(16, 0, 1, 2);
     private final CyclingTexturedButton bindYButton = new CyclingTexturedButton(16, 0, 0, 2);
@@ -62,7 +59,7 @@ public class ModelViewScreen extends Screen {
     private final DoubleSliderWidget rollSlider = createSlider("roll", widgetWidth * 2 - 18, -180.0, 180.0);
 
     public ModelViewScreen() {
-        super(Text.translatable("screen." + RealCamera.FULL_ID + ".modelView_title"));
+        super(LocUtil.MODEL_VIEW_TITLE());
     }
 
     @Override
@@ -97,8 +94,8 @@ public class ModelViewScreen extends Screen {
         gridWidget.getMainPositioner().margin(4, 2, 0, 0);
         Positioner smallPositioner = gridWidget.copyPositioner().margin(5, 3, 1, 1);
         GridWidget.Adder adder = gridWidget.createAdder(2);
-        adder.add(createButton(Text.translatable(KEY_WIDGET + "settings"), widgetWidth, button -> initWidgets(0, page)));
-        adder.add(createButton(Text.translatable(KEY_WIDGET + "preview"), widgetWidth, button -> initWidgets(1, page)));
+        adder.add(createButton(LocUtil.MODEL_VIEW_WIDGET("settings"), widgetWidth, button -> initWidgets(0, page)));
+        adder.add(createButton(LocUtil.MODEL_VIEW_WIDGET("preview"), widgetWidth, button -> initWidgets(1, page)));
         forwardUField = createFloatField(widgetWidth, 0, forwardUField);
         forwardVField = createFloatField(widgetWidth, 0, forwardVField);
         upwardUField = createFloatField(widgetWidth, 0, upwardUField);
@@ -114,23 +111,23 @@ public class ModelViewScreen extends Screen {
         if (category == 0) {
             adder.add(entityPitchSlider, 2);
             adder.add(entityYawSlider, 2);
-            adder.add(selectingButton, 2).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "selectMode")));
+            adder.add(selectingButton, 2).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("selectMode"));
             adder.add(forwardUField, 1, smallPositioner);
             adder.add(forwardVField, 1, smallPositioner);
             adder.add(upwardUField, 1, smallPositioner);
             adder.add(upwardVField, 1, smallPositioner);
             adder.add(posUField, 1, smallPositioner);
             adder.add(posVField, 1, smallPositioner);
-            adder.add(textureIdField, 2, smallPositioner).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "textureId")));
+            adder.add(textureIdField, 2, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("textureId"));
         } else if (category == 1) {
             Positioner sliderPositioner = gridWidget.copyPositioner().margin(-20, 2, 0, 0);
-            adder.add(bindXButton, 1, smallPositioner).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "bindButtons")));
+            adder.add(bindXButton, 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("bindButtons"));
             adder.add(offsetXSlider, 1, sliderPositioner);
-            adder.add(bindYButton, 1, smallPositioner).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "bindButtons")));
+            adder.add(bindYButton, 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("bindButtons"));
             adder.add(offsetYSlider, 1, sliderPositioner);
-            adder.add(bindZButton, 1, smallPositioner).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "bindButtons")));
+            adder.add(bindZButton, 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("bindButtons"));
             adder.add(offsetZSlider, 1, sliderPositioner);
-            adder.add(bindRotButton, 1, smallPositioner).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "bindButtons")));
+            adder.add(bindRotButton, 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("bindButtons"));
             adder.add(pitchSlider, 1, sliderPositioner);
             adder.add(yawSlider, 2, gridWidget.copyPositioner().margin(26, 2, 0, 0));
             adder.add(new TexturedButton(32, 0, button -> {
@@ -142,18 +139,18 @@ public class ModelViewScreen extends Screen {
                 rollSlider.setValue(0);
             }), 1, smallPositioner);
             adder.add(rollSlider, 1, sliderPositioner);
-            adder.add(scaleField, 1, smallPositioner).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "scale")));
-            adder.add(depthField, 1, smallPositioner).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "depth")));
+            adder.add(scaleField, 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("scale"));
+            adder.add(depthField, 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("depth"));
         }
-        adder.add(createButton(Text.translatable(KEY_WIDGET + "save"), widgetWidth, button -> {
+        adder.add(createButton(LocUtil.MODEL_VIEW_WIDGET("save"), widgetWidth, button -> {
             ConfigFile.config().putTarget(generateBindingTarget());
             ConfigFile.save();
             initWidgets(category, page);
         }));
         adder.add(priorityField = NumberFieldWidget.ofInt(textRenderer, widgetWidth - 2, widgetHeight - 2, 0, priorityField), 1, smallPositioner)
-                .setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "priority")));
+                .setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("priority"));
         adder.add(nameField = createTextField(widgetWidth * 2 + 4, nameField), 2, smallPositioner)
-                .setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "targetName")));
+                .setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("targetName"));
         nameField.setMaxLength(20);
         gridWidget.refreshPositions();
         SimplePositioningWidget.setPos(gridWidget, x, y + 2, x + (xSize - ySize) / 2 - 4, y + ySize, 0, 0);
@@ -168,17 +165,17 @@ public class ModelViewScreen extends Screen {
         Positioner smallPositioner = gridWidget.copyPositioner().margin(5, 3, 1, 1);
         GridWidget.Adder adder = gridWidget.createAdder(2);
         addDrawableChild(new TexturedButton(x + (xSize + ySize) / 2 + 8, y + 4, 16, 16, 0, 32, button -> initWidgets(category, (page - 1 + pages) % pages)));
-        addDrawableChild(new TextWidget(x + (xSize + ySize) / 2 + 30, y + 4, widgetWidth * 2 - 40, widgetHeight, Text.of((page + 1) + " / " + pages), textRenderer));
+        addDrawableChild(new TextWidget(x + (xSize + ySize) / 2 + 30, y + 4, widgetWidth * 2 - 40, widgetHeight, LocUtil.literal((page + 1) + " / " + pages), textRenderer));
         addDrawableChild(new TexturedButton(x + xSize - 21, y + 4, 16, 16, 16, 32, button -> initWidgets(category, (page + 1) % pages)));
         for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, targetList.size()); i++) {
             BindingTarget target = targetList.get(i);
             String name = target.name;
-            adder.add(createButton(Text.literal(name), widgetWidth * 2 - 18, button -> loadBindingTarget(target)));
+            adder.add(createButton(LocUtil.literal(name), widgetWidth * 2 - 18, button -> loadBindingTarget(target)));
             adder.add(new TexturedButton(32, 32, button -> {
                 targetList.remove(target);
                 ConfigFile.save();
                 initWidgets(category, page * widgetsPerPage >= targetList.size() && !targetList.isEmpty() ? page - 1 : page);
-            }), 1, smallPositioner).setTooltip(Tooltip.of(Text.translatable(KEY_TOOLTIP + "delete")));
+            }), 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("delete"));
         }
         gridWidget.refreshPositions();
         SimplePositioningWidget.setPos(gridWidget, x + (xSize + ySize) / 2 + 4, y + 22, x + xSize, y + ySize, 0, 0);
@@ -288,7 +285,7 @@ public class ModelViewScreen extends Screen {
     }
 
     private DoubleSliderWidget createSlider(String key, int width, double min, double max) {
-        return new DoubleSliderWidget(width, widgetHeight, 0, min, max, d -> Text.translatable(KEY_WIDGET + key, MathUtil.round(d, 2)));
+        return new DoubleSliderWidget(width, widgetHeight, 0, min, max, d -> LocUtil.MODEL_VIEW_WIDGET(key, MathUtil.round(d, 2)));
     }
 
     private NumberFieldWidget<Float> createFloatField(int width, float defaultValue, @Nullable NumberFieldWidget<Float> copyFrom) {

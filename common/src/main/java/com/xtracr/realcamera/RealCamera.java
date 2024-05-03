@@ -12,8 +12,8 @@ public class RealCamera {
     public static final Logger LOGGER = LoggerFactory.getLogger(MODID);
 
     public static void initialize() {
-        ConfigFile.load();
         CompatibilityHelper.initialize();
         DisableHelper.initialize();
+        ConfigFile.load();
     }
 }
