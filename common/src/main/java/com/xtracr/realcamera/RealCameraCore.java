@@ -53,7 +53,7 @@ public class RealCameraCore {
         cameraPos = vec3d;
     }
 
-    public static void init(MinecraftClient client) {
+    public static void initialize(MinecraftClient client) {
         Entity entity = client.getCameraEntity();
         active = ConfigFile.config().enabled() && client.options.getPerspective().isFirstPerson() && client.gameRenderer.getCamera() != null && entity != null && !DisableHelper.isDisabled("mainFeature", entity);
         rendering = active && ConfigFile.config().renderModel() && !DisableHelper.isDisabled("renderModel", entity);
@@ -124,9 +124,9 @@ public class RealCameraCore {
             if (readyToSendMessage && player != null) player.sendMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE()));
             active = readyToSendMessage = false;
         } else readyToSendMessage = true;
-        normal.rotateLocal((float) Math.toRadians(currentTarget.yaw()), normal.m10, normal.m11, normal.m12);
-        normal.rotateLocal((float) Math.toRadians(currentTarget.pitch()), normal.m00, normal.m01, normal.m02);
-        normal.rotateLocal((float) Math.toRadians(currentTarget.roll()), normal.m20, normal.m21, normal.m22);
+        normal.rotateLocal((float) Math.toRadians(currentTarget.getYaw()), normal.m10, normal.m11, normal.m12);
+        normal.rotateLocal((float) Math.toRadians(currentTarget.getPitch()), normal.m00, normal.m01, normal.m02);
+        normal.rotateLocal((float) Math.toRadians(currentTarget.getRoll()), normal.m20, normal.m21, normal.m22);
         Vec3d eulerAngle = MathUtil.getEulerAngleYXZ(normal).multiply(Math.toDegrees(1));
         pitch = (float) eulerAngle.getX();
         yaw = (float) -eulerAngle.getY();

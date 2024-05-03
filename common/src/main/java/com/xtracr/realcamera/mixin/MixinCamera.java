@@ -36,7 +36,7 @@ public abstract class MixinCamera {
     @Inject(method = "update", at = @At("RETURN"))
     private void realcamera$updateCamera(BlockView area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float tickDelta, CallbackInfo cInfo) {
         if (!RealCameraCore.isActive()) return;
-        final ModConfig config = ConfigFile.config();
+        ModConfig config = ConfigFile.config();
         Vec3d startVec = pos;
         Box box = focusedEntity.getBoundingBox();
         if (config.isClassic()) {

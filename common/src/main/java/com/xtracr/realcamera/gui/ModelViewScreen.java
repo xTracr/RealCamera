@@ -48,12 +48,12 @@ public class ModelViewScreen extends Screen {
                     1, LocUtil.MODEL_VIEW_WIDGET("upwardMode").styled(s -> s.withColor(Formatting.RED)),
                     2, LocUtil.MODEL_VIEW_WIDGET("posMode").styled(s -> s.withColor(Formatting.BLUE))),
             widgetWidth * 2 + 4, LocUtil.MODEL_VIEW_WIDGET("selectMode"));
-    private final CyclingTexturedButton pauseButton = new CyclingTexturedButton(0, 0, 0, 2);
-    private final CyclingTexturedButton bindXButton = new CyclingTexturedButton(16, 0, 1, 2);
-    private final CyclingTexturedButton bindYButton = new CyclingTexturedButton(16, 0, 0, 2);
-    private final CyclingTexturedButton bindZButton = new CyclingTexturedButton(16, 0, 1, 2);
-    private final CyclingTexturedButton bindRotButton = new CyclingTexturedButton(16, 0, 1, 2);
-    private final CyclingTexturedButton showDisabled = new CyclingTexturedButton(48, 0, 0, 2);
+    private final CyclingTexturedButton pauseButton = new CyclingTexturedButton(0, 16, 0, 2);
+    private final CyclingTexturedButton bindXButton = new CyclingTexturedButton(16, 16, 1, 2);
+    private final CyclingTexturedButton bindYButton = new CyclingTexturedButton(16, 16, 0, 2);
+    private final CyclingTexturedButton bindZButton = new CyclingTexturedButton(16, 16, 1, 2);
+    private final CyclingTexturedButton bindRotButton = new CyclingTexturedButton(16, 16, 1, 2);
+    private final CyclingTexturedButton showDisabled = new CyclingTexturedButton(32, 16, 0, 2);
     private final DoubleSliderWidget entityPitchSlider = createSlider("pitch", widgetWidth * 2 + 4, -90.0, 90.0);
     private final DoubleSliderWidget entityYawSlider = createSlider("yaw", widgetWidth * 2 + 4, -60.0, 60.0);
     private final DoubleSliderWidget offsetXSlider = createSlider("offsetX", widgetWidth * 2 - 18, ModConfig.MIN_DOUBLE, ModConfig.MAX_DOUBLE);
@@ -83,7 +83,7 @@ public class ModelViewScreen extends Screen {
         clearChildren();
         initLeftWidgets(category);
         addDrawableChild(pauseButton).setPosition(x + (xSize - ySize) / 2 + 4, y + 4);
-        addDrawableChild(new TexturedButton(x + (xSize - ySize) / 2 + 22, y + 4, 16, 16, 32, 0, button -> {
+        addDrawableChild(new TexturedButton(x + (xSize - ySize) / 2 + 22, y + 4, 16, 16, 0, 0, button -> {
             entitySize = 80;
             entityYawSlider.setValue(0);
             entityPitchSlider.setValue(0);
@@ -135,7 +135,7 @@ public class ModelViewScreen extends Screen {
             adder.add(bindRotButton, 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("bindButtons"));
             adder.add(pitchSlider, 1, sliderPositioner);
             adder.add(yawSlider, 2, gridWidget.copyPositioner().margin(26, 2, 0, 0));
-            adder.add(new TexturedButton(32, 0, button -> {
+            adder.add(new TexturedButton(0, 0, button -> {
                 offsetXSlider.setValue(0);
                 offsetYSlider.setValue(0);
                 offsetZSlider.setValue(0);
@@ -152,10 +152,8 @@ public class ModelViewScreen extends Screen {
             ConfigFile.save();
             initWidgets(category, page);
         }));
-        adder.add(priorityField = NumberFieldWidget.ofInt(textRenderer, widgetWidth - 2, widgetHeight - 2, 0, priorityField), 1, smallPositioner)
-                .setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("priority"));
-        adder.add(nameField = createTextField(widgetWidth * 2 + 4, nameField), 2, smallPositioner)
-                .setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("targetName"));
+        adder.add(priorityField = NumberFieldWidget.ofInt(textRenderer, widgetWidth - 2, widgetHeight - 2, 0, priorityField), 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("priority"));
+        adder.add(nameField = createTextField(widgetWidth * 2 + 4, nameField), 2, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("targetName"));
         nameField.setMaxLength(20);
         gridWidget.refreshPositions();
         SimplePositioningWidget.setPos(gridWidget, x, y + 2, x + (xSize - ySize) / 2 - 4, y + ySize, 0, 0);
@@ -180,7 +178,7 @@ public class ModelViewScreen extends Screen {
                 BindingTarget target = targetList.get(i);
                 String name = target.name;
                 adder.add(createButton(LocUtil.literal(name), widgetWidth * 2 - 18, button -> loadBindingTarget(target)), 3).setTooltip(Tooltip.of(LocUtil.literal(name)));
-                adder.add(new TexturedButton(32, 32, button -> {
+                adder.add(new TexturedButton(48, 0, button -> {
                     targetList.remove(target);
                     ConfigFile.save();
                     initWidgets(category, page * widgetsPerPage > size - 2 && size > 1 ? page - 1 : page);
@@ -191,39 +189,37 @@ public class ModelViewScreen extends Screen {
             size = disabledIds.size();
             adder.add(createButton(LocUtil.MODEL_VIEW_WIDGET("copy"), widgetWidth, button -> idsInClipBoard = List.copyOf(disabledIds)), 2).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("copy"));
             adder.add(createButton(LocUtil.MODEL_VIEW_WIDGET("paste"), widgetWidth, button -> {
-                disabledIds.clear();
-                disabledIds.addAll(idsInClipBoard);
+                idsInClipBoard.stream().filter(textureId -> !disabledIds.contains(textureId)).forEach(disabledIds::add);
                 initWidgets(category, 0);
             }), 2);
             adder.add(disabledIdField, 4, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("disabledIdField"));
-            if (disabledIdField.getText().isEmpty() && size > 0) disabledIdField.setText(disabledIds.get(0));
             adder.add(createButton(LocUtil.MODEL_VIEW_WIDGET("clear"), widgetWidth, button -> {
                 disabledIds.clear();
                 initWidgets(category, 0);
             }), 2);
             adder.add(showDisabled, 1, gridWidget.copyPositioner().margin(7, 3, 1, 1));
-            adder.add(new TexturedButton(0, 48, button -> {
+            adder.add(new TexturedButton(64, 0, button -> {
                 String disabledId = disabledIdField.getText();
-                if (disabledIds.contains(disabledId)) return;
+                if (disabledId.isBlank() || disabledIds.contains(disabledId)) return;
                 disabledIds.add(disabledId);
                 initWidgets(category, page);
             }), 1, smallPositioner);
             for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, size); i++) {
                 String textureId = disabledIds.get(i);
                 adder.add(createButton(LocUtil.literal(textureId), widgetWidth * 2 - 18, button -> disabledIdField.setText(textureId)), 3).setTooltip(Tooltip.of(LocUtil.literal(textureId)));
-                adder.add(new TexturedButton(32, 32, button -> {
+                adder.add(new TexturedButton(48, 0, button -> {
                     disabledIds.remove(textureId);
                     initWidgets(category, page * widgetsPerPage > size - 2 && size > 1 ? page - 1 : page);
                 }), 1, smallPositioner);
             }
         }
-        final int pages = (size - 1) / widgetsPerPage + 1;
-        addDrawableChild(new TexturedButton(x + (xSize + ySize) / 2 + 8, y + ySize - 20, 16, 16, 0, 32, button -> initWidgets(category, (page - 1 + pages) % pages)));
-        addDrawableChild(new TextWidget(x + (xSize + ySize) / 2 + 30, y + ySize - 20, widgetWidth * 2 - 40, widgetHeight, LocUtil.literal((page + 1) + " / " + pages), textRenderer));
-        addDrawableChild(new TexturedButton(x + xSize - 21, y + ySize - 20, 16, 16, 16, 32, button -> initWidgets(category, (page + 1) % pages)));
         gridWidget.refreshPositions();
         SimplePositioningWidget.setPos(gridWidget, x + (xSize + ySize) / 2 + 4, y + 2, x + xSize, y + ySize, 0, 0);
         gridWidget.forEachChild(this::addDrawableChild);
+        final int pages = (size - 1) / widgetsPerPage + 1;
+        addDrawableChild(new TexturedButton(x + (xSize + ySize) / 2 + 8, y + ySize - 20, 16, 16, 16, 0, button -> initWidgets(category, (page - 1 + pages) % pages)));
+        addDrawableChild(new TextWidget(x + (xSize + ySize) / 2 + 30, y + ySize - 20, widgetWidth * 2 - 40, widgetHeight, LocUtil.literal((page + 1) + " / " + pages), textRenderer));
+        addDrawableChild(new TexturedButton(x + xSize - 21, y + ySize - 20, 16, 16, 32, 0, button -> initWidgets(category, (page + 1) % pages)));
     }
 
     @Override
@@ -277,25 +273,26 @@ public class ModelViewScreen extends Screen {
         entityRenderDispatcher.setRenderShadows(false);
         ModelAnalyser analyser = new ModelAnalyser(generateBindingTarget());
         entityRenderDispatcher.render(entity, 0, -entity.getHeight() / 2.0f, 0, 0.0f, 1.0f, context.getMatrices(), analyser, 0xF000f0);
-        analyser.initialize(entitySize, mouseX, mouseY, layers);
+        analyser.initialize(entitySize, mouseX, mouseY, layers, showDisabled.getValue() == 1, disabledIdField.getText());
         focusedUV = analyser.getFocusedUV();
         focusedTextureId = analyser.focusedTextureId();
         if ((category & 0b1) == 0) analyser.drawModelWithNormals(context, entitySize);
-        else analyser.previewEffect(context, entitySize, (category & 0b10) == 2, showDisabled.getValue() == 0, disabledIdField.getText());
+        else analyser.previewEffect(context, entitySize, (category & 0b10) == 2);
         entityRenderDispatcher.setRenderShadows(true);
         context.getMatrices().pop();
         DiffuseLighting.enableGuiDepthLighting();
     }
 
     protected BindingTarget generateBindingTarget() {
-        BindingTarget target = new BindingTarget(nameField.getText(), textureIdField.getText(), priorityField.getValue(), forwardUField.getValue(), forwardVField.getValue(),
-                upwardUField.getValue(), upwardVField.getValue(), posUField.getValue(), posVField.getValue(), depthField.getValue(),
-                bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0,
-                scaleField.getValue(), offsetXSlider.getValue(), offsetYSlider.getValue(), offsetZSlider.getValue(),
-                (float) pitchSlider.getValue(), (float) yawSlider.getValue(), (float) rollSlider.getValue());
-        target.disabledTextureIds.clear();
-        target.disabledTextureIds.addAll(disabledIds);
-        return target;
+        return new BindingTarget(nameField.getText(), textureIdField.getText()).priority(priorityField.getValue())
+                .forwardU(forwardUField.getValue()).forwardV(forwardVField.getValue())
+                .upwardU(upwardUField.getValue()).upwardV(upwardVField.getValue())
+                .posU(posUField.getValue()).posV(posVField.getValue())
+                .disablingDepth(depthField.getValue())
+                .bindX(bindXButton.getValue() == 0).bindY(bindYButton.getValue() == 0).bindZ(bindZButton.getValue() == 0).bindRotation(bindRotButton.getValue() == 0)
+                .scale(scaleField.getValue()).offsetX(offsetXSlider.getValue()).offsetY(offsetYSlider.getValue()).offsetZ(offsetZSlider.getValue())
+                .pitch((float) pitchSlider.getValue()).yaw((float) yawSlider.getValue()).roll((float) rollSlider.getValue())
+                .disabledTextureIds(List.copyOf(disabledIds));
     }
 
     protected void loadBindingTarget(BindingTarget target) {
@@ -365,10 +362,11 @@ public class ModelViewScreen extends Screen {
                     posVField.setValue(focusedUV.y);
                 }
                 textureIdField.setText(focusedTextureId);
+                return true;
             } else if (category == 0b11) {
                 disabledIdField.setText(focusedTextureId);
+                return true;
             }
-            return true;
         }
         return super.mouseClicked(mouseX, mouseY, button);
     }

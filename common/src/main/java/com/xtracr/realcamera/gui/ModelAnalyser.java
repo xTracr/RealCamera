@@ -32,9 +32,7 @@ public class ModelAnalyser extends VertexRecorder {
 
     private static boolean intersects(Vertex[] quad, List<Vertex[]> quads) {
         final float precision = 1.0E-05f;
-        for (Vertex[] q : quads)
-            for (Vertex v1 : quad)
-                for (Vertex v2 : q) if (v1.pos().squaredDistanceTo(v2.pos()) < precision) return true;
+        for (Vertex[] q : quads) for (Vertex v1 : quad) for (Vertex v2 : q) if (v1.pos().squaredDistanceTo(v2.pos()) < precision) return true;
         return false;
     }
 
@@ -55,8 +53,13 @@ public class ModelAnalyser extends VertexRecorder {
         context.draw();
     }
 
-    public void initialize(int entitySize, int mouseX, int mouseY, int layers) {
+    public void initialize(int entitySize, int mouseX, int mouseY, int layers, boolean hideDisabled, String idInField) {
         buildLastRecord();
+        List<BuiltRecord> removedRecords = records.stream().filter(record -> {
+            boolean isIdInField = !idInField.isBlank() && record.renderLayer().toString().contains(idInField);
+            return (hideDisabled && isIdInField) || (!isIdInField && target.disabledTextureIds.stream().anyMatch(record.renderLayer().toString()::contains));
+        }).toList();
+        records.removeAll(removedRecords);
         List<Triple> sortByDepth = new ArrayList<>();
         records.forEach(record -> {
             Vertex[][] vertices = record.vertices();
@@ -79,10 +82,12 @@ public class ModelAnalyser extends VertexRecorder {
             focusedIndex = result.index;
         }
         target.scale *= entitySize;
+        records.addAll(removedRecords);
         currentRecord = getTargetPosAndRot(target, normal, position);
-        normal.rotateLocal((float) Math.toRadians(target.yaw()), normal.m10, normal.m11, normal.m12);
-        normal.rotateLocal((float) Math.toRadians(target.pitch()), normal.m00, normal.m01, normal.m02);
-        normal.rotateLocal((float) Math.toRadians(target.roll()), normal.m20, normal.m21, normal.m22);
+        records.removeAll(removedRecords);
+        normal.rotateLocal((float) Math.toRadians(target.getYaw()), normal.m10, normal.m11, normal.m12);
+        normal.rotateLocal((float) Math.toRadians(target.getPitch()), normal.m00, normal.m01, normal.m02);
+        normal.rotateLocal((float) Math.toRadians(target.getRoll()), normal.m20, normal.m21, normal.m22);
     }
 
     public String focusedTextureId() {
@@ -101,10 +106,8 @@ public class ModelAnalyser extends VertexRecorder {
         return new Vec2f(u / quad.length, v / quad.length);
     }
 
-    public void previewEffect(DrawContext context, int entitySize, boolean canSelect, boolean hideDisabled, String disabledTextureId) {
-        drawByAnother(context.getVertexConsumers(),
-                renderLayer -> !canSelect || hideDisabled || disabledTextureId.isEmpty() || !renderLayer.toString().contains(disabledTextureId),
-                (renderLayer, vertices) -> vertices);
+    public void previewEffect(DrawContext context, int entitySize, boolean canSelect) {
+        drawByAnother(context.getVertexConsumers(), renderLayer -> true, (renderLayer, vertices) -> vertices);
         context.draw();
         if (canSelect) drawFocused(context);
         if (normal.m00() == 0 && normal.m11() == 0 && normal.m22() == 0) return;

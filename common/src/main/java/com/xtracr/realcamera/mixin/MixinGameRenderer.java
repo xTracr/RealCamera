@@ -46,7 +46,7 @@ public abstract class MixinGameRenderer {
     @Inject(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/Camera;update(Lnet/minecraft/world/BlockView;Lnet/minecraft/entity/Entity;ZZF)V"))
     private void realcamera$onBeforeCameraUpdate(float tickDelta, long limitTime, MatrixStack matrices, CallbackInfo cInfo) {
         CompatibilityHelper.NEA_setDeltaTick(tickDelta);
-        RealCameraCore.init(client);
+        RealCameraCore.initialize(client);
         if (RealCameraCore.isActive() && !ConfigFile.config().isClassic()) {
             RealCameraCore.updateModel(client, tickDelta);
             RealCameraCore.computeCamera();

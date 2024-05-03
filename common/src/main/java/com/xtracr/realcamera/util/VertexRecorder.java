@@ -70,7 +70,7 @@ public class VertexRecorder implements VertexConsumerProvider {
             normal.set(left.toVector3f(), forward.crossProduct(left).toVector3f(), forward.toVector3f());
             Vec3d center = getPos(positionQuad, target.posU, target.posV);
             if (!Double.isFinite(center.lengthSquared())) return null;
-            position.set((float) target.offsetZ(), (float) target.offsetY(), (float) target.offsetX()).mul(normal).add(center.toVector3f());
+            position.set((float) target.getOffsetZ(), (float) target.getOffsetY(), (float) target.getOffsetX()).mul(normal).add(center.toVector3f());
             return record;
         }).filter(Objects::nonNull).findFirst().orElse(null);
     }

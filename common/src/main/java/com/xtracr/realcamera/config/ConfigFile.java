@@ -18,7 +18,7 @@ public class ConfigFile {
     private static final Path PATH;
 
     static {
-        final File configDir = new File(MinecraftClient.getInstance().runDirectory, "config");
+        File configDir = new File(MinecraftClient.getInstance().runDirectory, "config");
         if (!configDir.exists()) configDir.mkdirs();
         PATH = configDir.toPath().resolve(FILE_NAME);
     }

@@ -11,12 +11,8 @@ import net.minecraft.util.Formatting;
 public class ConfigScreen {
     public static Screen create(Screen parent) {
         ConfigFile.load();
-        final ModConfig config = ConfigFile.config();
-        final ConfigBuilder builder = ConfigBuilder.create()
-                .setParentScreen(parent)
-                .transparentBackground()
-                .setSavingRunnable(ConfigFile::save)
-                .setTitle(LocUtil.MOD_NAME());
+        ModConfig config = ConfigFile.config();
+        ConfigBuilder builder = ConfigBuilder.create().setParentScreen(parent).transparentBackground().setSavingRunnable(ConfigFile::save).setTitle(LocUtil.MOD_NAME());
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
         ConfigCategory general = builder.getOrCreateCategory(LocUtil.CONFIG_CATEGORY("general"));
         ConfigCategory classic = builder.getOrCreateCategory(LocUtil.CONFIG_CATEGORY("classic"));
