@@ -15,8 +15,10 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 public class ModelAnalyser extends VertexRecorder {
+    private static final Set<RenderLayer> unfocusableLayers = Set.of(RenderLayer.getArmorGlint(), RenderLayer.getArmorEntityGlint(), RenderLayer.getGlintTranslucent(), RenderLayer.getGlint(), RenderLayer.getDirectGlint(), RenderLayer.getEntityGlint(), RenderLayer.getDirectEntityGlint());
     private static final int quadArgb = 0x6F3333CC, forwardArgb = 0xFF00CC00, upwardArgb = 0xFFCC0000, leftArgb = 0xFF0000CC;
     private static final int focusedArgb = 0x7FFFFFFF, sideArgb = 0x3FFFFFFF;
     private final BindingTarget target;
@@ -46,22 +48,20 @@ public class ModelAnalyser extends VertexRecorder {
     private static void drawNormal(DrawContext context, Vec3d start, Vec3d normal, int length, int argb) {
         Vec3d end = normal.multiply(length).add(start);
         VertexConsumer vertexConsumer = context.getVertexConsumers().getBuffer(RenderLayer.getLineStrip());
-        vertexConsumer.vertex(start.getX(), start.getY(), start.getZ() + 1200f).color(argb)
-                .normal((float) normal.getX(), (float) normal.getY(), (float) normal.getZ()).next();
-        vertexConsumer.vertex(end.getX(), end.getY(), end.getZ() + 1200f).color(argb)
-                .normal((float) normal.getX(), (float) normal.getY(), (float) normal.getZ()).next();
+        vertexConsumer.vertex(start.getX(), start.getY(), start.getZ() + 1200f).color(argb).normal((float) normal.getX(), (float) normal.getY(), (float) normal.getZ()).next();
+        vertexConsumer.vertex(end.getX(), end.getY(), end.getZ() + 1200f).color(argb).normal((float) normal.getX(), (float) normal.getY(), (float) normal.getZ()).next();
         context.draw();
     }
 
     public void initialize(int entitySize, int mouseX, int mouseY, int layers, boolean hideDisabled, String idInField) {
-        buildLastRecord();
+        buildRecords();
         List<BuiltRecord> removedRecords = records.stream().filter(record -> {
-            boolean isIdInField = !idInField.isBlank() && record.renderLayer().toString().contains(idInField);
-            return (hideDisabled && isIdInField) || (!isIdInField && target.disabledTextureIds.stream().anyMatch(record.renderLayer().toString()::contains));
+            boolean isIdInField = !idInField.isBlank() && record.textureId().contains(idInField);
+            return (hideDisabled && isIdInField) || (!isIdInField && target.disabledTextureIds.stream().anyMatch(record.textureId()::contains));
         }).toList();
         records.removeAll(removedRecords);
         List<Triple> sortByDepth = new ArrayList<>();
-        records.forEach(record -> {
+        records.stream().filter(record -> !unfocusableLayers.contains(record.renderLayer())).forEach(record -> {
             Vertex[][] vertices = record.vertices();
             for (int i = 0, size = vertices.length; i < size; i++) {
                 Polygon polygon = new Polygon();
@@ -70,8 +70,7 @@ public class ModelAnalyser extends VertexRecorder {
                 if (!polygon.contains(mouseX, mouseY)) continue;
                 Vertex point = quad[0];
                 double deltaZ = 0;
-                if (point.normalZ() != 0)
-                    deltaZ = (point.normalX() * (mouseX - point.x()) + point.normalY() * (mouseY - point.y())) / point.normalZ();
+                if (point.normalZ() != 0) deltaZ = (point.normalX() * (mouseX - point.x()) + point.normalY() * (mouseY - point.y())) / point.normalZ();
                 sortByDepth.add(new Triple(point.z() + deltaZ, record, i));
             }
         });
@@ -92,7 +91,7 @@ public class ModelAnalyser extends VertexRecorder {
 
     public String focusedTextureId() {
         if (focusedRecord == null) return null;
-        return getTextureId(focusedRecord);
+        return focusedRecord.textureId();
     }
 
     public Vec2f getFocusedUV() {
@@ -107,7 +106,7 @@ public class ModelAnalyser extends VertexRecorder {
     }
 
     public void previewEffect(DrawContext context, int entitySize, boolean canSelect) {
-        drawByAnother(context.getVertexConsumers(), renderLayer -> true, (renderLayer, vertices) -> vertices);
+        drawByAnother(context.getVertexConsumers(), BuiltRecord::vertices);
         context.draw();
         if (canSelect) drawFocused(context);
         if (normal.m00() == 0 && normal.m11() == 0 && normal.m22() == 0) return;
@@ -118,18 +117,15 @@ public class ModelAnalyser extends VertexRecorder {
     }
 
     public void drawModelWithNormals(DrawContext context, int entitySize) {
-        drawByAnother(context.getVertexConsumers(), renderLayer -> true, (renderLayer, vertices) -> vertices);
+        drawByAnother(context.getVertexConsumers(), BuiltRecord::vertices);
         context.draw();
         drawPolyhedron(context);
         drawFocused(context);
         if (currentRecord == null) return;
         Vertex[] quad;
-        if ((quad = getQuad(currentRecord, target.posU, target.posV)) != null)
-            drawQuad(context, quad, quadArgb, 1000);
-        if ((quad = getQuad(currentRecord, target.forwardU, target.forwardV)) != null)
-            drawNormal(context, getPos(quad, target.forwardU, target.forwardV), quad[0].normal(), entitySize / 2, forwardArgb);
-        if ((quad = getQuad(currentRecord, target.upwardU, target.upwardV)) != null)
-            drawNormal(context, getPos(quad, target.upwardU, target.upwardV), quad[0].normal(), entitySize / 2, upwardArgb);
+        if ((quad = getQuad(currentRecord, target.posU, target.posV)) != null) drawQuad(context, quad, quadArgb, 1000);
+        if ((quad = getQuad(currentRecord, target.forwardU, target.forwardV)) != null) drawNormal(context, getPos(quad, target.forwardU, target.forwardV), quad[0].normal(), entitySize / 2, forwardArgb);
+        if ((quad = getQuad(currentRecord, target.upwardU, target.upwardV)) != null) drawNormal(context, getPos(quad, target.upwardU, target.upwardV), quad[0].normal(), entitySize / 2, upwardArgb);
     }
 
     private void drawFocused(DrawContext context) {

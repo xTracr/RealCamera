@@ -22,7 +22,7 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
     }
 
     @Inject(method = "getLeashPos", at = @At("HEAD"), cancellable = true)
-    private void realcamera$onGetLeashPosHEAD(float delta, CallbackInfoReturnable<Vec3d> cInfo) {
+    private void realcamera$atGetLeashPosHEAD(float delta, CallbackInfoReturnable<Vec3d> cInfo) {
         if (RealCameraCore.isRendering()) cInfo.setReturnValue(super.getLeashPos(delta));
     }
 

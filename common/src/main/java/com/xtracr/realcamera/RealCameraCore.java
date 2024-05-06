@@ -18,6 +18,9 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 public class RealCameraCore {
     private static final VertexRecorder recorder = new VertexRecorder();
     public static BindingTarget currentTarget = new BindingTarget();
@@ -83,12 +86,9 @@ public class RealCameraCore {
             entity.lastRenderZ = entity.getZ();
         }
         // WorldRenderer.renderEntity
-        offset = new Vec3d(MathHelper.lerp(tickDelta, entity.lastRenderX, entity.getX()),
-                MathHelper.lerp(tickDelta, entity.lastRenderY, entity.getY()),
-                MathHelper.lerp(tickDelta, entity.lastRenderZ, entity.getZ()));
-        dispatcher.render(entity, 0, 0, 0, MathHelper.lerp(tickDelta, entity.prevYaw, entity.getYaw()),
-                tickDelta, new MatrixStack(), recorder, dispatcher.getLight(entity, tickDelta));
-        recorder.buildLastRecord();
+        offset = new Vec3d(MathHelper.lerp(tickDelta, entity.lastRenderX, entity.getX()), MathHelper.lerp(tickDelta, entity.lastRenderY, entity.getY()), MathHelper.lerp(tickDelta, entity.lastRenderZ, entity.getZ()));
+        dispatcher.render(entity, 0, 0, 0, MathHelper.lerp(tickDelta, entity.prevYaw, entity.getYaw()), tickDelta, new MatrixStack(), recorder, dispatcher.getLight(entity, tickDelta));
+        recorder.buildRecords();
     }
 
     public static void renderCameraEntity(VertexConsumerProvider vertexConsumers) {
@@ -97,16 +97,17 @@ public class RealCameraCore {
                 .rotate(RotationAxis.POSITIVE_Y.rotationDegrees(yaw + 180.0f))
                 .transpose().invert();
         Matrix4f positionMatrix = new Matrix4f(normalMatrix).translate(offset.subtract(pos).toVector3f());
-        recorder.drawByAnother(vertexConsumers,
-                renderLayer -> currentTarget.disabledTextureIds.stream().noneMatch(renderLayer.toString()::contains),
-                (renderLayer, vertices) -> {
-                    double depth = currentTarget.disablingDepth;
-                    int count = vertices.length;
-                    VertexRecorder.Vertex[] quad = new VertexRecorder.Vertex[count];
-                    for (int i = 0; i < count; i++) quad[i] = vertices[i].transform(positionMatrix, normalMatrix);
-                    for (VertexRecorder.Vertex vertex : quad) if (vertex.z() < -depth) return quad;
-                    return null;
-                });
+        recorder.drawByAnother(vertexConsumers, record -> {
+            if (currentTarget.disabledTextureIds.stream().anyMatch(record.textureId()::contains)) return new VertexRecorder.Vertex[0][];
+            final double depth = currentTarget.disablingDepth;
+            final int vertexCount = record.additionalVertexCount();
+            return Arrays.stream(record.vertices()).map(quad -> {
+                VertexRecorder.Vertex[] newQuad = new VertexRecorder.Vertex[vertexCount];
+                for (int j = 0; j < vertexCount ; j++) newQuad[j] = quad[j].transform(positionMatrix, normalMatrix);
+                for (VertexRecorder.Vertex vertex : newQuad) if (vertex.z() < -depth) return newQuad;
+                return null;
+            }).filter(Objects::nonNull).toArray(VertexRecorder.Vertex[][]::new);
+        });
     }
 
     public static void computeCamera() {
@@ -114,7 +115,7 @@ public class RealCameraCore {
         Matrix3f normal = new Matrix3f();
         for (BindingTarget target : ConfigFile.config().getTargetList()) {
             Vector3f position  = new Vector3f();
-            if (recorder.getTargetPosAndRot(target, normal, position) == null || !(Math.abs(normal.determinant() - 1) <= 0.01f)) continue;
+            if (recorder.getTargetPosAndRot(target, normal, position) == null || !(Math.abs(normal.determinant() - 1) <= 0.01f) || !Float.isFinite(position.lengthSquared())) continue;
             pos = new Vec3d(position).add(offset);
             currentTarget = target;
             break;

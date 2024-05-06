@@ -32,7 +32,7 @@ public class BindingTarget {
                 .upwardU(0.1875f).upwardV(0.075f)
                 .posU(0.1875f).posV(0.2f)
                 .bindX(shouldBind).bindZ(shouldBind).bindRotation(shouldBind)
-                .offsetX(-0.12)
+                .offsetX(-0.1)
                 .disabledTextureIds(List.of("minecraft:textures/entity/enderdragon/dragon.png"));
     }
 
