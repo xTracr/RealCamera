@@ -48,7 +48,7 @@
   "config.tooltip.xtracr_realcamera.adjustOffset": "当前按下调整键时是调整摄像头的偏移还是旋转",
   "config.tooltip.xtracr_realcamera.renderStuckObjects": "箭，蜂刺和其它会卡在玩家身体里的物体",
 
-  "message.xtracr_realcamera.bindingFailed": "[Real Camera]: 绑定失败，请前往模型视图界面手动设置",
+  "message.xtracr_realcamera.bindingFailed": "[%s]: 绑定失败，请前往%s界面手动设置",
 
   "screen.xtracr_realcamera.modelView_title": "模型视图",
   "screen.widget.xtracr_realcamera.modelView_selectMode": "选择",

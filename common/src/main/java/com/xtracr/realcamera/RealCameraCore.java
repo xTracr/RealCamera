@@ -97,14 +97,13 @@ public class RealCameraCore {
                 .rotate(RotationAxis.POSITIVE_Y.rotationDegrees(yaw + 180.0f))
                 .transpose().invert();
         Matrix4f positionMatrix = new Matrix4f(normalMatrix).translate(offset.subtract(pos).toVector3f());
-        recorder.drawByAnother(vertexConsumers, record -> {
-            if (currentTarget.disabledTextureIds.stream().anyMatch(record.textureId()::contains)) return new VertexRecorder.Vertex[0][];
+        recorder.drawByAnother(vertexConsumers, record -> currentTarget.disabledTextureIds.stream().noneMatch(record.textureId()::contains), record -> {
             final double depth = currentTarget.disablingDepth;
-            final int vertexCount = record.additionalVertexCount();
-            return Arrays.stream(record.vertices()).map(quad -> {
-                VertexRecorder.Vertex[] newQuad = new VertexRecorder.Vertex[vertexCount];
-                for (int j = 0; j < vertexCount ; j++) newQuad[j] = quad[j].transform(positionMatrix, normalMatrix);
-                for (VertexRecorder.Vertex vertex : newQuad) if (vertex.z() < -depth) return newQuad;
+            final int primitiveLength = record.primitiveLength();
+            return Arrays.stream(record.primitives()).map(primitive -> {
+                VertexRecorder.Vertex[] newPrimitive = new VertexRecorder.Vertex[primitiveLength];
+                for (int j = 0; j < primitiveLength ; j++) newPrimitive[j] = primitive[j].transform(positionMatrix, normalMatrix);
+                for (VertexRecorder.Vertex vertex : newPrimitive) if (vertex.z() < -depth) return newPrimitive;
                 return null;
             }).filter(Objects::nonNull).toArray(VertexRecorder.Vertex[][]::new);
         });

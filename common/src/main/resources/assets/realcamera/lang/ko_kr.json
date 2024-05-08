@@ -1,6 +1,6 @@
 {
   "general.xtracr_realcamera.modName": "Real Camera",
-  "key.xtracr_realcamera.modelViewGui": "모델 뷰 GUI 열기",
+  "key.xtracr_realcamera.modelViewScreen": "모델 뷰 GUI 열기",
   "key.xtracr_realcamera.togglePerspective": "활성화/비활성화",
   "key.xtracr_realcamera.toggleAdjustMode": "조정 모드 전환",
   "key.xtracr_realcamera.toggleCameraMode": "카메라 모드 전환",
@@ -35,7 +35,7 @@
   "config.option.xtracr_realcamera.pitch": "피치",
   "config.option.xtracr_realcamera.yaw": "요",
   "config.option.xtracr_realcamera.roll": "롤",
-  "config.option.xtracr_realcamera.toModelViewGui": "자세한 설정은 %s 화면으로 이동하세요 (키 바인드 설정 필요)",
+  "config.option.xtracr_realcamera.toModelViewScreen": "자세한 설정은 %s 화면으로 이동하세요 (키 바인드 설정 필요)",
   "config.option.xtracr_realcamera.adjustOffset": "카메라 오프셋 조정",
   "config.option.xtracr_realcamera.renderStuckObjects": "끼인 물체 렌더링",
   "config.option.xtracr_realcamera.disableRenderItems": "누른 상태에서는 렌더링 비활성화",

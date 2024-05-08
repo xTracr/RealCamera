@@ -6,7 +6,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.function.Supplier;
 
-public final class CompatibilityHelper {
+public class CompatibilityHelper {
     private static Class<?> NEA_NEAnimationsLoader = null;
     private static Method NEA_playerTransformer_setDeltaTick = null;
 

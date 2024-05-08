@@ -19,7 +19,7 @@ import java.util.Set;
 
 public class ModelAnalyser extends VertexRecorder {
     private static final Set<RenderLayer> unfocusableLayers = Set.of(RenderLayer.getArmorGlint(), RenderLayer.getArmorEntityGlint(), RenderLayer.getGlintTranslucent(), RenderLayer.getGlint(), RenderLayer.getDirectGlint(), RenderLayer.getEntityGlint(), RenderLayer.getDirectEntityGlint());
-    private static final int quadArgb = 0x6F3333CC, forwardArgb = 0xFF00CC00, upwardArgb = 0xFFCC0000, leftArgb = 0xFF0000CC;
+    private static final int primitiveArgb = 0x6F3333CC, forwardArgb = 0xFF00CC00, upwardArgb = 0xFFCC0000, leftArgb = 0xFF0000CC;
     private static final int focusedArgb = 0x7FFFFFFF, sideArgb = 0x3FFFFFFF;
     private final BindingTarget target;
     private final Matrix3f normal = new Matrix3f();
@@ -32,16 +32,16 @@ public class ModelAnalyser extends VertexRecorder {
         this.target = target;
     }
 
-    private static boolean intersects(Vertex[] quad, List<Vertex[]> quads) {
+    private static boolean intersects(Vertex[] p1, List<Vertex[]> primitives) {
         final float precision = 1.0E-05f;
-        for (Vertex[] q : quads) for (Vertex v1 : quad) for (Vertex v2 : q) if (v1.pos().squaredDistanceTo(v2.pos()) < precision) return true;
+        for (Vertex[] p2 : primitives) for (Vertex v1 : p1) for (Vertex v2 : p2) if (v1.pos().squaredDistanceTo(v2.pos()) < precision) return true;
         return false;
     }
 
-    private static void drawQuad(DrawContext context, Vertex[] quad, int argb, int offset) {
+    private static void drawPrimitive(DrawContext context, Vertex[] primitive, int argb, int offset) {
         VertexConsumer vertexConsumer = context.getVertexConsumers().getBuffer(RenderLayer.getGui());
-        for (Vertex vertex : quad) vertexConsumer.vertex(vertex.x(), vertex.y(), vertex.z() + offset).color(argb).next();
-        if (quad.length == 3) vertexConsumer.vertex(quad[2].x(), quad[2].y(), quad[2].z() + offset).color(argb).next();
+        for (Vertex vertex : primitive) vertexConsumer.vertex(vertex.x(), vertex.y(), vertex.z() + offset).color(argb).next();
+        if (primitive.length == 3) vertexConsumer.vertex(primitive[2].x(), primitive[2].y(), primitive[2].z() + offset).color(argb).next();
         context.draw();
     }
 
@@ -62,13 +62,13 @@ public class ModelAnalyser extends VertexRecorder {
         records.removeAll(removedRecords);
         List<Triple> sortByDepth = new ArrayList<>();
         records.stream().filter(record -> !unfocusableLayers.contains(record.renderLayer())).forEach(record -> {
-            Vertex[][] vertices = record.vertices();
-            for (int i = 0, size = vertices.length; i < size; i++) {
+            Vertex[][] primitives = record.primitives();
+            for (int i = 0, primitiveCount = primitives.length; i < primitiveCount; i++) {
                 Polygon polygon = new Polygon();
-                Vertex[] quad = vertices[i];
-                for (Vertex vertex : quad) polygon.addPoint((int) vertex.x(), (int) vertex.y());
+                Vertex[] primitive = primitives[i];
+                for (Vertex vertex : primitive) polygon.addPoint((int) vertex.x(), (int) vertex.y());
                 if (!polygon.contains(mouseX, mouseY)) continue;
-                Vertex point = quad[0];
+                Vertex point = primitive[0];
                 double deltaZ = 0;
                 if (point.normalZ() != 0) deltaZ = (point.normalX() * (mouseX - point.x()) + point.normalY() * (mouseY - point.y())) / point.normalZ();
                 sortByDepth.add(new Triple(point.z() + deltaZ, record, i));
@@ -97,16 +97,16 @@ public class ModelAnalyser extends VertexRecorder {
     public Vec2f getFocusedUV() {
         if (focusedIndex == -1 || focusedRecord == null) return null;
         float u = 0, v = 0;
-        Vertex[] quad = focusedRecord.vertices()[focusedIndex];
-        for (Vertex vertex : quad) {
+        Vertex[] primitive = focusedRecord.primitives()[focusedIndex];
+        for (Vertex vertex : primitive) {
             u += vertex.u();
             v += vertex.v();
         }
-        return new Vec2f(u / quad.length, v / quad.length);
+        return new Vec2f(u / primitive.length, v / primitive.length);
     }
 
     public void previewEffect(DrawContext context, int entitySize, boolean canSelect) {
-        drawByAnother(context.getVertexConsumers(), BuiltRecord::vertices);
+        drawByAnother(context.getVertexConsumers(), record -> true, BuiltRecord::primitives);
         context.draw();
         if (canSelect) drawFocused(context);
         if (normal.m00() == 0 && normal.m11() == 0 && normal.m22() == 0) return;
@@ -117,47 +117,47 @@ public class ModelAnalyser extends VertexRecorder {
     }
 
     public void drawModelWithNormals(DrawContext context, int entitySize) {
-        drawByAnother(context.getVertexConsumers(), BuiltRecord::vertices);
+        drawByAnother(context.getVertexConsumers(), record -> true, BuiltRecord::primitives);
         context.draw();
         drawPolyhedron(context);
         drawFocused(context);
         if (currentRecord == null) return;
-        Vertex[] quad;
-        if ((quad = getQuad(currentRecord, target.posU, target.posV)) != null) drawQuad(context, quad, quadArgb, 1000);
-        if ((quad = getQuad(currentRecord, target.forwardU, target.forwardV)) != null) drawNormal(context, getPos(quad, target.forwardU, target.forwardV), quad[0].normal(), entitySize / 2, forwardArgb);
-        if ((quad = getQuad(currentRecord, target.upwardU, target.upwardV)) != null) drawNormal(context, getPos(quad, target.upwardU, target.upwardV), quad[0].normal(), entitySize / 2, upwardArgb);
+        Vertex[] primitive;
+        if ((primitive = getPrimitive(currentRecord, target.posU, target.posV)) != null) drawPrimitive(context, primitive, primitiveArgb, 1000);
+        if ((primitive = getPrimitive(currentRecord, target.forwardU, target.forwardV)) != null) drawNormal(context, getPos(primitive, target.forwardU, target.forwardV), primitive[0].normal(), entitySize / 2, forwardArgb);
+        if ((primitive = getPrimitive(currentRecord, target.upwardU, target.upwardV)) != null) drawNormal(context, getPos(primitive, target.upwardU, target.upwardV), primitive[0].normal(), entitySize / 2, upwardArgb);
     }
 
     private void drawFocused(DrawContext context) {
         if (focusedIndex == -1 || focusedRecord == null) return;
-        Vertex[] focused = focusedRecord.vertices()[focusedIndex];
-        drawQuad(context, focused, focusedArgb, 1100);
-        int size = focused.length;
-        Vertex[] reversed = new Vertex[size];
-        for (int i = 0; i < size; i++) reversed[i] = focused[size - 1 - i];
-        drawQuad(context, reversed, focusedArgb, 1100);
+        Vertex[] focused = focusedRecord.primitives()[focusedIndex];
+        drawPrimitive(context, focused, focusedArgb, 1100);
+        int length = focused.length;
+        Vertex[] reversed = new Vertex[length];
+        for (int i = 0; i < length; i++) reversed[i] = focused[length - 1 - i];
+        drawPrimitive(context, reversed, focusedArgb, 1100);
     }
 
     private void drawPolyhedron(DrawContext context) {
         if (focusedIndex == -1 || focusedRecord == null) return;
         List<Vertex[]> polyhedron = new ArrayList<>();
-        polyhedron.add(focusedRecord.vertices()[focusedIndex]);
+        polyhedron.add(focusedRecord.primitives()[focusedIndex]);
         List<Integer> indexes = new ArrayList<>(List.of(focusedIndex));
-        Vertex[][] vertices = focusedRecord.vertices();
+        Vertex[][] primitives = focusedRecord.primitives();
+        final int primitiveCount = primitives.length;
         boolean added;
-        int size = focusedRecord.quadCount();
         do {
             added = false;
-            for (int i = 0; i < size; i++) {
-                Vertex[] quad = vertices[i];
-                if (indexes.contains(i) | !intersects(quad, polyhedron)) continue;
-                polyhedron.add(quad);
+            for (int i = 0; i < primitiveCount; i++) {
+                Vertex[] primitive = primitives[i];
+                if (indexes.contains(i) | !intersects(primitive, polyhedron)) continue;
+                polyhedron.add(primitive);
                 indexes.add(i);
                 added = true;
             }
         } while (added);
         List<Integer> resultIndexes = new ArrayList<>(List.of(focusedIndex));
-        for (int i = focusedIndex + 1; i < size; i++) {
+        for (int i = focusedIndex + 1; i < primitiveCount; i++) {
             if (!indexes.contains(i)) break;
             resultIndexes.add(i);
         }
@@ -165,7 +165,7 @@ public class ModelAnalyser extends VertexRecorder {
             if (!indexes.contains(i)) break;
             resultIndexes.add(i);
         }
-        resultIndexes.forEach(i -> drawQuad(context, vertices[i], sideArgb, 1000));
+        resultIndexes.forEach(i -> drawPrimitive(context, primitives[i], sideArgb, 1000));
     }
 
     record Triple(double depth, BuiltRecord record, int index) {}

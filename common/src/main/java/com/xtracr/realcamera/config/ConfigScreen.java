@@ -127,10 +127,10 @@ public class ConfigScreen {
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("adjustOffset"))
                 .setSaveConsumer(b -> config.binding.adjustOffset = b)
                 .build());
-        binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("renderStuckObjects"), config.renderModel)
+        binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("renderStuckObjects"), config.binding.renderStuckObjects)
                 .setDefaultValue(true)
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("renderStuckObjects"))
-                .setSaveConsumer(b -> config.renderModel = b)
+                .setSaveConsumer(b -> config.binding.renderStuckObjects = b)
                 .build());
         binding.addEntry(entryBuilder.startStrList(LocUtil.CONFIG_OPTION("disableRenderItems"), config.binding.disableRenderItems)
                 .setDefaultValue(ModConfig.Binding.defaultDisableRenderItems)

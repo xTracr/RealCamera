@@ -297,8 +297,6 @@ public class ModelViewScreen extends Screen {
 
     protected void loadBindingTarget(BindingTarget target) {
         if (target.isEmpty()) return;
-        disabledIds.clear();
-        disabledIds.addAll(target.disabledTextureIds);
         nameField.setText(target.name);
         textureIdField.setText(target.textureId);
         priorityField.setValue(target.priority);
@@ -320,6 +318,8 @@ public class ModelViewScreen extends Screen {
         pitchSlider.setValue(target.pitch);
         yawSlider.setValue(target.yaw);
         rollSlider.setValue(target.roll);
+        disabledIds.clear();
+        disabledIds.addAll(target.disabledTextureIds);
     }
 
     private ButtonWidget createButton(Text message, int width, ButtonWidget.PressAction onPress) {
