@@ -48,7 +48,7 @@
   "config.tooltip.xtracr_realcamera.adjustOffset": "조정 키를 눌렀을 때 카메라의 오프셋 또는 회전을 조정합니다",
   "config.tooltip.xtracr_realcamera.renderStuckObjects": "화살, 벌레 등 플레이어 몸에 꽂힌 물체들을 렌더링합니다",
 
-  "message.xtracr_realcamera.bindingFailed": "[%s]: 바인딩 실패, %s 화면으로 이동하여 수동으로 구성하세요",",
+  "message.xtracr_realcamera.bindingFailed": "[%s]: 바인딩 실패, %s 화면으로 이동하여 수동으로 구성하세요",
 
   "screen.xtracr_realcamera.modelView_title": "모델 뷰",
   "screen.widget.xtracr_realcamera.modelView_selectMode": "선택 중",
