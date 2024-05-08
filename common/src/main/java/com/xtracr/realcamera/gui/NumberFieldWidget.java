@@ -1,5 +1,6 @@
 package com.xtracr.realcamera.gui;
 
+import com.xtracr.realcamera.util.LocUtil;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.tooltip.Tooltip;
@@ -70,7 +71,7 @@ public abstract class NumberFieldWidget<T extends Comparable<T>> extends TextFie
             if (value.compareTo(minimum) < 0) throw new Exception("< " + minimum);
             if (value.compareTo(maximum) > 0) throw new Exception("> " + maximum);
         } catch (Exception exception) {
-            super.setTooltip(Tooltip.of(Text.literal("Invalid number: " + exception.getMessage()).styled(s -> s.withColor(Formatting.RED))));
+            super.setTooltip(Tooltip.of(LocUtil.literal("Invalid number: " + exception.getMessage()).styled(s -> s.withColor(Formatting.RED))));
             setRenderTextProvider((string, firstCharacterIndex) -> OrderedText.styledForwardsVisitedString(string, Style.EMPTY.withColor(Formatting.RED)));
         }
     }

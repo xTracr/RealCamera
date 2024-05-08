@@ -1,6 +1,6 @@
 {
-  "key.category.xtracr_realcamera": "Real Camera",
-  "key.xtracr_realcamera.modelViewGui": "Open Model View GUI",
+  "general.xtracr_realcamera.modName": "Real Camera",
+  "key.xtracr_realcamera.modelViewScreen": "Open Model View Screen",
   "key.xtracr_realcamera.togglePerspective": "Enable/Disable",
   "key.xtracr_realcamera.toggleAdjustMode": "Toggle Adjust Mode",
   "key.xtracr_realcamera.toggleCameraMode": "Toggle Camera Mode",
@@ -12,7 +12,6 @@
   "key.xtracr_realcamera.adjustRIGHT": "Adjust RIGHT",
   "modmenu.descriptionTranslation.realcamera": "Make the camera more realistic in the first-person view.",
 
-  "config.title.xtracr_realcamera": "Real Camera",
   "config.category.xtracr_realcamera.general": "General",
   "config.category.xtracr_realcamera.binding": "Binding Mode",
   "config.category.xtracr_realcamera.classic": "Classic Mode",
@@ -36,7 +35,7 @@
   "config.option.xtracr_realcamera.pitch": "Pitch",
   "config.option.xtracr_realcamera.yaw": "Yaw",
   "config.option.xtracr_realcamera.roll": "Roll",
-  "config.option.xtracr_realcamera.toModelViewGui": "For detailed settings, please go to the %s screen (key bind need to be set to open it)",
+  "config.option.xtracr_realcamera.toModelViewScreen": "For detailed settings, please go to the %s screen (key bind need to be set to open it)",
   "config.option.xtracr_realcamera.adjustOffset": "Adjust Camera Offset",
   "config.option.xtracr_realcamera.renderStuckObjects": "Render Stuck Objects",
   "config.option.xtracr_realcamera.disableRenderItems": "Disable rendering when holding",
@@ -49,7 +48,7 @@
   "config.tooltip.xtracr_realcamera.adjustOffset": "When pressing the adjustment key, adjust the offset or rotation of camera",
   "config.tooltip.xtracr_realcamera.renderStuckObjects": "Arrows, bee stings and other objects that can be stuck in the player's body",
 
-  "message.xtracr_realcamera.bindingFailed": "[Real Camera]: Binding failed, please go to the Model View screen and configure manually",
+  "message.xtracr_realcamera.bindingFailed": "[%s]: Binding failed, please go to the %s screen and configure manually",
 
   "screen.xtracr_realcamera.modelView_title": "Model View",
   "screen.widget.xtracr_realcamera.modelView_selectMode": "Selecting",
@@ -65,11 +64,20 @@
   "screen.widget.xtracr_realcamera.modelView_pitch": "Pitch = %s",
   "screen.widget.xtracr_realcamera.modelView_yaw": "Yaw = %s",
   "screen.widget.xtracr_realcamera.modelView_roll": "Roll = %s",
+  "screen.widget.xtracr_realcamera.modelView_configs": "Configs",
+  "screen.widget.xtracr_realcamera.modelView_disable": "Disable",
+  "screen.widget.xtracr_realcamera.modelView_copy": "Copy",
+  "screen.widget.xtracr_realcamera.modelView_paste": "Paste",
+  "screen.widget.xtracr_realcamera.modelView_clear": "Clear",
   "screen.tooltip.xtracr_realcamera.modelView_selectMode": "Hold left Alt and left click to get the UV coordinates at the mouse pointer\nThe three sets of UV coordinates below are, from top to bottom, the UV coordinates of the forward vector, the upward vector, and a point on the target plane\nNote: Scroll with left Alt held to switch between the different layers of the model. Manually inputting UV coordinates allows you to bind more accurately to the target position",
   "screen.tooltip.xtracr_realcamera.modelView_textureId": "The texture id of the selected model (not necessary to be the full id), can be shortened when saving to make it easier to recognize.\nFor example, shorten minecraft:textures/entity/player/slim/alex.png to minecraft:textures/entity/player/.",
   "screen.tooltip.xtracr_realcamera.modelView_bindButtons": "When disabled, the camera's relative relationship to the model will not change, but the camera's corresponding attributes will not be modified by this mod",
   "screen.tooltip.xtracr_realcamera.modelView_scale": "Scale, which controls the size of the offsets",
   "screen.tooltip.xtracr_realcamera.modelView_depth": "Planes where all vertex-to-screen distances are less than this value will not be rendered",
   "screen.tooltip.xtracr_realcamera.modelView_priority": "Priority when binding, the larger the value the higher the priority, and the higher the sorting on the right side",
-  "screen.tooltip.xtracr_realcamera.modelView_targetName": "Name of the config"
+  "screen.tooltip.xtracr_realcamera.modelView_targetName": "Name of the config",
+  "screen.tooltip.xtracr_realcamera.modelView_configs": "Saved Configs",
+  "screen.tooltip.xtracr_realcamera.modelView_disable": "Disabling Settings\nGlobal disabling settings are in the config screen",
+  "screen.tooltip.xtracr_realcamera.modelView_copy": "Copy all entries",
+  "screen.tooltip.xtracr_realcamera.modelView_disabledIdField": "Hold left Alt and left click to get the texture id of the selected model, can be shortened to extend disabling range, but may cause the program to misjudge"
 }

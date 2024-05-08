@@ -25,12 +25,12 @@ public class RaycastUtil {
     }
 
     public static void update(Entity entity, double sqDistance, float tickDelta) {
-        final Camera camera = MinecraftClient.getInstance().gameRenderer.getCamera();
-        final Vec3d eyePos = entity.getCameraPosVec(tickDelta);
+        Camera camera = MinecraftClient.getInstance().gameRenderer.getCamera();
+        Vec3d eyePos = entity.getCameraPosVec(tickDelta);
         startVec = camera.getPos();
         Vec3d direction = Vec3d.fromPolar(camera.getPitch(), camera.getYaw());
-        final Vec3d offset = startVec.subtract(eyePos);
-        final Vec3d footPoint = MathUtil.getIntersectionPoint(Vec3d.ZERO, direction, offset, direction);
+        Vec3d offset = startVec.subtract(eyePos);
+        Vec3d footPoint = MathUtil.getIntersectionPoint(Vec3d.ZERO, direction, offset, direction);
         if (footPoint.lengthSquared() > sqDistance) {
             startVec = eyePos;
             direction = entity.getRotationVec(tickDelta);
