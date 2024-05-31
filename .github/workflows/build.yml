@@ -23,7 +23,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
-          java-version: 17
+          java-version: 21
 
       - name: Make Gradle Wrapper Executable
         if: ${{ runner.os != 'Windows' }}
@@ -38,4 +38,4 @@ jobs:
           name: Artifacts
           path: |
             fabric/build/libs/*
-            forge/build/libs/*
+            neoforge/build/libs/*

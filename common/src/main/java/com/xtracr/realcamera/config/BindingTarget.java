@@ -1,6 +1,6 @@
 package com.xtracr.realcamera.config;
 
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 import java.util.List;
 
@@ -45,7 +45,7 @@ public class BindingTarget {
     }
 
     public void setOffsetX(double offsetX) {
-        this.offsetX = MathHelper.clamp(offsetX, ModConfig.MIN_DOUBLE, ModConfig.MAX_DOUBLE);
+        this.offsetX = Mth.clamp(offsetX, ModConfig.MIN_DOUBLE, ModConfig.MAX_DOUBLE);
     }
 
     public double getOffsetY() {
@@ -53,7 +53,7 @@ public class BindingTarget {
     }
 
     public void setOffsetY(double offsetY) {
-        this.offsetY = MathHelper.clamp(offsetY, ModConfig.MIN_DOUBLE, ModConfig.MAX_DOUBLE);
+        this.offsetY = Mth.clamp(offsetY, ModConfig.MIN_DOUBLE, ModConfig.MAX_DOUBLE);
     }
 
     public double getOffsetZ() {
@@ -61,7 +61,7 @@ public class BindingTarget {
     }
 
     public void setOffsetZ(double offsetZ) {
-        this.offsetZ = MathHelper.clamp(offsetZ, ModConfig.MIN_DOUBLE, ModConfig.MAX_DOUBLE);
+        this.offsetZ = Mth.clamp(offsetZ, ModConfig.MIN_DOUBLE, ModConfig.MAX_DOUBLE);
     }
 
     public float getPitch() {
@@ -69,7 +69,7 @@ public class BindingTarget {
     }
 
     public void setPitch(float pitch) {
-        this.pitch = MathHelper.wrapDegrees(pitch);
+        this.pitch = Mth.wrapDegrees(pitch);
     }
 
     public float getYaw() {
@@ -77,7 +77,7 @@ public class BindingTarget {
     }
 
     public void setYaw(float yaw) {
-        this.yaw = MathHelper.wrapDegrees(yaw);
+        this.yaw = Mth.wrapDegrees(yaw);
     }
 
     public float getRoll() {
@@ -85,7 +85,7 @@ public class BindingTarget {
     }
 
     public void setRoll(float roll) {
-        this.roll = MathHelper.wrapDegrees(roll);
+        this.roll = Mth.wrapDegrees(roll);
     }
 
     public BindingTarget priority(int priority) {

@@ -5,8 +5,8 @@ import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import me.shedaniel.clothconfig2.impl.builders.SubCategoryBuilder;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.screens.Screen;
 
 public class ConfigScreen {
     public static Screen create(Screen parent) {
@@ -120,7 +120,7 @@ public class ConfigScreen {
         classic.addEntry(classicCameraRotation.build());
 
         binding.addEntry(entryBuilder.startTextDescription(LocUtil.CONFIG_OPTION("toModelViewScreen",
-                        LocUtil.MODEL_VIEW_TITLE().styled(s -> s.withColor(Formatting.BLUE))))
+                        LocUtil.MODEL_VIEW_TITLE().withStyle(s -> s.withColor(ChatFormatting.BLUE))))
                 .build());
         binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("adjustOffset"), config.binding.adjustOffset)
                 .setDefaultValue(true)

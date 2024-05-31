@@ -3,8 +3,8 @@ package com.xtracr.realcamera;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.gui.ModelViewScreen;
 import com.xtracr.realcamera.util.LocUtil;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.HashMap;
@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public final class KeyBindings {
-    private static final Map<KeyBinding, Consumer<MinecraftClient>> KEY_BINDINGS = new HashMap<>();
+    private static final Map<KeyMapping, Consumer<Minecraft>> KEY_BINDINGS = new HashMap<>();
 
     static {
         createKeyBinding("modelViewScreen", client -> client.setScreen(new ModelViewScreen()));
@@ -32,22 +32,22 @@ public final class KeyBindings {
         createKeyBinding("adjustRIGHT", client -> ConfigFile.config().adjustOffsetZ(-1));
     }
 
-    private static void createKeyBinding(String id, Consumer<MinecraftClient> whenPressed) {
+    private static void createKeyBinding(String id, Consumer<Minecraft> whenPressed) {
         createKeyBinding(id, GLFW.GLFW_KEY_UNKNOWN, whenPressed);
     }
 
-    private static void createKeyBinding(String id, int code, Consumer<MinecraftClient> whenPressed) {
-        KEY_BINDINGS.put(new KeyBinding("key." + RealCamera.FULL_ID + "." + id, code, LocUtil.KEY_MOD_NAME), whenPressed);
+    private static void createKeyBinding(String id, int code, Consumer<Minecraft> whenPressed) {
+        KEY_BINDINGS.put(new KeyMapping("key." + RealCamera.FULL_ID + "." + id, code, LocUtil.KEY_MOD_NAME), whenPressed);
     }
 
-    public static void register(Consumer<KeyBinding> registerer) {
+    public static void register(Consumer<KeyMapping> registerer) {
         KEY_BINDINGS.keySet().forEach(registerer);
     }
 
-    public static void handle(MinecraftClient client) {
+    public static void handle(Minecraft client) {
         if (client.player == null) return;
         KEY_BINDINGS.forEach((keyBinding, whenPressed) -> {
-            while (keyBinding.wasPressed()) {
+            while (keyBinding.consumeClick()) {
                 whenPressed.accept(client);
                 ConfigFile.save();
             }

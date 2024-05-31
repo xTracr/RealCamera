@@ -1,7 +1,8 @@
 modLoader = "javafml"
-loaderVersion = "[47,48)"
+loaderVersion = "[2,)"
 license = "MIT license"
 issueTrackerURL = "https://github.com/xTracr/RealCamera/issues"
+
 [[mods]]
 modId = "realcamera"
 version = "${version}"
@@ -22,30 +23,32 @@ Make the camera more realistic in the first-person view.
 '''
 
 [[dependencies.realcamera]]
-modId = "forge" #mandatory
-# Does this dependency have to exist - if not, ordering below must be specified
-mandatory = true #mandatory
-# The version range of the dependency
-versionRange = "[47,48)" #mandatory
-# An ordering relationship for the dependency - BEFORE or AFTER required if the relationship is not mandatory
+modId = "neoforge"
+type= "required"
+versionRange = "[20.6,)"
 ordering = "NONE"
-# Side this dependency is applied on - BOTH, CLIENT or SERVER
 side = "BOTH"
 
 [[dependencies.realcamera]]
 modId = "minecraft"
-mandatory = true
-versionRange = "[1.20.1,1.20.2)"
+type = "required"
+versionRange = "[1.20.6,1.21)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.realcamera]]
 modId = "cloth_config"
-mandatory = false
-versionRange = "[11.0.99,)"
+type = "optional"
+versionRange = "[14.0.126,)"
 ordering = "NONE"
 side = "CLIENT"
 [dependencies.realcamera.mc-publish]
-ignore = false
-modrinth = "cloth-config"
-curseforge = "cloth-config"
+    ignore = false
+    modrinth = "cloth-config"
+    curseforge = "cloth-config"
+
+[[mixins]]
+config = "realcamera-common.mixins.json"
+
+[[mixins]]
+config = "realcamera.mixins.json"

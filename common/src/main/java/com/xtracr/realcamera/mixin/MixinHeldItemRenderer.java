@@ -1,20 +1,20 @@
 package com.xtracr.realcamera.mixin;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.xtracr.realcamera.RealCameraCore;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.item.HeldItemRenderer;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.ItemInHandRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(HeldItemRenderer.class)
+@Mixin(ItemInHandRenderer.class)
 public abstract class MixinHeldItemRenderer {
-    @Inject(method = "renderItem(FLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;Lnet/minecraft/client/network/ClientPlayerEntity;I)V", at = @At("HEAD"), cancellable = true)
-    private void realcamera$cancelRender(float tickDelta, MatrixStack matrices, VertexConsumerProvider.Immediate vertexConsumers, ClientPlayerEntity player, int light, CallbackInfo cInfo) {
-        if (player instanceof ClientPlayerEntity && RealCameraCore.isRendering()) {
+    @Inject(method = "renderHandsWithItems", at = @At("HEAD"), cancellable = true)
+    private void realcamera$cancelRender(float tickDelta, PoseStack matrices, MultiBufferSource.BufferSource vertexConsumers, LocalPlayer player, int light, CallbackInfo cInfo) {
+        if (player instanceof LocalPlayer && RealCameraCore.isRendering()) {
             cInfo.cancel();
         }
     }

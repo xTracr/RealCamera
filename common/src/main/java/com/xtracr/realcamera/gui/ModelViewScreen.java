@@ -1,24 +1,26 @@
 package com.xtracr.realcamera.gui;
 
+import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.platform.Lighting;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.BindingTarget;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.util.LocUtil;
 import com.xtracr.realcamera.util.MathUtil;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.tooltip.Tooltip;
-import net.minecraft.client.gui.widget.*;
-import net.minecraft.client.render.DiffuseLighting;
-import net.minecraft.client.render.entity.EntityRenderDispatcher;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec2f;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.*;
+import net.minecraft.client.gui.layouts.FrameLayout;
+import net.minecraft.client.gui.layouts.GridLayout;
+import net.minecraft.client.gui.layouts.LayoutSettings;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.Vec2;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -37,16 +39,16 @@ public class ModelViewScreen extends Screen {
     private double entityX, entityY;
     private float xRot, yRot;
     private String focusedTextureId;
-    private Vec2f focusedUV;
-    private TextFieldWidget textureIdField, nameField, disabledIdField;
+    private Vec2 focusedUV;
+    private EditBox textureIdField, nameField, disabledIdField;
     private NumberFieldWidget<Float> forwardUField, forwardVField, upwardUField, upwardVField, posUField, posVField, scaleField, depthField;
     private NumberFieldWidget<Integer> priorityField;
     private List<String> idsInClipBoard = new ArrayList<>();
     private final List<String> disabledIds = new ArrayList<>();
-    private final CyclingButtonWidget<Integer> selectingButton = createCyclingButton(Map.of(
-                    0, LocUtil.MODEL_VIEW_WIDGET("forwardMode").styled(s -> s.withColor(Formatting.GREEN)),
-                    1, LocUtil.MODEL_VIEW_WIDGET("upwardMode").styled(s -> s.withColor(Formatting.RED)),
-                    2, LocUtil.MODEL_VIEW_WIDGET("posMode").styled(s -> s.withColor(Formatting.BLUE))),
+    private final CycleButton<Integer> selectingButton = createCyclingButton(Map.of(
+                    0, LocUtil.MODEL_VIEW_WIDGET("forwardMode").withStyle(s -> s.withColor(ChatFormatting.GREEN)),
+                    1, LocUtil.MODEL_VIEW_WIDGET("upwardMode").withStyle(s -> s.withColor(ChatFormatting.RED)),
+                    2, LocUtil.MODEL_VIEW_WIDGET("posMode").withStyle(s -> s.withColor(ChatFormatting.BLUE))),
             widgetWidth * 2 + 4, LocUtil.MODEL_VIEW_WIDGET("selectMode"));
     private final CyclingTexturedButton pauseButton = new CyclingTexturedButton(0, 16, 0, 2);
     private final CyclingTexturedButton bindXButton = new CyclingTexturedButton(16, 16, 1, 2);
@@ -80,10 +82,10 @@ public class ModelViewScreen extends Screen {
     private void initWidgets(int category, int page) {
         this.category = category;
         this.page = page;
-        clearChildren();
+        clearWidgets();
         initLeftWidgets(category);
-        addDrawableChild(pauseButton).setPosition(x + (xSize - ySize) / 2 + 4, y + 4);
-        addDrawableChild(new TexturedButton(x + (xSize - ySize) / 2 + 22, y + 4, 16, 16, 0, 0, button -> {
+        addRenderableWidget(pauseButton).setPosition(x + (xSize - ySize) / 2 + 4, y + 4);
+        addRenderableWidget(new TexturedButton(x + (xSize - ySize) / 2 + 22, y + 4, 16, 16, 0, 0, button -> {
             entitySize = 80;
             entityYawSlider.setValue(0);
             entityPitchSlider.setValue(0);
@@ -101,41 +103,41 @@ public class ModelViewScreen extends Screen {
         upwardVField = createFloatField(widgetWidth, 0, upwardVField);
         posUField = createFloatField(widgetWidth, 0, posUField);
         posVField = createFloatField(widgetWidth, 0, posVField);
-        String textureId = textureIdField != null ? textureIdField.getText() : "";
+        String textureId = textureIdField != null ? textureIdField.getValue() : "";
         textureIdField = createTextField(widgetWidth * 2 + 4, null);
         textureIdField.setMaxLength(1024);
-        textureIdField.setText(textureId);
+        textureIdField.setValue(textureId);
         scaleField = createFloatField(widgetWidth, 1.0f, scaleField).setMax(64.0f);
         depthField = createFloatField(widgetWidth, 0.2f, depthField).setMax(16.0f);
-        GridWidget gridWidget = new GridWidget();
-        gridWidget.getMainPositioner().margin(4, 2, 0, 0);
-        Positioner smallPositioner = gridWidget.copyPositioner().margin(5, 3, 1, 1);
-        GridWidget.Adder adder = gridWidget.createAdder(2);
-        adder.add(createButton(LocUtil.MODEL_VIEW_WIDGET("settings"), widgetWidth, button -> initWidgets(0, page)));
-        adder.add(createButton(LocUtil.MODEL_VIEW_WIDGET("preview"), widgetWidth, button -> initWidgets(category | 0b01, page)));
+        GridLayout gridWidget = new GridLayout();
+        gridWidget.defaultCellSetting().padding(4, 2, 0, 0);
+        LayoutSettings smallPositioner = gridWidget.newCellSettings().padding(5, 3, 1, 1);
+        GridLayout.RowHelper adder = gridWidget.createRowHelper(2);
+        adder.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("settings"), widgetWidth, button -> initWidgets(0, page)));
+        adder.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("preview"), widgetWidth, button -> initWidgets(category | 0b01, page)));
         if ((category & 0b1) == 0) {
-            adder.add(entityPitchSlider, 2);
-            adder.add(entityYawSlider, 2);
-            adder.add(selectingButton, 2).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("selectMode"));
-            adder.add(forwardUField, 1, smallPositioner);
-            adder.add(forwardVField, 1, smallPositioner);
-            adder.add(upwardUField, 1, smallPositioner);
-            adder.add(upwardVField, 1, smallPositioner);
-            adder.add(posUField, 1, smallPositioner);
-            adder.add(posVField, 1, smallPositioner);
-            adder.add(textureIdField, 2, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("textureId"));
+            adder.addChild(entityPitchSlider, 2);
+            adder.addChild(entityYawSlider, 2);
+            adder.addChild(selectingButton, 2).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("selectMode"));
+            adder.addChild(forwardUField, 1, smallPositioner);
+            adder.addChild(forwardVField, 1, smallPositioner);
+            adder.addChild(upwardUField, 1, smallPositioner);
+            adder.addChild(upwardVField, 1, smallPositioner);
+            adder.addChild(posUField, 1, smallPositioner);
+            adder.addChild(posVField, 1, smallPositioner);
+            adder.addChild(textureIdField, 2, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("textureId"));
         } else {
-            Positioner sliderPositioner = gridWidget.copyPositioner().margin(-20, 2, 0, 0);
-            adder.add(bindXButton, 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("bindButtons"));
-            adder.add(offsetXSlider, 1, sliderPositioner);
-            adder.add(bindYButton, 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("bindButtons"));
-            adder.add(offsetYSlider, 1, sliderPositioner);
-            adder.add(bindZButton, 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("bindButtons"));
-            adder.add(offsetZSlider, 1, sliderPositioner);
-            adder.add(bindRotButton, 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("bindButtons"));
-            adder.add(pitchSlider, 1, sliderPositioner);
-            adder.add(yawSlider, 2, gridWidget.copyPositioner().margin(26, 2, 0, 0));
-            adder.add(new TexturedButton(0, 0, button -> {
+            LayoutSettings sliderPositioner = gridWidget.newCellSettings().padding(-20, 2, 0, 0);
+            adder.addChild(bindXButton, 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("bindButtons"));
+            adder.addChild(offsetXSlider, 1, sliderPositioner);
+            adder.addChild(bindYButton, 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("bindButtons"));
+            adder.addChild(offsetYSlider, 1, sliderPositioner);
+            adder.addChild(bindZButton, 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("bindButtons"));
+            adder.addChild(offsetZSlider, 1, sliderPositioner);
+            adder.addChild(bindRotButton, 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("bindButtons"));
+            adder.addChild(pitchSlider, 1, sliderPositioner);
+            adder.addChild(yawSlider, 2, gridWidget.newCellSettings().padding(26, 2, 0, 0));
+            adder.addChild(new TexturedButton(0, 0, button -> {
                 offsetXSlider.setValue(0);
                 offsetYSlider.setValue(0);
                 offsetZSlider.setValue(0);
@@ -143,32 +145,32 @@ public class ModelViewScreen extends Screen {
                 yawSlider.setValue(0);
                 rollSlider.setValue(0);
             }), 1, smallPositioner);
-            adder.add(rollSlider, 1, sliderPositioner);
-            adder.add(scaleField, 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("scale"));
-            adder.add(depthField, 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("depth"));
+            adder.addChild(rollSlider, 1, sliderPositioner);
+            adder.addChild(scaleField, 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("scale"));
+            adder.addChild(depthField, 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("depth"));
         }
-        adder.add(createButton(LocUtil.MODEL_VIEW_WIDGET("save"), widgetWidth, button -> {
+        adder.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("save"), widgetWidth, button -> {
             ConfigFile.config().putTarget(generateBindingTarget());
             ConfigFile.save();
             initWidgets(category, page);
         }));
-        adder.add(priorityField = NumberFieldWidget.ofInt(textRenderer, widgetWidth - 2, widgetHeight - 2, 0, priorityField), 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("priority"));
-        adder.add(nameField = createTextField(widgetWidth * 2 + 4, nameField), 2, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("targetName"));
+        adder.addChild(priorityField = NumberFieldWidget.ofInt(font, widgetWidth - 2, widgetHeight - 2, 0, priorityField), 1, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("priority"));
+        adder.addChild(nameField = createTextField(widgetWidth * 2 + 4, nameField), 2, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("targetName"));
         nameField.setMaxLength(20);
-        gridWidget.refreshPositions();
-        SimplePositioningWidget.setPos(gridWidget, x, y + 2, x + (xSize - ySize) / 2 - 4, y + ySize, 0, 0);
-        gridWidget.forEachChild(this::addDrawableChild);
+        gridWidget.arrangeElements();
+        FrameLayout.alignInRectangle(gridWidget, x, y + 2, x + (xSize - ySize) / 2 - 4, y + ySize, 0, 0);
+        gridWidget.visitWidgets(this::addRenderableWidget);
     }
 
     private void initRightWidgets(final int category, final int page) {
         disabledIdField = createTextField(widgetWidth * 2 + 4, disabledIdField);
         disabledIdField.setMaxLength(1024);
-        GridWidget gridWidget = new GridWidget();
-        gridWidget.getMainPositioner().margin(4, 2, 0, 0);
-        Positioner smallPositioner = gridWidget.copyPositioner().margin(5, 3, 1, 1);
-        GridWidget.Adder adder = gridWidget.createAdder(4);
-        adder.add(createButton(LocUtil.MODEL_VIEW_WIDGET("configs"), widgetWidth, button -> initWidgets(category & 0b01, 0)), 2).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("configs"));
-        adder.add(createButton(LocUtil.MODEL_VIEW_WIDGET("disable"), widgetWidth, button -> initWidgets(0b11, 0)), 2).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("disable"));
+        GridLayout gridWidget = new GridLayout();
+        gridWidget.defaultCellSetting().padding(4, 2, 0, 0);
+        LayoutSettings smallPositioner = gridWidget.newCellSettings().padding(5, 3, 1, 1);
+        GridLayout.RowHelper adder = gridWidget.createRowHelper(4);
+        adder.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("configs"), widgetWidth, button -> initWidgets(category & 0b01, 0)), 2).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("configs"));
+        adder.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("disable"), widgetWidth, button -> initWidgets(0b11, 0)), 2).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("disable"));
         final int widgetsPerPage, size;
         if ((category & 0b10) == 0) {
             widgetsPerPage = 8;
@@ -177,8 +179,8 @@ public class ModelViewScreen extends Screen {
             for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, size); i++) {
                 BindingTarget target = targetList.get(i);
                 String name = target.name;
-                adder.add(createButton(LocUtil.literal(name), widgetWidth * 2 - 18, button -> loadBindingTarget(target)), 3).setTooltip(Tooltip.of(LocUtil.literal(name)));
-                adder.add(new TexturedButton(48, 0, button -> {
+                adder.addChild(createButton(LocUtil.literal(name), widgetWidth * 2 - 18, button -> loadBindingTarget(target)), 3).setTooltip(Tooltip.create(LocUtil.literal(name)));
+                adder.addChild(new TexturedButton(48, 0, button -> {
                     targetList.remove(target);
                     ConfigFile.save();
                     initWidgets(category, page * widgetsPerPage > size - 2 && size > 1 ? page - 1 : page);
@@ -187,127 +189,126 @@ public class ModelViewScreen extends Screen {
         } else {
             widgetsPerPage = 5;
             size = disabledIds.size();
-            adder.add(createButton(LocUtil.MODEL_VIEW_WIDGET("copy"), widgetWidth, button -> idsInClipBoard = List.copyOf(disabledIds)), 2).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("copy"));
-            adder.add(createButton(LocUtil.MODEL_VIEW_WIDGET("paste"), widgetWidth, button -> {
+            adder.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("copy"), widgetWidth, button -> idsInClipBoard = List.copyOf(disabledIds)), 2).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("copy"));
+            adder.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("paste"), widgetWidth, button -> {
                 idsInClipBoard.stream().filter(textureId -> !disabledIds.contains(textureId)).forEach(disabledIds::add);
                 initWidgets(category, 0);
             }), 2);
-            adder.add(disabledIdField, 4, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("disabledIdField"));
-            adder.add(createButton(LocUtil.MODEL_VIEW_WIDGET("clear"), widgetWidth, button -> {
+            adder.addChild(disabledIdField, 4, smallPositioner).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("disabledIdField"));
+            adder.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("clear"), widgetWidth, button -> {
                 disabledIds.clear();
                 initWidgets(category, 0);
             }), 2);
-            adder.add(showDisabled, 1, gridWidget.copyPositioner().margin(7, 3, 1, 1));
-            adder.add(new TexturedButton(64, 0, button -> {
-                String disabledId = disabledIdField.getText();
+            adder.addChild(showDisabled, 1, gridWidget.newCellSettings().padding(7, 3, 1, 1));
+            adder.addChild(new TexturedButton(64, 0, button -> {
+                String disabledId = disabledIdField.getValue();
                 if (disabledId.isBlank() || disabledIds.contains(disabledId)) return;
                 disabledIds.add(disabledId);
                 initWidgets(category, page);
             }), 1, smallPositioner);
             for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, size); i++) {
                 String textureId = disabledIds.get(i);
-                adder.add(createButton(LocUtil.literal(textureId), widgetWidth * 2 - 18, button -> disabledIdField.setText(textureId)), 3).setTooltip(Tooltip.of(LocUtil.literal(textureId)));
-                adder.add(new TexturedButton(48, 0, button -> {
+                adder.addChild(createButton(LocUtil.literal(textureId), widgetWidth * 2 - 18, button -> disabledIdField.setValue(textureId)), 3).setTooltip(Tooltip.create(LocUtil.literal(textureId)));
+                adder.addChild(new TexturedButton(48, 0, button -> {
                     disabledIds.remove(textureId);
                     initWidgets(category, page * widgetsPerPage > size - 2 && size > 1 ? page - 1 : page);
                 }), 1, smallPositioner);
             }
         }
-        gridWidget.refreshPositions();
-        SimplePositioningWidget.setPos(gridWidget, x + (xSize + ySize) / 2 + 4, y + 2, x + xSize, y + ySize, 0, 0);
-        gridWidget.forEachChild(this::addDrawableChild);
+        gridWidget.arrangeElements();
+        FrameLayout.alignInRectangle(gridWidget, x + (xSize + ySize) / 2 + 4, y + 2, x + xSize, y + ySize, 0, 0);
+        gridWidget.visitWidgets(this::addRenderableWidget);
         final int pages = (size - 1) / widgetsPerPage + 1;
-        addDrawableChild(new TexturedButton(x + (xSize + ySize) / 2 + 8, y + ySize - 20, 16, 16, 16, 0, button -> initWidgets(category, (page - 1 + pages) % pages)));
-        addDrawableChild(new TextWidget(x + (xSize + ySize) / 2 + 30, y + ySize - 20, widgetWidth * 2 - 40, widgetHeight, LocUtil.literal((page + 1) + " / " + pages), textRenderer));
-        addDrawableChild(new TexturedButton(x + xSize - 21, y + ySize - 20, 16, 16, 32, 0, button -> initWidgets(category, (page + 1) % pages)));
+        addRenderableWidget(new TexturedButton(x + (xSize + ySize) / 2 + 8, y + ySize - 20, 16, 16, 16, 0, button -> initWidgets(category, (page - 1 + pages) % pages)));
+        addRenderableWidget(new StringWidget(x + (xSize + ySize) / 2 + 30, y + ySize - 20, widgetWidth * 2 - 40, widgetHeight, LocUtil.literal((page + 1) + " / " + pages), font));
+        addRenderableWidget(new TexturedButton(x + xSize - 21, y + ySize - 20, 16, 16, 32, 0, button -> initWidgets(category, (page + 1) % pages)));
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        renderBackground(context);// 1.20.1 only
-        drawEntity(context, x + (xSize - ySize) / 2, y, x + (xSize + ySize) / 2, y + ySize, mouseX, mouseY, client.player);
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
+        drawEntity(context, x + (xSize - ySize) / 2, y, x + (xSize + ySize) / 2, y + ySize, mouseX, mouseY, minecraft.player);
     }
 
     @Override
-    public void renderBackground(DrawContext context) {
-        super.renderBackground(context);
+    public void renderBackground(GuiGraphics context, int mouseX, int mouseY, float delta) {
+        super.renderBackground(context, mouseX, mouseY, delta);
         context.fill(x, y, x + (xSize - ySize) / 2 - 4, y + ySize, 0xFF444444);
         context.fill(x + (xSize - ySize) / 2, y, x + (xSize + ySize) / 2, y + ySize, 0xFF222222);
         context.fill(x + (xSize + ySize) / 2 + 4, y, x + xSize, y + ySize, 0xFF444444);
     }
 
-    protected void drawEntity(DrawContext context, int x1, int y1, int x2, int y2, int mouseX, int mouseY, LivingEntity entity) {
+    protected void drawEntity(GuiGraphics context, int x1, int y1, int x2, int y2, int mouseX, int mouseY, LivingEntity entity) {
         float centerX = (float) (x1 + x2) / 2.0f;
         float centerY = (float) (y1 + y2) / 2.0f;
         context.enableScissor(x1, y1, x2, y2);
         Quaternionf quaternionf = new Quaternionf().rotateX((float) Math.PI / 6 + xRot).rotateY((float) Math.PI / 6 + yRot).rotateZ((float) Math.PI);
-        float entityBodyYaw = entity.bodyYaw;
-        float entityYaw = entity.getYaw();
-        float entityPitch = entity.getPitch();
-        float entityPrevHeadYaw = entity.prevHeadYaw;
-        float entityHeadYaw = entity.headYaw;
-        entity.bodyYaw = 180.0f;
-        entity.setYaw(180.0f + (float) entityYawSlider.getValue());
-        entity.setPitch((float) entityPitchSlider.getValue());
-        entity.headYaw = entity.getYaw();
-        entity.prevHeadYaw = entity.getYaw();
+        float entityBodyYaw = entity.yBodyRot;
+        float entityYaw = entity.getYRot();
+        float entityPitch = entity.getXRot();
+        float entityPrevHeadYaw = entity.yHeadRotO;
+        float entityHeadYaw = entity.yHeadRot;
+        entity.yBodyRot = 180.0f;
+        entity.setYRot(180.0f + (float) entityYawSlider.getValue());
+        entity.setXRot((float) entityPitchSlider.getValue());
+        entity.yHeadRot = entity.getYRot();
+        entity.yHeadRotO = entity.getYRot();
         Vector3f vector3f = new Vector3f((float) entityX, (float) entityY, -2.0f);
         drawEntity(context, centerX, centerY, mouseX, mouseY, vector3f, quaternionf, entity);
-        entity.bodyYaw = entityBodyYaw;
-        entity.setYaw(entityYaw);
-        entity.setPitch(entityPitch);
-        entity.prevHeadYaw = entityPrevHeadYaw;
-        entity.headYaw = entityHeadYaw;
+        entity.yBodyRot = entityBodyYaw;
+        entity.setYRot(entityYaw);
+        entity.setXRot(entityPitch);
+        entity.yHeadRotO = entityPrevHeadYaw;
+        entity.yHeadRot = entityHeadYaw;
         context.disableScissor();
     }
 
-    protected void drawEntity(DrawContext context, float x, float y, int mouseX, int mouseY, Vector3f offset, Quaternionf quaternionf, LivingEntity entity) {
-        context.getMatrices().push();
-        context.getMatrices().translate(x, y, 0);
-        context.getMatrices().multiplyPositionMatrix(new Matrix4f().scaling(entitySize, entitySize, -entitySize));
-        context.getMatrices().translate(offset.x(), offset.y(), offset.z());
-        context.getMatrices().multiply(quaternionf);
-        DiffuseLighting.method_34742();
-        EntityRenderDispatcher entityRenderDispatcher = MinecraftClient.getInstance().getEntityRenderDispatcher();
-        entityRenderDispatcher.setRenderShadows(false);
+    protected void drawEntity(GuiGraphics context, float x, float y, int mouseX, int mouseY, Vector3f offset, Quaternionf quaternionf, LivingEntity entity) {
+        context.pose().pushPose();
+        context.pose().translate(x, y, 0);
+        context.pose().mulPose(new Matrix4f().scaling(entitySize, entitySize, -entitySize));
+        context.pose().translate(offset.x(), offset.y(), offset.z());
+        context.pose().mulPose(quaternionf);
+        Lighting.setupForEntityInInventory();
+        EntityRenderDispatcher entityRenderDispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
+        entityRenderDispatcher.setRenderShadow(false);
         ModelAnalyser analyser = new ModelAnalyser(generateBindingTarget());
-        entityRenderDispatcher.render(entity, 0, -entity.getHeight() / 2.0f, 0, 0.0f, 1.0f, context.getMatrices(), analyser, 0xF000f0);
-        analyser.initialize(entitySize, mouseX, mouseY, layers, showDisabled.getValue() == 1, disabledIdField.getText());
+        entityRenderDispatcher.render(entity, 0, -entity.getBbHeight() / 2.0f, 0, 0.0f, 1.0f, context.pose(), analyser, 0xF000f0);
+        analyser.analyse(entitySize, mouseX, mouseY, layers, showDisabled.getValue() == 1, disabledIdField.getValue());
         focusedUV = analyser.getFocusedUV();
         focusedTextureId = analyser.focusedTextureId();
         if ((category & 0b1) == 0) analyser.drawModelWithNormals(context, entitySize);
         else analyser.previewEffect(context, entitySize, (category & 0b10) == 2);
-        entityRenderDispatcher.setRenderShadows(true);
-        context.getMatrices().pop();
-        DiffuseLighting.enableGuiDepthLighting();
+        entityRenderDispatcher.setRenderShadow(true);
+        context.pose().popPose();
+        Lighting.setupFor3DItems();
     }
 
     protected BindingTarget generateBindingTarget() {
-        return new BindingTarget(nameField.getText(), textureIdField.getText()).priority(priorityField.getValue())
-                .forwardU(forwardUField.getValue()).forwardV(forwardVField.getValue())
-                .upwardU(upwardUField.getValue()).upwardV(upwardVField.getValue())
-                .posU(posUField.getValue()).posV(posVField.getValue())
-                .disablingDepth(depthField.getValue())
+        return new BindingTarget(nameField.getValue(), textureIdField.getValue()).priority(priorityField.getNumber())
+                .forwardU(forwardUField.getNumber()).forwardV(forwardVField.getNumber())
+                .upwardU(upwardUField.getNumber()).upwardV(upwardVField.getNumber())
+                .posU(posUField.getNumber()).posV(posVField.getNumber())
+                .disablingDepth(depthField.getNumber())
                 .bindX(bindXButton.getValue() == 0).bindY(bindYButton.getValue() == 0).bindZ(bindZButton.getValue() == 0).bindRotation(bindRotButton.getValue() == 0)
-                .scale(scaleField.getValue()).offsetX(offsetXSlider.getValue()).offsetY(offsetYSlider.getValue()).offsetZ(offsetZSlider.getValue())
+                .scale(scaleField.getNumber()).offsetX(offsetXSlider.getValue()).offsetY(offsetYSlider.getValue()).offsetZ(offsetZSlider.getValue())
                 .pitch((float) pitchSlider.getValue()).yaw((float) yawSlider.getValue()).roll((float) rollSlider.getValue())
                 .disabledTextureIds(List.copyOf(disabledIds));
     }
 
     protected void loadBindingTarget(BindingTarget target) {
         if (target.isEmpty()) return;
-        nameField.setText(target.name);
-        textureIdField.setText(target.textureId);
-        priorityField.setValue(target.priority);
-        forwardUField.setValue(target.forwardU);
-        forwardVField.setValue(target.forwardV);
-        upwardUField.setValue(target.upwardU);
-        upwardVField.setValue(target.upwardV);
-        posUField.setValue(target.posU);
-        posVField.setValue(target.posV);
-        depthField.setValue(target.disablingDepth);
-        scaleField.setValue((float) target.scale);
+        nameField.setValue(target.name);
+        textureIdField.setValue(target.textureId);
+        priorityField.setNumber(target.priority);
+        forwardUField.setNumber(target.forwardU);
+        forwardVField.setNumber(target.forwardV);
+        upwardUField.setNumber(target.upwardU);
+        upwardVField.setNumber(target.upwardV);
+        posUField.setNumber(target.posU);
+        posVField.setNumber(target.posV);
+        depthField.setNumber(target.disablingDepth);
+        scaleField.setNumber((float) target.scale);
         bindXButton.setValue(target.bindX ? 0 : 1);
         offsetXSlider.setValue(target.offsetX);
         bindYButton.setValue(target.bindY ? 0 : 1);
@@ -322,12 +323,12 @@ public class ModelViewScreen extends Screen {
         disabledIds.addAll(target.disabledTextureIds);
     }
 
-    private ButtonWidget createButton(Text message, int width, ButtonWidget.PressAction onPress) {
-        return ButtonWidget.builder(message, onPress).size(width, widgetHeight).build();
+    private Button createButton(Component message, int width, Button.OnPress onPress) {
+        return Button.builder(message, onPress).size(width, widgetHeight).build();
     }
 
-    private CyclingButtonWidget<Integer> createCyclingButton(Map<Integer, Text> messages, int width, Text optionText) {
-        return new CyclingButtonWidget.Builder<Integer>(messages::get).values(messages.keySet()).build(0, 0, width, widgetHeight, optionText);
+    private CycleButton<Integer> createCyclingButton(Map<Integer, Component> messages, int width, Component optionText) {
+        return new CycleButton.Builder<Integer>(messages::get).withValues(messages.keySet()).create(0, 0, width, widgetHeight, optionText);
     }
 
     private DoubleSliderWidget createSlider(String key, int width, double min, double max) {
@@ -335,11 +336,11 @@ public class ModelViewScreen extends Screen {
     }
 
     private NumberFieldWidget<Float> createFloatField(int width, float defaultValue, @Nullable NumberFieldWidget<Float> copyFrom) {
-        return NumberFieldWidget.ofFloat(textRenderer, width - 2, widgetHeight - 2, defaultValue, copyFrom).setMax(1.0f).setMin(0f);
+        return NumberFieldWidget.ofFloat(font, width - 2, widgetHeight - 2, defaultValue, copyFrom).setMax(1.0f).setMin(0f);
     }
 
-    private TextFieldWidget createTextField(int width, @Nullable TextFieldWidget copyFrom) {
-        return new TextFieldWidget(textRenderer, 0, 0, width - 2, widgetHeight - 2, copyFrom, Text.empty());
+    private EditBox createTextField(int width, @Nullable EditBox copyFrom) {
+        return new EditBox(font, 0, 0, width - 2, widgetHeight - 2, copyFrom, Component.empty());
     }
 
     protected boolean mouseInViewArea(double mouseX, double mouseY) {
@@ -349,22 +350,22 @@ public class ModelViewScreen extends Screen {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (mouseInViewArea(mouseX, mouseY) && focusedUV != null && button == GLFW.GLFW_MOUSE_BUTTON_LEFT &&
-                InputUtil.isKeyPressed(client.getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_ALT)) {
+                InputConstants.isKeyDown(minecraft.getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_ALT)) {
             if (category == 0) {
                 if (selectingButton.getValue() == 0) {
-                    forwardUField.setValue(focusedUV.x);
-                    forwardVField.setValue(focusedUV.y);
+                    forwardUField.setNumber(focusedUV.x);
+                    forwardVField.setNumber(focusedUV.y);
                 } else if (selectingButton.getValue() == 1) {
-                    upwardUField.setValue(focusedUV.x);
-                    upwardVField.setValue(focusedUV.y);
+                    upwardUField.setNumber(focusedUV.x);
+                    upwardVField.setNumber(focusedUV.y);
                 } else {
-                    posUField.setValue(focusedUV.x);
-                    posVField.setValue(focusedUV.y);
+                    posUField.setNumber(focusedUV.x);
+                    posVField.setNumber(focusedUV.y);
                 }
-                textureIdField.setText(focusedTextureId);
+                textureIdField.setValue(focusedTextureId);
                 return true;
             } else if (category == 0b11) {
-                disabledIdField.setText(focusedTextureId);
+                disabledIdField.setValue(focusedTextureId);
                 return true;
             }
         }
@@ -374,7 +375,7 @@ public class ModelViewScreen extends Screen {
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
         if (mouseInViewArea(mouseX, mouseY)) {
-            if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && !InputUtil.isKeyPressed(client.getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_ALT)) {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && !InputConstants.isKeyDown(minecraft.getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_ALT)) {
                 xRot += (float) (Math.PI * deltaY / ySize);
                 yRot -= (float) (Math.PI * deltaX / ySize);
                 return true;
@@ -388,20 +389,20 @@ public class ModelViewScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         if (mouseInViewArea(mouseX, mouseY)) {
-            if (InputUtil.isKeyPressed(client.getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_ALT)) {
-                layers = Math.max(0, layers + (int) amount);
+            if (InputConstants.isKeyDown(minecraft.getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_ALT)) {
+                layers = Math.max(0, layers + (int) verticalAmount);
             } else {
-                entitySize = MathHelper.clamp(entitySize + (int) amount * entitySize / 16, 16, 1024);
+                entitySize = Mth.clamp(entitySize + (int) verticalAmount * entitySize / 16, 16, 1024);
             }
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, amount);
+        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
 
     @Override
-    public boolean shouldPause() {
+    public boolean isPauseScreen() {
         return pauseButton.getValue() == 1;
     }
 }

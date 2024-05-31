@@ -1,9 +1,9 @@
 package com.xtracr.realcamera.mixin;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import com.xtracr.realcamera.RealCameraCore;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.math.RotationAxis;
+import net.minecraft.client.renderer.GameRenderer;
+import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -11,10 +11,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GameRenderer.class)
 public abstract class GameRendererEvents {
-    @Inject(method = "renderWorld", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/Camera;update(Lnet/minecraft/world/BlockView;Lnet/minecraft/entity/Entity;ZZF)V", shift = At.Shift.AFTER))
-    private void realcamera$onAfterCameraUpdate(float tickDelta, long limitTime, MatrixStack matrixStack, CallbackInfo cInfo) {
+    @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;prepareCullFrustum(Lnet/minecraft/world/phys/Vec3;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V"))
+    private void realcamera$onAfterCameraUpdate(float f, long l, CallbackInfo ci, @Local(ordinal = 1) Matrix4f matrix4f2) {
         if (RealCameraCore.isActive()) {
-            matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(RealCameraCore.getRoll(0)));
+            matrix4f2.rotateLocalZ(RealCameraCore.getRoll(0) * (float) (Math.PI / 180.0));
         }
     }
 }

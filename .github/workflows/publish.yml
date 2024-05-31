@@ -26,7 +26,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
-          java-version: 17
+          java-version: 21
 
       - name: Make Gradle Wrapper Executable
         if: ${{ runner.os != 'Windows' }}
@@ -35,17 +35,17 @@ jobs:
       - name: Build
         run: ./gradlew clean build
 
-      - name: Publish Forge
+      - name: Publish NeoForge
         uses: Kir-Antipov/mc-publish@v3.3
         with:
           modrinth-id: ${{ env.MODRINTH_ID }}
           modrinth-token: ${{ env.MODRINTH_TOKEN }}
           curseforge-id: ${{ env.CURSEFORGE_ID }}
           curseforge-token: ${{ env.CURSEFORGE_TOKEN }}
-          loaders: forge
-          name: '[Forge] v${{github.ref_name}}'
+          loaders: neoforge
+          name: '[NeoForge] v${{github.ref_name}}'
           version-type: beta
-          files: forge/build/libs/!(*-@(shadow|dev|sources|javadoc|all)).jar
+          files: neoforge/build/libs/!(*-@(shadow|dev|sources|javadoc|all)).jar
 
       - name: Publish Fabric
         uses: Kir-Antipov/mc-publish@v3.3

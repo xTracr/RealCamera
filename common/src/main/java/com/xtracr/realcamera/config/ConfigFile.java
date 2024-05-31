@@ -3,7 +3,7 @@ package com.xtracr.realcamera.config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.xtracr.realcamera.RealCamera;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -18,7 +18,7 @@ public class ConfigFile {
     private static final Path PATH;
 
     static {
-        File configDir = new File(MinecraftClient.getInstance().runDirectory, "config");
+        File configDir = new File(Minecraft.getInstance().gameDirectory, "config");
         if (!configDir.exists()) configDir.mkdirs();
         PATH = configDir.toPath().resolve(FILE_NAME);
     }

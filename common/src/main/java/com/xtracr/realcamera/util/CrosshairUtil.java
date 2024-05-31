@@ -1,29 +1,29 @@
 package com.xtracr.realcamera.util;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.util.Window;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.Vec3d;
+import com.mojang.blaze3d.platform.Window;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
 public class CrosshairUtil {
     public static EntityHitResult capturedEntityHitResult;
-    private static Vec3d offset = Vec3d.ZERO;
+    private static Vec3 offset = Vec3.ZERO;
 
-    public static void translateMatrices(MatrixStack matrixStack) {
-        matrixStack.translate(offset.getX(), -offset.getY(), 0.0d);
+    public static void translateMatrices(PoseStack matrixStack) {
+        matrixStack.translate(offset.x(), -offset.y(), 0.0d);
     }
 
-    public static void update(MinecraftClient client, Camera camera, Matrix4f... projectionMatrices) {
-        HitResult hitResult = client.crosshairTarget;
-        offset = Vec3d.ZERO;
-        if (client.targetedEntity != null) hitResult = capturedEntityHitResult;
+    public static void update(Minecraft client, Camera camera, Matrix4f... projectionMatrices) {
+        HitResult hitResult = client.hitResult;
+        offset = Vec3.ZERO;
+        if (client.crosshairPickEntity != null) hitResult = capturedEntityHitResult;
         if (hitResult == null) return;
         Window window = client.getWindow();
-        offset = MathUtil.projectToVec2d(hitResult.getPos().subtract(camera.getPos()), projectionMatrices)
-                .multiply(0.5 * window.getScaledWidth(), 0.5 * window.getScaledHeight(), 0.0d);
+        offset = MathUtil.projectToVec2d(hitResult.getLocation().subtract(camera.getPosition()), projectionMatrices)
+                .multiply(0.5 * window.getGuiScaledWidth(), 0.5 * window.getGuiScaledHeight(), 0.0d);
     }
 }
