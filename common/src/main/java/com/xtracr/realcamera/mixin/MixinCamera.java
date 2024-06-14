@@ -33,7 +33,7 @@ public abstract class MixinCamera {
     private float yRot;
 
     @Inject(method = "setup", at = @At("RETURN"))
-    private void realcamera$updateCamera(BlockGetter area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float tickDelta, CallbackInfo cInfo) {
+    private void realcamera$setupCamera(BlockGetter area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float tickDelta, CallbackInfo cInfo) {
         if (!RealCameraCore.isActive()) return;
         ModConfig config = ConfigFile.config();
         Vec3 startVec = position;
@@ -45,9 +45,9 @@ public abstract class MixinCamera {
             float newPitch = xRot + config.getClassicPitch();
             float newYaw = yRot - config.getClassicYaw();
             setRotation(yRot, 0.0f);
-            move(center.x(), center.y(), center.z());
+            move((float) center.x(), (float) center.y(), (float) center.z());
             setRotation(newYaw, newPitch);
-            move(offset.x(), offset.y(), offset.z());
+            move((float) offset.x(), (float) offset.y(), (float) offset.z());
         } else {
             Vec3 prevPos = RealCameraCore.getPos(position);
             double restrictedY = Mth.clamp(prevPos.y(), box.minY + 0.1D, box.maxY - 0.1D);
@@ -62,7 +62,7 @@ public abstract class MixinCamera {
     @Unique
     private void realcamera$clipToSpace(Vec3 startVec) {
         Vec3 offset = position.subtract(startVec);
-        final float depth = 0.085F;
+        final float depth = 0.085f;
         for (int i = 0; i < 8; ++i) {
             float f = depth * ((i & 1) * 2 - 1);
             float g = depth * ((i >> 1 & 1) * 2 - 1);
@@ -78,7 +78,7 @@ public abstract class MixinCamera {
     }
 
     @Shadow
-    protected abstract void move(double x, double y, double z);
+    protected abstract void move(float x, float y, float z);
 
     @Shadow
     protected abstract void setRotation(float yaw, float pitch);

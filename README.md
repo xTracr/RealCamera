@@ -3,7 +3,7 @@
 ## [中文](README_ZH.md) ##
 
 Make the camera more realistic in the first-person view.  
-Supported versions: 1.18-1.20 Forge & Fabric.  
+Supported versions: 1.20-1.21 Fabric & NeoForge.  
 Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases), [Modrinth](https://modrinth.com/mod/real-camera) or [CurseForge](https://curseforge.com/minecraft/mc-mods/real-camera)  
 Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/build.yml)
 
@@ -24,16 +24,15 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 ### Dependencies ###
 
 * Fabric:
-  * [Fabric Loader](https://fabricmc.net/use/installer/)
   * [Fabric API](https://modrinth.com/mod/fabric-api)
-* Forge:
-  * [Forge Mod Loader](https://files.minecraftforge.net/)
-* Both:
+* 所有平台:
   * (Optional but recommended) [Cloth Config API](https://modrinth.com/mod/cloth-config)
 
 ## FAQ ##
 
-* WIP
+* A part of the model (e.g. hair) is always in the way, how to make it invisible?
+  * Increasing this value may help  
+    ![screenshot_2024_6_2_22_42](https://github.com/xTracr/RealCamera/assets/57320980/78c246e8-34aa-4979-89de-780ee907870b)
 
 ### Compatibility ###
 

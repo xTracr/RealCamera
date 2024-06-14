@@ -11,13 +11,13 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSequence;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class NumberFieldWidget<T extends Comparable<T>> extends EditBox {
+public abstract class NumberField<T extends Comparable<T>> extends EditBox {
     private final T defaultValue;
     protected T maximum, minimum;
     private Tooltip tooltip;
 
-    NumberFieldWidget(Font textRenderer, int width, int height, T defaultValue, T maximum, T minimum, @Nullable NumberFieldWidget<T> copyFrom) {
-        super(textRenderer, 0, 0, width, height, Component.empty());
+    NumberField(Font font, int width, int height, T defaultValue, T maximum, T minimum, @Nullable NumberField<T> copyFrom) {
+        super(font, 0, 0, width, height, Component.empty());
         this.defaultValue = defaultValue;
         this.maximum = maximum;
         this.minimum = minimum;
@@ -25,12 +25,12 @@ public abstract class NumberFieldWidget<T extends Comparable<T>> extends EditBox
         if (copyFrom != null) setNumber(copyFrom.getNumber());
     }
 
-    public static NumberFieldWidget<Float> ofFloat(Font textRenderer, int width, int height, float defaultValue, @Nullable NumberFieldWidget<Float> copyFrom) {
-        return new FloatFieldWidget(textRenderer, width, height, defaultValue, copyFrom);
+    public static NumberField<Float> ofFloat(Font font, int width, int height, float defaultValue, @Nullable NumberField<Float> copyFrom) {
+        return new FloatField(font, width, height, defaultValue, copyFrom);
     }
 
-    public static NumberFieldWidget<Integer> ofInt(Font textRenderer, int width, int height, int defaultValue, @Nullable NumberFieldWidget<Integer> copyFrom) {
-        return new IntFieldWidget(textRenderer, width, height, defaultValue, copyFrom);
+    public static NumberField<Integer> ofInt(Font font, int width, int height, int defaultValue, @Nullable NumberField<Integer> copyFrom) {
+        return new IntField(font, width, height, defaultValue, copyFrom);
     }
 
     public T getNumber() {
@@ -50,12 +50,12 @@ public abstract class NumberFieldWidget<T extends Comparable<T>> extends EditBox
         }
     }
 
-    public NumberFieldWidget<T> setMax(T maximum) {
+    public NumberField<T> setMax(T maximum) {
         this.maximum = maximum;
         return this;
     }
 
-    public NumberFieldWidget<T> setMin(T minimum) {
+    public NumberField<T> setMin(T minimum) {
         this.minimum = minimum;
         return this;
     }
@@ -89,14 +89,14 @@ public abstract class NumberFieldWidget<T extends Comparable<T>> extends EditBox
     }
 
     @Override
-    public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
         checkText();
-        super.renderWidget(context, mouseX, mouseY, delta);
+        super.renderWidget(graphics, mouseX, mouseY, delta);
     }
 
-    private static class FloatFieldWidget extends NumberFieldWidget<Float> {
-        FloatFieldWidget(Font textRenderer, int width, int height, float defaultValue, @Nullable NumberFieldWidget<Float> copyFrom) {
-            super(textRenderer, width, height, defaultValue, Float.MAX_VALUE, -Float.MAX_VALUE, copyFrom);
+    private static class FloatField extends NumberField<Float> {
+        FloatField(Font font, int width, int height, float defaultValue, @Nullable NumberField<Float> copyFrom) {
+            super(font, width, height, defaultValue, Float.MAX_VALUE, -Float.MAX_VALUE, copyFrom);
             setMaxLength(8);
         }
 
@@ -106,9 +106,9 @@ public abstract class NumberFieldWidget<T extends Comparable<T>> extends EditBox
         }
     }
 
-    private static class IntFieldWidget extends NumberFieldWidget<Integer> {
-        IntFieldWidget(Font textRenderer, int width, int height, int defaultValue, @Nullable NumberFieldWidget<Integer> copyFrom) {
-            super(textRenderer, width, height, defaultValue, Integer.MAX_VALUE, Integer.MIN_VALUE, copyFrom);
+    private static class IntField extends NumberField<Integer> {
+        IntField(Font font, int width, int height, int defaultValue, @Nullable NumberField<Integer> copyFrom) {
+            super(font, width, height, defaultValue, Integer.MAX_VALUE, Integer.MIN_VALUE, copyFrom);
             setMaxLength(8);
         }
 

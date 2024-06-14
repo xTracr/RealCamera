@@ -20,7 +20,7 @@ public class RaycastUtil {
         return endVec;
     }
 
-    public static ClipContext getRaycastContext(Block shapeType, Fluid fluidHandling, Entity entity) {
+    public static ClipContext getClipContext(Block shapeType, Fluid fluidHandling, Entity entity) {
         return new ClipContext(startVec, endVec, shapeType, fluidHandling, entity);
     }
 

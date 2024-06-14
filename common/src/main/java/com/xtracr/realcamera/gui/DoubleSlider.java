@@ -6,11 +6,11 @@ import net.minecraft.util.Mth;
 
 import java.util.function.Function;
 
-public class DoubleSliderWidget extends AbstractSliderButton {
+public class DoubleSlider extends AbstractSliderButton {
     private final Function<Double, Component> textFactory;
     private final double min, max;
 
-    public DoubleSliderWidget(int width, int height, double value, double min, double max, Function<Double, Component> textFactory) {
+    public DoubleSlider(int width, int height, double value, double min, double max, Function<Double, Component> textFactory) {
         super(0, 0, width, height, textFactory.apply(value), Mth.clamp(0, (value - min) / (max - min), 1));
         this.textFactory = textFactory;
         this.min = min;

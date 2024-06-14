@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Set;
 
 public class ModelAnalyser extends VertexRecorder {
-    private static final Set<RenderType> unfocusableLayers = Set.of(RenderType.armorEntityGlint(), RenderType.glintTranslucent(), RenderType.glint(), RenderType.entityGlint(), RenderType.entityGlintDirect());
+    private static final Set<RenderType> UNFOCUSABLE_RENDER_TYPES = Set.of(RenderType.armorEntityGlint(), RenderType.glintTranslucent(), RenderType.glint(), RenderType.entityGlint(), RenderType.entityGlintDirect());
     private static final int primitiveArgb = 0x6F3333CC, forwardArgb = 0xFF00CC00, upwardArgb = 0xFFCC0000, leftArgb = 0xFF0000CC;
     private static final int focusedArgb = 0x7FFFFFFF, sideArgb = 0x3FFFFFFF;
     private final BindingTarget target;
@@ -38,19 +38,19 @@ public class ModelAnalyser extends VertexRecorder {
         return false;
     }
 
-    private static void drawPrimitive(GuiGraphics context, Vertex[] primitive, int argb, int offset) {
-        VertexConsumer vertexConsumer = context.bufferSource().getBuffer(RenderType.gui());
-        for (Vertex vertex : primitive) vertexConsumer.vertex(vertex.x(), vertex.y(), vertex.z() + offset).color(argb).endVertex();
-        if (primitive.length == 3) vertexConsumer.vertex(primitive[2].x(), primitive[2].y(), primitive[2].z() + offset).color(argb).endVertex();
-        context.flush();
+    private static void drawPrimitive(GuiGraphics graphics, Vertex[] primitive, int argb, int offset) {
+        VertexConsumer buffer = graphics.bufferSource().getBuffer(RenderType.gui());
+        for (Vertex vertex : primitive) buffer.addVertex(vertex.x(), vertex.y(), vertex.z() + offset).setColor(argb);
+        if (primitive.length == 3) buffer.addVertex(primitive[2].x(), primitive[2].y(), primitive[2].z() + offset).setColor(argb);
+        graphics.flush();
     }
 
-    private static void drawNormal(GuiGraphics context, Vec3 start, Vec3 normal, int length, int argb) {
+    private static void drawNormal(GuiGraphics graphics, Vec3 start, Vec3 normal, int length, int argb) {
         Vec3 end = normal.scale(length).add(start);
-        VertexConsumer vertexConsumer = context.bufferSource().getBuffer(RenderType.lineStrip());
-        vertexConsumer.vertex((float) start.x(), (float) start.y(), (float) (start.z() + 1200f)).color(argb).normal((float) normal.x(), (float) normal.y(), (float) normal.z()).endVertex();
-        vertexConsumer.vertex((float) end.x(), (float) end.y(), (float) (end.z() + 1200f)).color(argb).normal((float) normal.x(), (float) normal.y(), (float) normal.z()).endVertex();
-        context.flush();
+        VertexConsumer buffer = graphics.bufferSource().getBuffer(RenderType.lineStrip());
+        buffer.addVertex((float) start.x(), (float) start.y(), (float) (start.z() + 1200f)).setColor(argb).setNormal((float) normal.x(), (float) normal.y(), (float) normal.z());
+        buffer.addVertex((float) end.x(), (float) end.y(), (float) (end.z() + 1200f)).setColor(argb).setNormal((float) normal.x(), (float) normal.y(), (float) normal.z());
+        graphics.flush();
     }
 
     public void analyse(int entitySize, int mouseX, int mouseY, int layers, boolean hideDisabled, String idInField) {
@@ -61,7 +61,7 @@ public class ModelAnalyser extends VertexRecorder {
         }).toList();
         records.removeAll(removedRecords);
         List<Triple> sortByDepth = new ArrayList<>();
-        records.stream().filter(record -> !unfocusableLayers.contains(record.renderLayer())).forEach(record -> {
+        records.stream().filter(record -> !UNFOCUSABLE_RENDER_TYPES.contains(record.renderType())).forEach(record -> {
             Vertex[][] primitives = record.primitives();
             for (int i = 0, primitiveCount = primitives.length; i < primitiveCount; i++) {
                 Polygon polygon = new Polygon();
@@ -104,40 +104,36 @@ public class ModelAnalyser extends VertexRecorder {
         return new Vec2(u / primitive.length, v / primitive.length);
     }
 
-    public void previewEffect(GuiGraphics context, int entitySize, boolean canSelect) {
-        defaultDraw(context.bufferSource());
-        context.flush();
-        if (canSelect) drawFocused(context);
+    public void previewEffect(GuiGraphics graphics, int entitySize, boolean canSelect) {
+        if (canSelect) drawFocused(graphics);
         if (normal.m00() == 0 && normal.m11() == 0 && normal.m22() == 0) return;
         Vec3 start = new Vec3(position);
-        drawNormal(context, start, new Vec3(normal.m20(), normal.m21(), normal.m22()), entitySize / 3, forwardArgb);
-        drawNormal(context, start, new Vec3(normal.m10(), normal.m11(), normal.m12()), entitySize / 6, upwardArgb);
-        drawNormal(context, start, new Vec3(normal.m00(), normal.m01(), normal.m02()), entitySize / 6, leftArgb);
+        drawNormal(graphics, start, new Vec3(normal.m20(), normal.m21(), normal.m22()), entitySize / 3, forwardArgb);
+        drawNormal(graphics, start, new Vec3(normal.m10(), normal.m11(), normal.m12()), entitySize / 6, upwardArgb);
+        drawNormal(graphics, start, new Vec3(normal.m00(), normal.m01(), normal.m02()), entitySize / 6, leftArgb);
     }
 
-    public void drawModelWithNormals(GuiGraphics context, int entitySize) {
-        defaultDraw(context.bufferSource());
-        context.flush();
-        drawPolyhedron(context);
-        drawFocused(context);
+    public void drawNormals(GuiGraphics graphics, int entitySize) {
+        drawPolyhedron(graphics);
+        drawFocused(graphics);
         if (currentRecord == null) return;
         Vertex[] primitive;
-        if ((primitive = getPrimitive(currentRecord, target.posU, target.posV)) != null) drawPrimitive(context, primitive, primitiveArgb, 1000);
-        if ((primitive = getPrimitive(currentRecord, target.forwardU, target.forwardV)) != null) drawNormal(context, getPos(primitive, target.forwardU, target.forwardV), primitive[0].normal(), entitySize / 2, forwardArgb);
-        if ((primitive = getPrimitive(currentRecord, target.upwardU, target.upwardV)) != null) drawNormal(context, getPos(primitive, target.upwardU, target.upwardV), primitive[0].normal(), entitySize / 2, upwardArgb);
+        if ((primitive = getPrimitive(currentRecord, target.posU, target.posV)) != null) drawPrimitive(graphics, primitive, primitiveArgb, 1000);
+        if ((primitive = getPrimitive(currentRecord, target.forwardU, target.forwardV)) != null) drawNormal(graphics, getPos(primitive, target.forwardU, target.forwardV), primitive[0].normal(), entitySize / 2, forwardArgb);
+        if ((primitive = getPrimitive(currentRecord, target.upwardU, target.upwardV)) != null) drawNormal(graphics, getPos(primitive, target.upwardU, target.upwardV), primitive[0].normal(), entitySize / 2, upwardArgb);
     }
 
-    private void drawFocused(GuiGraphics context) {
+    private void drawFocused(GuiGraphics graphics) {
         if (focusedIndex == -1 || focusedRecord == null) return;
         Vertex[] focused = focusedRecord.primitives()[focusedIndex];
-        drawPrimitive(context, focused, focusedArgb, 1100);
+        drawPrimitive(graphics, focused, focusedArgb, 1100);
         int length = focused.length;
         Vertex[] reversed = new Vertex[length];
         for (int i = 0; i < length; i++) reversed[i] = focused[length - 1 - i];
-        drawPrimitive(context, reversed, focusedArgb, 1100);
+        drawPrimitive(graphics, reversed, focusedArgb, 1100);
     }
 
-    private void drawPolyhedron(GuiGraphics context) {
+    private void drawPolyhedron(GuiGraphics graphics) {
         if (focusedIndex == -1 || focusedRecord == null) return;
         List<Vertex[]> polyhedron = new ArrayList<>();
         polyhedron.add(focusedRecord.primitives()[focusedIndex]);
@@ -164,7 +160,7 @@ public class ModelAnalyser extends VertexRecorder {
             if (!indexes.contains(i)) break;
             resultIndexes.add(i);
         }
-        resultIndexes.forEach(i -> drawPrimitive(context, primitives[i], sideArgb, 1000));
+        resultIndexes.forEach(i -> drawPrimitive(graphics, primitives[i], sideArgb, 1000));
     }
 
     record Triple(double depth, BuiltRecord record, int index) {}

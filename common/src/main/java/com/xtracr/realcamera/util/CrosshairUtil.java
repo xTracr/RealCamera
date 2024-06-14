@@ -13,8 +13,8 @@ public class CrosshairUtil {
     public static EntityHitResult capturedEntityHitResult;
     private static Vec3 offset = Vec3.ZERO;
 
-    public static void translateMatrices(PoseStack matrixStack) {
-        matrixStack.translate(offset.x(), -offset.y(), 0.0d);
+    public static void translateMatrices(PoseStack poseStack) {
+        poseStack.translate(offset.x(), -offset.y(), 0.0d);
     }
 
     public static void update(Minecraft client, Camera camera, Matrix4f... projectionMatrices) {

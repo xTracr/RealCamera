@@ -11,11 +11,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ItemInHandRenderer.class)
-public abstract class MixinHeldItemRenderer {
+public abstract class MixinItemInHandRenderer {
     @Inject(method = "renderHandsWithItems", at = @At("HEAD"), cancellable = true)
-    private void realcamera$cancelRender(float tickDelta, PoseStack matrices, MultiBufferSource.BufferSource vertexConsumers, LocalPlayer player, int light, CallbackInfo cInfo) {
-        if (player instanceof LocalPlayer && RealCameraCore.isRendering()) {
-            cInfo.cancel();
-        }
+    private void realcamera$cancelRender(float f, PoseStack poseStack, MultiBufferSource.BufferSource bufferSource, LocalPlayer localPlayer, int i, CallbackInfo cInfo) {
+        if (RealCameraCore.isRendering()) cInfo.cancel();
     }
 }

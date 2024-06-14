@@ -8,13 +8,13 @@
   "client": [
     "CameraAccessor",
     "MixinCamera",
-    "MixinClientPlayerEntity",
+    "MixinLocalPlayer",
     "MixinGameRenderer",
-    "MixinHeldItemRenderer",
-    "MixinInGameHud",
+    "MixinItemInHandRenderer",
+    "MixinGui",
     "MixinItem",
-    "MixinStuckObjectsFeatureRenderer",
-    "MixinWorldRenderer"
+    "MixinStuckInBodyLater",
+    "MixinLevelRenderer"
   ],
   "server": [
   ],

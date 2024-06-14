@@ -41,21 +41,21 @@ public class RealCameraCore {
         return f;
     }
 
-    public static Vec3 getPos(Vec3 vec3d) {
-        return new Vec3(currentTarget.bindX ? pos.x() : vec3d.x(), currentTarget.bindY ? pos.y() : vec3d.y(), currentTarget.bindZ ? pos.z() : vec3d.z());
+    public static Vec3 getPos(Vec3 vec) {
+        return new Vec3(currentTarget.bindX ? pos.x() : vec.x(), currentTarget.bindY ? pos.y() : vec.y(), currentTarget.bindZ ? pos.z() : vec.z());
     }
 
-    public static Vec3 getCameraPos(Vec3 vec3d) {
-        return new Vec3(currentTarget.bindX ? cameraPos.x() : vec3d.x(), currentTarget.bindY ? cameraPos.y() : vec3d.y(), currentTarget.bindZ ? cameraPos.z() : vec3d.z());
+    public static Vec3 getCameraPos(Vec3 vec) {
+        return new Vec3(currentTarget.bindX ? cameraPos.x() : vec.x(), currentTarget.bindY ? cameraPos.y() : vec.y(), currentTarget.bindZ ? cameraPos.z() : vec.z());
     }
 
-    public static void setCameraPos(Vec3 vec3d) {
-        cameraPos = vec3d;
+    public static void setCameraPos(Vec3 vec) {
+        cameraPos = vec;
     }
 
     public static void initialize(Minecraft client) {
         Entity entity = client.getCameraEntity();
-        active = ConfigFile.config().enabled() && client.options.getCameraType().isFirstPerson() && client.gameRenderer.getMainCamera() != null && entity != null && !DisableHelper.isDisabled("mainFeature", entity);
+        active = ConfigFile.config().enabled() && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.isDisabled("mainFeature", entity);
         rendering = active && ConfigFile.config().renderModel() && !DisableHelper.isDisabled("renderModel", entity);
     }
 
@@ -88,31 +88,28 @@ public class RealCameraCore {
         recorder.buildRecords();
     }
 
-    public static void renderCameraEntity(MultiBufferSource vertexConsumers, Matrix4f projectionMatrix) {
+    public static void renderCameraEntity(MultiBufferSource bufferSource, Matrix4f projectionMatrix) {
         Vector3f vertexOffset = offset.subtract(pos).toVector3f();
         Matrix3f normalMatrix = new Matrix3f().rotateZ((float) Math.toRadians(roll)).rotateX((float) Math.toRadians(pitch)).rotateY((float) Math.toRadians(yaw + 180.0f)).transpose().invert();
         Matrix4f positionMatrix = new Matrix4f(normalMatrix).translate(vertexOffset);
         final double m02 = positionMatrix.m02(), m12 = positionMatrix.m12(), m22 = positionMatrix.m22(), m32 = positionMatrix.m32();
         normalMatrix.mulLocal(new Matrix3f(projectionMatrix).invert());
         positionMatrix.set(normalMatrix).translate(vertexOffset);
-        recorder.drawRecords(record -> {
+        recorder.forEachRecord(record -> {
             if (currentTarget.disabledTextureIds.stream().anyMatch(record.textureId()::contains)) return;
-            VertexConsumer buffer = vertexConsumers.getBuffer(record.renderLayer());
-            if (!record.renderLayer().canConsolidateConsecutiveGeometry()) {
-                for (VertexRecorder.Vertex vertex : record.vertices()) vertex.apply(buffer);
+            VertexConsumer buffer = bufferSource.getBuffer(record.renderType());
+            if (!record.renderType().canConsolidateConsecutiveGeometry()) {
+                VertexRecorder.renderVertices(record.vertices(), buffer);
                 return;
             }
             final double depth = currentTarget.disablingDepth;
-            boolean shouldDraw;
             for (VertexRecorder.Vertex[] primitive : record.primitives()) {
-                shouldDraw = false;
                 for (VertexRecorder.Vertex vertex : primitive) {
                     if (Math.fma(m02, vertex.x(), Math.fma(m12, vertex.y(), Math.fma(m22, vertex.z(), m32))) < -depth) {
-                        shouldDraw = true;
+                        VertexRecorder.renderVertices(primitive, buffer, positionMatrix, normalMatrix);
                         break;
                     }
                 }
-                if (shouldDraw) for (VertexRecorder.Vertex vertex : primitive) vertex.transform(positionMatrix, normalMatrix).apply(buffer);
             }
         });
     }

@@ -6,6 +6,7 @@ import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.util.CrosshairUtil;
 import com.xtracr.realcamera.util.RaycastUtil;
 import net.minecraft.client.Camera;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.entity.Entity;
@@ -37,24 +38,25 @@ public abstract class MixinGameRenderer {
             double sqDistance = (minecraft.hitResult != null ? minecraft.hitResult.getLocation().distanceToSqr(startVec) : endVec.distanceToSqr(startVec));
             Entity cameraEntity = minecraft.getCameraEntity();
             double interactionRange = Math.max(minecraft.player.blockInteractionRange(), minecraft.player.entityInteractionRange());
-            AABB box = cameraEntity.getBoundingBox().expandTowards(cameraEntity.getViewVector(minecraft.getFrameTime()).scale(interactionRange)).inflate(1.0, 1.0, 1.0);
+            AABB box = cameraEntity.getBoundingBox().expandTowards(cameraEntity.getViewVector(minecraft.getTimer().getGameTimeDeltaPartialTick(true)).scale(interactionRange)).inflate(1.0, 1.0, 1.0);
             CrosshairUtil.capturedEntityHitResult = ProjectileUtil.getEntityHitResult(cameraEntity, startVec, endVec, box, entity -> !entity.isSpectator() && entity.isPickable(), sqDistance);
         }
         return CrosshairUtil.capturedEntityHitResult;
     }
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setup(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/world/entity/Entity;ZZF)V"))
-    private void realcamera$onBeforeCameraUpdate(float f, long l, CallbackInfo ci) {
-        CompatibilityHelper.NEA_setDeltaTick(f);
+    private void realcamera$atBeforeCameraSetup(DeltaTracker tickCounter, CallbackInfo ci) {
+        final float tickDelta = tickCounter.getGameTimeDeltaPartialTick(true);
+        CompatibilityHelper.NEA_setDeltaTick(tickDelta);
         RealCameraCore.initialize(minecraft);
         if (RealCameraCore.isActive() && !ConfigFile.config().isClassic()) {
-            RealCameraCore.updateModel(minecraft, f);
+            RealCameraCore.updateModel(minecraft, tickDelta);
             RealCameraCore.computeCamera();
         }
     }
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;prepareCullFrustum(Lnet/minecraft/world/phys/Vec3;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V"))
-    private void realcamera$onBeforeSetupFrustum(CallbackInfo cInfo) {
+    private void realcamera$atBeforePrePareFrustum(CallbackInfo cInfo) {
         if (RealCameraCore.isActive() && !ConfigFile.config().isClassic()) {
             ((CameraAccessor) mainCamera).invokeSetPosition(RealCameraCore.getCameraPos(mainCamera.getPosition()));
         }

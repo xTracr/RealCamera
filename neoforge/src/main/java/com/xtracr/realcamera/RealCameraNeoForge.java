@@ -3,7 +3,6 @@ package com.xtracr.realcamera;
 import com.xtracr.realcamera.config.ConfigScreen;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.ModLoadingContext;
@@ -20,13 +19,12 @@ public class RealCameraNeoForge {
         modEventBus.addListener(this::onKeyRegister);
     }
 
-    @SubscribeEvent
     public void clientSetup(FMLClientSetupEvent event) {
         RealCamera.initialize();
 
-        NeoForge.EVENT_BUS.addListener(EventHandler::onKeyInput);
-        NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, EventHandler::onCameraUpdate);
-        NeoForge.EVENT_BUS.addListener(EventHandler::onRenderWorldStage);
+        NeoForge.EVENT_BUS.addListener(EventHandler::onClientTick);
+        NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, EventHandler::onCameraSetup);
+        NeoForge.EVENT_BUS.addListener(EventHandler::onRenderLevelStage);
 
         if (ModList.get().isLoaded("cloth_config")) {
             ModLoadingContext.get().registerExtensionPoint(IConfigScreenFactory.class,
@@ -34,7 +32,6 @@ public class RealCameraNeoForge {
         }
     }
 
-    @SubscribeEvent
     public void onKeyRegister(RegisterKeyMappingsEvent event) {
         KeyBindings.register(event::register);
     }

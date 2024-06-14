@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.function.Consumer;
 
 public class TexturedButton extends AbstractButton {
-    public static final ResourceLocation ICON_TEXTURE = new ResourceLocation(RealCamera.MODID, "textures/gui/icon.png");
+    public static final ResourceLocation ICON_TEXTURE = ResourceLocation.fromNamespaceAndPath(RealCamera.MODID, "textures/gui/icon.png");
     protected final ResourceLocation texture;
     protected final int textureWidth, textureHeight, u, v;
     private final Consumer<TexturedButton> onPress;
@@ -39,10 +39,10 @@ public class TexturedButton extends AbstractButton {
     }
 
     @Override
-    public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        context.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0xFF646464);
-        context.blit(texture, getX(), getY(), u, v, width, height, textureWidth, textureHeight);
-        if (isHoveredOrFocused()) context.renderOutline(getX(), getY(), getWidth(), getHeight(), 0xFFFFFFFF);
+    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+        graphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0xFF646464);
+        graphics.blit(texture, getX(), getY(), u, v, width, height, textureWidth, textureHeight);
+        if (isHoveredOrFocused()) graphics.renderOutline(getX(), getY(), getWidth(), getHeight(), 0xFFFFFFFF);
     }
 
     @Override
