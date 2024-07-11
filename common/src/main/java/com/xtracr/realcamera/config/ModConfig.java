@@ -214,11 +214,11 @@ public class ModConfig {
         protected static final List<String> defaultDisableRenderItems = List.of("minecraft:filled_map");
         public boolean adjustOffset = true;
         public boolean renderStuckObjects = true;
-        public List<String> disableRenderItems = new ArrayList<>(defaultDisableRenderItems);
+        public List<String> disableRenderItems = defaultDisableRenderItems;
         public List<BindingTarget> targetList = new ArrayList<>(BindingTarget.defaultTargets);
 
         private void clamp() {
-            if (disableRenderItems == null) disableRenderItems = new ArrayList<>();
+            if (disableRenderItems == null) disableRenderItems = List.of();
             if (targetList == null || targetList.isEmpty()) targetList = new ArrayList<>(BindingTarget.defaultTargets);
         }
     }

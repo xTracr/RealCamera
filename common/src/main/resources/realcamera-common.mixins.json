@@ -7,14 +7,15 @@
   ],
   "client": [
     "CameraAccessor",
+    "GameRendererAccessor",
     "MixinCamera",
-    "MixinLocalPlayer",
     "MixinGameRenderer",
-    "MixinItemInHandRenderer",
     "MixinGui",
     "MixinItem",
-    "MixinStuckInBodyLater",
-    "MixinLevelRenderer"
+    "MixinItemInHandRenderer",
+    "MixinLevelRenderer",
+    "MixinLocalPlayer",
+    "MixinStuckInBodyLater"
   ],
   "server": [
   ],

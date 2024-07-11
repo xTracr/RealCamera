@@ -227,7 +227,7 @@ public class ModelViewScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
         super.render(graphics, mouseX, mouseY, delta);
-        drawEntity(graphics, x + (xSize - ySize) / 2, y, x + (xSize + ySize) / 2, y + ySize, mouseX, mouseY, minecraft.player);
+        renderEntityInViewArea(graphics, x + (xSize - ySize) / 2, y, x + (xSize + ySize) / 2, y + ySize, mouseX, mouseY, minecraft.player);
     }
 
     @Override
@@ -238,7 +238,7 @@ public class ModelViewScreen extends Screen {
         graphics.fill(x + (xSize + ySize) / 2 + 4, y, x + xSize, y + ySize, 0xFF444444);
     }
 
-    protected void drawEntity(GuiGraphics graphics, int x1, int y1, int x2, int y2, int mouseX, int mouseY, LivingEntity entity) {
+    protected void renderEntityInViewArea(GuiGraphics graphics, int x1, int y1, int x2, int y2, int mouseX, int mouseY, LivingEntity entity) {
         float centerX = (float) (x1 + x2) / 2.0f;
         float centerY = (float) (y1 + y2) / 2.0f;
         graphics.enableScissor(x1, y1, x2, y2);
@@ -254,7 +254,7 @@ public class ModelViewScreen extends Screen {
         entity.yHeadRot = entity.getYRot();
         entity.yHeadRotO = entity.getYRot();
         Vector3f vector3f = new Vector3f((float) entityX, (float) entityY, -2.0f);
-        drawEntity(graphics, centerX, centerY, mouseX, mouseY, vector3f, quaternionf, entity);
+        renderEntityWithAnalyser(graphics, centerX, centerY, mouseX, mouseY, vector3f, quaternionf, entity);
         entity.yBodyRot = entityBodyYaw;
         entity.setYRot(entityYaw);
         entity.setXRot(entityPitch);
@@ -263,7 +263,7 @@ public class ModelViewScreen extends Screen {
         graphics.disableScissor();
     }
 
-    protected void drawEntity(GuiGraphics graphics, float x, float y, int mouseX, int mouseY, Vector3f offset, Quaternionf quaternionf, LivingEntity entity) {
+    protected void renderEntityWithAnalyser(GuiGraphics graphics, float x, float y, int mouseX, int mouseY, Vector3f offset, Quaternionf quaternionf, LivingEntity entity) {
         graphics.pose().pushPose();
         graphics.pose().translate(x, y, 0);
         graphics.pose().mulPose(new Matrix4f().scaling(entitySize, entitySize, -entitySize));

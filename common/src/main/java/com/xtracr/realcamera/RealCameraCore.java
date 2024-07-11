@@ -105,10 +105,9 @@ public class RealCameraCore {
             final double depth = currentTarget.disablingDepth;
             for (VertexRecorder.Vertex[] primitive : record.primitives()) {
                 for (VertexRecorder.Vertex vertex : primitive) {
-                    if (Math.fma(m02, vertex.x(), Math.fma(m12, vertex.y(), Math.fma(m22, vertex.z(), m32))) < -depth) {
-                        VertexRecorder.renderVertices(primitive, buffer, positionMatrix, normalMatrix);
-                        break;
-                    }
+                    if (Math.fma(m02, vertex.x(), Math.fma(m12, vertex.y(), Math.fma(m22, vertex.z(), m32))) > -depth) continue;
+                    VertexRecorder.renderVertices(primitive, buffer, positionMatrix, normalMatrix);
+                    break;
                 }
             }
         });
