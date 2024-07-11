@@ -1,7 +1,7 @@
 package com.xtracr.realcamera.config;
 
 import com.xtracr.realcamera.RealCameraCore;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -30,7 +30,7 @@ public class ModConfig {
     }
 
     public void clamp() {
-        adjustStep = MathHelper.clamp(adjustStep, 0.0d, MAX_DOUBLE);
+        adjustStep = Mth.clamp(adjustStep, 0.0d, MAX_DOUBLE);
         classic.clamp();
         binding.clamp();
     }
@@ -187,16 +187,16 @@ public class ModConfig {
 
         private void clamp() {
             if (adjustMode == null) adjustMode = AdjustMode.CAMERA;
-            scale = MathHelper.clamp(scale, 0.0, 64.0);
-            cameraX = MathHelper.clamp(cameraX, MIN_DOUBLE, MAX_DOUBLE);
-            cameraY = MathHelper.clamp(cameraY, MIN_DOUBLE, MAX_DOUBLE);
-            cameraZ = MathHelper.clamp(cameraZ, MIN_DOUBLE, MAX_DOUBLE);
-            centerX = MathHelper.clamp(centerX, MIN_DOUBLE, MAX_DOUBLE);
-            centerY = MathHelper.clamp(centerY, MIN_DOUBLE, MAX_DOUBLE);
-            centerZ = MathHelper.clamp(centerZ, MIN_DOUBLE, MAX_DOUBLE);
-            pitch = MathHelper.wrapDegrees(pitch);
-            yaw = MathHelper.wrapDegrees(yaw);
-            roll = MathHelper.wrapDegrees(roll);
+            scale = Mth.clamp(scale, 0.0, 64.0);
+            cameraX = Mth.clamp(cameraX, MIN_DOUBLE, MAX_DOUBLE);
+            cameraY = Mth.clamp(cameraY, MIN_DOUBLE, MAX_DOUBLE);
+            cameraZ = Mth.clamp(cameraZ, MIN_DOUBLE, MAX_DOUBLE);
+            centerX = Mth.clamp(centerX, MIN_DOUBLE, MAX_DOUBLE);
+            centerY = Mth.clamp(centerY, MIN_DOUBLE, MAX_DOUBLE);
+            centerZ = Mth.clamp(centerZ, MIN_DOUBLE, MAX_DOUBLE);
+            pitch = Mth.wrapDegrees(pitch);
+            yaw = Mth.wrapDegrees(yaw);
+            roll = Mth.wrapDegrees(roll);
         }
 
         public enum AdjustMode {
@@ -214,11 +214,11 @@ public class ModConfig {
         protected static final List<String> defaultDisableRenderItems = List.of("minecraft:filled_map");
         public boolean adjustOffset = true;
         public boolean renderStuckObjects = true;
-        public List<String> disableRenderItems = new ArrayList<>(defaultDisableRenderItems);
+        public List<String> disableRenderItems = defaultDisableRenderItems;
         public List<BindingTarget> targetList = new ArrayList<>(BindingTarget.defaultTargets);
 
         private void clamp() {
-            if (disableRenderItems == null) disableRenderItems = new ArrayList<>();
+            if (disableRenderItems == null) disableRenderItems = List.of();
             if (targetList == null || targetList.isEmpty()) targetList = new ArrayList<>(BindingTarget.defaultTargets);
         }
     }

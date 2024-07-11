@@ -2,31 +2,26 @@ package com.xtracr.realcamera;
 
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.util.CrosshairUtil;
-import net.minecraft.client.MinecraftClient;
-import net.minecraftforge.client.event.InputEvent.Key;
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.client.event.ViewportEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.event.TickEvent;
 
 public class EventHandler {
-    @SubscribeEvent
-    public static void onKeyInput(Key event) {
-        KeyBindings.handle(MinecraftClient.getInstance());
+    public static void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase == TickEvent.Phase.END) KeyBindings.handle(Minecraft.getInstance());
     }
 
-    @SubscribeEvent
-    public static void onCameraUpdate(ViewportEvent.ComputeCameraAngles event) {
+    public static void onCameraSetup(ViewportEvent.ComputeCameraAngles event) {
         if (RealCameraCore.isActive()) {
             event.setRoll(RealCameraCore.getRoll(event.getRoll()));
         }
     }
 
-    @SubscribeEvent
-    public static void onRenderWorldStage(RenderLevelStageEvent event) {
+    public static void onRenderLevelStage(RenderLevelStageEvent event) {
         if (RenderLevelStageEvent.Stage.AFTER_SKY.equals(event.getStage())) {
             if (ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
-                CrosshairUtil.update(MinecraftClient.getInstance(), event.getCamera(),
-                        event.getPoseStack().peek().getPositionMatrix(), event.getProjectionMatrix());
+                CrosshairUtil.update(Minecraft.getInstance(), event.getCamera(), event.getPoseStack().last().pose(), event.getProjectionMatrix());
             }
         }
     }

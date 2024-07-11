@@ -6,7 +6,6 @@ import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -21,13 +20,12 @@ public class RealCameraForge {
         eventBus.addListener(this::onKeyRegister);
     }
 
-    @SubscribeEvent
     public void clientSetup(FMLClientSetupEvent event) {
         RealCamera.initialize();
 
-        MinecraftForge.EVENT_BUS.addListener(EventHandler::onKeyInput);
-        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, EventHandler::onCameraUpdate);
-        MinecraftForge.EVENT_BUS.addListener(EventHandler::onRenderWorldStage);
+        MinecraftForge.EVENT_BUS.addListener(EventHandler::onClientTick);
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, EventHandler::onCameraSetup);
+        MinecraftForge.EVENT_BUS.addListener(EventHandler::onRenderLevelStage);
 
         if (ModList.get().isLoaded("cloth_config")) {
             ModLoadingContext.get().registerExtensionPoint(ConfigScreenFactory.class,
@@ -35,7 +33,6 @@ public class RealCameraForge {
         }
     }
 
-    @SubscribeEvent
     public void onKeyRegister(RegisterKeyMappingsEvent event) {
         KeyBindings.register(event::register);
     }

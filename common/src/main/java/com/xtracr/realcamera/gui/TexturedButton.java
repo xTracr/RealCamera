@@ -1,17 +1,17 @@
 package com.xtracr.realcamera.gui;
 
 import com.xtracr.realcamera.RealCamera;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.gui.widget.PressableWidget;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractButton;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.function.Consumer;
 
-public class TexturedButton extends PressableWidget {
-    public static final Identifier ICON_TEXTURE = new Identifier(RealCamera.MODID, "textures/gui/icon.png");
-    protected final Identifier texture;
+public class TexturedButton extends AbstractButton {
+    public static final ResourceLocation ICON_TEXTURE = new ResourceLocation(RealCamera.MODID, "textures/gui/icon.png");
+    protected final ResourceLocation texture;
     protected final int textureWidth, textureHeight, u, v;
     private final Consumer<TexturedButton> onPress;
 
@@ -23,8 +23,8 @@ public class TexturedButton extends PressableWidget {
         this(x, y, width, height, u, v, ICON_TEXTURE, 256, 256, onPress);
     }
 
-    public TexturedButton(int x, int y, int width, int height, int u, int v, Identifier texture, int textureWidth, int textureHeight, Consumer<TexturedButton> onPress) {
-        super(x, y, width, height, Text.empty());
+    public TexturedButton(int x, int y, int width, int height, int u, int v, ResourceLocation texture, int textureWidth, int textureHeight, Consumer<TexturedButton> onPress) {
+        super(x, y, width, height, Component.empty());
         this.textureWidth = textureWidth;
         this.textureHeight = textureHeight;
         this.onPress = onPress;
@@ -39,14 +39,14 @@ public class TexturedButton extends PressableWidget {
     }
 
     @Override
-    public void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
-        context.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0xFF646464);
-        context.drawTexture(texture, getX(), getY(), u, v, width, height, textureWidth, textureHeight);
-        if (isSelected()) context.drawBorder(getX(), getY(), getWidth(), getHeight(), 0xFFFFFFFF);
+    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+        graphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0xFF646464);
+        graphics.blit(texture, getX(), getY(), u, v, width, height, textureWidth, textureHeight);
+        if (isHoveredOrFocused()) graphics.renderOutline(getX(), getY(), getWidth(), getHeight(), 0xFFFFFFFF);
     }
 
     @Override
-    protected void appendClickableNarrations(NarrationMessageBuilder builder) {
-        this.appendDefaultNarrations(builder);
+    protected void updateWidgetNarration(NarrationElementOutput builder) {
+        this.defaultButtonNarrationText(builder);
     }
 }
