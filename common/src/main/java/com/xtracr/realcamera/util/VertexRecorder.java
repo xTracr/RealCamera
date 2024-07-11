@@ -56,8 +56,8 @@ public class VertexRecorder implements MultiBufferSource {
     public BuiltRecord getTargetPosAndRot(BindingTarget target, Matrix3f normal, Vector3f position) {
         return records.stream().map(record -> {
             if (!record.textureId().contains(target.textureId)) return null;
-            Vec3 forward = getPrimitive(record, target.forwardU, target.forwardV)[0].normal().normalize();
-            Vec3 left = getPrimitive(record, target.upwardU, target.upwardV)[0].normal().cross(forward).normalize();
+            Vec3 forward = getPrimitive(record, target.forwardU, target.forwardV)[0].normal();
+            Vec3 left = getPrimitive(record, target.upwardU, target.upwardV)[0].normal().cross(forward);
             Vertex[] face = getPrimitive(record, target.posU, target.posV);
             if (face[0].normal().equals(Vec3.ZERO) && forward.equals(Vec3.ZERO) && left.equals(Vec3.ZERO)) return null;
             normal.set(left.toVector3f(), forward.cross(left).toVector3f(), forward.toVector3f());
@@ -194,7 +194,7 @@ public class VertexRecorder implements MultiBufferSource {
         }
 
         public Vec3 normal() {
-            return new Vec3(normalX, normalY, normalZ);
+            return new Vec3(normalX, normalY, normalZ).normalize();
         }
 
         public Vertex transform(Matrix4f positionMatrix, Matrix3f normalMatrix) {

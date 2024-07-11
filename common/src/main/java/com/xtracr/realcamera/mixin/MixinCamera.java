@@ -4,6 +4,7 @@ import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
 import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -55,14 +56,14 @@ public abstract class MixinCamera {
             setPosition(prevPos);
             setRotation(RealCameraCore.getYaw(yRot), RealCameraCore.getPitch(xRot));
         }
-        realcamera$clipToSpace(startVec);
+        realcamera$clipToSpace(startVec, realcamera$getFov(tickDelta));
         RealCameraCore.setCameraPos(position);
     }
 
     @Unique
-    private void realcamera$clipToSpace(Vec3 startVec) {
+    private void realcamera$clipToSpace(Vec3 startVec, double fov) {
         Vec3 offset = position.subtract(startVec);
-        final float depth = 0.085f;
+        final float depth = 0.05f + (float) (fov * (0.0001 + 0.000005 * fov));
         for (int i = 0; i < 8; ++i) {
             float f = depth * ((i & 1) * 2 - 1);
             float g = depth * ((i >> 1 & 1) * 2 - 1);
@@ -75,6 +76,13 @@ public abstract class MixinCamera {
             offset = offset.scale(l / offset.length());
         }
         setPosition(startVec.add(offset));
+    }
+
+    @Unique
+    private static float realcamera$getFov(float tickDelta) {
+        Minecraft client = Minecraft.getInstance();
+        float multiplier = Mth.lerp(tickDelta, ((GameRendererAccessor) client.gameRenderer).getOldFov(), ((GameRendererAccessor) client.gameRenderer).getFov());
+        return client.options.fov().get() * multiplier;
     }
 
     @Shadow

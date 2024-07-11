@@ -5,10 +5,12 @@ import net.minecraft.util.Mth;
 import java.util.List;
 
 public class BindingTarget {
-    protected static final List<BindingTarget> defaultTargets = List.of(createDefaultTarget("minecraft_head", "minecraft:textures/entity/player/", 5, false),
-            createDefaultTarget("skin_head", "minecraft:skins/", 5, false),
-            createDefaultTarget("minecraft_head_2", "minecraft:textures/entity/player/", 0, true),
-            createDefaultTarget("skin_head_2", "minecraft:skins/", 0, true));
+    protected static final List<BindingTarget> defaultTargets = List.of(vanillaTarget("minecraft_head", 5, false).offsetX(-0.1),
+            vanillaTarget("skin_head", 5, false).offsetX(-0.1),
+            vanillaTarget("minecraft_head_2", 1, true).offsetX(-0.1),
+            vanillaTarget("skin_head_2", 1, true).offsetX(-0.1),
+            vanillaTarget("minecraft_head_3", 0, true).offsetX(-0.06).offsetY(-0.08).disablingDepth(0.08f),
+            vanillaTarget("skin_head_3", 0, true).offsetX(-0.06).offsetY(-0.08).disablingDepth(0.08f));
     public final String name, textureId;
     public int priority = 0;
     public float forwardU = 0, forwardV = 0, upwardU = 0, upwardV = 0, posU = 0, posV = 0, disablingDepth = 0.2f;
@@ -26,13 +28,12 @@ public class BindingTarget {
         this.textureId = textureId;
     }
 
-    private static BindingTarget createDefaultTarget(String name, String textureId, int priority, boolean shouldBind) {
-        return new BindingTarget(name, textureId).priority(priority)
+    private static BindingTarget vanillaTarget(String name, int priority, boolean shouldBind) {
+        return new BindingTarget(name, name.contains("skin") ? "minecraft:skins/" : "minecraft:textures/entity/player/").priority(priority)
                 .forwardU(0.1875f).forwardV(0.2f)
                 .upwardU(0.1875f).upwardV(0.075f)
                 .posU(0.1875f).posV(0.2f)
                 .bindX(shouldBind).bindZ(shouldBind).bindRotation(shouldBind)
-                .offsetX(-0.1)
                 .disabledTextureIds(List.of("minecraft:textures/entity/enderdragon/dragon.png"));
     }
 
