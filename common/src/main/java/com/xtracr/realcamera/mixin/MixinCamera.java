@@ -81,8 +81,8 @@ public abstract class MixinCamera {
     @Unique
     private static float realcamera$getFov(float tickDelta) {
         Minecraft client = Minecraft.getInstance();
-        float multiplier = Mth.lerp(tickDelta, ((GameRendererAccessor) client.gameRenderer).getOldFov(), ((GameRendererAccessor) client.gameRenderer).getFov());
-        return client.options.fov().get() * multiplier;
+        float fovModifier = Mth.lerp(tickDelta, ((GameRendererAccessor) client.gameRenderer).getOldFovModifier(), ((GameRendererAccessor) client.gameRenderer).getFovModifier());
+        return client.options.fov().get() * fovModifier;
     }
 
     @Shadow

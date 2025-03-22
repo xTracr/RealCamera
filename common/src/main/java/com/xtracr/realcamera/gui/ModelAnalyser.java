@@ -2,6 +2,7 @@ package com.xtracr.realcamera.gui;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.xtracr.realcamera.config.BindingTarget;
+import com.xtracr.realcamera.mixin.GuiGraphicsAccessor;
 import com.xtracr.realcamera.util.VertexRecorder;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderType;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.Set;
 
 public class ModelAnalyser extends VertexRecorder {
-    private static final Set<RenderType> UNFOCUSABLE_RENDER_TYPES = Set.of(RenderType.armorEntityGlint(), RenderType.glintTranslucent(), RenderType.glint(), RenderType.entityGlint(), RenderType.entityGlintDirect());
+    private static final Set<RenderType> UNFOCUSABLE_RENDER_TYPES = Set.of(RenderType.armorEntityGlint(), RenderType.glintTranslucent(), RenderType.glint(), RenderType.entityGlint());
     private static final int primitiveArgb = 0x6F3333CC, forwardArgb = 0xFF00CC00, upwardArgb = 0xFFCC0000, leftArgb = 0xFF0000CC;
     private static final int focusedArgb = 0x7FFFFFFF, sideArgb = 0x3FFFFFFF;
     private final BindingTarget target;
@@ -39,7 +40,7 @@ public class ModelAnalyser extends VertexRecorder {
     }
 
     private static void drawPrimitive(GuiGraphics graphics, Vertex[] primitive, int argb, int offset) {
-        VertexConsumer buffer = graphics.bufferSource().getBuffer(RenderType.gui());
+        VertexConsumer buffer = ((GuiGraphicsAccessor) graphics).getBufferSource().getBuffer(RenderType.gui());
         for (Vertex vertex : primitive) buffer.addVertex(vertex.x(), vertex.y(), vertex.z() + offset).setColor(argb);
         if (primitive.length == 3) buffer.addVertex(primitive[2].x(), primitive[2].y(), primitive[2].z() + offset).setColor(argb);
         graphics.flush();
@@ -47,7 +48,7 @@ public class ModelAnalyser extends VertexRecorder {
 
     private static void drawNormal(GuiGraphics graphics, Vec3 start, Vec3 normal, int length, int argb) {
         Vec3 end = normal.scale(length).add(start);
-        VertexConsumer buffer = graphics.bufferSource().getBuffer(RenderType.lineStrip());
+        VertexConsumer buffer = ((GuiGraphicsAccessor) graphics).getBufferSource().getBuffer(RenderType.lineStrip());
         buffer.addVertex((float) start.x(), (float) start.y(), (float) (start.z() + 1200f)).setColor(argb).setNormal((float) normal.x(), (float) normal.y(), (float) normal.z());
         buffer.addVertex((float) end.x(), (float) end.y(), (float) (end.z() + 1200f)).setColor(argb).setNormal((float) normal.x(), (float) normal.y(), (float) normal.z());
         graphics.flush();

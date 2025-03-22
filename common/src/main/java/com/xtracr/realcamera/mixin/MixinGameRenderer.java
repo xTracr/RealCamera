@@ -25,7 +25,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(GameRenderer.class)
 public abstract class MixinGameRenderer {
     @Shadow
-    @Final Minecraft minecraft;
+    @Final private Minecraft minecraft;
     @Shadow
     @Final private Camera mainCamera;
 
@@ -38,7 +38,7 @@ public abstract class MixinGameRenderer {
             double sqDistance = (minecraft.hitResult != null ? minecraft.hitResult.getLocation().distanceToSqr(startVec) : endVec.distanceToSqr(startVec));
             Entity cameraEntity = minecraft.getCameraEntity();
             double interactionRange = Math.max(minecraft.player.blockInteractionRange(), minecraft.player.entityInteractionRange());
-            AABB box = cameraEntity.getBoundingBox().expandTowards(cameraEntity.getViewVector(minecraft.getTimer().getGameTimeDeltaPartialTick(true)).scale(interactionRange)).inflate(1.0, 1.0, 1.0);
+            AABB box = cameraEntity.getBoundingBox().expandTowards(cameraEntity.getViewVector(minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(true)).scale(interactionRange)).inflate(1.0, 1.0, 1.0);
             CrosshairUtil.capturedEntityHitResult = ProjectileUtil.getEntityHitResult(cameraEntity, startVec, endVec, box, entity -> !entity.isSpectator() && entity.isPickable(), sqDistance);
         }
         return CrosshairUtil.capturedEntityHitResult;

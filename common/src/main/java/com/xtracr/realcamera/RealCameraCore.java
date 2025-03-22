@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -84,7 +85,7 @@ public class RealCameraCore {
         }
         // WorldRenderer.renderEntity
         offset = new Vec3(Mth.lerp(tickDelta, entity.xOld, entity.getX()), Mth.lerp(tickDelta, entity.yOld, entity.getY()), Mth.lerp(tickDelta, entity.zOld, entity.getZ()));
-        dispatcher.render(entity, 0, 0, 0, Mth.lerp(tickDelta, entity.yRotO, entity.getYRot()), tickDelta, new PoseStack(), recorder, dispatcher.getPackedLightCoords(entity, tickDelta));
+        dispatcher.render(entity, 0, 0, 0, tickDelta, new PoseStack(), recorder, dispatcher.getPackedLightCoords(entity, tickDelta));
         recorder.buildRecords();
     }
 
@@ -124,8 +125,8 @@ public class RealCameraCore {
             break;
         }
         if (currentTarget.isEmpty()) {
-            Entity player = Minecraft.getInstance().player;
-            if (readyToSendMessage && player != null) player.sendSystemMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE()));
+            Player player = Minecraft.getInstance().player;
+            if (readyToSendMessage && player != null) player.displayClientMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE()), false);
             active = readyToSendMessage = false;
         } else readyToSendMessage = true;
         normal.rotateLocal((float) Math.toRadians(currentTarget.getYaw()), normal.m10, normal.m11, normal.m12);
