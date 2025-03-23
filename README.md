@@ -48,3 +48,16 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 * Compatible:
   * most camera mods
   * most player model mods
+
+
+* Model Mod Compatibility Requirements with `Real Camera` (Based on Official Mappings)：
+* Render Timing Compatibility
+  * `Real Camera` renders `Minecraft.getCameraEntity` through the public method `EntityRenderDispatcher.render` [(Source Location)](https://github.com/xTracr/RealCamera/blob/main/common/src/main/java/com/xtracr/realcamera/RealCameraCore.java#L88)
+  * The invocation timing has been moved to occur before the `Camera.setup` phase within the `GameRenderer.renderLevel` workflow [(Source Location)](https://github.com/xTracr/RealCamera/blob/main/common/src/main/java/com/xtracr/realcamera/mixin/MixinGameRenderer.java#L48)
+  * *Therefore*, mod implementations should ensure that the overall rendering behavior remains unaffected by this timing adjustment
+* Vertex Data Acquisition
+  * `Real Camera` obtains vertex data by overriding the `MultiBufferSource multiBufferSource` parameter in the `EntityRenderDispatcher.render` method [(Source Location)](https://github.com/xTracr/RealCamera/blob/main/common/src/main/java/com/xtracr/realcamera/RealCameraCore.java#L88)
+  * *Therefore*, mod implementations need to:
+    - Use only the **provided** `multiBufferSource` parameter when rendering `Minecraft.getCameraEntity`
+    - Avoid alternative approaches for obtaining or creating `MultiBufferSource` instances
+    - Ensure all vertex data ultimately passes through `VertexConsumer` objects acquired via `MultiBufferSource.getBuffer`
