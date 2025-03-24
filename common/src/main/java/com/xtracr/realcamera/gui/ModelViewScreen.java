@@ -275,6 +275,7 @@ public class ModelViewScreen extends Screen {
         dispatcher.setRenderShadow(false);
         ModelAnalyser analyser = new ModelAnalyser(generateBindingTarget());
         analyser.updateModel(Minecraft.getInstance(), entity, 0, -entity.getBbHeight() / 2.0f, 0, 0.0f, 1.0f, graphics.pose(), 0xF000f0);
+        analyser.forEachCatcher(catcher -> analyser.records().add(IVertexRecorder.buildVertices(catcher.collectVertices(), catcher.renderType())));
         analyser.analyse(entitySize, mouseX, mouseY, layers, showDisabled.getValue() == 1, disabledIdField.getValue());
         focusedUV = analyser.getFocusedUV();
         focusedTextureId = analyser.focusedTextureId();
