@@ -1,10 +1,16 @@
 package com.xtracr.realcamera.gui;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.xtracr.realcamera.config.BindingTarget;
+import com.xtracr.realcamera.api.IMultiVertexCatcher;
+import com.xtracr.realcamera.api.IVertexCatcher;
+import com.xtracr.realcamera.util.IVertexRecorder;
 import com.xtracr.realcamera.util.VertexRecorder;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -16,11 +22,14 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
-public class ModelAnalyser extends VertexRecorder {
+public class ModelAnalyser implements IMultiVertexCatcher, IVertexRecorder {
     private static final Set<RenderType> UNFOCUSABLE_RENDER_TYPES = Set.of(RenderType.armorEntityGlint(), RenderType.glintTranslucent(), RenderType.glint(), RenderType.entityGlint(), RenderType.entityGlintDirect());
     private static final int primitiveArgb = 0x6F3333CC, forwardArgb = 0xFF00CC00, upwardArgb = 0xFFCC0000, leftArgb = 0xFF0000CC;
     private static final int focusedArgb = 0x7FFFFFFF, sideArgb = 0x3FFFFFFF;
+    private final IMultiVertexCatcher catcher = IMultiVertexCatcher.getInstance();
+    private final IVertexRecorder recorder = new VertexRecorder();
     private final BindingTarget target;
     private final Matrix3f normal = new Matrix3f();
     private final Vector3f position = new Vector3f();
@@ -54,14 +63,13 @@ public class ModelAnalyser extends VertexRecorder {
     }
 
     public void analyse(int entitySize, int mouseX, int mouseY, int layers, boolean hideDisabled, String idInField) {
-        buildRecords();
-        List<BuiltRecord> removedRecords = records.stream().filter(record -> {
+        List<BuiltRecord> removedRecords = records().stream().filter(record -> {
             boolean isIdInField = !idInField.isBlank() && record.textureId().contains(idInField);
             return (hideDisabled && isIdInField) || (!isIdInField && target.disabledTextureIds.stream().anyMatch(record.textureId()::contains));
         }).toList();
-        records.removeAll(removedRecords);
+        records().removeAll(removedRecords);
         List<Triple> sortByDepth = new ArrayList<>();
-        records.stream().filter(record -> !UNFOCUSABLE_RENDER_TYPES.contains(record.renderType())).forEach(record -> {
+        records().stream().filter(record -> !UNFOCUSABLE_RENDER_TYPES.contains(record.renderType())).forEach(record -> {
             Vertex[][] primitives = record.primitives();
             for (int i = 0, primitiveCount = primitives.length; i < primitiveCount; i++) {
                 Polygon polygon = new Polygon();
@@ -80,9 +88,9 @@ public class ModelAnalyser extends VertexRecorder {
             focusedIndex = result.index;
         }
         target.scale *= entitySize;
-        records.addAll(removedRecords);
+        records().addAll(removedRecords);
         currentRecord = getTargetPosAndRot(target, normal, position, true);
-        records.removeAll(removedRecords);
+        records().removeAll(removedRecords);
         normal.rotateLocal((float) Math.toRadians(-target.getYaw()), normal.m10, normal.m11, normal.m12);
         normal.rotateLocal((float) Math.toRadians(-target.getPitch()), normal.m00, normal.m01, normal.m02);
         normal.rotateLocal((float) Math.toRadians(-target.getRoll()), normal.m20, normal.m21, normal.m22);
@@ -118,9 +126,27 @@ public class ModelAnalyser extends VertexRecorder {
         drawFocused(graphics);
         if (currentRecord == null) return;
         Vertex[] primitive;
-        if ((primitive = getPrimitive(currentRecord, target.posU, target.posV)) != null) drawPrimitive(graphics, primitive, primitiveArgb, 1000);
-        if ((primitive = getPrimitive(currentRecord, target.forwardU, target.forwardV)) != null) drawNormal(graphics, getPos(primitive, target.forwardU, target.forwardV), primitive[0].normal(), entitySize / 2, forwardArgb);
-        if ((primitive = getPrimitive(currentRecord, target.upwardU, target.upwardV)) != null) drawNormal(graphics, getPos(primitive, target.upwardU, target.upwardV), primitive[0].normal(), entitySize / 2, upwardArgb);
+        if ((primitive = IVertexRecorder.getPrimitive(currentRecord, target.posU, target.posV)) != null)
+            drawPrimitive(graphics, primitive, primitiveArgb, 1000);
+        if ((primitive = IVertexRecorder.getPrimitive(currentRecord, target.forwardU, target.forwardV)) != null)
+            drawNormal(graphics, IVertexRecorder.getPos(primitive, target.forwardU, target.forwardV), primitive[0].normal(), entitySize / 2, forwardArgb);
+        if ((primitive = IVertexRecorder.getPrimitive(currentRecord, target.upwardU, target.upwardV)) != null)
+            drawNormal(graphics, IVertexRecorder.getPos(primitive, target.upwardU, target.upwardV), primitive[0].normal(), entitySize / 2, upwardArgb);
+    }
+
+    @Override
+    public List<BuiltRecord> records() {
+        return recorder.records();
+    }
+
+    @Override
+    public void forEachCatcher(Consumer<IVertexCatcher> consumer) {
+        catcher.forEachCatcher(consumer);
+    }
+
+    @Override
+    public void updateModel(Minecraft client, Entity cameraEntity, float x, float y, float z, float yaw, float tickDelta, PoseStack poseStack, int packedLight) {
+        catcher.updateModel(client, cameraEntity, x, y, z, yaw, tickDelta, poseStack, packedLight);
     }
 
     private void drawFocused(GuiGraphics graphics) {

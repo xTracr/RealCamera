@@ -51,12 +51,12 @@ public abstract class MixinGameRenderer {
         RealCameraCore.initialize(minecraft);
         if (RealCameraCore.isActive() && !ConfigFile.config().isClassic()) {
             RealCameraCore.updateModel(minecraft, tickDelta);
-            RealCameraCore.computeCamera();
+            RealCameraCore.computeCamera(minecraft, tickDelta);
         }
     }
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;prepareCullFrustum(Lnet/minecraft/world/phys/Vec3;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V"))
-    private void realcamera$atBeforePrePareFrustum(CallbackInfo cInfo) {
+    private void realcamera$atBeforePrePareFrustum(CallbackInfo ci) {
         if (RealCameraCore.isActive() && !ConfigFile.config().isClassic()) {
             ((CameraAccessor) mainCamera).invokeSetPosition(RealCameraCore.getCameraPos(mainCamera.getPosition()));
         }
