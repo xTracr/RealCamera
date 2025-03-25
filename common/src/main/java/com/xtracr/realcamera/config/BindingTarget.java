@@ -8,9 +8,7 @@ public class BindingTarget {
     protected static final List<BindingTarget> defaultTargets = List.of(vanillaTarget("minecraft_head", 5, false).offsetX(-0.1),
             vanillaTarget("skin_head", 5, false).offsetX(-0.1),
             vanillaTarget("minecraft_head_2", 1, true).offsetX(-0.1),
-            vanillaTarget("skin_head_2", 1, true).offsetX(-0.1),
-            vanillaTarget("minecraft_head_3", 0, true).offsetX(-0.06).offsetY(-0.08).disablingDepth(0.08f),
-            vanillaTarget("skin_head_3", 0, true).offsetX(-0.06).offsetY(-0.08).disablingDepth(0.08f));
+            vanillaTarget("skin_head_2", 1, true).offsetX(-0.1));
     public final String name, textureId;
     public int priority = 0;
     public float forwardU = 0, forwardV = 0, upwardU = 0, upwardV = 0, posU = 0, posV = 0, disablingDepth = 0.2f;
@@ -38,7 +36,7 @@ public class BindingTarget {
     }
 
     public boolean isEmpty() {
-        return name == null;
+        return name == null || name.isEmpty();
     }
 
     public double getOffsetX() {

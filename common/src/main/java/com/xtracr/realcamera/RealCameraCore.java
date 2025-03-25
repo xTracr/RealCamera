@@ -2,12 +2,13 @@ package com.xtracr.realcamera;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.xtracr.realcamera.api.IMultiVertexCatcher;
-import com.xtracr.realcamera.util.IVertexRecorder;
+import com.xtracr.realcamera.util.MultiVertexCatcher;
 import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.BindingTarget;
 import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.util.*;
+import com.xtracr.realcamera.util.LocUtil;
+import com.xtracr.realcamera.util.MathUtil;
+import com.xtracr.realcamera.util.VertexRecorder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
@@ -19,7 +20,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 public class RealCameraCore {
-    private static final IVertexRecorder vertexRecorder = new VertexRecorder();
+    private static final VertexRecorder recorder = new VertexRecorder();
     public static BindingTarget currentTarget = new BindingTarget();
     private static Vec3 pos = Vec3.ZERO, cameraPos = Vec3.ZERO, offset = Vec3.ZERO;
     private static boolean active = false, rendering = false, readyToSendMessage = true;
@@ -73,33 +74,38 @@ public class RealCameraCore {
 
     public static void updateModel(Minecraft client, float tickDelta) {
         Entity entity = client.getCameraEntity();
+        if (entity.tickCount == 0) {
+            entity.xOld = entity.getX();
+            entity.yOld = entity.getY();
+            entity.zOld = entity.getZ();
+        }
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         dispatcher.prepare(client.level, client.gameRenderer.getMainCamera(), client.crosshairPickEntity);
-        vertexRecorder.records().clear();
-        IMultiVertexCatcher vertexCatcher = IMultiVertexCatcher.getInstance();
-        vertexCatcher.updateModel(client, entity, 0, 0, 0, Mth.lerp(tickDelta, entity.yRotO, entity.getYRot()), tickDelta, new PoseStack(), dispatcher.getPackedLightCoords(entity, tickDelta));
-        vertexCatcher.forEachCatcher(catcher -> vertexRecorder.records().add(IVertexRecorder.buildVertices(catcher.collectVertices(), catcher.renderType())));
+        recorder.records().clear();
+        MultiVertexCatcher catcher = MultiVertexCatcher.getInstance();
+        catcher.updateModel(client, entity, 0, 0, 0, Mth.lerp(tickDelta, entity.yRotO, entity.getYRot()), tickDelta, new PoseStack(), dispatcher.getPackedLightCoords(entity, tickDelta));
+        catcher.sendVertices(recorder);
     }
 
-    public static void renderCameraEntity(MultiBufferSource bufferSource, Matrix4f projectionMatrix) {
+    public static void renderCameraEntity(MultiBufferSource bufferSource, Matrix4f cameraRotation) {
         Vector3f vertexOffset = offset.subtract(pos).toVector3f();
         Matrix3f normalMatrix = new Matrix3f().rotateZ((float) Math.toRadians(roll)).rotateX((float) Math.toRadians(pitch)).rotateY((float) Math.toRadians(yaw + 180.0f)).transpose().invert();
         Matrix4f positionMatrix = new Matrix4f(normalMatrix).translate(vertexOffset);
         final double m02 = positionMatrix.m02(), m12 = positionMatrix.m12(), m22 = positionMatrix.m22(), m32 = positionMatrix.m32();
-        normalMatrix.mulLocal(new Matrix3f(projectionMatrix).invert());
+        normalMatrix.mulLocal(new Matrix3f(cameraRotation).invert());
         positionMatrix.set(normalMatrix).translate(vertexOffset);
-        vertexRecorder.records().forEach(record -> {
+        recorder.records().forEach(record -> {
             if (currentTarget.disabledTextureIds.stream().anyMatch(record.textureId()::contains)) return;
             VertexConsumer buffer = bufferSource.getBuffer(record.renderType());
             if (!record.renderType().canConsolidateConsecutiveGeometry()) {
-                IVertexRecorder.renderVertices(record.vertices(), buffer);
+                VertexRecorder.renderVertices(record.vertices(), buffer);
                 return;
             }
             final double depth = currentTarget.disablingDepth;
-            for (IVertexRecorder.Vertex[] primitive : record.primitives()) {
-                for (IVertexRecorder.Vertex vertex : primitive) {
+            for (VertexRecorder.Vertex[] primitive : record.primitives()) {
+                for (VertexRecorder.Vertex vertex : primitive) {
                     if (Math.fma(m02, vertex.x(), Math.fma(m12, vertex.y(), Math.fma(m22, vertex.z(), m32))) > -depth) continue;
-                    IVertexRecorder.renderVertices(primitive, buffer, positionMatrix, normalMatrix);
+                    VertexRecorder.renderVertices(primitive, buffer, positionMatrix, normalMatrix);
                     break;
                 }
             }
@@ -108,18 +114,13 @@ public class RealCameraCore {
 
     public static void computeCamera(Minecraft client, float tickDelta) {
         Entity entity = client.getCameraEntity();
-        if (entity.tickCount == 0) {
-            entity.xOld = entity.getX();
-            entity.yOld = entity.getY();
-            entity.zOld = entity.getZ();
-        }
         offset = new Vec3(Mth.lerp(tickDelta, entity.xOld, entity.getX()), Mth.lerp(tickDelta, entity.yOld, entity.getY()), Mth.lerp(tickDelta, entity.zOld, entity.getZ()));
 
         currentTarget = new BindingTarget();
         Matrix3f normal = new Matrix3f();
         for (BindingTarget target : ConfigFile.config().getTargetList()) {
             Vector3f position  = new Vector3f();
-            if (vertexRecorder.getTargetPosAndRot(target, normal, position, false) == null || !(Math.abs(normal.determinant() - 1) <= 0.01f) || !Float.isFinite(position.lengthSquared())) continue;
+            if (recorder.getTargetPosAndRot(target, normal, position, false) == null || !(Math.abs(normal.determinant() - 1) <= 0.01f) || !Float.isFinite(position.lengthSquared())) continue;
             pos = new Vec3(position).add(offset);
             currentTarget = target;
             break;
