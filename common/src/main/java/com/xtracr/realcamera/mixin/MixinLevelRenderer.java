@@ -29,12 +29,13 @@ public abstract class MixinLevelRenderer {
     private void realcamera$renderLocalPlayer(DeltaTracker deltaTracker, boolean bl, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f matrix4f, Matrix4f matrix4f2, CallbackInfo ci) {
         if (!RealCameraCore.isRendering()) return;
         MultiBufferSource.BufferSource bufferSource = this.renderBuffers.bufferSource();
-        Vec3 cameraPos = camera.getPosition();
-        if (!ConfigFile.config().isClassic()) RealCameraCore.renderCameraEntity(bufferSource, matrix4f);
+        Entity entity = camera.getEntity();
+        TickRateManager tickManager = minecraft.level.tickRateManager();
+        float tickDelta = deltaTracker.getGameTimeDeltaPartialTick(!tickManager.isEntityFrozen(entity));
+        if (!ConfigFile.config().isClassic()) RealCameraCore.renderCameraEntity(minecraft, tickDelta, bufferSource, matrix4f);
         else {
-            TickRateManager tickManager = minecraft.level.tickRateManager();
-            Entity entity = camera.getEntity();
-            renderEntity(entity, cameraPos.x(), cameraPos.y(), cameraPos.z(), deltaTracker.getGameTimeDeltaPartialTick(!tickManager.isEntityFrozen(entity)), new PoseStack(), bufferSource);
+            Vec3 cameraPos = camera.getPosition();
+            renderEntity(entity, cameraPos.x(), cameraPos.y(), cameraPos.z(), tickDelta, new PoseStack(), bufferSource);
         }
     }
 

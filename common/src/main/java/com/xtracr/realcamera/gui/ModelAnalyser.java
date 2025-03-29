@@ -2,8 +2,9 @@ package com.xtracr.realcamera.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.xtracr.realcamera.util.MultiVertexCatcher;
 import com.xtracr.realcamera.config.BindingTarget;
+import com.xtracr.realcamera.util.BindingContext;
+import com.xtracr.realcamera.util.MultiVertexCatcher;
 import com.xtracr.realcamera.util.VertexRecorder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -13,7 +14,6 @@ import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3f;
-import org.joml.Vector3f;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -27,8 +27,7 @@ public class ModelAnalyser extends VertexRecorder {
     private static final int focusedArgb = 0x7FFFFFFF, sideArgb = 0x3FFFFFFF;
     private final MultiVertexCatcher catcher = MultiVertexCatcher.getInstance();
     private final BindingTarget target;
-    private final Matrix3f normal = new Matrix3f();
-    private final Vector3f position = new Vector3f();
+    private BindingContext bindingContext = BindingContext.EMPTY;
     @Nullable
     private BuiltRecord focusedRecord, currentRecord;
     private int focusedIndex = -1;
@@ -61,7 +60,7 @@ public class ModelAnalyser extends VertexRecorder {
     public void analyse(int entitySize, int mouseX, int mouseY, int layers, boolean hideDisabled, String idInField) {
         List<BuiltRecord> removedRecords = records().stream().filter(record -> {
             boolean isIdInField = !idInField.isBlank() && record.textureId().contains(idInField);
-            return (hideDisabled && isIdInField) || (!isIdInField && target.disabledTextureIds.stream().anyMatch(record.textureId()::contains));
+            return (hideDisabled && isIdInField) || (!isIdInField && target.getDisabledTextureIds().stream().anyMatch(record.textureId()::contains));
         }).toList();
         records().removeAll(removedRecords);
         List<Triple> sortByDepth = new ArrayList<>();
@@ -83,13 +82,17 @@ public class ModelAnalyser extends VertexRecorder {
             focusedRecord = result.record;
             focusedIndex = result.index;
         }
-        target.scale *= entitySize;
+        target.setScale(target.getScale() * entitySize);
         records().addAll(removedRecords);
-        currentRecord = getTargetPosAndRot(target, normal, position, true);
+        for (BuiltRecord record : records()) {
+            BindingContext context = record.genContext(target, true);
+            if (!context.available()) continue;
+            context.init();
+            bindingContext = context;
+            currentRecord = record;
+            break;
+        }
         records().removeAll(removedRecords);
-        normal.rotateLocal((float) Math.toRadians(-target.getYaw()), normal.m10, normal.m11, normal.m12);
-        normal.rotateLocal((float) Math.toRadians(-target.getPitch()), normal.m00, normal.m01, normal.m02);
-        normal.rotateLocal((float) Math.toRadians(-target.getRoll()), normal.m20, normal.m21, normal.m22);
     }
 
     public String focusedTextureId() {
@@ -110,21 +113,25 @@ public class ModelAnalyser extends VertexRecorder {
 
     public void previewEffect(GuiGraphics graphics, int entitySize, boolean canSelect) {
         if (canSelect) drawFocused(graphics);
+        Vec3 start = bindingContext.getPosition();
+        Matrix3f normal = bindingContext.normal;
         if (normal.m00() == 0 && normal.m11() == 0 && normal.m22() == 0) return;
-        Vec3 start = new Vec3(position);
         drawNormal(graphics, start, new Vec3(normal.m20(), normal.m21(), normal.m22()), entitySize / 3, forwardArgb);
         drawNormal(graphics, start, new Vec3(normal.m10(), normal.m11(), normal.m12()), entitySize / 6, upwardArgb);
         drawNormal(graphics, start, new Vec3(normal.m00(), normal.m01(), normal.m02()), entitySize / 6, leftArgb);
     }
 
     public void drawNormals(GuiGraphics graphics, int entitySize) {
-        drawPolyhedron(graphics);
+        drawFocusedPolyhedron(graphics);
         drawFocused(graphics);
         if (currentRecord == null) return;
         Vertex[] primitive;
-        if ((primitive = getPrimitive(currentRecord, target.posU, target.posV)) != null) drawPrimitive(graphics, primitive, primitiveArgb, 1000);
-        if ((primitive = getPrimitive(currentRecord, target.forwardU, target.forwardV)) != null) drawNormal(graphics, getPos(primitive, target.forwardU, target.forwardV), primitive[0].normal(), entitySize / 2, forwardArgb);
-        if ((primitive = getPrimitive(currentRecord, target.upwardU, target.upwardV)) != null) drawNormal(graphics, getPos(primitive, target.upwardU, target.upwardV), primitive[0].normal(), entitySize / 2, upwardArgb);
+        if ((primitive = currentRecord.findPrimitive(target.getPosU(), target.getPosV())) != null)
+            drawPrimitive(graphics, primitive, primitiveArgb, 1000);
+        if ((primitive = currentRecord.findPrimitive(target.getForwardU(), target.getForwardV())) != null)
+            drawNormal(graphics, getCenter(primitive, target.getForwardU(), target.getForwardV()), primitive[0].normal(), entitySize / 2, forwardArgb);
+        if ((primitive = currentRecord.findPrimitive(target.getUpwardU(), target.getUpwardV())) != null)
+            drawNormal(graphics, getCenter(primitive, target.getUpwardU(), target.getUpwardV()), primitive[0].normal(), entitySize / 2, upwardArgb);
     }
 
     public void updateModel(Minecraft client, Entity cameraEntity, float x, float y, float z, float yaw, float tickDelta, PoseStack poseStack, int packedLight) {
@@ -142,7 +149,7 @@ public class ModelAnalyser extends VertexRecorder {
         drawPrimitive(graphics, reversed, focusedArgb, 1100);
     }
 
-    private void drawPolyhedron(GuiGraphics graphics) {
+    private void drawFocusedPolyhedron(GuiGraphics graphics) {
         if (focusedIndex == -1 || focusedRecord == null) return;
         List<Vertex[]> polyhedron = new ArrayList<>();
         polyhedron.add(focusedRecord.primitives()[focusedIndex]);

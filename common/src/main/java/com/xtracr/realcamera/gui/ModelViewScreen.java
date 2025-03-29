@@ -76,7 +76,7 @@ public class ModelViewScreen extends Screen {
         x = (width - xSize) / 2;
         y = (height - ySize) / 2;
         initWidgets(category, page);
-        if (!initialized) loadBindingTarget(RealCameraCore.currentTarget);
+        if (!initialized) loadBindingTarget(RealCameraCore.currentTarget());
         initialized = true;
     }
 
@@ -151,7 +151,7 @@ public class ModelViewScreen extends Screen {
             rows.addChild(depthField, 1, smallSettings).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("depth"));
         }
         rows.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("save"), widgetWidth, button -> {
-            ConfigFile.config().putTarget(generateBindingTarget());
+            ConfigFile.config().binding.putTarget(generateBindingTarget());
             ConfigFile.save();
             initWidgets(category, page);
         }));
@@ -181,11 +181,14 @@ public class ModelViewScreen extends Screen {
                 BindingTarget target = targetList.get(i);
                 String name = target.name;
                 rows.addChild(createButton(LocUtil.literal(name), widgetWidth * 2 - 18, button -> loadBindingTarget(target)), 3).setTooltip(Tooltip.create(LocUtil.literal(name)));
-                rows.addChild(new TexturedButton(48, 0, button -> {
+                TexturedButton removeButton = new TexturedButton(48, 0, button -> {
+                    if (target.fixed()) return;
                     targetList.remove(target);
                     ConfigFile.save();
                     initWidgets(category, page * widgetsPerPage > size - 2 && size > 1 ? page - 1 : page);
-                }), 1, smallSettings);
+                });
+                if (target.fixed()) removeButton.setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("notRemovable"));
+                rows.addChild(removeButton, 1, smallSettings);
             }
         } else {
             widgetsPerPage = 5;
@@ -288,42 +291,42 @@ public class ModelViewScreen extends Screen {
     }
 
     protected BindingTarget generateBindingTarget() {
-        return new BindingTarget(nameField.getValue(), textureIdField.getValue()).priority(priorityField.getNumber())
-                .forwardU(forwardUField.getNumber()).forwardV(forwardVField.getNumber())
-                .upwardU(upwardUField.getNumber()).upwardV(upwardVField.getNumber())
-                .posU(posUField.getNumber()).posV(posVField.getNumber())
-                .disablingDepth(depthField.getNumber())
-                .bindX(bindXButton.getValue() == 0).bindY(bindYButton.getValue() == 0).bindZ(bindZButton.getValue() == 0).bindRotation(bindRotButton.getValue() == 0)
-                .scale(scaleField.getNumber()).offsetX(offsetXSlider.getValue()).offsetY(offsetYSlider.getValue()).offsetZ(offsetZSlider.getValue())
-                .pitch((float) pitchSlider.getValue()).yaw((float) yawSlider.getValue()).roll((float) rollSlider.getValue())
-                .disabledTextureIds(List.copyOf(disabledIds));
+        return BindingTarget.create(nameField.getValue(), textureIdField.getValue()).setPriority(priorityField.getNumber())
+                .setForwardU(forwardUField.getNumber()).setForwardV(forwardVField.getNumber())
+                .setUpwardU(upwardUField.getNumber()).setUpwardV(upwardVField.getNumber())
+                .setPosU(posUField.getNumber()).setPosV(posVField.getNumber())
+                .setDisablingDepth(depthField.getNumber())
+                .setBindX(bindXButton.getValue() == 0).setBindY(bindYButton.getValue() == 0).setBindZ(bindZButton.getValue() == 0).setBindRotation(bindRotButton.getValue() == 0)
+                .setScale(scaleField.getNumber()).setOffsetX(offsetXSlider.getValue()).setOffsetY(offsetYSlider.getValue()).setOffsetZ(offsetZSlider.getValue())
+                .setPitch((float) pitchSlider.getValue()).setYaw((float) yawSlider.getValue()).setRoll((float) rollSlider.getValue())
+                .setDisabledTextureIds(List.copyOf(disabledIds));
     }
 
     protected void loadBindingTarget(BindingTarget target) {
         if (target.isEmpty()) return;
         nameField.setValue(target.name);
         textureIdField.setValue(target.textureId);
-        priorityField.setNumber(target.priority);
-        forwardUField.setNumber(target.forwardU);
-        forwardVField.setNumber(target.forwardV);
-        upwardUField.setNumber(target.upwardU);
-        upwardVField.setNumber(target.upwardV);
-        posUField.setNumber(target.posU);
-        posVField.setNumber(target.posV);
-        depthField.setNumber(target.disablingDepth);
-        scaleField.setNumber((float) target.scale);
-        bindXButton.setValue(target.bindX ? 0 : 1);
-        offsetXSlider.setValue(target.offsetX);
-        bindYButton.setValue(target.bindY ? 0 : 1);
-        offsetYSlider.setValue(target.offsetY);
-        bindZButton.setValue(target.bindZ ? 0 : 1);
-        offsetZSlider.setValue(target.offsetZ);
-        bindRotButton.setValue(target.bindRotation ? 0 : 1);
-        pitchSlider.setValue(target.pitch);
-        yawSlider.setValue(target.yaw);
-        rollSlider.setValue(target.roll);
+        priorityField.setNumber(target.getPriority());
+        forwardUField.setNumber(target.getForwardU());
+        forwardVField.setNumber(target.getForwardV());
+        upwardUField.setNumber(target.getUpwardU());
+        upwardVField.setNumber(target.getUpwardV());
+        posUField.setNumber(target.getPosU());
+        posVField.setNumber(target.getPosV());
+        depthField.setNumber(target.getDisablingDepth());
+        scaleField.setNumber((float) target.getScale());
+        bindXButton.setValue(target.isBindX() ? 0 : 1);
+        offsetXSlider.setValue(target.getOffsetX());
+        bindYButton.setValue(target.isBindY() ? 0 : 1);
+        offsetYSlider.setValue(target.getOffsetY());
+        bindZButton.setValue(target.isBindZ() ? 0 : 1);
+        offsetZSlider.setValue(target.getOffsetZ());
+        bindRotButton.setValue(target.isBindRotation() ? 0 : 1);
+        pitchSlider.setValue(target.getPitch());
+        yawSlider.setValue(target.getYaw());
+        rollSlider.setValue(target.getRoll());
         disabledIds.clear();
-        disabledIds.addAll(target.disabledTextureIds);
+        disabledIds.addAll(target.getDisabledTextureIds());
     }
 
     private Button createButton(Component message, int width, Button.OnPress onPress) {

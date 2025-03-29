@@ -50,10 +50,10 @@ public abstract class MixinCamera {
             setRotation(newYaw, newPitch);
             move((float) offset.x(), (float) offset.y(), (float) offset.z());
         } else {
-            Vec3 prevPos = RealCameraCore.getPos(position);
-            double restrictedY = Mth.clamp(prevPos.y(), box.minY + 0.1D, box.maxY - 0.1D);
+            Vec3 rawPos = RealCameraCore.getRawPos(position);
+            double restrictedY = Mth.clamp(rawPos.y(), box.minY + 0.1D, box.maxY - 0.1D);
             startVec = new Vec3(position.x(), restrictedY, position.z());
-            setPosition(prevPos);
+            setPosition(rawPos);
             setRotation(RealCameraCore.getYaw(yRot), RealCameraCore.getPitch(xRot));
         }
         realcamera$clipToSpace(startVec, realcamera$getFov(tickDelta));

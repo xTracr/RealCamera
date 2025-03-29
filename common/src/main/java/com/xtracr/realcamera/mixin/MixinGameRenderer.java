@@ -9,6 +9,7 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.phys.AABB;
@@ -50,7 +51,8 @@ public abstract class MixinGameRenderer {
         CompatibilityHelper.NEA_setDeltaTick(tickDelta);
         RealCameraCore.initialize(minecraft);
         if (RealCameraCore.isActive() && !ConfigFile.config().isClassic()) {
-            RealCameraCore.updateModel(minecraft, tickDelta);
+            EntityRenderDispatcher dispatcher = minecraft.getEntityRenderDispatcher();
+            dispatcher.prepare(minecraft.level, mainCamera,  minecraft.crosshairPickEntity);
             RealCameraCore.computeCamera(minecraft, tickDelta);
         }
     }

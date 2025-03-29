@@ -73,10 +73,10 @@ public class ModConfig {
             }
             classic.clamp();
         } else {
-            BindingTarget target = RealCameraCore.currentTarget;
+            BindingTarget target = RealCameraCore.currentTarget();
             if (target.isEmpty()) return;
-            if (binding.adjustOffset) target.setOffsetX(target.offsetX + count * adjustStep);
-            else target.setRoll(target.roll + count * 100 * (float) adjustStep);
+            if (binding.adjustOffset) target.setOffsetX(target.getOffsetX() + count * adjustStep);
+            else target.setRoll(target.getRoll() + count * 100 * (float) adjustStep);
         }
     }
 
@@ -89,10 +89,10 @@ public class ModConfig {
             }
             classic.clamp();
         } else {
-            BindingTarget target = RealCameraCore.currentTarget;
+            BindingTarget target = RealCameraCore.currentTarget();
             if (target.isEmpty()) return;
-            if (binding.adjustOffset) target.setOffsetY(target.offsetY + count * adjustStep);
-            else target.setYaw(target.yaw + count * 100 * (float) adjustStep);
+            if (binding.adjustOffset) target.setOffsetY(target.getOffsetY() + count * adjustStep);
+            else target.setYaw(target.getYaw() + count * 100 * (float) adjustStep);
         }
     }
 
@@ -105,10 +105,10 @@ public class ModConfig {
             }
             classic.clamp();
         } else {
-            BindingTarget target = RealCameraCore.currentTarget;
+            BindingTarget target = RealCameraCore.currentTarget();
             if (target.isEmpty()) return;
-            if (binding.adjustOffset) target.setOffsetZ(target.offsetZ + count * adjustStep);
-            else target.setPitch(target.pitch + count * 100 * (float) adjustStep);
+            if (binding.adjustOffset) target.setOffsetZ(target.getOffsetZ() + count * adjustStep);
+            else target.setPitch(target.getPitch() + count * 100 * (float) adjustStep);
         }
     }
 
@@ -163,15 +163,6 @@ public class ModConfig {
         return binding.disableRenderItems;
     }
 
-    public void putTarget(BindingTarget target) {
-        if (target.isEmpty()) return;
-        IntStream.range(0, binding.targetList.size())
-                .filter(i -> binding.targetList.get(i).name.equals(target.name))
-                .findAny()
-                .ifPresentOrElse(i -> binding.targetList.set(i, target), () -> binding.targetList.add(target));
-        binding.targetList.sort(Comparator.comparingInt(t -> -t.priority));
-    }
-
     public static class Classic {
         public AdjustMode adjustMode = AdjustMode.CAMERA;
         public double scale = 8.0;
@@ -220,6 +211,25 @@ public class ModConfig {
         private void clamp() {
             if (disableRenderItems == null) disableRenderItems = List.of();
             if (targetList == null || targetList.isEmpty()) targetList = new ArrayList<>(BindingTarget.defaultTargets);
+            findFixedTarget();
+        }
+
+        public BindingTarget findFixedTarget() {
+            BindingTarget fixedTarget = targetList.stream().filter(BindingTarget::fixed).findFirst().orElse(null);
+            if (fixedTarget == null) {
+                fixedTarget = new BindingTarget(BindingTarget.FIXED_TARGET_NAME, "");
+                putTarget(fixedTarget);
+            }
+            return fixedTarget;
+        }
+
+        public void putTarget(BindingTarget target) {
+            if (target.isEmpty()) return;
+            IntStream.range(0, targetList.size())
+                    .filter(i -> targetList.get(i).name.equals(target.name))
+                    .findAny()
+                    .ifPresentOrElse(i -> targetList.set(i, target), () -> targetList.add(target));
+            targetList.sort(Comparator.comparingInt(t -> -t.getPriority()));
         }
     }
 }
