@@ -132,6 +132,11 @@ public class ConfigScreen {
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("renderStuckObjects"))
                 .setSaveConsumer(b -> config.binding.renderStuckObjects = b)
                 .build());
+        binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("rerenderModel"), config.binding.rerenderModel)
+                .setDefaultValue(false)
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("rerenderModel"))
+                .setSaveConsumer(b -> config.binding.rerenderModel = b)
+                .build());
         binding.addEntry(entryBuilder.startStrList(LocUtil.CONFIG_OPTION("disableRenderItems"), config.binding.disableRenderItems)
                 .setDefaultValue(ModConfig.Binding.defaultDisableRenderItems)
                 .setSaveConsumer(l -> config.binding.disableRenderItems = l)

@@ -159,6 +159,10 @@ public class ModConfig {
         return binding.renderStuckObjects;
     }
 
+    public boolean rerenderModel() {
+        return binding.rerenderModel;
+    }
+
     public List<String> getDisableRenderItems() {
         return binding.disableRenderItems;
     }
@@ -205,6 +209,7 @@ public class ModConfig {
         protected static final List<String> defaultDisableRenderItems = List.of("minecraft:filled_map");
         public boolean adjustOffset = true;
         public boolean renderStuckObjects = true;
+        public boolean rerenderModel = false;
         public List<String> disableRenderItems = defaultDisableRenderItems;
         public List<BindingTarget> targetList = new ArrayList<>(BindingTarget.defaultTargets);
 

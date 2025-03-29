@@ -8,16 +8,16 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class RealCameraAPI {
-    private static final List<Consumer<Object>> vectorsSupplier = new ArrayList<>();
+    private static final List<Consumer<Object>> poseSetterConsumers = new ArrayList<>();
 
-    public static void registerVectorSupplier(Consumer<Object> function) {
-        vectorsSupplier.add(function);
+    public static void registerPoseSetterConsumer(Consumer<Object> function) {
+        poseSetterConsumers.add(function);
     }
 
     public static BindingContext genBindingContext(BindingTarget target) {
-        for (Consumer<Object> bindingFunction : vectorsSupplier) {
+        for (Consumer<Object> poseSetterConsumer : poseSetterConsumers) {
             BindingContext context = new BindingContext(target);
-            bindingFunction.accept(context);
+            poseSetterConsumer.accept(context);
             if (context.available()) return context;
         }
         return BindingContext.EMPTY;

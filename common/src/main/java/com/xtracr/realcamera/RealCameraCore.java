@@ -126,7 +126,7 @@ public class RealCameraCore {
                 .invert()
                 .translate(Vec3.ZERO.subtract(bindingContext.getPosition()).toVector3f());
         PoseStack poseStack = new PoseStack();
-        if (!bindingContext.skipRendering) {
+        if (!bindingContext.skipRendering || ConfigFile.config().rerenderModel()) {
             poseStack.mulPose(new Matrix4f(invertedCameraPose).mulLocal(cameraPose.invert(new Matrix4f())));
             updateModel(client, tickDelta, poseStack);
         }
