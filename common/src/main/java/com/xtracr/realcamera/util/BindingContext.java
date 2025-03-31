@@ -1,15 +1,18 @@
 package com.xtracr.realcamera.util;
 
-import com.xtracr.realcamera.api.PoseSetter;
+import com.xtracr.realcamera.api.PoseHandler;
 import com.xtracr.realcamera.config.BindingTarget;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;
 
-public class BindingContext implements PoseSetter {
+public class BindingContext implements PoseHandler {
     public static final BindingContext EMPTY = new BindingContext(new BindingTarget());
     public final BindingTarget target;
     public final Matrix3f normal = new Matrix3f();
+    private final Minecraft client;
+    private final float deltaTick;
     public final boolean mirrored;
     private Vec3 position = Vec3.ZERO, forward = Vec3.ZERO, upward = Vec3.ZERO, eulerAngle = Vec3.ZERO;
     public boolean skipRendering = true;
@@ -19,7 +22,13 @@ public class BindingContext implements PoseSetter {
     }
 
     public BindingContext(BindingTarget target, boolean mirrored) {
+        this(target, Minecraft.getInstance(), 0, mirrored);
+    }
+
+    public BindingContext(BindingTarget target, Minecraft client, float deltaTick, boolean mirrored) {
         this.target = target;
+        this.client = client;
+        this.deltaTick = deltaTick;
         this.mirrored = mirrored;
     }
 
@@ -33,6 +42,16 @@ public class BindingContext implements PoseSetter {
 
     public Vec3 getEulerAngle() {
         return eulerAngle;
+    }
+
+    @Override
+    public Minecraft getClient() {
+        return client;
+    }
+
+    @Override
+    public float getDeltaTick() {
+        return deltaTick;
     }
 
     @Override

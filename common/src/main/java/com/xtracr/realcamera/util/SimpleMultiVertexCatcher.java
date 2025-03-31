@@ -20,9 +20,9 @@ public class SimpleMultiVertexCatcher implements MultiVertexCatcher, MultiBuffer
     private final Stack<SimpleVertexCatcher> catchers = new Stack<>();
 
     @Override
-    public void updateModel(Minecraft client, Entity cameraEntity, float x, float y, float z, float yaw, float tickDelta, PoseStack poseStack, int packedLight) {
+    public void updateModel(Minecraft client, Entity cameraEntity, float x, float y, float z, float yaw, float deltaTick, PoseStack poseStack, int packedLight) {
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
-        dispatcher.render(cameraEntity, x, y, z, yaw, tickDelta, poseStack, this, packedLight);
+        dispatcher.render(cameraEntity, x, y, z, yaw, deltaTick, poseStack, this, packedLight);
     }
 
     @Override

@@ -24,16 +24,16 @@ public class RaycastUtil {
         return new ClipContext(startVec, endVec, shapeType, fluidHandling, entity);
     }
 
-    public static void update(Entity entity, double sqDistance, float tickDelta) {
+    public static void update(Entity entity, double sqDistance, float deltaTick) {
         Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
-        Vec3 eyePos = entity.getEyePosition(tickDelta);
+        Vec3 eyePos = entity.getEyePosition(deltaTick);
         startVec = camera.getPosition();
         Vec3 direction = Vec3.directionFromRotation(camera.getXRot(), camera.getYRot());
         Vec3 offset = startVec.subtract(eyePos);
         Vec3 footPoint = MathUtil.getIntersectionPoint(Vec3.ZERO, direction, offset, direction);
         if (footPoint.lengthSqr() > sqDistance) {
             startVec = eyePos;
-            direction = entity.getViewVector(tickDelta);
+            direction = entity.getViewVector(deltaTick);
             endVec = startVec.add(direction.scale(Math.sqrt(sqDistance)));
             return;
         } else if (offset.lengthSqr() > sqDistance) {

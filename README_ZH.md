@@ -52,11 +52,11 @@
 
 * 模型模组与`Real Camera`兼容的必要条件（基于官方映射）：
 * 渲染时序兼容
-  * `Real Camera`通过调用`EntityRenderDispatcher.render`公共方法进行`Minecraft.getCameraEntity`的渲染[（源码位置）](https://github.com/xTracr/RealCamera/blob/main/common/src/main/java/com/xtracr/realcamera/RealCameraCore.java#L88)
-  * 调用时机调整至`GameRenderer.renderLevel`流程中的`Camera.setup`阶段之前[（源码位置）](https://github.com/xTracr/RealCamera/blob/main/common/src/main/java/com/xtracr/realcamera/mixin/MixinGameRenderer.java#L48)
+  * `Real Camera`通过调用`EntityRenderDispatcher.render`公共方法进行`Minecraft.getCameraEntity`的渲染
+  * 调用时机调整至`GameRenderer.renderLevel`流程中的`Camera.setup`阶段之前
   * *因此*，模组需确保在此时序调整后，玩家模型渲染的整体表现不受影响
 * 顶点数据获取
-  * `Real Camera`通过替换公共方法`EntityRenderDispatcher.render`的`MultiBufferSource multiBufferSource`参数实现顶点数据获取[（源码位置）](https://github.com/xTracr/RealCamera/blob/main/common/src/main/java/com/xtracr/realcamera/RealCameraCore.java#L88)
+  * `Real Camera`通过替换公共方法`EntityRenderDispatcher.render`的`MultiBufferSource multiBufferSource`参数实现顶点数据获取
   * *因此*，模组需要满足以下技术条件：
     * 渲染`Minecraft.getCameraEntity`时严格使用**传入的**`multiBufferSource`参数
     * 没有通过其他途径获取或创建`MultiBufferSource`实例

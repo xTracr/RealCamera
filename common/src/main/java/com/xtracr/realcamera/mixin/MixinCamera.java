@@ -34,7 +34,7 @@ public abstract class MixinCamera {
     private float yRot;
 
     @Inject(method = "setup", at = @At("RETURN"))
-    private void realcamera$setupCamera(BlockGetter area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float tickDelta, CallbackInfo ci) {
+    private void realcamera$setupCamera(BlockGetter area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float deltaTick, CallbackInfo ci) {
         if (!RealCameraCore.isActive()) return;
         ModConfig config = ConfigFile.config();
         Vec3 startVec = position;
@@ -56,7 +56,7 @@ public abstract class MixinCamera {
             setPosition(rawPos);
             setRotation(RealCameraCore.getYaw(yRot), RealCameraCore.getPitch(xRot));
         }
-        realcamera$clipToSpace(startVec, realcamera$getFov(tickDelta));
+        realcamera$clipToSpace(startVec, realcamera$getFov(deltaTick));
         RealCameraCore.setCameraPos(position);
     }
 
@@ -79,9 +79,9 @@ public abstract class MixinCamera {
     }
 
     @Unique
-    private static float realcamera$getFov(float tickDelta) {
+    private static float realcamera$getFov(float deltaTick) {
         Minecraft client = Minecraft.getInstance();
-        float fovModifier = Mth.lerp(tickDelta, ((GameRendererAccessor) client.gameRenderer).getOldFov(), ((GameRendererAccessor) client.gameRenderer).getFov());
+        float fovModifier = Mth.lerp(deltaTick, ((GameRendererAccessor) client.gameRenderer).getOldFov(), ((GameRendererAccessor) client.gameRenderer).getFov());
         return client.options.fov().get() * fovModifier;
     }
 

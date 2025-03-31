@@ -28,12 +28,12 @@ public abstract class MixinLocalPlayer extends AbstractClientPlayer {
     }
 
     @Override
-    public @NotNull HitResult pick(double maxDistance, float tickDelta, boolean includeFluids) {
+    public @NotNull HitResult pick(double maxDistance, float deltaTick, boolean includeFluids) {
         if (!ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
-            RaycastUtil.update(this, maxDistance * maxDistance, tickDelta);
+            RaycastUtil.update(this, maxDistance * maxDistance, deltaTick);
             return level().clip(RaycastUtil.getClipContext(ClipContext.Block.OUTLINE,
                     includeFluids ? ClipContext.Fluid.ANY : ClipContext.Fluid.NONE, this));
         }
-        return super.pick(maxDistance, tickDelta, includeFluids);
+        return super.pick(maxDistance, deltaTick, includeFluids);
     }
 }

@@ -134,8 +134,8 @@ public class ModelAnalyser extends VertexRecorder {
             drawNormal(graphics, getCenter(primitive, target.getUpwardU(), target.getUpwardV()), primitive[0].normal(), entitySize / 2, upwardArgb);
     }
 
-    public void updateModel(Minecraft client, Entity cameraEntity, float x, float y, float z, float yaw, float tickDelta, PoseStack poseStack, int packedLight) {
-        catcher.updateModel(client, cameraEntity, x, y, z, yaw, tickDelta, poseStack, packedLight);
+    public void updateModel(Minecraft client, Entity cameraEntity, float x, float y, float z, float yaw, float deltaTick, PoseStack poseStack, int packedLight) {
+        catcher.updateModel(client, cameraEntity, x, y, z, yaw, deltaTick, poseStack, packedLight);
         catcher.sendVertices(this);
     }
 

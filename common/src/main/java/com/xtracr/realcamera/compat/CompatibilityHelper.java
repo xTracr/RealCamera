@@ -35,11 +35,11 @@ public class CompatibilityHelper {
         }
     }
 
-    public static void NEA_setDeltaTick(float tickDelta) {
+    public static void NEA_setDeltaTick(float deltaTick) {
         if (NEA_NEAnimationsLoader != null) try {
             Object NEA_NEAnimationsLoader_INSTANCE = NEA_NEAnimationsLoader.getDeclaredField("INSTANCE").get(null);
             Object NEA_playerTransformer = NEA_NEAnimationsLoader.getDeclaredField("playerTransformer").get(NEA_NEAnimationsLoader_INSTANCE);
-            NEA_playerTransformer_setDeltaTick.invoke(NEA_playerTransformer, tickDelta);
+            NEA_playerTransformer_setDeltaTick.invoke(NEA_playerTransformer, deltaTick);
         } catch (Exception ignored) {
         }
     }

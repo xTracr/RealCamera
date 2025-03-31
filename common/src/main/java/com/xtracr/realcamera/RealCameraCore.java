@@ -75,7 +75,7 @@ public class RealCameraCore {
         return active && rendering;
     }
 
-    private static void updateModel(Minecraft client, float tickDelta, PoseStack poseStack) {
+    private static void updateModel(Minecraft client, float deltaTick, PoseStack poseStack) {
         Entity entity = client.getCameraEntity();
         if (entity.tickCount == 0) {
             entity.xOld = entity.getX();
@@ -83,15 +83,15 @@ public class RealCameraCore {
             entity.zOld = entity.getZ();
         }
         MultiVertexCatcher catcher = MultiVertexCatcher.getInstance();
-        catcher.updateModel(client, entity, 0, 0, 0, Mth.lerp(tickDelta, entity.yRotO, entity.getYRot()), tickDelta, poseStack,  client.getEntityRenderDispatcher().getPackedLightCoords(entity, tickDelta));
+        catcher.updateModel(client, entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack,  client.getEntityRenderDispatcher().getPackedLightCoords(entity, deltaTick));
         catcher.sendVertices(recorder);
     }
 
-    public static BindingContext genBindingContext(Minecraft client, float tickDelta) {
+    public static BindingContext genBindingContext(Minecraft client, float deltaTick) {
         BindingContext context;
-        context = RealCameraAPI.genBindingContext(ConfigFile.config().binding.findFixedTarget());
+        context = RealCameraAPI.genBindingContext(ConfigFile.config().binding.findFixedTarget(), client, deltaTick);
         if (context.available()) return context;
-        updateModel(client, tickDelta, new PoseStack());
+        updateModel(client, deltaTick, new PoseStack());
         for (BindingTarget target : ConfigFile.config().getTargetList()) {
             context = recorder.records().stream().map(record -> record.genContext(target, false)).filter(BindingContext::available).findAny().orElse(BindingContext.EMPTY);
             if (context.available()) return context;
@@ -99,12 +99,12 @@ public class RealCameraCore {
         return BindingContext.EMPTY;
     }
 
-    public static void computeCamera(Minecraft client, float tickDelta) {
+    public static void computeCamera(Minecraft client, float deltaTick) {
         Entity entity = client.getCameraEntity();
-        entityPos = new Vec3(Mth.lerp(tickDelta, entity.xOld, entity.getX()), Mth.lerp(tickDelta, entity.yOld, entity.getY()), Mth.lerp(tickDelta, entity.zOld, entity.getZ()));
+        entityPos = new Vec3(Mth.lerp(deltaTick, entity.xOld, entity.getX()), Mth.lerp(deltaTick, entity.yOld, entity.getY()), Mth.lerp(deltaTick, entity.zOld, entity.getZ()));
 
         recorder.records().clear();
-        bindingContext = genBindingContext(client, tickDelta);
+        bindingContext = genBindingContext(client, deltaTick);
         if (recorder.records().isEmpty()) bindingContext.skipRendering = false;
         if (bindingContext == BindingContext.EMPTY) {
             Entity player = Minecraft.getInstance().player;
@@ -116,7 +116,7 @@ public class RealCameraCore {
         bindingContext.init();
     }
 
-    public static void renderCameraEntity(Minecraft client, float tickDelta, MultiBufferSource bufferSource, Matrix4f cameraPose) {
+    public static void renderCameraEntity(Minecraft client, float deltaTick, MultiBufferSource bufferSource, Matrix4f cameraPose) {
         Vec3 eulerAngle = bindingContext.getEulerAngle();
         Matrix4f invertedCameraPose = new Matrix4f()
                 .rotateZ((float) Math.toRadians(eulerAngle.z()))
@@ -128,7 +128,7 @@ public class RealCameraCore {
         PoseStack poseStack = new PoseStack();
         if (!bindingContext.skipRendering || ConfigFile.config().rerenderModel()) {
             poseStack.mulPose(new Matrix4f(invertedCameraPose).mulLocal(cameraPose.invert(new Matrix4f())));
-            updateModel(client, tickDelta, poseStack);
+            updateModel(client, deltaTick, poseStack);
         }
         Matrix4f positionMatrix = new Matrix4f(invertedCameraPose).mul(poseStack.last().pose().invert(new Matrix4f()));
         final double m02 = positionMatrix.m02(), m12 = positionMatrix.m12(), m22 = positionMatrix.m22(), m32 = positionMatrix.m32();

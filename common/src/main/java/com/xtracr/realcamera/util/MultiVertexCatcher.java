@@ -18,5 +18,5 @@ public interface MultiVertexCatcher {
 
     void forEachCatcher(Consumer<VertexCatcher> consumer);
 
-    void updateModel(Minecraft client, Entity cameraEntity, float x, float y, float z, float yaw, float tickDelta, PoseStack poseStack, int packedLight);
+    void updateModel(Minecraft client, Entity cameraEntity, float x, float y, float z, float yaw, float deltaTick, PoseStack poseStack, int packedLight);
 }

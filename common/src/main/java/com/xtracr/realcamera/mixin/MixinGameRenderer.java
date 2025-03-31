@@ -47,13 +47,13 @@ public abstract class MixinGameRenderer {
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setup(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/world/entity/Entity;ZZF)V"))
     private void realcamera$atBeforeCameraSetup(DeltaTracker tickCounter, CallbackInfo ci) {
-        final float tickDelta = tickCounter.getGameTimeDeltaPartialTick(true);
-        CompatibilityHelper.NEA_setDeltaTick(tickDelta);
+        final float deltaTick = tickCounter.getGameTimeDeltaPartialTick(true);
+        CompatibilityHelper.NEA_setDeltaTick(deltaTick);
         RealCameraCore.initialize(minecraft);
         if (RealCameraCore.isActive() && !ConfigFile.config().isClassic()) {
             EntityRenderDispatcher dispatcher = minecraft.getEntityRenderDispatcher();
             dispatcher.prepare(minecraft.level, mainCamera,  minecraft.crosshairPickEntity);
-            RealCameraCore.computeCamera(minecraft, tickDelta);
+            RealCameraCore.computeCamera(minecraft, deltaTick);
         }
     }
 
