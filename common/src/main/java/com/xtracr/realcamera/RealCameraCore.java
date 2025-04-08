@@ -89,7 +89,7 @@ public class RealCameraCore {
 
     public static BindingContext genBindingContext(Minecraft client, float deltaTick) {
         BindingContext context;
-        context = RealCameraAPI.genBindingContext(ConfigFile.config().binding.findFixedTarget(), client, deltaTick);
+        context = RealCameraAPI.genBindingContext(client, deltaTick);
         if (context.available()) return context;
         updateModel(client, deltaTick, new PoseStack());
         for (BindingTarget target : ConfigFile.config().getTargetList()) {
@@ -107,7 +107,7 @@ public class RealCameraCore {
         bindingContext = genBindingContext(client, deltaTick);
         if (recorder.records().isEmpty()) bindingContext.skipRendering = false;
         if (bindingContext == BindingContext.EMPTY) {
-            Entity player = Minecraft.getInstance().player;
+            Entity player = client.player;
             if (readyToSendMessage && player != null) player.sendSystemMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE()));
             active = readyToSendMessage = false;
             return;

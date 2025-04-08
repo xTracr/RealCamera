@@ -8,18 +8,14 @@ import org.joml.Matrix3f;
 import org.joml.Vector3f;
 
 public class BindingContext implements PoseHandler {
-    public static final BindingContext EMPTY = new BindingContext(new BindingTarget());
+    public static final BindingContext EMPTY = new BindingContext(new BindingTarget(), false);
     public final BindingTarget target;
     public final Matrix3f normal = new Matrix3f();
+    public final boolean mirrored;
     private final Minecraft client;
     private final float deltaTick;
-    public final boolean mirrored;
-    private Vec3 position = Vec3.ZERO, forward = Vec3.ZERO, upward = Vec3.ZERO, eulerAngle = Vec3.ZERO;
     public boolean skipRendering = true;
-
-    public BindingContext(BindingTarget target) {
-        this(target, false);
-    }
+    private Vec3 position = Vec3.ZERO, forward = Vec3.ZERO, upward = Vec3.ZERO, eulerAngle = Vec3.ZERO;
 
     public BindingContext(BindingTarget target, boolean mirrored) {
         this(target, Minecraft.getInstance(), 0, mirrored);
@@ -40,6 +36,11 @@ public class BindingContext implements PoseHandler {
         return position;
     }
 
+    @Override
+    public void setPosition(Vec3 position) {
+        this.position = position;
+    }
+
     public Vec3 getEulerAngle() {
         return eulerAngle;
     }
@@ -52,11 +53,6 @@ public class BindingContext implements PoseHandler {
     @Override
     public float getDeltaTick() {
         return deltaTick;
-    }
-
-    @Override
-    public void setPosition(Vec3 position) {
-        this.position = position;
     }
 
     @Override

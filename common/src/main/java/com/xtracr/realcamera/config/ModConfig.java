@@ -150,11 +150,6 @@ public class ModConfig {
     }
 
     // binding
-    public List<BindingTarget> getTargetList() {
-        binding.clamp();
-        return binding.targetList;
-    }
-
     public boolean renderStuckObjects() {
         return binding.renderStuckObjects;
     }
@@ -165,6 +160,20 @@ public class ModConfig {
 
     public List<String> getDisableRenderItems() {
         return binding.disableRenderItems;
+    }
+
+    public List<BindingTarget> getFixedTargetList() {
+        binding.clamp();
+        return binding.fixedTargetList;
+    }
+
+    public BindingTarget findFixedTarget(String name) {
+        return binding.fixedTargetList.stream().filter(target -> target.name.equals(name)).findFirst().orElse(binding.fixedTargetList.getFirst());
+    }
+
+    public List<BindingTarget> getTargetList() {
+        binding.clamp();
+        return binding.targetList;
     }
 
     public static class Classic {
@@ -211,30 +220,28 @@ public class ModConfig {
         public boolean renderStuckObjects = true;
         public boolean rerenderModel = false;
         public List<String> disableRenderItems = defaultDisableRenderItems;
+        public List<BindingTarget> fixedTargetList = new ArrayList<>(BindingTarget.fixedTargets);
         public List<BindingTarget> targetList = new ArrayList<>(BindingTarget.defaultTargets);
+
+        private static void putTarget(BindingTarget target, List<BindingTarget> list) {
+            IntStream.range(0, list.size())
+                    .filter(i -> list.get(i).name.equals(target.name))
+                    .findAny()
+                    .ifPresentOrElse(i -> list.set(i, target), () -> list.add(target));
+            list.sort(Comparator.comparingInt(t -> -t.getPriority()));
+        }
 
         private void clamp() {
             if (disableRenderItems == null) disableRenderItems = List.of();
+            if (fixedTargetList == null || fixedTargetList.isEmpty()) fixedTargetList = new ArrayList<>(BindingTarget.fixedTargets);
             if (targetList == null || targetList.isEmpty()) targetList = new ArrayList<>(BindingTarget.defaultTargets);
-            findFixedTarget();
-        }
-
-        public BindingTarget findFixedTarget() {
-            BindingTarget fixedTarget = targetList.stream().filter(BindingTarget::fixed).findFirst().orElse(null);
-            if (fixedTarget == null) {
-                fixedTarget = new BindingTarget(BindingTarget.FIXED_TARGET_NAME, "");
-                putTarget(fixedTarget);
-            }
-            return fixedTarget;
+            fixedTargetList.removeIf(target -> !target.fixed());
         }
 
         public void putTarget(BindingTarget target) {
             if (target.isEmpty()) return;
-            IntStream.range(0, targetList.size())
-                    .filter(i -> targetList.get(i).name.equals(target.name))
-                    .findAny()
-                    .ifPresentOrElse(i -> targetList.set(i, target), () -> targetList.add(target));
-            targetList.sort(Comparator.comparingInt(t -> -t.getPriority()));
+            if (target.fixed()) putTarget(target, fixedTargetList);
+            else putTarget(target, targetList);
         }
     }
 }

@@ -175,20 +175,20 @@ public class ModelViewScreen extends Screen {
         final int widgetsPerPage, size;
         if ((category & 0b10) == 0) {
             widgetsPerPage = 8;
+            List<BindingTarget> fixedTargetList = ConfigFile.config().getFixedTargetList();
             List<BindingTarget> targetList = ConfigFile.config().getTargetList();
-            size = targetList.size();
+            size = fixedTargetList.size() + targetList.size();
+            final int fixedTargetCount = fixedTargetList.size();
             for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, size); i++) {
-                BindingTarget target = targetList.get(i);
+                BindingTarget target = i < fixedTargetCount ? fixedTargetList.get(i) : targetList.get(i - fixedTargetCount);
                 String name = target.name;
                 rows.addChild(createButton(LocUtil.literal(name), widgetWidth * 2 - 18, button -> loadBindingTarget(target)), 3).setTooltip(Tooltip.create(LocUtil.literal(name)));
-                TexturedButton removeButton = new TexturedButton(48, 0, button -> {
-                    if (target.fixed()) return;
+                if (i < fixedTargetCount) continue;
+                rows.addChild(new TexturedButton(48, 0, button -> {
                     targetList.remove(target);
                     ConfigFile.save();
                     initWidgets(category, page * widgetsPerPage > size - 2 && size > 1 ? page - 1 : page);
-                });
-                if (target.fixed()) removeButton.setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("notRemovable"));
-                rows.addChild(removeButton, 1, smallSettings);
+                }), 1, smallSettings);
             }
         } else {
             widgetsPerPage = 5;

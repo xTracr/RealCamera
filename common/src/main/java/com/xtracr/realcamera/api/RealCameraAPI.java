@@ -1,6 +1,7 @@
 package com.xtracr.realcamera.api;
 
 import com.xtracr.realcamera.config.BindingTarget;
+import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.util.BindingContext;
 import net.minecraft.client.Minecraft;
 
@@ -15,7 +16,8 @@ public class RealCameraAPI {
         poseHandlerConsumers.add(consumer);
     }
 
-    public static BindingContext genBindingContext(BindingTarget target, Minecraft client, float deltaTick) {
+    public static BindingContext genBindingContext(Minecraft client, float deltaTick) {
+        BindingTarget target = ConfigFile.config().findFixedTarget(BindingTarget.API_ONLY);
         for (Consumer<Object> consumer : poseHandlerConsumers) {
             BindingContext context = new BindingContext(target, client, deltaTick, false);
             consumer.accept(context);

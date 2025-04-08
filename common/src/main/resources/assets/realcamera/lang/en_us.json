@@ -38,6 +38,7 @@
   "config.option.xtracr_realcamera.toModelViewScreen": "For detailed settings, please go to the %s screen (key bind need to be set to open it)",
   "config.option.xtracr_realcamera.adjustOffset": "Adjust Camera Offset",
   "config.option.xtracr_realcamera.renderStuckObjects": "Render Stuck Objects",
+  "config.option.xtracr_realcamera.rerenderModel": "Rerender Model",
   "config.option.xtracr_realcamera.disableRenderItems": "Disable rendering when holding",
   "config.tooltip.xtracr_realcamera.isClassic": "Classic mode only makes simple changes to the position and rotation of camera",
   "config.tooltip.xtracr_realcamera.dynamicCrosshair": "When enabled, the crosshair will follow the player's view, ensuring consistent hit result\nRecommended to enable when Jade, WTHIT or similar mods are installed",
@@ -47,6 +48,8 @@
   "config.tooltip.xtracr_realcamera.scale": "Control the size of the offsets",
   "config.tooltip.xtracr_realcamera.adjustOffset": "When pressing the adjustment key, adjust the offset or rotation of camera",
   "config.tooltip.xtracr_realcamera.renderStuckObjects": "Arrows, bee stings and other objects that can be stuck in the player's body",
+  "config.tooltip.xtracr_realcamera.rerenderModel": "Render the model again at the original rendering time to avoid some visual problems caused by rendering early",
+  "config.tooltip.xtracr_realcamera.disableRenderItems": "Support using `*` to match any number of characters, for example `minecraft:*sword` matches all swords",
 
   "message.xtracr_realcamera.bindingFailed": "[%s]: Binding failed, please go to the %s screen and configure manually",
 

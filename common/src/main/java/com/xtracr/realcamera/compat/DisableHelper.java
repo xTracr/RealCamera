@@ -18,8 +18,10 @@ public class DisableHelper {
     public static void initialize() {
         registerOr("mainFeature", LivingEntity::isSleeping);
         registerOr("renderModel", entity -> entity instanceof Player player && player.isScoping());
-        registerOr("renderModel", entity -> ConfigFile.config().getDisableRenderItems().contains(BuiltInRegistries.ITEM.getKey(entity.getMainHandItem().getItem()).toString()));
-        registerOr("renderModel", entity -> ConfigFile.config().getDisableRenderItems().contains(BuiltInRegistries.ITEM.getKey(entity.getOffhandItem().getItem()).toString()));
+        registerOr("renderModel", entity -> ConfigFile.config().getDisableRenderItems().stream().anyMatch(
+                pattern -> simpleWildcardMatch(BuiltInRegistries.ITEM.getKey(entity.getMainHandItem().getItem()).toString(), pattern)));
+        registerOr("renderModel", entity -> ConfigFile.config().getDisableRenderItems().stream().anyMatch(
+                pattern -> simpleWildcardMatch(BuiltInRegistries.ITEM.getKey(entity.getOffhandItem().getItem()).toString(), pattern)));
         registerOr("renderModel", entity -> {
             if (CompatibilityHelper.Exposure_CameraItem_isActive == null) return false;
             final ItemStack itemStack;
@@ -39,8 +41,34 @@ public class DisableHelper {
     }
 
     public static boolean isDisabled(String type, Entity cameraEntity) {
+        if (ConfigFile.config().isClassic()) return false;
         Predicate<LivingEntity> predicate = predicates.get(type);
-        if (ConfigFile.config().isClassic() || predicate == null) return false;
-        return cameraEntity instanceof LivingEntity entity && predicate.test(entity);
+        return predicate != null && cameraEntity instanceof LivingEntity entity && predicate.test(entity);
+    }
+
+    public static boolean simpleWildcardMatch(String text, String pattern) {
+        if (pattern.isEmpty()) return text.isEmpty();
+        String[] parts = pattern.split("\\*+");
+        boolean startsWithStar = pattern.startsWith("*");
+        boolean endsWithStar = pattern.endsWith("*");
+        if (parts.length == 0) return true;
+        int currentIndex = 0;
+        if (!startsWithStar) {
+            String firstPart = parts[0];
+            if (!text.startsWith(firstPart)) return false;
+            currentIndex = firstPart.length();
+        }
+        for (int i = (startsWithStar ? 0 : 1); i < parts.length; i++) {
+            String part = parts[i];
+            if (part.isEmpty()) continue;
+            int foundIndex = text.indexOf(part, currentIndex);
+            if (foundIndex == -1) return false;
+            currentIndex = foundIndex + part.length();
+        }
+        if (!endsWithStar) {
+            String lastPart = parts[parts.length - 1];
+            return text.endsWith(lastPart);
+        }
+        return true;
     }
 }

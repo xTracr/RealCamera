@@ -38,6 +38,7 @@
   "config.option.xtracr_realcamera.toModelViewScreen": "详细设置请前往%s界面（需设置快捷键来打开它）",
   "config.option.xtracr_realcamera.adjustOffset": "调整摄像头偏移",
   "config.option.xtracr_realcamera.renderStuckObjects": "渲染卡在身上的物体",
+  "config.option.xtracr_realcamera.rerenderModel": "重新渲染模型",
   "config.option.xtracr_realcamera.disableRenderItems": "在手持...时禁用渲染",
   "config.tooltip.xtracr_realcamera.isClassic": "经典模式只对摄像头的位置和旋转做简单的修改",
   "config.tooltip.xtracr_realcamera.dynamicCrosshair": "在开启状态下，十字准心会随着玩家的视线移动，确保命中结果不受影响\n在安装了Jade、WTHIT或类似模组时建议启用",
@@ -47,6 +48,8 @@
   "config.tooltip.xtracr_realcamera.scale": "控制偏移量的大小",
   "config.tooltip.xtracr_realcamera.adjustOffset": "当前按下调整键时是调整摄像头的偏移还是旋转",
   "config.tooltip.xtracr_realcamera.renderStuckObjects": "箭，蜂刺和其它会卡在玩家身体里的物体",
+  "config.tooltip.xtracr_realcamera.rerenderModel": "在原本的渲染时机重新渲染模型，以避免一些因提前渲染导致的视觉问题",
+  "config.tooltip.xtracr_realcamera.disableRenderItems": "支持用`*`匹配任意数量字符，比如用`minecraft:*sword`匹配所有剑",
 
   "message.xtracr_realcamera.bindingFailed": "[%s]: 绑定失败，请前往%s界面手动设置",
 
