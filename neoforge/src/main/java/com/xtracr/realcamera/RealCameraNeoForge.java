@@ -1,7 +1,6 @@
 package com.xtracr.realcamera;
 
 import com.xtracr.realcamera.config.ConfigScreen;
-import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
@@ -23,12 +22,11 @@ public class RealCameraNeoForge {
         RealCamera.initialize();
 
         NeoForge.EVENT_BUS.addListener(EventHandler::onClientTick);
-        NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, EventHandler::onCameraSetup);
         NeoForge.EVENT_BUS.addListener(EventHandler::onRenderLevelStage);
 
         if (ModList.get().isLoaded("cloth_config")) {
             ModLoadingContext.get().registerExtensionPoint(IConfigScreenFactory.class,
-                    () -> (client, parent) -> ConfigScreen.create(parent));
+                    () -> (container, modListScreen) -> ConfigScreen.create(modListScreen));
         }
     }
 

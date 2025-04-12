@@ -1,5 +1,6 @@
 package com.xtracr.realcamera.mixin;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.compat.CompatibilityHelper;
 import com.xtracr.realcamera.config.ConfigFile;
@@ -15,6 +16,7 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -54,6 +56,13 @@ public abstract class MixinGameRenderer {
             EntityRenderDispatcher dispatcher = minecraft.getEntityRenderDispatcher();
             dispatcher.prepare(minecraft.level, mainCamera,  minecraft.crosshairPickEntity);
             RealCameraCore.computeCamera(minecraft, deltaTick);
+        }
+    }
+
+    @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;prepareCullFrustum(Lnet/minecraft/world/phys/Vec3;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V"))
+    private void realcamera$atAfterCameraSetup(DeltaTracker deltaTracker, CallbackInfo ci, @Local(ordinal = 1) Matrix4f matrix4f2) {
+        if (RealCameraCore.isActive()) {
+            matrix4f2.rotateLocalZ(RealCameraCore.getRoll(0) * (float) (Math.PI / 180.0));
         }
     }
 
