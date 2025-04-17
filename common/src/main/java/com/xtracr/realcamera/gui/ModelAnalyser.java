@@ -25,7 +25,6 @@ public class ModelAnalyser extends VertexRecorder {
     private static final Set<RenderType> UNFOCUSABLE_RENDER_TYPES = Set.of(RenderType.armorEntityGlint(), RenderType.glintTranslucent(), RenderType.glint(), RenderType.entityGlint(), RenderType.entityGlintDirect());
     private static final int primitiveArgb = 0x6F3333CC, forwardArgb = 0xFF00CC00, upwardArgb = 0xFFCC0000, leftArgb = 0xFF0000CC;
     private static final int focusedArgb = 0x7FFFFFFF, sideArgb = 0x3FFFFFFF;
-    private final MultiVertexCatcher catcher = MultiVertexCatcher.getInstance();
     private final BindingTarget target;
     private BindingContext bindingContext = BindingContext.EMPTY;
     @Nullable
@@ -135,6 +134,7 @@ public class ModelAnalyser extends VertexRecorder {
     }
 
     public void updateModel(Minecraft client, Entity cameraEntity, float x, float y, float z, float yaw, float deltaTick, PoseStack poseStack, int packedLight) {
+        MultiVertexCatcher catcher = MultiVertexCatcher.getInstance();
         catcher.updateModel(client, cameraEntity, x, y, z, yaw, deltaTick, poseStack, packedLight);
         catcher.sendVertices(this);
     }

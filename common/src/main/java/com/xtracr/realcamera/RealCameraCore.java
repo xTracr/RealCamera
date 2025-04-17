@@ -59,8 +59,8 @@ public class RealCameraCore {
 
     public static void initialize(Minecraft client) {
         Entity entity = client.getCameraEntity();
-        active = ConfigFile.config().enabled() && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.isDisabled("mainFeature", entity);
-        rendering = active && ConfigFile.config().renderModel() && !DisableHelper.isDisabled("renderModel", entity);
+        active = ConfigFile.config().enabled() && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.MAIN_FEATURE.disabled(entity);
+        rendering = active && ConfigFile.config().renderModel() && !DisableHelper.RENDER_MODEL.disabled(entity);
     }
 
     public static void readyToSendMessage() {
@@ -72,7 +72,7 @@ public class RealCameraCore {
     }
 
     public static boolean isRendering() {
-        return active && rendering;
+        return isActive() && rendering;
     }
 
     private static void updateModel(Minecraft client, float deltaTick, PoseStack poseStack) {

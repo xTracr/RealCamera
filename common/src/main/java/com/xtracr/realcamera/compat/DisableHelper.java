@@ -5,45 +5,28 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Predicate;
 
 public class DisableHelper {
-    private static final Map<String, Predicate<LivingEntity>> predicates = new HashMap<>();
-    private static final String EXPOSURE_CAMERA = "exposure:camera";
+    private static final Set<Entry> entries = new HashSet<>();
+    public static final Entry MAIN_FEATURE = new Entry("mainFeature");
+    public static final Entry RENDER_MODEL = new Entry("renderModel");
 
     public static void initialize() {
-        registerOr("mainFeature", LivingEntity::isSleeping);
-        registerOr("renderModel", entity -> entity instanceof Player player && player.isScoping());
-        registerOr("renderModel", entity -> ConfigFile.config().getDisableRenderItems().stream().anyMatch(
+        MAIN_FEATURE.registerOr(LivingEntity::isSleeping);
+        RENDER_MODEL.registerOr(entity -> entity instanceof Player player && player.isScoping());
+        RENDER_MODEL.registerOr(entity -> ConfigFile.config().getDisableRenderItems().stream().anyMatch(
                 pattern -> simpleWildcardMatch(BuiltInRegistries.ITEM.getKey(entity.getMainHandItem().getItem()).toString(), pattern)));
-        registerOr("renderModel", entity -> ConfigFile.config().getDisableRenderItems().stream().anyMatch(
+        RENDER_MODEL.registerOr(entity -> ConfigFile.config().getDisableRenderItems().stream().anyMatch(
                 pattern -> simpleWildcardMatch(BuiltInRegistries.ITEM.getKey(entity.getOffhandItem().getItem()).toString(), pattern)));
-        registerOr("renderModel", entity -> {
-            if (CompatibilityHelper.Exposure_CameraItem_isActive == null) return false;
-            final ItemStack itemStack;
-            if (EXPOSURE_CAMERA.equals(BuiltInRegistries.ITEM.getKey(entity.getMainHandItem().getItem()).toString())) itemStack = entity.getMainHandItem();
-            else if (EXPOSURE_CAMERA.equals(BuiltInRegistries.ITEM.getKey(entity.getOffhandItem().getItem()).toString())) itemStack = entity.getOffhandItem();
-            else return false;
-            try {
-                return (boolean) CompatibilityHelper.Exposure_CameraItem_isActive.invoke(itemStack.getItem(), itemStack);
-            } catch (Exception ignored) {
-                return false;
-            }
-        });
     }
 
-    public static void registerOr(String type, Predicate<LivingEntity> predicate) {
-        predicates.merge(type, predicate, Predicate::or);
-    }
-
-    public static boolean isDisabled(String type, Entity cameraEntity) {
-        if (ConfigFile.config().isClassic()) return false;
-        Predicate<LivingEntity> predicate = predicates.get(type);
-        return predicate != null && cameraEntity instanceof LivingEntity entity && predicate.test(entity);
+    @Deprecated
+    public static void registerOr(String name, Predicate<LivingEntity> predicate) {
+        entries.stream().filter(entry -> entry.name.equals(name)).findAny().ifPresent(entry -> entry.registerOr(predicate));
     }
 
     public static boolean simpleWildcardMatch(String text, String pattern) {
@@ -70,5 +53,25 @@ public class DisableHelper {
             return text.endsWith(lastPart);
         }
         return true;
+    }
+
+    public static class Entry {
+        private static final Predicate<LivingEntity> FALSE = entity -> false;
+        protected final String name;
+        protected Predicate<LivingEntity> predicate = FALSE;
+
+        protected Entry(String name) {
+            this.name = name;
+            entries.add(this);
+        }
+
+        public void registerOr(Predicate<LivingEntity> predicate) {
+            this.predicate = this.predicate.or(predicate);
+        }
+
+        public boolean disabled(Entity cameraEntity) {
+            if (ConfigFile.config().isClassic()) return false;
+            return cameraEntity instanceof LivingEntity entity && predicate.test(entity);
+        }
     }
 }
