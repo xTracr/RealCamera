@@ -12,7 +12,7 @@ public class CompatibilityHelper {
     private static Class<?> NEA_NEAnimationsLoader = null;
     private static Method NEA_playerTransformer_setDeltaTick = null;
 
-    public static void initialize() {
+    static {
         if (isClassLoaded("dev.tr7zw.notenoughanimations.versionless.NEABaseMod")) try {
             NEA_NEAnimationsLoader = Class.forName("dev.tr7zw.notenoughanimations.NEAnimationsLoader");
             Class<?> NEA_PlayerTransformer = Class.forName("dev.tr7zw.notenoughanimations.logic.PlayerTransformer");

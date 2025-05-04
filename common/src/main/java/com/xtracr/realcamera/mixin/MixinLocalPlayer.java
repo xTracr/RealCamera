@@ -2,6 +2,7 @@ package com.xtracr.realcamera.mixin;
 
 import com.mojang.authlib.GameProfile;
 import com.xtracr.realcamera.RealCameraCore;
+import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.util.RaycastUtil;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -24,7 +25,7 @@ public abstract class MixinLocalPlayer extends AbstractClientPlayer {
 
     @Inject(method = "getRopeHoldPosition", at = @At("HEAD"), cancellable = true)
     private void realcamera$atGetRopePosHEAD(float delta, CallbackInfoReturnable<Vec3> ci) {
-        if (RealCameraCore.isRendering()) ci.setReturnValue(super.getRopeHoldPosition(delta));
+        if (DisableHelper.RENDER_HANDS.disabled(this)) ci.setReturnValue(super.getRopeHoldPosition(delta));
     }
 
     @Override

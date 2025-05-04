@@ -6,14 +6,16 @@ import com.xtracr.realcamera.config.ConfigFile;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.*;
-import net.minecraft.world.TickRateManager;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -22,23 +24,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinLevelRenderer {
     @Shadow
     @Final private Minecraft minecraft;
-    @Shadow
-    @Final private RenderBuffers renderBuffers;
+    @Unique
+    private Matrix4f realcamera$cameraPose = new Matrix4f();
 
-    @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;endLastBatch()V", ordinal = 0))
+    @Inject(method = "renderLevel", at = @At( "HEAD"))
     private void realcamera$renderLocalPlayer(DeltaTracker deltaTracker, boolean bl, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f matrix4f, Matrix4f matrix4f2, CallbackInfo ci) {
-        if (!RealCameraCore.isRendering()) return;
-        MultiBufferSource.BufferSource bufferSource = this.renderBuffers.bufferSource();
-        Entity entity = camera.getEntity();
-        TickRateManager tickManager = minecraft.level.tickRateManager();
-        float deltaTick = deltaTracker.getGameTimeDeltaPartialTick(!tickManager.isEntityFrozen(entity));
-        if (!ConfigFile.config().isClassic()) RealCameraCore.renderCameraEntity(minecraft, deltaTick, bufferSource, matrix4f);
-        else {
-            Vec3 cameraPos = camera.getPosition();
-            renderEntity(entity, cameraPos.x(), cameraPos.y(), cameraPos.z(), deltaTick, new PoseStack(), bufferSource);
-        }
+        realcamera$cameraPose = matrix4f;
     }
 
-    @Shadow
-    protected abstract void renderEntity(Entity entity, double cameraX, double cameraY, double cameraZ, float deltaTick, PoseStack matrices, MultiBufferSource vertexConsumers);
+    @Inject(method = "renderEntity", at = @At("HEAD"), cancellable = true)
+    private void realcamera$atRenderEntityHEAD(Entity entity, double d, double e, double f, float g, PoseStack poseStack, MultiBufferSource multiBufferSource, CallbackInfo ci) {
+        if (entity != minecraft.getCameraEntity() || !RealCameraCore.isRendering() || ConfigFile.config().isClassic()) return;
+        RealCameraCore.renderCameraEntity(minecraft, g, multiBufferSource, realcamera$cameraPose);
+        ci.cancel();
+    }
 }

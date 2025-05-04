@@ -32,10 +32,13 @@ public abstract class MixinCamera {
     private float xRot;
     @Shadow
     private float yRot;
+    @Shadow
+    private boolean detached;
 
     @Inject(method = "setup", at = @At("RETURN"))
     private void realcamera$setupCamera(BlockGetter area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float deltaTick, CallbackInfo ci) {
         if (!RealCameraCore.isActive()) return;
+        if (RealCameraCore.isRendering()) detached = true;
         ModConfig config = ConfigFile.config();
         Vec3 startVec = position;
         AABB box = focusedEntity.getBoundingBox();
