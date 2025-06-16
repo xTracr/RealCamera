@@ -158,6 +158,10 @@ public class ModConfig {
         return binding.rerenderModel;
     }
 
+    public List<String> getDisableMainFeatureItems() {
+        return binding.disableMainFeatureItems;
+    }
+
     public List<String> getDisableRenderItems() {
         return binding.disableRenderItems;
     }
@@ -219,6 +223,7 @@ public class ModConfig {
         public boolean adjustOffset = true;
         public boolean renderStuckObjects = true;
         public boolean rerenderModel = false;
+        public List<String> disableMainFeatureItems = List.of();
         public List<String> disableRenderItems = defaultDisableRenderItems;
         public List<BindingTarget> fixedTargetList = new ArrayList<>(BindingTarget.fixedTargets);
         public List<BindingTarget> targetList = new ArrayList<>(BindingTarget.defaultTargets);
@@ -232,6 +237,7 @@ public class ModConfig {
         }
 
         private void clamp() {
+            if (disableMainFeatureItems == null) disableMainFeatureItems = List.of();
             if (disableRenderItems == null) disableRenderItems = List.of();
             if (fixedTargetList == null || fixedTargetList.isEmpty()) fixedTargetList = new ArrayList<>(BindingTarget.fixedTargets);
             if (targetList == null || targetList.isEmpty()) targetList = new ArrayList<>(BindingTarget.defaultTargets);

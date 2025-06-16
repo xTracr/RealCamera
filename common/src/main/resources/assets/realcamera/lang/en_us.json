@@ -39,6 +39,7 @@
   "config.option.xtracr_realcamera.adjustOffset": "Adjust Camera Offset",
   "config.option.xtracr_realcamera.renderStuckObjects": "Render Stuck Objects",
   "config.option.xtracr_realcamera.rerenderModel": "Rerender Model",
+  "config.option.xtracr_realcamera.disableMainFeatureItems": "Disable main feature when holding",
   "config.option.xtracr_realcamera.disableRenderItems": "Disable rendering when holding",
   "config.tooltip.xtracr_realcamera.isClassic": "Classic mode only makes simple changes to the position and rotation of camera",
   "config.tooltip.xtracr_realcamera.dynamicCrosshair": "When enabled, the crosshair will follow the player's view, ensuring consistent hit result\nRecommended to enable when Jade, WTHIT or similar mods are installed",

@@ -18,6 +18,14 @@ public class DisableHelper {
     public static final Entry RENDER_HANDS = new Entry("renderHands", false, entity -> RealCameraCore.isRendering());
 
     static {
+        MAIN_FEATURE.registerOr(entity -> {
+            String mainHand = BuiltInRegistries.ITEM.getKey(entity.getMainHandItem().getItem()).toString();
+            String offHand = BuiltInRegistries.ITEM.getKey(entity.getOffhandItem().getItem()).toString();
+            for (String item : ConfigFile.config().getDisableMainFeatureItems())
+                if (simpleWildcardMatch(mainHand, item) || simpleWildcardMatch(offHand, item))
+                    return true;
+            return false;
+        });
         RENDER_MODEL.registerOr(entity -> {
             String mainHand = BuiltInRegistries.ITEM.getKey(entity.getMainHandItem().getItem()).toString();
             String offHand = BuiltInRegistries.ITEM.getKey(entity.getOffhandItem().getItem()).toString();
