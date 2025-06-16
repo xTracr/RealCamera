@@ -1,46 +1,91 @@
 package com.xtracr.realcamera.compat;
 
+import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
 
 public class DisableHelper {
-    private static final Map<String, Predicate<LivingEntity>> predicates = new HashMap<>();
-    private static final String EXPOSURE_CAMERA = "exposure:camera";
+    private static final Map<String, Entry> entries = new HashMap<>();
+    public static final Entry MAIN_FEATURE = new Entry("mainFeature", LivingEntity::isSleeping);
+    public static final Entry RENDER_MODEL = new Entry("renderModel", entity -> entity instanceof Player player && player.isScoping());
+    public static final Entry RENDER_HANDS = new Entry("renderHands", false, entity -> RealCameraCore.isRendering());
 
-    public static void initialize() {
-        registerOr("mainFeature", LivingEntity::isSleeping);
-        registerOr("renderModel", entity -> entity instanceof Player player && player.isScoping());
-        registerOr("renderModel", entity -> ConfigFile.config().getDisableRenderItems().contains(BuiltInRegistries.ITEM.getKey(entity.getMainHandItem().getItem()).toString()));
-        registerOr("renderModel", entity -> ConfigFile.config().getDisableRenderItems().contains(BuiltInRegistries.ITEM.getKey(entity.getOffhandItem().getItem()).toString()));
-        registerOr("renderModel", entity -> {
-            if (CompatibilityHelper.Exposure_CameraItem_isActive == null) return false;
-            final ItemStack itemStack;
-            if (EXPOSURE_CAMERA.equals(BuiltInRegistries.ITEM.getKey(entity.getMainHandItem().getItem()).toString())) itemStack = entity.getMainHandItem();
-            else if (EXPOSURE_CAMERA.equals(BuiltInRegistries.ITEM.getKey(entity.getOffhandItem().getItem()).toString())) itemStack = entity.getOffhandItem();
-            else return false;
-            try {
-                return (boolean) CompatibilityHelper.Exposure_CameraItem_isActive.invoke(itemStack.getItem(), itemStack);
-            } catch (Exception ignored) {
-                return false;
-            }
+    static {
+        MAIN_FEATURE.registerOr(entity -> {
+            String mainHand = BuiltInRegistries.ITEM.getKey(entity.getMainHandItem().getItem()).toString();
+            String offHand = BuiltInRegistries.ITEM.getKey(entity.getOffhandItem().getItem()).toString();
+            for (String item : ConfigFile.config().getDisableMainFeatureItems())
+                if (simpleWildcardMatch(mainHand, item) || simpleWildcardMatch(offHand, item))
+                    return true;
+            return false;
+        });
+        RENDER_MODEL.registerOr(entity -> {
+            String mainHand = BuiltInRegistries.ITEM.getKey(entity.getMainHandItem().getItem()).toString();
+            String offHand = BuiltInRegistries.ITEM.getKey(entity.getOffhandItem().getItem()).toString();
+            for (String item : ConfigFile.config().getDisableRenderItems())
+                if (simpleWildcardMatch(mainHand, item) || simpleWildcardMatch(offHand, item))
+                    return true;
+            return false;
         });
     }
 
-    public static void registerOr(String type, Predicate<LivingEntity> predicate) {
-        predicates.merge(type, predicate, Predicate::or);
+    @Deprecated
+    public static void registerOr(String name, Predicate<LivingEntity> predicate) {
+        entries.get(name).registerOr(predicate);
     }
 
-    public static boolean isDisabled(String type, Entity cameraEntity) {
-        Predicate<LivingEntity> predicate = predicates.get(type);
-        if (ConfigFile.config().isClassic() || predicate == null) return false;
-        return cameraEntity instanceof LivingEntity entity && predicate.test(entity);
+    public static boolean simpleWildcardMatch(String text, String pattern) {
+        if (pattern.isEmpty()) return text.isEmpty();
+        String[] parts = pattern.split("\\*+");
+        if (parts.length == 0) return true;
+        int currentIndex = 0;
+        if (!pattern.startsWith("*")) {
+            String firstPart = parts[0];
+            if (!text.startsWith(firstPart)) return false;
+            currentIndex = firstPart.length();
+        }
+        for (int i = 1; i < parts.length; i++) {
+            String part = parts[i];
+            if (part.isEmpty()) continue;
+            int foundIndex = text.indexOf(part, currentIndex);
+            if (foundIndex == -1) return false;
+            currentIndex = foundIndex + part.length();
+        }
+        if (!pattern.endsWith("*")) {
+            String lastPart = parts[parts.length - 1];
+            return text.endsWith(lastPart);
+        }
+        return true;
+    }
+
+    public static class Entry {
+        final private boolean ignoreInClassic;
+        protected Predicate<LivingEntity> predicate;
+
+        protected Entry(String name, Predicate<LivingEntity> predicate) {
+            this(name, true, predicate);
+        }
+
+        protected Entry(String name, boolean ignoreInClassic, Predicate<LivingEntity> predicate) {
+            this.ignoreInClassic = ignoreInClassic;
+            this.predicate = predicate;
+            entries.put(name, this);
+        }
+
+        public void registerOr(Predicate<LivingEntity> predicate) {
+            this.predicate = this.predicate.or(predicate);
+        }
+
+        public boolean disabled(Entity cameraEntity) {
+            if (ignoreInClassic && ConfigFile.config().isClassic()) return false;
+            return cameraEntity instanceof LivingEntity entity && predicate.test(entity);
+        }
     }
 }

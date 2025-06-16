@@ -8,6 +8,8 @@ import me.shedaniel.clothconfig2.impl.builders.SubCategoryBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 
+import java.util.List;
+
 public class ConfigScreen {
     public static Screen create(Screen parent) {
         ConfigFile.load();
@@ -132,8 +134,19 @@ public class ConfigScreen {
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("renderStuckObjects"))
                 .setSaveConsumer(b -> config.binding.renderStuckObjects = b)
                 .build());
+        binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("rerenderModel"), config.binding.rerenderModel)
+                .setDefaultValue(false)
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("rerenderModel"))
+                .setSaveConsumer(b -> config.binding.rerenderModel = b)
+                .build());
+        binding.addEntry(entryBuilder.startStrList(LocUtil.CONFIG_OPTION("disableMainFeatureItems"), config.binding.disableMainFeatureItems)
+                .setDefaultValue(List.of())
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("disableRenderItems"))
+                .setSaveConsumer(l -> config.binding.disableMainFeatureItems = l)
+                .build());
         binding.addEntry(entryBuilder.startStrList(LocUtil.CONFIG_OPTION("disableRenderItems"), config.binding.disableRenderItems)
                 .setDefaultValue(ModConfig.Binding.defaultDisableRenderItems)
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("disableRenderItems"))
                 .setSaveConsumer(l -> config.binding.disableRenderItems = l)
                 .build());
 

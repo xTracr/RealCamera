@@ -6,8 +6,7 @@ import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.BindingTarget;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
-import com.xtracr.realcamera.util.LocUtil;
-import com.xtracr.realcamera.util.MathUtil;
+import com.xtracr.realcamera.util.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -75,7 +74,7 @@ public class ModelViewScreen extends Screen {
         x = (width - xSize) / 2;
         y = (height - ySize) / 2;
         initWidgets(category, page);
-        if (!initialized) loadBindingTarget(RealCameraCore.currentTarget);
+        if (!initialized) loadBindingTarget(RealCameraCore.currentTarget());
         initialized = true;
     }
 
@@ -150,7 +149,7 @@ public class ModelViewScreen extends Screen {
             rows.addChild(depthField, 1, smallSettings).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("depth"));
         }
         rows.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("save"), widgetWidth, button -> {
-            ConfigFile.config().putTarget(generateBindingTarget());
+            ConfigFile.config().binding.putTarget(generateBindingTarget());
             ConfigFile.save();
             initWidgets(category, page);
         }));
@@ -174,12 +173,15 @@ public class ModelViewScreen extends Screen {
         final int widgetsPerPage, size;
         if ((category & 0b10) == 0) {
             widgetsPerPage = 8;
+            List<BindingTarget> fixedTargetList = ConfigFile.config().getFixedTargetList();
             List<BindingTarget> targetList = ConfigFile.config().getTargetList();
-            size = targetList.size();
+            size = fixedTargetList.size() + targetList.size();
+            final int fixedTargetCount = fixedTargetList.size();
             for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, size); i++) {
-                BindingTarget target = targetList.get(i);
+                BindingTarget target = i < fixedTargetCount ? fixedTargetList.get(i) : targetList.get(i - fixedTargetCount);
                 String name = target.name;
                 rows.addChild(createButton(LocUtil.literal(name), widgetWidth * 2 - 18, button -> loadBindingTarget(target)), 3).setTooltip(Tooltip.create(LocUtil.literal(name)));
+                if (i < fixedTargetCount) continue;
                 rows.addChild(new TexturedButton(48, 0, button -> {
                     targetList.remove(target);
                     ConfigFile.save();
@@ -271,59 +273,61 @@ public class ModelViewScreen extends Screen {
         graphics.pose().translate(offset.x(), offset.y(), offset.z());
         graphics.pose().mulPose(quaternionf);
         Lighting.setupForEntityInInventory();
-        EntityRenderDispatcher entityRenderDispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
-        entityRenderDispatcher.setRenderShadow(false);
+        EntityRenderDispatcher dispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
+        dispatcher.setRenderShadow(false);
         ModelAnalyser analyser = new ModelAnalyser(generateBindingTarget());
-        entityRenderDispatcher.render(entity, 0, -entity.getBbHeight() / 2.0f, 0, 0.0f, 1.0f, graphics.pose(), analyser, 0xF000f0);
+        MultiVertexCatcher catcher = new SimpleMultiVertexCatcher();
+        catcher.updateModel(Minecraft.getInstance(), entity, 0, -entity.getBbHeight() / 2.0f, 0, 0.0f, 1.0f, graphics.pose(), 0xF000f0);
+        catcher.sendVertices(analyser);
         analyser.analyse(entitySize, mouseX, mouseY, layers, showDisabled.getValue() == 1, disabledIdField.getValue());
+        analyser.records().forEach(record -> VertexData.renderVertices(record.vertices(), graphics.bufferSource().getBuffer(record.renderType())));
+        graphics.flush();
         focusedUV = analyser.getFocusedUV();
         focusedTextureId = analyser.focusedTextureId();
-        analyser.forEachRecord(record -> ModelAnalyser.renderVertices(record.vertices(), graphics.bufferSource().getBuffer(record.renderType())));
-        graphics.flush();
         if ((category & 0b1) == 0) analyser.drawNormals(graphics, entitySize);
         else analyser.previewEffect(graphics, entitySize, (category & 0b10) == 2);
-        entityRenderDispatcher.setRenderShadow(true);
+        dispatcher.setRenderShadow(true);
         graphics.pose().popPose();
         Lighting.setupFor3DItems();
     }
 
     protected BindingTarget generateBindingTarget() {
-        return new BindingTarget(nameField.getValue(), textureIdField.getValue()).priority(priorityField.getNumber())
-                .forwardU(forwardUField.getNumber()).forwardV(forwardVField.getNumber())
-                .upwardU(upwardUField.getNumber()).upwardV(upwardVField.getNumber())
-                .posU(posUField.getNumber()).posV(posVField.getNumber())
-                .disablingDepth(depthField.getNumber())
-                .bindX(bindXButton.getValue() == 0).bindY(bindYButton.getValue() == 0).bindZ(bindZButton.getValue() == 0).bindRotation(bindRotButton.getValue() == 0)
-                .scale(scaleField.getNumber()).offsetX(offsetXSlider.getValue()).offsetY(offsetYSlider.getValue()).offsetZ(offsetZSlider.getValue())
-                .pitch((float) pitchSlider.getValue()).yaw((float) yawSlider.getValue()).roll((float) rollSlider.getValue())
-                .disabledTextureIds(List.copyOf(disabledIds));
+        return BindingTarget.create(nameField.getValue(), textureIdField.getValue()).setPriority(priorityField.getNumber())
+                .setForwardU(forwardUField.getNumber()).setForwardV(forwardVField.getNumber())
+                .setUpwardU(upwardUField.getNumber()).setUpwardV(upwardVField.getNumber())
+                .setPosU(posUField.getNumber()).setPosV(posVField.getNumber())
+                .setDisablingDepth(depthField.getNumber())
+                .setBindX(bindXButton.getValue() == 0).setBindY(bindYButton.getValue() == 0).setBindZ(bindZButton.getValue() == 0).setBindRotation(bindRotButton.getValue() == 0)
+                .setScale(scaleField.getNumber()).setOffsetX(offsetXSlider.getValue()).setOffsetY(offsetYSlider.getValue()).setOffsetZ(offsetZSlider.getValue())
+                .setPitch((float) pitchSlider.getValue()).setYaw((float) yawSlider.getValue()).setRoll((float) rollSlider.getValue())
+                .setDisabledTextureIds(List.copyOf(disabledIds));
     }
 
     protected void loadBindingTarget(BindingTarget target) {
         if (target.isEmpty()) return;
         nameField.setValue(target.name);
         textureIdField.setValue(target.textureId);
-        priorityField.setNumber(target.priority);
-        forwardUField.setNumber(target.forwardU);
-        forwardVField.setNumber(target.forwardV);
-        upwardUField.setNumber(target.upwardU);
-        upwardVField.setNumber(target.upwardV);
-        posUField.setNumber(target.posU);
-        posVField.setNumber(target.posV);
-        depthField.setNumber(target.disablingDepth);
-        scaleField.setNumber((float) target.scale);
-        bindXButton.setValue(target.bindX ? 0 : 1);
-        offsetXSlider.setValue(target.offsetX);
-        bindYButton.setValue(target.bindY ? 0 : 1);
-        offsetYSlider.setValue(target.offsetY);
-        bindZButton.setValue(target.bindZ ? 0 : 1);
-        offsetZSlider.setValue(target.offsetZ);
-        bindRotButton.setValue(target.bindRotation ? 0 : 1);
-        pitchSlider.setValue(target.pitch);
-        yawSlider.setValue(target.yaw);
-        rollSlider.setValue(target.roll);
+        priorityField.setNumber(target.getPriority());
+        forwardUField.setNumber(target.getForwardU());
+        forwardVField.setNumber(target.getForwardV());
+        upwardUField.setNumber(target.getUpwardU());
+        upwardVField.setNumber(target.getUpwardV());
+        posUField.setNumber(target.getPosU());
+        posVField.setNumber(target.getPosV());
+        depthField.setNumber(target.getDisablingDepth());
+        scaleField.setNumber((float) target.getScale());
+        bindXButton.setValue(target.isBindX() ? 0 : 1);
+        offsetXSlider.setValue(target.getOffsetX());
+        bindYButton.setValue(target.isBindY() ? 0 : 1);
+        offsetYSlider.setValue(target.getOffsetY());
+        bindZButton.setValue(target.isBindZ() ? 0 : 1);
+        offsetZSlider.setValue(target.getOffsetZ());
+        bindRotButton.setValue(target.isBindRotation() ? 0 : 1);
+        pitchSlider.setValue(target.getPitch());
+        yawSlider.setValue(target.getYaw());
+        rollSlider.setValue(target.getRoll());
         disabledIds.clear();
-        disabledIds.addAll(target.disabledTextureIds);
+        disabledIds.addAll(target.getDisabledTextureIds());
     }
 
     private Button createButton(Component message, int width, Button.OnPress onPress) {

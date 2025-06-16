@@ -9,6 +9,7 @@ import com.xtracr.realcamera.util.RaycastUtil;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.phys.AABB;
@@ -44,19 +45,18 @@ public abstract class MixinGameRenderer {
     }
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setup(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/world/entity/Entity;ZZF)V"))
-    private void realcamera$atBeforeCameraSetup(float tickDelta, long limitTime, PoseStack poseStack, CallbackInfo ci) {
-        CompatibilityHelper.NEA_setDeltaTick(tickDelta);
+    private void realcamera$atBeforeCameraSetup(float deltaTick, long limitTime, PoseStack poseStack, CallbackInfo ci) {
+        CompatibilityHelper.NEA_setDeltaTick(deltaTick);
         RealCameraCore.initialize(minecraft);
         if (RealCameraCore.isActive() && !ConfigFile.config().isClassic()) {
-            RealCameraCore.updateModel(minecraft, tickDelta);
-            RealCameraCore.computeCamera();
+            EntityRenderDispatcher dispatcher = minecraft.getEntityRenderDispatcher();
+            dispatcher.prepare(minecraft.level, mainCamera,  minecraft.crosshairPickEntity);
+            RealCameraCore.computeCamera(minecraft, deltaTick);
         }
     }
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;prepareCullFrustum(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/world/phys/Vec3;Lorg/joml/Matrix4f;)V"))
-    private void realcamera$atBeforePrePareFrustum(CallbackInfo cInfo) {
-        if (RealCameraCore.isActive() && !ConfigFile.config().isClassic()) {
-            ((CameraAccessor) mainCamera).invokeSetPosition(RealCameraCore.getCameraPos(mainCamera.getPosition()));
-        }
+    private void realcamera$atBeforePrePareFrustum(CallbackInfo ci) {
+        CompatibilityHelper.forceSetCameraPos(mainCamera);
     }
 }

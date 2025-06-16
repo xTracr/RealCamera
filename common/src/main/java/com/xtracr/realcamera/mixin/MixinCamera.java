@@ -34,7 +34,7 @@ public abstract class MixinCamera {
     private float yRot;
 
     @Inject(method = "setup", at = @At("RETURN"))
-    private void realcamera$setupCamera(BlockGetter area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float tickDelta, CallbackInfo cInfo) {
+    private void realcamera$setupCamera(BlockGetter area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float deltaTick, CallbackInfo ci) {
         if (!RealCameraCore.isActive()) return;
         ModConfig config = ConfigFile.config();
         Vec3 startVec = position;
@@ -50,13 +50,13 @@ public abstract class MixinCamera {
             setRotation(newYaw, newPitch);
             move(offset.x(), offset.y(), offset.z());
         } else {
-            Vec3 prevPos = RealCameraCore.getPos(position);
-            double restrictedY = Mth.clamp(prevPos.y(), box.minY + 0.1D, box.maxY - 0.1D);
+            Vec3 rawPos = RealCameraCore.getRawPos(position);
+            double restrictedY = Mth.clamp(rawPos.y(), box.minY + 0.1D, box.maxY - 0.1D);
             startVec = new Vec3(position.x(), restrictedY, position.z());
-            setPosition(prevPos);
+            setPosition(rawPos);
             setRotation(RealCameraCore.getYaw(yRot), RealCameraCore.getPitch(xRot));
         }
-        realcamera$clipToSpace(startVec, realcamera$getFov(tickDelta));
+        realcamera$clipToSpace(startVec, realcamera$getFov(deltaTick));
         RealCameraCore.setCameraPos(position);
     }
 
@@ -79,10 +79,10 @@ public abstract class MixinCamera {
     }
 
     @Unique
-    private static float realcamera$getFov(float tickDelta) {
+    private static float realcamera$getFov(float deltaTick) {
         Minecraft client = Minecraft.getInstance();
-        float multiplier = Mth.lerp(tickDelta, ((GameRendererAccessor) client.gameRenderer).getOldFov(), ((GameRendererAccessor) client.gameRenderer).getFov());
-        return client.options.fov().get() * multiplier;
+        float fovModifier = Mth.lerp(deltaTick, ((GameRendererAccessor) client.gameRenderer).getOldFov(), ((GameRendererAccessor) client.gameRenderer).getFov());
+        return client.options.fov().get() * fovModifier;
     }
 
     @Shadow

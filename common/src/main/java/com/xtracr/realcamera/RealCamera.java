@@ -1,7 +1,5 @@
 package com.xtracr.realcamera;
 
-import com.xtracr.realcamera.compat.CompatibilityHelper;
-import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.ConfigFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,8 +10,6 @@ public class RealCamera {
     public static final Logger LOGGER = LoggerFactory.getLogger(MODID);
 
     public static void initialize() {
-        CompatibilityHelper.initialize();
-        DisableHelper.initialize();
         ConfigFile.load();
     }
 }

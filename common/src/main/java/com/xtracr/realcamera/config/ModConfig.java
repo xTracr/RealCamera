@@ -73,10 +73,10 @@ public class ModConfig {
             }
             classic.clamp();
         } else {
-            BindingTarget target = RealCameraCore.currentTarget;
+            BindingTarget target = RealCameraCore.currentTarget();
             if (target.isEmpty()) return;
-            if (binding.adjustOffset) target.setOffsetX(target.offsetX + count * adjustStep);
-            else target.setRoll(target.roll + count * 100 * (float) adjustStep);
+            if (binding.adjustOffset) target.setOffsetX(target.getOffsetX() + count * adjustStep);
+            else target.setRoll(target.getRoll() + count * 100 * (float) adjustStep);
         }
     }
 
@@ -89,10 +89,10 @@ public class ModConfig {
             }
             classic.clamp();
         } else {
-            BindingTarget target = RealCameraCore.currentTarget;
+            BindingTarget target = RealCameraCore.currentTarget();
             if (target.isEmpty()) return;
-            if (binding.adjustOffset) target.setOffsetY(target.offsetY + count * adjustStep);
-            else target.setYaw(target.yaw + count * 100 * (float) adjustStep);
+            if (binding.adjustOffset) target.setOffsetY(target.getOffsetY() + count * adjustStep);
+            else target.setYaw(target.getYaw() + count * 100 * (float) adjustStep);
         }
     }
 
@@ -105,10 +105,10 @@ public class ModConfig {
             }
             classic.clamp();
         } else {
-            BindingTarget target = RealCameraCore.currentTarget;
+            BindingTarget target = RealCameraCore.currentTarget();
             if (target.isEmpty()) return;
-            if (binding.adjustOffset) target.setOffsetZ(target.offsetZ + count * adjustStep);
-            else target.setPitch(target.pitch + count * 100 * (float) adjustStep);
+            if (binding.adjustOffset) target.setOffsetZ(target.getOffsetZ() + count * adjustStep);
+            else target.setPitch(target.getPitch() + count * 100 * (float) adjustStep);
         }
     }
 
@@ -150,26 +150,34 @@ public class ModConfig {
     }
 
     // binding
-    public List<BindingTarget> getTargetList() {
-        binding.clamp();
-        return binding.targetList;
-    }
-
     public boolean renderStuckObjects() {
         return binding.renderStuckObjects;
+    }
+
+    public boolean rerenderModel() {
+        return binding.rerenderModel;
+    }
+
+    public List<String> getDisableMainFeatureItems() {
+        return binding.disableMainFeatureItems;
     }
 
     public List<String> getDisableRenderItems() {
         return binding.disableRenderItems;
     }
 
-    public void putTarget(BindingTarget target) {
-        if (target.isEmpty()) return;
-        IntStream.range(0, binding.targetList.size())
-                .filter(i -> binding.targetList.get(i).name.equals(target.name))
-                .findAny()
-                .ifPresentOrElse(i -> binding.targetList.set(i, target), () -> binding.targetList.add(target));
-        binding.targetList.sort(Comparator.comparingInt(t -> -t.priority));
+    public List<BindingTarget> getFixedTargetList() {
+        binding.clamp();
+        return binding.fixedTargetList;
+    }
+
+    public BindingTarget findFixedTarget(String name) {
+        return binding.fixedTargetList.stream().filter(target -> target.name.equals(name)).findFirst().orElse(binding.fixedTargetList.get(0));
+    }
+
+    public List<BindingTarget> getTargetList() {
+        binding.clamp();
+        return binding.targetList;
     }
 
     public static class Classic {
@@ -214,12 +222,32 @@ public class ModConfig {
         protected static final List<String> defaultDisableRenderItems = List.of("minecraft:filled_map");
         public boolean adjustOffset = true;
         public boolean renderStuckObjects = true;
+        public boolean rerenderModel = false;
+        public List<String> disableMainFeatureItems = List.of();
         public List<String> disableRenderItems = defaultDisableRenderItems;
+        public List<BindingTarget> fixedTargetList = new ArrayList<>(BindingTarget.fixedTargets);
         public List<BindingTarget> targetList = new ArrayList<>(BindingTarget.defaultTargets);
 
+        private static void putTarget(BindingTarget target, List<BindingTarget> list) {
+            IntStream.range(0, list.size())
+                    .filter(i -> list.get(i).name.equals(target.name))
+                    .findAny()
+                    .ifPresentOrElse(i -> list.set(i, target), () -> list.add(target));
+            list.sort(Comparator.comparingInt(t -> -t.getPriority()));
+        }
+
         private void clamp() {
+            if (disableMainFeatureItems == null) disableMainFeatureItems = List.of();
             if (disableRenderItems == null) disableRenderItems = List.of();
+            if (fixedTargetList == null || fixedTargetList.isEmpty()) fixedTargetList = new ArrayList<>(BindingTarget.fixedTargets);
             if (targetList == null || targetList.isEmpty()) targetList = new ArrayList<>(BindingTarget.defaultTargets);
+            fixedTargetList.removeIf(target -> !target.fixed());
+        }
+
+        public void putTarget(BindingTarget target) {
+            if (target.isEmpty()) return;
+            if (target.fixed()) putTarget(target, fixedTargetList);
+            else putTarget(target, targetList);
         }
     }
 }
