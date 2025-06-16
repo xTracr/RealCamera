@@ -6,10 +6,7 @@ import com.xtracr.realcamera.api.RealCameraAPI;
 import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.BindingTarget;
 import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.util.BindingContext;
-import com.xtracr.realcamera.util.LocUtil;
-import com.xtracr.realcamera.util.MultiVertexCatcher;
-import com.xtracr.realcamera.util.VertexRecorder;
+import com.xtracr.realcamera.util.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.util.Mth;
@@ -82,7 +79,7 @@ public class RealCameraCore {
             entity.yOld = entity.getY();
             entity.zOld = entity.getZ();
         }
-        MultiVertexCatcher catcher = MultiVertexCatcher.getInstance();
+        MultiVertexCatcher catcher = new SimpleMultiVertexCatcher();
         catcher.updateModel(client, entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack,  client.getEntityRenderDispatcher().getPackedLightCoords(entity, deltaTick));
         catcher.sendVertices(recorder);
     }
@@ -103,7 +100,6 @@ public class RealCameraCore {
         Entity entity = client.getCameraEntity();
         entityPos = new Vec3(Mth.lerp(deltaTick, entity.xOld, entity.getX()), Mth.lerp(deltaTick, entity.yOld, entity.getY()), Mth.lerp(deltaTick, entity.zOld, entity.getZ()));
 
-        recorder.records().clear();
         bindingContext = genBindingContext(client, deltaTick);
         if (recorder.records().isEmpty()) bindingContext.skipRendering = false;
         if (bindingContext == BindingContext.EMPTY) {
@@ -138,14 +134,14 @@ public class RealCameraCore {
             if (currentTarget().getDisabledTextureIds().stream().anyMatch(record.textureId()::contains)) return;
             VertexConsumer buffer = bufferSource.getBuffer(record.renderType());
             if (!record.renderType().canConsolidateConsecutiveGeometry()) {
-                VertexRecorder.renderVertices(record.vertices(), buffer);
+                VertexData.renderVertices(record.vertices(), buffer);
                 return;
             }
             final double depth = currentTarget().getDisablingDepth();
-            for (VertexRecorder.Vertex[] primitive : record.primitives()) {
-                for (VertexRecorder.Vertex vertex : primitive) {
+            for (VertexData[] primitive : record.primitives()) {
+                for (VertexData vertex : primitive) {
                     if (Math.fma(m02, vertex.x(), Math.fma(m12, vertex.y(), Math.fma(m22, vertex.z(), m32))) > -depth) continue;
-                    VertexRecorder.renderVertices(primitive, buffer, positionMatrix, normalMatrix);
+                    VertexData.renderVertices(primitive, buffer, positionMatrix, normalMatrix);
                     break;
                 }
             }

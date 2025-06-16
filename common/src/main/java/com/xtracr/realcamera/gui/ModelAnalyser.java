@@ -1,15 +1,12 @@
 package com.xtracr.realcamera.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.xtracr.realcamera.config.BindingTarget;
 import com.xtracr.realcamera.util.BindingContext;
-import com.xtracr.realcamera.util.MultiVertexCatcher;
+import com.xtracr.realcamera.util.VertexData;
 import com.xtracr.realcamera.util.VertexRecorder;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -35,15 +32,15 @@ public class ModelAnalyser extends VertexRecorder {
         this.target = target;
     }
 
-    private static boolean intersects(Vertex[] p1, List<Vertex[]> primitives) {
+    private static boolean intersects(VertexData[] p1, List<VertexData[]> primitives) {
         final float precision = 1.0E-05f;
-        for (Vertex[] p2 : primitives) for (Vertex v1 : p1) for (Vertex v2 : p2) if (v1.pos().distanceToSqr(v2.pos()) < precision) return true;
+        for (VertexData[] p2 : primitives) for (VertexData v1 : p1) for (VertexData v2 : p2) if (v1.pos().distanceToSqr(v2.pos()) < precision) return true;
         return false;
     }
 
-    private static void drawPrimitive(GuiGraphics graphics, Vertex[] primitive, int argb, int offset) {
+    private static void drawPrimitive(GuiGraphics graphics, VertexData[] primitive, int argb, int offset) {
         VertexConsumer buffer = graphics.bufferSource().getBuffer(RenderType.gui());
-        for (Vertex vertex : primitive) buffer.addVertex(vertex.x(), vertex.y(), vertex.z() + offset).setColor(argb);
+        for (VertexData vertex : primitive) buffer.addVertex(vertex.x(), vertex.y(), vertex.z() + offset).setColor(argb);
         if (primitive.length == 3) buffer.addVertex(primitive[2].x(), primitive[2].y(), primitive[2].z() + offset).setColor(argb);
         graphics.flush();
     }
@@ -64,13 +61,13 @@ public class ModelAnalyser extends VertexRecorder {
         records().removeAll(removedRecords);
         List<Triple> sortByDepth = new ArrayList<>();
         records().stream().filter(record -> !UNFOCUSABLE_RENDER_TYPES.contains(record.renderType())).forEach(record -> {
-            Vertex[][] primitives = record.primitives();
+            VertexData[][] primitives = record.primitives();
             for (int i = 0, primitiveCount = primitives.length; i < primitiveCount; i++) {
                 Polygon polygon = new Polygon();
-                Vertex[] primitive = primitives[i];
-                for (Vertex vertex : primitive) polygon.addPoint((int) vertex.x(), (int) vertex.y());
+                VertexData[] primitive = primitives[i];
+                for (VertexData vertex : primitive) polygon.addPoint((int) vertex.x(), (int) vertex.y());
                 if (!polygon.contains(mouseX, mouseY)) continue;
-                Vertex point = primitive[0];
+                VertexData point = primitive[0];
                 double deltaZ = point.normalZ() == 0 ? 0 : (point.normalX() * (mouseX - point.x()) + point.normalY() * (mouseY - point.y())) / point.normalZ();
                 sortByDepth.add(new Triple(point.z() - deltaZ, record, i));
             }
@@ -102,8 +99,8 @@ public class ModelAnalyser extends VertexRecorder {
     public Vec2 getFocusedUV() {
         if (focusedIndex == -1 || focusedRecord == null) return null;
         float u = 0, v = 0;
-        Vertex[] primitive = focusedRecord.primitives()[focusedIndex];
-        for (Vertex vertex : primitive) {
+        VertexData[] primitive = focusedRecord.primitives()[focusedIndex];
+        for (VertexData vertex : primitive) {
             u += vertex.u();
             v += vertex.v();
         }
@@ -124,43 +121,37 @@ public class ModelAnalyser extends VertexRecorder {
         drawFocusedPolyhedron(graphics);
         drawFocused(graphics);
         if (currentRecord == null) return;
-        Vertex[] primitive;
+        VertexData[] primitive;
         if ((primitive = currentRecord.findPrimitive(target.getPosU(), target.getPosV())) != null)
             drawPrimitive(graphics, primitive, primitiveArgb, 1000);
         if ((primitive = currentRecord.findPrimitive(target.getForwardU(), target.getForwardV())) != null)
-            drawNormal(graphics, getCenter(primitive, target.getForwardU(), target.getForwardV()), primitive[0].normal(), entitySize / 2, forwardArgb);
+            drawNormal(graphics, getPosition(primitive, target.getForwardU(), target.getForwardV()), primitive[0].normal(), entitySize / 2, forwardArgb);
         if ((primitive = currentRecord.findPrimitive(target.getUpwardU(), target.getUpwardV())) != null)
-            drawNormal(graphics, getCenter(primitive, target.getUpwardU(), target.getUpwardV()), primitive[0].normal(), entitySize / 2, upwardArgb);
-    }
-
-    public void updateModel(Minecraft client, Entity cameraEntity, float x, float y, float z, float yaw, float deltaTick, PoseStack poseStack, int packedLight) {
-        MultiVertexCatcher catcher = MultiVertexCatcher.getInstance();
-        catcher.updateModel(client, cameraEntity, x, y, z, yaw, deltaTick, poseStack, packedLight);
-        catcher.sendVertices(this);
+            drawNormal(graphics, getPosition(primitive, target.getUpwardU(), target.getUpwardV()), primitive[0].normal(), entitySize / 2, upwardArgb);
     }
 
     private void drawFocused(GuiGraphics graphics) {
         if (focusedIndex == -1 || focusedRecord == null) return;
-        Vertex[] focused = focusedRecord.primitives()[focusedIndex];
+        VertexData[] focused = focusedRecord.primitives()[focusedIndex];
         drawPrimitive(graphics, focused, focusedArgb, 1100);
         int length = focused.length;
-        Vertex[] reversed = new Vertex[length];
+        VertexData[] reversed = new VertexData[length];
         for (int i = 0; i < length; i++) reversed[i] = focused[length - 1 - i];
         drawPrimitive(graphics, reversed, focusedArgb, 1100);
     }
 
     private void drawFocusedPolyhedron(GuiGraphics graphics) {
         if (focusedIndex == -1 || focusedRecord == null) return;
-        List<Vertex[]> polyhedron = new ArrayList<>();
+        List<VertexData[]> polyhedron = new ArrayList<>();
         polyhedron.add(focusedRecord.primitives()[focusedIndex]);
         List<Integer> indexes = new ArrayList<>(List.of(focusedIndex));
-        Vertex[][] primitives = focusedRecord.primitives();
+        VertexData[][] primitives = focusedRecord.primitives();
         final int primitiveCount = primitives.length;
         boolean added;
         do {
             added = false;
             for (int i = 0; i < primitiveCount; i++) {
-                Vertex[] primitive = primitives[i];
+                VertexData[] primitive = primitives[i];
                 if (indexes.contains(i) | !intersects(primitive, polyhedron)) continue;
                 polyhedron.add(primitive);
                 indexes.add(i);

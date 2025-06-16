@@ -15,7 +15,7 @@ public class DisableHelper {
     private static final Map<String, Entry> entries = new HashMap<>();
     public static final Entry MAIN_FEATURE = new Entry("mainFeature", LivingEntity::isSleeping);
     public static final Entry RENDER_MODEL = new Entry("renderModel", entity -> entity instanceof Player player && player.isScoping());
-    public static final Entry RENDER_HANDS = new Entry("renderHands", entity -> RealCameraCore.isRendering());
+    public static final Entry RENDER_HANDS = new Entry("renderHands", false, entity -> RealCameraCore.isRendering());
 
     static {
         RENDER_MODEL.registerOr(entity -> {
@@ -58,9 +58,15 @@ public class DisableHelper {
     }
 
     public static class Entry {
+        final private boolean ignoreInClassic;
         protected Predicate<LivingEntity> predicate;
 
         protected Entry(String name, Predicate<LivingEntity> predicate) {
+            this(name, true, predicate);
+        }
+
+        protected Entry(String name, boolean ignoreInClassic, Predicate<LivingEntity> predicate) {
+            this.ignoreInClassic = ignoreInClassic;
             this.predicate = predicate;
             entries.put(name, this);
         }
@@ -70,7 +76,7 @@ public class DisableHelper {
         }
 
         public boolean disabled(Entity cameraEntity) {
-            if (ConfigFile.config().isClassic()) return false;
+            if (ignoreInClassic && ConfigFile.config().isClassic()) return false;
             return cameraEntity instanceof LivingEntity entity && predicate.test(entity);
         }
     }
