@@ -41,8 +41,8 @@ public abstract class MixinCamera {
         AABB box = focusedEntity.getBoundingBox();
         if (config.isClassic()) {
             double scale = focusedEntity instanceof LivingEntity livingEntity ? livingEntity.getScale() : 1;
-            Vec3 offset = new Vec3(config.getClassicX(), config.getClassicY(), -config.getClassicZ()).scale(scale);
-            Vec3 center = new Vec3(config.getCenterX(), config.getCenterY(), -config.getCenterZ()).scale(scale);
+            Vec3 offset = new Vec3(config.getClassicX(), config.getClassicY(), config.getClassicZ()).scale(scale);
+            Vec3 center = new Vec3(config.getCenterX(), config.getCenterY(), config.getCenterZ()).scale(scale);
             float newPitch = xRot + config.getClassicPitch();
             float newYaw = yRot - config.getClassicYaw();
             setRotation(yRot, 0.0f);

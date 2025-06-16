@@ -127,8 +127,6 @@ public class RealCameraCore {
             updateModel(client, deltaTick, poseStack);
         }
         Matrix4f positionMatrix = new Matrix4f(invertedCameraPose).mul(poseStack.last().pose().invert(new Matrix4f()));
-//        final double m02 = positionMatrix.m02(), m12 = positionMatrix.m12(), m22 = positionMatrix.m22(), m32 = positionMatrix.m32();
-//        positionMatrix.mulLocal(cameraPose.invert(new Matrix4f()));
         Matrix3f normalMatrix = new Matrix3f(positionMatrix);
         recorder.records().forEach(record -> {
             if (currentTarget().getDisabledTextureIds().stream().anyMatch(record.textureId()::contains)) return;

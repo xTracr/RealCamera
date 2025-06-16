@@ -30,7 +30,7 @@ public abstract class MixinLevelRenderer {
         if (!ConfigFile.config().isClassic()) RealCameraCore.renderCameraEntity(minecraft, deltaTick, bufferSource, poseStack.last().pose());
         else {
             Vec3 cameraPos = camera.getPosition();
-            renderEntity(camera.getEntity(), cameraPos.x(), cameraPos.y(), cameraPos.z(), deltaTick, new PoseStack(), bufferSource);
+            renderEntity(camera.getEntity(), cameraPos.x(), cameraPos.y(), cameraPos.z(), deltaTick, poseStack, bufferSource);
         }
     }
 

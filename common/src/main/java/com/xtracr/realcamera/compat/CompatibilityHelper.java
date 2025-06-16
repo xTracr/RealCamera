@@ -5,14 +5,12 @@ import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.mixin.CameraAccessor;
 import net.minecraft.client.Camera;
-import net.minecraft.world.item.ItemStack;
 
 import java.lang.reflect.Method;
 
 public class CompatibilityHelper {
     private static Class<?> NEA_NEAnimationsLoader = null;
     private static Method NEA_playerTransformer_setDeltaTick = null;
-    protected static Method Exposure_CameraItem_isActive = null;
 
     static {
         if (isClassLoaded("dev.tr7zw.notenoughanimations.versionless.NEABaseMod")) try {
@@ -29,11 +27,6 @@ public class CompatibilityHelper {
             Object NEA_NEAnimationsLoader_INSTANCE = NEA_NEAnimationsLoader.getDeclaredField("INSTANCE").get(null);
             Object NEA_playerTransformer = NEA_NEAnimationsLoader.getDeclaredField("playerTransformer").get(NEA_NEAnimationsLoader_INSTANCE);
             NEA_playerTransformer_setDeltaTick.invoke(NEA_playerTransformer, deltaTick);
-        } catch (Exception ignored) {
-        }
-        if (isClassLoaded("io.github.mortuusars.exposure.Exposure")) try {
-            Class<?> Exposure_CameraItem = Class.forName("io.github.mortuusars.exposure.item.CameraItem");
-            Exposure_CameraItem_isActive = Exposure_CameraItem.getDeclaredMethod("isActive", ItemStack.class);
         } catch (Exception ignored) {
         }
     }
