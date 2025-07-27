@@ -24,8 +24,8 @@ public abstract class MixinLocalPlayer extends AbstractClientPlayer {
     }
 
     @Inject(method = "getRopeHoldPosition", at = @At("HEAD"), cancellable = true)
-    private void realcamera$atGetRopePosHEAD(float delta, CallbackInfoReturnable<Vec3> ci) {
-        if (DisableHelper.RENDER_HANDS.disabled(this)) ci.setReturnValue(super.getRopeHoldPosition(delta));
+    private void realcamera$atGetRopePosHEAD(float delta, CallbackInfoReturnable<Vec3> cir) {
+        if (DisableHelper.RENDER_HANDS.disabled(this)) cir.setReturnValue(super.getRopeHoldPosition(delta));
     }
 
     @Override
