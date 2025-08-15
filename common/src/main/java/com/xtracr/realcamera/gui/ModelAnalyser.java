@@ -69,7 +69,7 @@ public class ModelAnalyser extends VertexRecorder {
                 if (!polygon.contains(mouseX, mouseY)) continue;
                 VertexData point = primitive[0];
                 double deltaZ = point.normalZ() == 0 ? 0 : (point.normalX() * (mouseX - point.x()) + point.normalY() * (mouseY - point.y())) / point.normalZ();
-                sortByDepth.add(new Triple(point.z() - deltaZ, record, i));
+                sortByDepth.add(new Triple(point.z() + deltaZ, record, i));
             }
         });
         if (!sortByDepth.isEmpty()) {

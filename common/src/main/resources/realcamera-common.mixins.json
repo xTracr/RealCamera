@@ -9,6 +9,7 @@
     "CameraAccessor",
     "GameRendererAccessor",
     "MixinCamera",
+    "MixinFishingHookRenderer",
     "MixinGameRenderer",
     "MixinGui",
     "MixinItem",
