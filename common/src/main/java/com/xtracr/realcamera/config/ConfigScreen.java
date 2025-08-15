@@ -139,6 +139,16 @@ public class ConfigScreen {
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("rerenderModel"))
                 .setSaveConsumer(b -> config.binding.rerenderModel = b)
                 .build());
+        binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("disableWhenSneaking"), config.binding.disableWhenSneaking)
+                .setDefaultValue(false)
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("disableWhenSneaking"))
+                .setSaveConsumer(b -> config.binding.disableWhenSneaking = b)
+                .build());
+        binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("disableWhenSwimming"), config.binding.disableWhenSwimming)
+                .setDefaultValue(false)
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("disableWhenSwimming"))
+                .setSaveConsumer(b -> config.binding.disableWhenSwimming = b)
+                .build());
         binding.addEntry(entryBuilder.startStrList(LocUtil.CONFIG_OPTION("disableMainFeatureItems"), config.binding.disableMainFeatureItems)
                 .setDefaultValue(List.of())
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("disableRenderItems"))

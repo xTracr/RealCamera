@@ -158,6 +158,14 @@ public class ModConfig {
         return binding.rerenderModel;
     }
 
+    public boolean disableWhenSneaking() {
+        return binding.disableWhenSneaking;
+    }
+
+    public boolean disableWhenSwimming() {
+        return binding.disableWhenSwimming;
+    }
+
     public List<String> getDisableMainFeatureItems() {
         return binding.disableMainFeatureItems;
     }
@@ -223,6 +231,8 @@ public class ModConfig {
         public boolean adjustOffset = true;
         public boolean renderStuckObjects = true;
         public boolean rerenderModel = false;
+        public boolean disableWhenSneaking = false;
+        public boolean disableWhenSwimming = false;
         public List<String> disableMainFeatureItems = List.of();
         public List<String> disableRenderItems = defaultDisableRenderItems;
         public List<BindingTarget> fixedTargetList = new ArrayList<>(BindingTarget.fixedTargets);

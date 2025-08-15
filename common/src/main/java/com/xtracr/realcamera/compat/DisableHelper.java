@@ -18,6 +18,8 @@ public class DisableHelper {
     public static final Entry RENDER_HANDS = new Entry("renderHands", false, entity -> RealCameraCore.isRendering());
 
     static {
+        MAIN_FEATURE.registerOr(entity -> ConfigFile.config().disableWhenSwimming() && entity.isSwimming());
+        MAIN_FEATURE.registerOr(entity -> ConfigFile.config().disableWhenSneaking() && entity.isCrouching());
         MAIN_FEATURE.registerOr(entity -> {
             String mainHand = BuiltInRegistries.ITEM.getKey(entity.getMainHandItem().getItem()).toString();
             String offHand = BuiltInRegistries.ITEM.getKey(entity.getOffhandItem().getItem()).toString();

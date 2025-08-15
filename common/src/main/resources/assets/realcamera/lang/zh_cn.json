@@ -39,6 +39,8 @@
   "config.option.xtracr_realcamera.adjustOffset": "调整摄像头偏移",
   "config.option.xtracr_realcamera.renderStuckObjects": "渲染卡在身上的物体",
   "config.option.xtracr_realcamera.rerenderModel": "重新渲染模型",
+  "config.option.xtracr_realcamera.disableWhenSneaking": "潜行时禁用主要功能",
+  "config.option.xtracr_realcamera.disableWhenSwimming": "游泳时禁用主要功能",
   "config.option.xtracr_realcamera.disableMainFeatureItems": "在手持...时禁用主要功能",
   "config.option.xtracr_realcamera.disableRenderItems": "在手持...时禁用渲染",
   "config.tooltip.xtracr_realcamera.isClassic": "经典模式只对摄像头的位置和旋转做简单的修改",
