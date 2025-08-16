@@ -30,7 +30,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build
-        run: ./gradlew clean build -PcommitSHA=${{ env.GITHUB_SHA }}
+        run: ./gradlew clean build -PcommitSHA=${{ github.sha }}
 
       - name: Capture Build Artifacts
         uses: actions/upload-artifact@v4
