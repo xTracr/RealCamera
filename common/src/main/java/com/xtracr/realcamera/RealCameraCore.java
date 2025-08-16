@@ -90,7 +90,7 @@ public class RealCameraCore {
         if (context.available()) return context;
         updateModel(client, deltaTick, new PoseStack());
         for (BindingTarget target : ConfigFile.config().getTargetList()) {
-            context = recorder.records().stream().map(record -> record.genContext(target, false)).filter(BindingContext::available).findAny().orElse(BindingContext.EMPTY);
+            context = recorder.genContext(target, false);
             if (context.available()) return context;
         }
         return BindingContext.EMPTY;

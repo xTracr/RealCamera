@@ -53,20 +53,37 @@ public class ModelAnalyser extends VertexRecorder {
         graphics.flush();
     }
 
+    @Override
+    public BindingContext genContext(BindingTarget target, boolean mirrored) {
+        for (BuiltRecord record : records) {
+            BindingContext context = record.genContext(target, mirrored);
+            if (!context.available()) continue;
+            context.init();
+            bindingContext = context;
+            currentRecord = record;
+            return bindingContext;
+        }
+        return BindingContext.EMPTY;
+    }
+
     public void analyse(int entitySize, int mouseX, int mouseY, int layers, boolean hideDisabled, String idInField) {
-        List<BuiltRecord> removedRecords = records().stream().filter(record -> {
+        target.setScale(target.getScale() * entitySize);
+        genContext(target, true);
+        records.removeIf(record -> {
             boolean isIdInField = !idInField.isBlank() && record.textureId().contains(idInField);
             return (hideDisabled && isIdInField) || (!isIdInField && target.getDisabledTextureIds().stream().anyMatch(record.textureId()::contains));
-        }).toList();
-        records().removeAll(removedRecords);
+        });
         List<Triple> sortByDepth = new ArrayList<>();
-        records().stream().filter(record -> !UNFOCUSABLE_RENDER_TYPES.contains(record.renderType())).forEach(record -> {
+        records.stream().filter(record -> !UNFOCUSABLE_RENDER_TYPES.contains(record.renderType())).forEach(record -> {
             VertexData[][] primitives = record.primitives();
             for (int i = 0, primitiveCount = primitives.length; i < primitiveCount; i++) {
-                Polygon polygon = new Polygon();
                 VertexData[] primitive = primitives[i];
-                for (VertexData vertex : primitive) polygon.addPoint((int) vertex.x(), (int) vertex.y());
-                if (!polygon.contains(mouseX, mouseY)) continue;
+                int[] xs = new int[primitive.length], ys = new int[primitive.length];
+                for (int j = 0; j < primitive.length; j++) {
+                    xs[j] = (int) primitive[j].x();
+                    ys[j] = (int) primitive[j].y();
+                }
+                if (!new Polygon(xs, ys, primitive.length).contains(mouseX, mouseY)) continue;
                 VertexData point = primitive[0];
                 double deltaZ = point.normalZ() == 0 ? 0 : (point.normalX() * (mouseX - point.x()) + point.normalY() * (mouseY - point.y())) / point.normalZ();
                 sortByDepth.add(new Triple(point.z() - deltaZ, record, i));
@@ -78,17 +95,6 @@ public class ModelAnalyser extends VertexRecorder {
             focusedRecord = result.record;
             focusedIndex = result.index;
         }
-        target.setScale(target.getScale() * entitySize);
-        records().addAll(removedRecords);
-        for (BuiltRecord record : records()) {
-            BindingContext context = record.genContext(target, true);
-            if (!context.available()) continue;
-            context.init();
-            bindingContext = context;
-            currentRecord = record;
-            break;
-        }
-        records().removeAll(removedRecords);
     }
 
     public String focusedTextureId() {
@@ -117,17 +123,15 @@ public class ModelAnalyser extends VertexRecorder {
         drawNormal(graphics, start, new Vec3(normal.m00(), normal.m01(), normal.m02()), entitySize / 6, leftArgb);
     }
 
-    public void drawNormals(GuiGraphics graphics, int entitySize) {
+    public void drawSelected(GuiGraphics graphics, int entitySize) {
         drawFocusedPolyhedron(graphics);
         drawFocused(graphics);
         if (currentRecord == null) return;
-        VertexData[] primitive;
-        if ((primitive = currentRecord.findPrimitive(target.getPosU(), target.getPosV())) != null)
-            drawPrimitive(graphics, primitive, primitiveArgb, 1000);
-        if ((primitive = currentRecord.findPrimitive(target.getForwardU(), target.getForwardV())) != null)
-            drawNormal(graphics, getPosition(primitive, target.getForwardU(), target.getForwardV()), primitive[0].normal(), entitySize / 2, forwardArgb);
-        if ((primitive = currentRecord.findPrimitive(target.getUpwardU(), target.getUpwardV())) != null)
-            drawNormal(graphics, getPosition(primitive, target.getUpwardU(), target.getUpwardV()), primitive[0].normal(), entitySize / 2, upwardArgb);
+        drawPrimitive(graphics, currentRecord.findPrimitive(target.getPosU(), target.getPosV()), primitiveArgb, 1000);
+        VertexData[] forward = currentRecord.findPrimitive(target.getForwardU(), target.getForwardV());
+        drawNormal(graphics, getPosition(forward, target.getForwardU(), target.getForwardV()), forward[0].normal(), entitySize / 2, forwardArgb);
+        VertexData[] upward = currentRecord.findPrimitive(target.getUpwardU(), target.getUpwardV());
+        drawNormal(graphics, getPosition(upward, target.getUpwardU(), target.getUpwardV()), upward[0].normal(), entitySize / 2, upwardArgb);
     }
 
     private void drawFocused(GuiGraphics graphics) {

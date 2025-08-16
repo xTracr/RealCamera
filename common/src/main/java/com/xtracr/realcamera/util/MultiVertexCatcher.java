@@ -13,9 +13,7 @@ public interface MultiVertexCatcher extends MultiBufferSource {
         client.getEntityRenderDispatcher().render(cameraEntity, x, y, z, yaw, deltaTick, poseStack, this, packedLight);
     }
 
-    default void sendVertices(VertexRecorder recorder) {
-        recorder.records().clear();
-    }
+    void sendVertices(VertexRecorder recorder);
 
     abstract class VertexCatcher implements VertexConsumer {
         protected final RenderType renderType;

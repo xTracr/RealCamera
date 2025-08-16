@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 
 public class VertexRecorder {
     protected static final Pattern textureIdPattern = Pattern.compile("texture\\[Optional\\[(.*?)]");
-    private final List<BuiltRecord> records = new ArrayList<>();
+    protected final List<BuiltRecord> records = new ArrayList<>();
 
     protected static Vec3 getPosition(VertexData[] primitive, float u, float v) {
         if (primitive.length < 3) return primitive[0].pos();
@@ -23,11 +23,7 @@ public class VertexRecorder {
         return primitive[0].pos().scale(alpha).add(primitive[1].pos().scale(beta)).add(primitive[2].pos().scale(1 - alpha - beta));
     }
 
-    public List<BuiltRecord> records() {
-        return records;
-    }
-
-    public static BuiltRecord buildVertices(VertexData[] vertices, RenderType renderType) {
+    public static BuiltRecord buildVertices(RenderType renderType, VertexData[] vertices) {
         String renderTypeName = renderType.toString();
         Matcher matcher = textureIdPattern.matcher(renderTypeName);
         String textureId = matcher.find() ? matcher.group(1) : renderTypeName;
@@ -43,13 +39,28 @@ public class VertexRecorder {
         return new BuiltRecord(renderType, textureId, vertices, primitives);
     }
 
+    public List<BuiltRecord> records() {
+        return records;
+    }
+
+    public BindingContext genContext(BindingTarget target, boolean mirrored) {
+        for (BuiltRecord record : records) {
+            BindingContext context = record.genContext(target, mirrored);
+            if (context.available()) return context;
+        }
+        return BindingContext.EMPTY;
+    }
+
     public record BuiltRecord(RenderType renderType, String textureId, VertexData[] vertices, VertexData[][] primitives) {
         public VertexData[] findPrimitive(float u, float v) {
             final int resolution = 1000000;
             for (VertexData[] primitive : primitives) {
-                Polygon polygon = new Polygon();
-                for (VertexData vertex : primitive) polygon.addPoint((int) (resolution * vertex.u()), (int) (resolution * vertex.v()));
-                if (polygon.contains(resolution * u, resolution * v)) return primitive;
+                int[] us = new int[primitive.length], vs = new int[primitive.length];
+                for (int i = 0; i < primitive.length; i++) {
+                    us[i] = (int) (resolution * primitive[i].u());
+                    vs[i] = (int) (resolution * primitive[i].v());
+                }
+                if (new Polygon(us, vs, primitive.length).contains(resolution * u, resolution * v)) return primitive;
             }
             return new VertexData[]{VertexData.ZERO};
         }
@@ -61,7 +72,8 @@ public class VertexRecorder {
             context.setPosition(getPosition(face, target.getPosU(), target.getPosV()));
             Vec3 forward = findPrimitive(target.getForwardU(), target.getForwardV())[0].normal();
             Vec3 upward = findPrimitive(target.getUpwardU(), target.getUpwardV())[0].normal();
-            context.setDirections(forward, upward);
+            context.setForward(forward);
+            context.setUpward(upward);
             return context;
         }
     }

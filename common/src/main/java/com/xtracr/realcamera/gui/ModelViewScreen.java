@@ -283,7 +283,7 @@ public class ModelViewScreen extends Screen {
         graphics.flush();
         focusedUV = analyser.getFocusedUV();
         focusedTextureId = analyser.focusedTextureId();
-        if ((category & 0b1) == 0) analyser.drawNormals(graphics, entitySize);
+        if ((category & 0b1) == 0) analyser.drawSelected(graphics, entitySize);
         else analyser.previewEffect(graphics, entitySize, (category & 0b10) == 2);
         dispatcher.setRenderShadow(true);
         graphics.pose().popPose();

@@ -14,8 +14,10 @@ public class SimpleMultiVertexCatcher implements MultiVertexCatcher {
 
     @Override
     public void sendVertices(VertexRecorder recorder) {
-        MultiVertexCatcher.super.sendVertices(recorder);
-        recorder.records().addAll(catchers.stream().map(catcher -> VertexRecorder.buildVertices(catcher.collectVertices(), catcher.renderType())).toList());
+        recorder.records().clear();
+        for (RecordBuilder catcher : catchers) {
+            recorder.records().add(VertexRecorder.buildVertices(catcher.renderType(), catcher.collectVertices()));
+        }
     }
 
     @Override
