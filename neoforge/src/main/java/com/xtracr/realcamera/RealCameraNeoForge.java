@@ -11,7 +11,7 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.NeoForge;
 
 @Mod(RealCamera.MODID)
-public class RealCameraNeoForge {
+public class RealCameraNeoForge implements RealCamera {
     private final ModContainer modContainer;
 
     public RealCameraNeoForge(IEventBus modEventBus, ModContainer modContainer) {
@@ -21,17 +21,22 @@ public class RealCameraNeoForge {
     }
 
     public void clientSetup(FMLClientSetupEvent event) {
-        RealCamera.initialize();
+        initialize();
 
         NeoForge.EVENT_BUS.addListener(EventHandler::onClientTick);
         NeoForge.EVENT_BUS.addListener(EventHandler::onRenderLevelStage);
 
-        if (ModList.get().isLoaded("cloth_config")) {
+        if (isModLoaded("cloth_config")) {
             modContainer.registerExtensionPoint(IConfigScreenFactory.class, (container, modListScreen) -> ConfigScreen.create(modListScreen));
         }
     }
 
     public void onKeyRegister(RegisterKeyMappingsEvent event) {
         KeyBindings.register(event::register);
+    }
+
+    @Override
+    public boolean isModLoaded(String modId) {
+        return ModList.get().isLoaded(modId);
     }
 }

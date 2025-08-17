@@ -9,11 +9,14 @@ import net.minecraft.client.Camera;
 import java.lang.reflect.Method;
 
 public class CompatibilityHelper {
+    private static LoaderHelper loaderHelper;
     private static Class<?> NEA_NEAnimationsLoader = null;
     private static Method NEA_playerTransformer_setDeltaTick = null;
 
-    static {
-        if (isClassLoaded("dev.tr7zw.notenoughanimations.versionless.NEABaseMod")) try {
+    public static void initialize(LoaderHelper loaderHelper) {
+        CompatibilityHelper.loaderHelper = loaderHelper;
+        if (isModLoaded("yes_steve_model")) RealCameraCore.setActiveRecorder(YSMCompat.INSTANCE);
+        if (isModLoaded("notenoughanimations")) try {
             NEA_NEAnimationsLoader = Class.forName("dev.tr7zw.notenoughanimations.NEAnimationsLoader");
             Class<?> NEA_PlayerTransformer = Class.forName("dev.tr7zw.notenoughanimations.logic.PlayerTransformer");
             NEA_playerTransformer_setDeltaTick = NEA_PlayerTransformer.getDeclaredMethod("setDeltaTick", float.class);
@@ -37,12 +40,7 @@ public class CompatibilityHelper {
         }
     }
 
-    public static boolean isClassLoaded(String className) {
-        try {
-            Class.forName(className);
-            return true;
-        } catch (ClassNotFoundException exception) {
-            return false;
-        }
+    public static boolean isModLoaded(String modId) {
+        return loaderHelper != null && loaderHelper.isModLoaded(modId);
     }
 }

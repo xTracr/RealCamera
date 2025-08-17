@@ -252,6 +252,7 @@ public class ModConfig {
             if (fixedTargetList == null || fixedTargetList.isEmpty()) fixedTargetList = new ArrayList<>(BindingTarget.fixedTargets);
             if (targetList == null || targetList.isEmpty()) targetList = new ArrayList<>(BindingTarget.defaultTargets);
             fixedTargetList.removeIf(target -> !target.fixed());
+            targetList.removeIf(BindingTarget::fixed);
         }
 
         public void putTarget(BindingTarget target) {

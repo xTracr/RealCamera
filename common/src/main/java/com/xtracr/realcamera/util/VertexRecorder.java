@@ -1,13 +1,22 @@
 package com.xtracr.realcamera.util;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.xtracr.realcamera.config.BindingTarget;
+import com.xtracr.realcamera.config.ConfigFile;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,16 +52,27 @@ public class VertexRecorder {
         return records;
     }
 
-    public BindingContext genContext(BindingTarget target, boolean mirrored) {
-        for (BuiltRecord record : records) {
-            BindingContext context = record.genContext(target, mirrored);
-            if (context.available()) return context;
+    public void updateModel(Minecraft client, Entity entity, float deltaTick, PoseStack poseStack) {
+        EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
+        MultiVertexCatcher catcher = new SimpleMultiVertexCatcher();
+        dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack, catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
+        catcher.sendVertices(this);
+    }
+
+    public BindingContext genContext() {
+        BindingContext context;
+        for (BindingTarget target : ConfigFile.config().getTargetList()) {
+            for (BuiltRecord record : records) {
+                context = new BindingContext(target, false);
+                record.setupContext(context);
+                if (context.available()) return context;
+            }
         }
         return BindingContext.EMPTY;
     }
 
     public record BuiltRecord(RenderType renderType, String textureId, VertexData[] vertices, VertexData[][] primitives) {
-        public VertexData[] findPrimitive(float u, float v) {
+        public Optional<VertexData[]> findPrimitive(float u, float v) {
             final int resolution = 1000000;
             for (VertexData[] primitive : primitives) {
                 int[] us = new int[primitive.length], vs = new int[primitive.length];
@@ -60,21 +80,28 @@ public class VertexRecorder {
                     us[i] = (int) (resolution * primitive[i].u());
                     vs[i] = (int) (resolution * primitive[i].v());
                 }
-                if (new Polygon(us, vs, primitive.length).contains(resolution * u, resolution * v)) return primitive;
+                if (new Polygon(us, vs, primitive.length).contains(resolution * u, resolution * v)) return Optional.of(primitive);
             }
-            return new VertexData[]{VertexData.ZERO};
+            return Optional.empty();
         }
 
-        public BindingContext genContext(BindingTarget target, boolean mirrored) {
-            if (!textureId.contains(target.textureId)) return BindingContext.EMPTY;
-            BindingContext context = new BindingContext(target, mirrored);
-            VertexData[] face = findPrimitive(target.getPosU(), target.getPosV());
-            context.setPosition(getPosition(face, target.getPosU(), target.getPosV()));
-            Vec3 forward = findPrimitive(target.getForwardU(), target.getForwardV())[0].normal();
-            Vec3 upward = findPrimitive(target.getUpwardU(), target.getUpwardV())[0].normal();
-            context.setForward(forward);
-            context.setUpward(upward);
-            return context;
+        public void setupContext(BindingContext context) {
+            BindingTarget target = context.target;
+            if (!textureId.contains(target.textureId)) return;
+            findPrimitive(target.getPosU(), target.getPosV()).ifPresent(primitive -> context.setPosition(getPosition(primitive, target.getPosU(), target.getPosV())));
+            findPrimitive(target.getForwardU(), target.getForwardV()).ifPresent(primitive -> context.setForward(primitive[0].normal()));
+            findPrimitive(target.getUpwardU(), target.getUpwardV()).ifPresent(primitive -> context.setUpward(primitive[0].normal()));
+        }
+
+        public void setupContext(BindingContext context, Matrix4f positionMatrix, Matrix3f normalMatrix) {
+            BindingTarget target = context.target;
+            if (!textureId.contains(target.textureId)) return;
+            findPrimitive(target.getPosU(), target.getPosV()).ifPresent(primitive ->
+                    context.setPosition(new Vec3(getPosition(primitive, target.getPosU(), target.getPosV()).toVector3f().mulPosition(positionMatrix))));
+            findPrimitive(target.getForwardU(), target.getForwardV()).ifPresent(primitive ->
+                    context.setForward(new Vec3(primitive[0].normal().toVector3f().mul(normalMatrix))));
+            findPrimitive(target.getUpwardU(), target.getUpwardV()).ifPresent(primitive ->
+                    context.setUpward(new Vec3(primitive[0].normal().toVector3f().mul(normalMatrix))));
         }
     }
 }
