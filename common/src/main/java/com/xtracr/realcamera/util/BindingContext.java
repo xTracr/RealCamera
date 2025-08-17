@@ -37,12 +37,8 @@ public class BindingContext implements PoseHandler {
     }
 
     @Override
-    public void setPosition(Vec3 position) {
-        this.position = position;
-    }
-
-    public Vec3 getEulerAngle() {
-        return eulerAngle;
+    public void setPosition(Vec3 vec) {
+        position = vec;
     }
 
     @Override
@@ -56,13 +52,23 @@ public class BindingContext implements PoseHandler {
     }
 
     @Override
-    public void setDirections(Vec3 forward, Vec3 upward) {
-        this.forward = forward.normalize();
-        this.upward = forward.cross(upward.cross(forward)).normalize();
+    public void setForward(Vec3 vec) {
+        forward = vec.normalize();
+    }
+
+    @Override
+    public void setUpward(Vec3 vec) {
+        upward = vec.normalize();
+    }
+
+    public Vec3 getEulerAngle() {
+        return eulerAngle;
     }
 
     public void init() {
+        if (!available()) return;
         final int orientation = mirrored ? -1 : 1;
+        upward = forward.cross(upward.cross(forward)).normalize();
         Vec3 left = upward.cross(forward).scale(orientation);
         normal.set(left.toVector3f(), upward.toVector3f(), forward.toVector3f());
         Vector3f offset = new Vector3f((float) target.getOffsetZ(), (float) target.getOffsetY(), (float) target.getOffsetX()).mul((float) target.getScale()).mul(normal);

@@ -13,24 +13,24 @@ import java.util.function.Predicate;
 
 public class DisableHelper {
     private static final Map<String, Entry> entries = new HashMap<>();
-    public static final Entry MAIN_FEATURE = new Entry("mainFeature", LivingEntity::isSleeping);
-    public static final Entry RENDER_MODEL = new Entry("renderModel", entity -> entity instanceof Player player && player.isScoping());
-    public static final Entry RENDER_HANDS = new Entry("renderHands", false, entity -> RealCameraCore.isRendering());
+    public static final Entry MAIN_FEATURE = new Entry("mainFeature", Player::isSleeping);
+    public static final Entry RENDER_MODEL = new Entry("renderModel", Player::isScoping);
+    public static final Entry RENDER_HANDS = new Entry("renderHands", false, player -> RealCameraCore.isRendering());
 
     static {
-        MAIN_FEATURE.registerOr(entity -> ConfigFile.config().disableWhenSwimming() && entity.isSwimming());
-        MAIN_FEATURE.registerOr(entity -> ConfigFile.config().disableWhenSneaking() && entity.isCrouching());
-        MAIN_FEATURE.registerOr(entity -> {
-            String mainHand = BuiltInRegistries.ITEM.getKey(entity.getMainHandItem().getItem()).toString();
-            String offHand = BuiltInRegistries.ITEM.getKey(entity.getOffhandItem().getItem()).toString();
+        MAIN_FEATURE.registerOr(player -> ConfigFile.config().disableWhenSwimming() && player.isSwimming());
+        MAIN_FEATURE.registerOr(player -> ConfigFile.config().disableWhenSneaking() && player.isCrouching());
+        MAIN_FEATURE.registerOr(player -> {
+            String mainHand = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem()).toString();
+            String offHand = BuiltInRegistries.ITEM.getKey(player.getOffhandItem().getItem()).toString();
             for (String item : ConfigFile.config().getDisableMainFeatureItems())
                 if (simpleWildcardMatch(mainHand, item) || simpleWildcardMatch(offHand, item))
                     return true;
             return false;
         });
-        RENDER_MODEL.registerOr(entity -> {
-            String mainHand = BuiltInRegistries.ITEM.getKey(entity.getMainHandItem().getItem()).toString();
-            String offHand = BuiltInRegistries.ITEM.getKey(entity.getOffhandItem().getItem()).toString();
+        RENDER_MODEL.registerOr(player -> {
+            String mainHand = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem()).toString();
+            String offHand = BuiltInRegistries.ITEM.getKey(player.getOffhandItem().getItem()).toString();
             for (String item : ConfigFile.config().getDisableRenderItems())
                 if (simpleWildcardMatch(mainHand, item) || simpleWildcardMatch(offHand, item))
                     return true;
@@ -40,7 +40,7 @@ public class DisableHelper {
 
     @Deprecated
     public static void registerOr(String name, Predicate<LivingEntity> predicate) {
-        entries.get(name).registerOr(predicate);
+        entries.get(name).registerOr(predicate::test);
     }
 
     public static boolean simpleWildcardMatch(String text, String pattern) {
@@ -69,25 +69,25 @@ public class DisableHelper {
 
     public static class Entry {
         final private boolean ignoreInClassic;
-        protected Predicate<LivingEntity> predicate;
+        protected Predicate<Player> predicate;
 
-        protected Entry(String name, Predicate<LivingEntity> predicate) {
+        protected Entry(String name, Predicate<Player> predicate) {
             this(name, true, predicate);
         }
 
-        protected Entry(String name, boolean ignoreInClassic, Predicate<LivingEntity> predicate) {
+        protected Entry(String name, boolean ignoreInClassic, Predicate<Player> predicate) {
             this.ignoreInClassic = ignoreInClassic;
             this.predicate = predicate;
             entries.put(name, this);
         }
 
-        public void registerOr(Predicate<LivingEntity> predicate) {
+        public void registerOr(Predicate<Player> predicate) {
             this.predicate = this.predicate.or(predicate);
         }
 
         public boolean disabled(Entity cameraEntity) {
             if (ignoreInClassic && ConfigFile.config().isClassic()) return false;
-            return cameraEntity instanceof LivingEntity entity && predicate.test(entity);
+            return cameraEntity instanceof Player player && predicate.test(player);
         }
     }
 }

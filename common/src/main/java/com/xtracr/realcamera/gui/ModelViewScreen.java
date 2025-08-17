@@ -173,7 +173,7 @@ public class ModelViewScreen extends Screen {
         final int widgetsPerPage, size;
         if ((category & 0b10) == 0) {
             widgetsPerPage = 8;
-            List<BindingTarget> fixedTargetList = ConfigFile.config().getFixedTargetList().stream().filter(target -> target.name.equals(RealCameraCore.bindingContext.target.name)).toList();
+            List<BindingTarget> fixedTargetList = ConfigFile.config().getFixedTargetList().stream().filter(target -> target.name.equals(RealCameraCore.currentTarget().name)).toList();
             List<BindingTarget> targetList = ConfigFile.config().getTargetList();
             size = fixedTargetList.size() + targetList.size();
             final int fixedTargetCount = fixedTargetList.size();
@@ -276,15 +276,13 @@ public class ModelViewScreen extends Screen {
         EntityRenderDispatcher dispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
         dispatcher.setRenderShadow(false);
         ModelAnalyser analyser = new ModelAnalyser(generateBindingTarget());
-        MultiVertexCatcher catcher = new SimpleMultiVertexCatcher();
-        catcher.updateModel(Minecraft.getInstance(), entity, 0, -entity.getBbHeight() / 2.0f, 0, 0.0f, 1.0f, graphics.pose(), 0xF000f0);
-        catcher.sendVertices(analyser);
+        analyser.updateModel(Minecraft.getInstance(), entity, 1.0f, graphics.pose());
         analyser.analyse(entitySize, mouseX, mouseY, layers, showDisabled.getValue() == 1, disabledIdField.getValue());
         analyser.records().forEach(record -> VertexData.renderVertices(record.vertices(), graphics.bufferSource().getBuffer(record.renderType())));
         graphics.flush();
         focusedUV = analyser.getFocusedUV();
         focusedTextureId = analyser.focusedTextureId();
-        if ((category & 0b1) == 0) analyser.drawNormals(graphics, entitySize);
+        if ((category & 0b1) == 0) analyser.drawSelected(graphics, entitySize);
         else analyser.previewEffect(graphics, entitySize, (category & 0b10) == 2);
         dispatcher.setRenderShadow(true);
         graphics.pose().popPose();

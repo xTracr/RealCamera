@@ -10,5 +10,7 @@ public interface PoseHandler {
 
     void setPosition(Vec3 position);
 
-    void setDirections(Vec3 forward, Vec3 upward);
+    void setForward(Vec3 vec);
+
+    void setUpward(Vec3 vec);
 }

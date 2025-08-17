@@ -1,21 +1,12 @@
 package com.xtracr.realcamera.util;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 public interface MultiVertexCatcher extends MultiBufferSource {
-    default void updateModel(Minecraft client, Entity cameraEntity, float x, float y, float z, float yaw, float deltaTick, PoseStack poseStack, int packedLight) {
-        client.getEntityRenderDispatcher().render(cameraEntity, x, y, z, yaw, deltaTick, poseStack, this, packedLight);
-    }
-
-    default void sendVertices(VertexRecorder recorder) {
-        recorder.records().clear();
-    }
+    void sendVertices(VertexRecorder recorder);
 
     abstract class VertexCatcher implements VertexConsumer {
         protected final RenderType renderType;

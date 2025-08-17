@@ -6,7 +6,10 @@ import com.xtracr.realcamera.api.RealCameraAPI;
 import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.BindingTarget;
 import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.util.*;
+import com.xtracr.realcamera.util.BindingContext;
+import com.xtracr.realcamera.util.LocUtil;
+import com.xtracr.realcamera.util.VertexData;
+import com.xtracr.realcamera.util.VertexRecorder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.util.Mth;
@@ -16,10 +19,15 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 public class RealCameraCore {
-    private static final VertexRecorder recorder = new VertexRecorder();
-    public static BindingContext bindingContext = BindingContext.EMPTY;
+    private static final VertexRecorder defaultRecorder = new VertexRecorder();
+    private static VertexRecorder activeRecorder = defaultRecorder;
+    private static BindingContext bindingContext = BindingContext.EMPTY;
     private static Vec3 cameraPos = Vec3.ZERO, entityPos = Vec3.ZERO;
     private static boolean active = false, rendering = false, readyToSendMessage = true;
+
+    public static void setActiveRecorder(VertexRecorder recorder) {
+        activeRecorder = recorder;
+    }
 
     public static BindingTarget currentTarget() {
         return bindingContext.target;
@@ -72,37 +80,23 @@ public class RealCameraCore {
         return isActive() && rendering;
     }
 
-    private static void updateModel(Minecraft client, float deltaTick, PoseStack poseStack) {
+    public static void computeCamera(Minecraft client, float deltaTick) {
         Entity entity = client.getCameraEntity();
         if (entity.tickCount == 0) {
             entity.xOld = entity.getX();
             entity.yOld = entity.getY();
             entity.zOld = entity.getZ();
         }
-        MultiVertexCatcher catcher = new SimpleMultiVertexCatcher();
-        catcher.updateModel(client, entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack,  client.getEntityRenderDispatcher().getPackedLightCoords(entity, deltaTick));
-        catcher.sendVertices(recorder);
-    }
-
-    public static BindingContext genBindingContext(Minecraft client, float deltaTick) {
-        BindingContext context;
-        context = RealCameraAPI.genBindingContext(client, deltaTick);
-        if (context.available()) return context;
-        updateModel(client, deltaTick, new PoseStack());
-        for (BindingTarget target : ConfigFile.config().getTargetList()) {
-            context = recorder.records().stream().map(record -> record.genContext(target, false)).filter(BindingContext::available).findAny().orElse(BindingContext.EMPTY);
-            if (context.available()) return context;
-        }
-        return BindingContext.EMPTY;
-    }
-
-    public static void computeCamera(Minecraft client, float deltaTick) {
-        Entity entity = client.getCameraEntity();
         entityPos = new Vec3(Mth.lerp(deltaTick, entity.xOld, entity.getX()), Mth.lerp(deltaTick, entity.yOld, entity.getY()), Mth.lerp(deltaTick, entity.zOld, entity.getZ()));
 
-        bindingContext = genBindingContext(client, deltaTick);
-        if (recorder.records().isEmpty()) bindingContext.skipRendering = false;
-        if (bindingContext == BindingContext.EMPTY) {
+        BindingContext apiContext = RealCameraAPI.genBindingContext(client, deltaTick);
+        if (apiContext.available()) bindingContext = apiContext;
+        else {
+            activeRecorder.updateModel(client, client.getCameraEntity(), deltaTick, new PoseStack());
+            bindingContext = activeRecorder.genContext();
+        }
+        if (activeRecorder.records().isEmpty()) bindingContext.skipRendering = false;
+        if (!bindingContext.available()) {
             Entity player = client.player;
             if (readyToSendMessage && player != null) player.sendSystemMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE()));
             active = readyToSendMessage = false;
@@ -124,11 +118,11 @@ public class RealCameraCore {
         PoseStack poseStack = new PoseStack();
         if (!bindingContext.skipRendering || ConfigFile.config().rerenderModel()) {
             poseStack.mulPoseMatrix(new Matrix4f(invertedCameraPose));
-            updateModel(client, deltaTick, poseStack);
+            activeRecorder.updateModel(client, client.getCameraEntity(), deltaTick, poseStack);
         }
         Matrix4f positionMatrix = new Matrix4f(invertedCameraPose).mul(poseStack.last().pose().invert(new Matrix4f()));
         Matrix3f normalMatrix = new Matrix3f(positionMatrix);
-        recorder.records().forEach(record -> {
+        activeRecorder.records().forEach(record -> {
             if (currentTarget().getDisabledTextureIds().stream().anyMatch(record.textureId()::contains)) return;
             VertexConsumer buffer = bufferSource.getBuffer(record.renderType());
             if (!record.renderType().canConsolidateConsecutiveGeometry()) {

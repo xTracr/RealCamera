@@ -13,7 +13,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 @Mod(RealCamera.MODID)
-public class RealCameraForge {
+public class RealCameraForge implements RealCamera {
     public RealCameraForge() {
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
         eventBus.addListener(this::clientSetup);
@@ -21,13 +21,13 @@ public class RealCameraForge {
     }
 
     public void clientSetup(FMLClientSetupEvent event) {
-        RealCamera.initialize();
+        initialize();
 
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onClientTick);
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, EventHandler::onCameraSetup);
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onRenderLevelStage);
 
-        if (ModList.get().isLoaded("cloth_config")) {
+        if (isModLoaded("cloth_config")) {
             ModLoadingContext.get().registerExtensionPoint(ConfigScreenFactory.class,
                     () -> new ConfigScreenFactory((client, parent) -> ConfigScreen.create(parent)));
         }
@@ -35,5 +35,10 @@ public class RealCameraForge {
 
     public void onKeyRegister(RegisterKeyMappingsEvent event) {
         KeyBindings.register(event::register);
+    }
+
+    @Override
+    public boolean isModLoaded(String modId) {
+        return ModList.get().isLoaded(modId);
     }
 }

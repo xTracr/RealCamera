@@ -1,12 +1,14 @@
 package com.xtracr.realcamera.gui;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.xtracr.realcamera.config.BindingTarget;
-import com.xtracr.realcamera.util.BindingContext;
-import com.xtracr.realcamera.util.VertexData;
-import com.xtracr.realcamera.util.VertexRecorder;
+import com.xtracr.realcamera.util.*;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -53,20 +55,46 @@ public class ModelAnalyser extends VertexRecorder {
         graphics.flush();
     }
 
+    @Override
+    public void updateModel(Minecraft client, Entity entity, float deltaTick, PoseStack poseStack) {
+        MultiVertexCatcher catcher = new SimpleMultiVertexCatcher();
+        EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
+        dispatcher.render(entity, 0, -entity.getBbHeight() / 2.0f, 0, 0.0f, deltaTick, poseStack, catcher, 0xF000f0);
+        catcher.sendVertices(this);
+    }
+
+    @Override
+    public BindingContext genContext() {
+        for (BuiltRecord record : records) {
+            BindingContext context = new BindingContext(target, false);
+            record.setupContext(context);
+            if (!context.available()) continue;
+            bindingContext = context;
+            currentRecord = record;
+            bindingContext.init();
+            return context;
+        }
+        return BindingContext.EMPTY;
+    }
+
     public void analyse(int entitySize, int mouseX, int mouseY, int layers, boolean hideDisabled, String idInField) {
-        List<BuiltRecord> removedRecords = records().stream().filter(record -> {
+        target.setScale(target.getScale() * entitySize);
+        genContext();
+        records.removeIf(record -> {
             boolean isIdInField = !idInField.isBlank() && record.textureId().contains(idInField);
             return (hideDisabled && isIdInField) || (!isIdInField && target.getDisabledTextureIds().stream().anyMatch(record.textureId()::contains));
-        }).toList();
-        records().removeAll(removedRecords);
+        });
         List<Triple> sortByDepth = new ArrayList<>();
-        records().stream().filter(record -> !UNFOCUSABLE_RENDER_TYPES.contains(record.renderType())).forEach(record -> {
+        records.stream().filter(record -> !UNFOCUSABLE_RENDER_TYPES.contains(record.renderType())).forEach(record -> {
             VertexData[][] primitives = record.primitives();
             for (int i = 0, primitiveCount = primitives.length; i < primitiveCount; i++) {
-                Polygon polygon = new Polygon();
                 VertexData[] primitive = primitives[i];
-                for (VertexData vertex : primitive) polygon.addPoint((int) vertex.x(), (int) vertex.y());
-                if (!polygon.contains(mouseX, mouseY)) continue;
+                int[] xs = new int[primitive.length], ys = new int[primitive.length];
+                for (int j = 0; j < primitive.length; j++) {
+                    xs[j] = (int) primitive[j].x();
+                    ys[j] = (int) primitive[j].y();
+                }
+                if (!new Polygon(xs, ys, primitive.length).contains(mouseX, mouseY)) continue;
                 VertexData point = primitive[0];
                 double deltaZ = point.normalZ() == 0 ? 0 : (point.normalX() * (mouseX - point.x()) + point.normalY() * (mouseY - point.y())) / point.normalZ();
                 sortByDepth.add(new Triple(point.z() + deltaZ, record, i));
@@ -78,17 +106,6 @@ public class ModelAnalyser extends VertexRecorder {
             focusedRecord = result.record;
             focusedIndex = result.index;
         }
-        target.setScale(target.getScale() * entitySize);
-        records().addAll(removedRecords);
-        for (BuiltRecord record : records()) {
-            BindingContext context = record.genContext(target, false);
-            if (!context.available()) continue;
-            context.init();
-            bindingContext = context;
-            currentRecord = record;
-            break;
-        }
-        records().removeAll(removedRecords);
     }
 
     public String focusedTextureId() {
@@ -117,17 +134,15 @@ public class ModelAnalyser extends VertexRecorder {
         drawNormal(graphics, start, new Vec3(normal.m00(), normal.m01(), normal.m02()), entitySize / 6, leftArgb);
     }
 
-    public void drawNormals(GuiGraphics graphics, int entitySize) {
+    public void drawSelected(GuiGraphics graphics, int entitySize) {
         drawFocusedPolyhedron(graphics);
         drawFocused(graphics);
         if (currentRecord == null) return;
-        VertexData[] primitive;
-        if ((primitive = currentRecord.findPrimitive(target.getPosU(), target.getPosV())) != null)
-            drawPrimitive(graphics, primitive, primitiveArgb, 1000);
-        if ((primitive = currentRecord.findPrimitive(target.getForwardU(), target.getForwardV())) != null)
-            drawNormal(graphics, getPosition(primitive, target.getForwardU(), target.getForwardV()), primitive[0].normal(), entitySize / 2, forwardArgb);
-        if ((primitive = currentRecord.findPrimitive(target.getUpwardU(), target.getUpwardV())) != null)
-            drawNormal(graphics, getPosition(primitive, target.getUpwardU(), target.getUpwardV()), primitive[0].normal(), entitySize / 2, upwardArgb);
+        currentRecord.findPrimitive(target.getPosU(), target.getPosV()).ifPresent(primitive -> drawPrimitive(graphics, primitive, primitiveArgb, 1000));
+        currentRecord.findPrimitive(target.getForwardU(), target.getForwardV()).ifPresent(primitive ->
+                drawNormal(graphics, getPosition(primitive, target.getForwardU(), target.getForwardV()), primitive[0].normal(), entitySize / 2, forwardArgb));
+        currentRecord.findPrimitive(target.getUpwardU(), target.getUpwardV()).ifPresent(primitive ->
+                drawNormal(graphics, getPosition(primitive, target.getUpwardU(), target.getUpwardV()), primitive[0].normal(), entitySize / 2, upwardArgb));
     }
 
     private void drawFocused(GuiGraphics graphics) {
