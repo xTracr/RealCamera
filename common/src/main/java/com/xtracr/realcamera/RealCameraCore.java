@@ -98,8 +98,7 @@ public class RealCameraCore {
         if (activeRecorder.records().isEmpty()) bindingContext.skipRendering = false;
         if (!bindingContext.available()) {
             Entity player = client.player;
-            if (readyToSendMessage && player != null)
-                player.sendSystemMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE()));
+            if (readyToSendMessage && player != null) player.sendSystemMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE()));
             active = readyToSendMessage = false;
             return;
         }

@@ -42,6 +42,7 @@ public class YSMCompat extends VertexRecorder {
                 contextMap.putIfAbsent(target, new BindingContext(target, false));
                 context = contextMap.get(target);
                 record.setupContext(context, invertedPosition, invertedNormal);
+                context.skipRendering = false;
                 if (context.available()) return context;
             }
         }
