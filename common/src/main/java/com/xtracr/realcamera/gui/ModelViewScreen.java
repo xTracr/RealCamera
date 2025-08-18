@@ -175,8 +175,8 @@ public class ModelViewScreen extends Screen {
             widgetsPerPage = 8;
             List<BindingTarget> fixedTargetList = ConfigFile.config().getFixedTargetList().stream().filter(target -> target.name.equals(RealCameraCore.currentTarget().name)).toList();
             List<BindingTarget> targetList = ConfigFile.config().getTargetList();
-            size = fixedTargetList.size() + targetList.size();
             final int fixedTargetCount = fixedTargetList.size();
+            size = fixedTargetCount + targetList.size();
             for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, size); i++) {
                 BindingTarget target = i < fixedTargetCount ? fixedTargetList.get(i) : targetList.get(i - fixedTargetCount);
                 String name = target.name;

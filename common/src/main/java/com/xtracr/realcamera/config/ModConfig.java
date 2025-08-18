@@ -262,7 +262,6 @@ public class ModConfig {
             if (disableRenderItems == null) disableRenderItems = List.of();
             if (fixedTargetList == null) fixedTargetList = new ArrayList<>();
             if (targetList == null || targetList.isEmpty()) targetList = new ArrayList<>(BindingTarget.defaultTargets);
-            fixedTargetList.removeIf(target -> !target.fixed());
             targetList.removeIf(BindingTarget::fixed);
         }
 

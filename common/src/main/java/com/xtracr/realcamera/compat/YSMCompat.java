@@ -71,7 +71,7 @@ public class YSMCompat extends VertexRecorder {
         updateModel(pitch, yaw);
         context = genContextInternal();
         if (context.available()) return context;
-        updateModel(pitch, 2 *yaw);
+        updateModel(pitch, 2 * yaw);
         context = genContextInternal();
         if (context.available()) return context;
         return BindingContext.EMPTY;

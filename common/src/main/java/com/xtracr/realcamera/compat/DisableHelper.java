@@ -13,7 +13,7 @@ import java.util.function.Predicate;
 
 public class DisableHelper {
     private static final Map<String, Entry> entries = new HashMap<>();
-    public static final Entry MAIN_FEATURE = new Entry("mainFeature", Player::isSleeping);
+    public static final Entry MAIN_FEATURE = new Entry("mainFeature", player -> player.isSleeping() || player.isSpectator());
     public static final Entry RENDER_MODEL = new Entry("renderModel", Player::isScoping);
     public static final Entry RENDER_HANDS = new Entry("renderHands", false, player -> RealCameraCore.isRendering());
 

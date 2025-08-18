@@ -20,10 +20,10 @@ import org.joml.Vector4f;
 
 public class LegacyBindingMode {
     public static void registerConsumer() {
-        RealCameraAPI.registerPoseHandlerConsumer("LEGACY_MODE", LegacyBindingMode::updateModel);
+        RealCameraAPI.registerPoseHandlerConsumer("LEGACY_MODE", LegacyBindingMode::setupPose);
     }
 
-    private static void updateModel(Object obj) {
+    private static void setupPose(Object obj) {
         if (!ConfigFile.config().legacyBindingMode() || !(obj instanceof PoseHandler poseHandler)) return;
         Minecraft client = poseHandler.getClient();
         float deltaTick = poseHandler.getDeltaTick();
@@ -104,7 +104,7 @@ public class LegacyBindingMode {
         // ModelPart.render
         playerModel.head.translateAndRotate(poseStack);
 
-        Vector4f offset = poseStack.last().pose().transform(new Vector4f(0, -0.125f, -0.2f, 1.0F));
+        Vector4f offset = poseStack.last().pose().transform(new Vector4f(0, -0.125f, -0.2f, 1.0f));
         poseHandler.setPosition(new Vec3(offset.x(), offset.y(), offset.z()));
         poseStack.scale(1f, -1f, -1f);
         poseHandler.setForward(new Vec3(poseStack.last().normal().getColumn(2, new Vector3f())));
