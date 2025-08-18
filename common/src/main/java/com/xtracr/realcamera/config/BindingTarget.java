@@ -2,12 +2,13 @@ package com.xtracr.realcamera.config;
 
 import net.minecraft.util.Mth;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class BindingTarget {
-    protected static final List<BindingTarget> fixedTargets;
+    protected static final Set<String> fixedNames = new HashSet<>();
     protected static final List<BindingTarget> defaultTargets;
-    public static final String API_ONLY = "FOR_API_ONLY";
     public final String name, textureId;
     private int priority = 0;
     private float forwardU = 0, forwardV = 0, upwardU = 0, upwardV = 0, posU = 0, posV = 0, disablingDepth = 0.2f;
@@ -17,7 +18,6 @@ public class BindingTarget {
     private List<String> disabledTextureIds = List.of();
 
     static {
-        fixedTargets = List.of(new BindingTarget(API_ONLY, ""));
         defaultTargets = List.of(BindingTarget.vanillaTarget("minecraft_head", 5, false).setOffsetX(-0.1),
                 BindingTarget.vanillaTarget("skin_head", 5, false).setOffsetX(-0.1),
                 BindingTarget.vanillaTarget("minecraft_head_2", 1, true).setOffsetX(-0.1),
@@ -51,7 +51,7 @@ public class BindingTarget {
     }
 
     public boolean fixed() {
-        return API_ONLY.equals(name);
+        return fixedNames.contains(name);
     }
 
     public int getPriority() {

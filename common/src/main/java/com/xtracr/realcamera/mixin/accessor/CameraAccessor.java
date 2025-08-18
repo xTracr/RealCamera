@@ -1,4 +1,4 @@
-package com.xtracr.realcamera.mixin;
+package com.xtracr.realcamera.mixin.accessor;
 
 import net.minecraft.client.Camera;
 import net.minecraft.world.phys.Vec3;

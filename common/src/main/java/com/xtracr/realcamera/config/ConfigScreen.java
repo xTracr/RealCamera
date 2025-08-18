@@ -124,6 +124,11 @@ public class ConfigScreen {
         binding.addEntry(entryBuilder.startTextDescription(LocUtil.CONFIG_OPTION("toModelViewScreen",
                         LocUtil.MODEL_VIEW_TITLE().withStyle(s -> s.withColor(ChatFormatting.BLUE))))
                 .build());
+        binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("legacyBindingMode"), config.binding.legacyBindingMode)
+                .setDefaultValue(false)
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("legacyBindingMode"))
+                .setSaveConsumer(b -> config.binding.legacyBindingMode = b)
+                .build());
         binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("adjustOffset"), config.binding.adjustOffset)
                 .setDefaultValue(true)
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("adjustOffset"))

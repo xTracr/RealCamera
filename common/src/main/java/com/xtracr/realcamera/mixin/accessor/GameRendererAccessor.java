@@ -1,4 +1,4 @@
-package com.xtracr.realcamera.mixin;
+package com.xtracr.realcamera.mixin.accessor;
 
 import net.minecraft.client.renderer.GameRenderer;
 import org.spongepowered.asm.mixin.Mixin;

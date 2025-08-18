@@ -3,7 +3,7 @@ package com.xtracr.realcamera.compat;
 import com.xtracr.realcamera.RealCamera;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.mixin.CameraAccessor;
+import com.xtracr.realcamera.mixin.accessor.CameraAccessor;
 import net.minecraft.client.Camera;
 
 import java.lang.reflect.Method;

@@ -150,6 +150,10 @@ public class ModConfig {
     }
 
     // binding
+    public boolean legacyBindingMode() {
+        return binding.legacyBindingMode;
+    }
+
     public boolean renderStuckObjects() {
         return binding.renderStuckObjects;
     }
@@ -179,8 +183,14 @@ public class ModConfig {
         return binding.fixedTargetList;
     }
 
-    public BindingTarget findFixedTarget(String name) {
-        return binding.fixedTargetList.stream().filter(target -> target.name.equals(name)).findFirst().orElse(binding.fixedTargetList.getFirst());
+    public BindingTarget getOrCreateFixedTarget(String name) {
+        BindingTarget.fixedNames.add(name);
+        return binding.fixedTargetList.stream().filter(target -> target.name.equals(name)).findFirst()
+                .orElseGet(() -> {
+                    BindingTarget target = new BindingTarget(name, "");
+                    Binding.putTarget(target, binding.fixedTargetList);
+                    return target;
+                });
     }
 
     public List<BindingTarget> getTargetList() {
@@ -228,6 +238,7 @@ public class ModConfig {
 
     public static class Binding {
         protected static final List<String> defaultDisableRenderItems = List.of("minecraft:filled_map");
+        public boolean legacyBindingMode = false;
         public boolean adjustOffset = true;
         public boolean renderStuckObjects = true;
         public boolean rerenderModel = false;
@@ -235,7 +246,7 @@ public class ModConfig {
         public boolean disableWhenSwimming = false;
         public List<String> disableMainFeatureItems = List.of();
         public List<String> disableRenderItems = defaultDisableRenderItems;
-        public List<BindingTarget> fixedTargetList = new ArrayList<>(BindingTarget.fixedTargets);
+        public List<BindingTarget> fixedTargetList = new ArrayList<>();
         public List<BindingTarget> targetList = new ArrayList<>(BindingTarget.defaultTargets);
 
         private static void putTarget(BindingTarget target, List<BindingTarget> list) {
@@ -249,7 +260,7 @@ public class ModConfig {
         private void clamp() {
             if (disableMainFeatureItems == null) disableMainFeatureItems = List.of();
             if (disableRenderItems == null) disableRenderItems = List.of();
-            if (fixedTargetList == null || fixedTargetList.isEmpty()) fixedTargetList = new ArrayList<>(BindingTarget.fixedTargets);
+            if (fixedTargetList == null) fixedTargetList = new ArrayList<>();
             if (targetList == null || targetList.isEmpty()) targetList = new ArrayList<>(BindingTarget.defaultTargets);
             fixedTargetList.removeIf(target -> !target.fixed());
             targetList.removeIf(BindingTarget::fixed);
