@@ -1,12 +1,13 @@
 package com.xtracr.realcamera.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.platform.Lighting;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.BindingTarget;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
-import com.xtracr.realcamera.util.*;
+import com.xtracr.realcamera.util.LocUtil;
+import com.xtracr.realcamera.util.MathUtil;
+import com.xtracr.realcamera.util.VertexData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -15,13 +16,11 @@ import net.minecraft.client.gui.layouts.FrameLayout;
 import net.minecraft.client.gui.layouts.GridLayout;
 import net.minecraft.client.gui.layouts.LayoutSettings;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec2;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
@@ -31,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ModelViewScreen extends Screen {
+    public final ModelAnalyser analyser = new ModelAnalyser();
     protected int xSize = 406, ySize = 206, widgetWidth = (xSize - ySize) / 4 - 8, widgetHeight = 18;
     protected int x, y;
     private boolean initialized;
@@ -255,7 +255,7 @@ public class ModelViewScreen extends Screen {
         entity.setXRot((float) entityPitchSlider.getValue());
         entity.yHeadRot = entity.getYRot();
         entity.yHeadRotO = entity.getYRot();
-        Vector3f vector3f = new Vector3f((float) entityX, (float) entityY, -2.0f);
+        Vector3f vector3f = new Vector3f((float) entityX, (float) entityY + entity.getBbHeight() / 2.0f, -2.0f);
         renderEntityWithAnalyser(graphics, centerX, centerY, mouseX, mouseY, vector3f, quaternionf, entity);
         entity.yBodyRot = entityBodyYaw;
         entity.setYRot(entityYaw);
@@ -266,15 +266,12 @@ public class ModelViewScreen extends Screen {
     }
 
     protected void renderEntityWithAnalyser(GuiGraphics graphics, float x, float y, int mouseX, int mouseY, Vector3f offset, Quaternionf quaternionf, LivingEntity entity) {
+        analyser.setup(generateBindingTarget());
         graphics.pose().pushPose();
         graphics.pose().translate(x, y, 0);
-        graphics.pose().mulPose(new Matrix4f().scaling(entitySize, entitySize, -entitySize));
+        graphics.pose().scale(entitySize, entitySize, -entitySize);
         graphics.pose().translate(offset.x(), offset.y(), offset.z());
         graphics.pose().mulPose(quaternionf);
-        Lighting.setupForEntityInInventory();
-        EntityRenderDispatcher dispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
-        dispatcher.setRenderShadow(false);
-        ModelAnalyser analyser = new ModelAnalyser(generateBindingTarget());
         analyser.updateModel(Minecraft.getInstance(), entity, 1.0f, graphics.pose());
         analyser.analyse(entitySize, mouseX, mouseY, layers, showDisabled.getValue() == 1, disabledIdField.getValue());
         analyser.records().forEach(record -> VertexData.renderVertices(record.vertices(), graphics.bufferSource().getBuffer(record.renderType())));
@@ -283,9 +280,7 @@ public class ModelViewScreen extends Screen {
         focusedTextureId = analyser.focusedTextureId();
         if ((category & 0b1) == 0) analyser.drawSelected(graphics, entitySize);
         else analyser.previewEffect(graphics, entitySize, (category & 0b10) == 2);
-        dispatcher.setRenderShadow(true);
         graphics.pose().popPose();
-        Lighting.setupFor3DItems();
     }
 
     protected BindingTarget generateBindingTarget() {

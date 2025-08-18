@@ -1,5 +1,6 @@
 package com.xtracr.realcamera.gui;
 
+import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.xtracr.realcamera.config.BindingTarget;
@@ -24,15 +25,11 @@ public class ModelAnalyser extends VertexRecorder {
     private static final Set<RenderType> UNFOCUSABLE_RENDER_TYPES = Set.of(RenderType.armorEntityGlint(), RenderType.glintTranslucent(), RenderType.glint(), RenderType.entityGlint(), RenderType.entityGlintDirect());
     private static final int primitiveArgb = 0x6F3333CC, forwardArgb = 0xFF00CC00, upwardArgb = 0xFFCC0000, leftArgb = 0xFF0000CC;
     private static final int focusedArgb = 0x7FFFFFFF, sideArgb = 0x3FFFFFFF;
-    private final BindingTarget target;
     private BindingContext bindingContext = BindingContext.EMPTY;
+    private BindingTarget target = new BindingTarget();
     @Nullable
     private BuiltRecord focusedRecord, currentRecord;
     private int focusedIndex = -1;
-
-    public ModelAnalyser(BindingTarget target) {
-        this.target = target;
-    }
 
     private static boolean intersects(VertexData[] p1, List<VertexData[]> primitives) {
         final float precision = 1.0E-05f;
@@ -40,72 +37,11 @@ public class ModelAnalyser extends VertexRecorder {
         return false;
     }
 
-    private static void drawPrimitive(GuiGraphics graphics, VertexData[] primitive, int argb, int offset) {
-        VertexConsumer buffer = graphics.bufferSource().getBuffer(RenderType.gui());
-        for (VertexData vertex : primitive) buffer.addVertex(vertex.x(), vertex.y(), vertex.z() + offset).setColor(argb);
-        if (primitive.length == 3) buffer.addVertex(primitive[2].x(), primitive[2].y(), primitive[2].z() + offset).setColor(argb);
-        graphics.flush();
-    }
-
-    private static void drawNormal(GuiGraphics graphics, Vec3 start, Vec3 normal, int length, int argb) {
-        Vec3 end = normal.scale(length).add(start);
-        VertexConsumer buffer = graphics.bufferSource().getBuffer(RenderType.lineStrip());
-        buffer.addVertex((float) start.x(), (float) start.y(), (float) (start.z() + 1200f)).setColor(argb).setNormal((float) normal.x(), (float) normal.y(), (float) normal.z());
-        buffer.addVertex((float) end.x(), (float) end.y(), (float) (end.z() + 1200f)).setColor(argb).setNormal((float) normal.x(), (float) normal.y(), (float) normal.z());
-        graphics.flush();
-    }
-
-    @Override
-    public void updateModel(Minecraft client, Entity entity, float deltaTick, PoseStack poseStack) {
-        MultiVertexCatcher catcher = new SimpleMultiVertexCatcher();
-        EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
-        dispatcher.render(entity, 0, -entity.getBbHeight() / 2.0f, 0, 0.0f, deltaTick, poseStack, catcher, 0xF000f0);
-        catcher.sendVertices(this);
-    }
-
-    @Override
-    public BindingContext genContext() {
-        for (BuiltRecord record : records) {
-            BindingContext context = new BindingContext(target, true);
-            record.setupContext(context);
-            if (!context.available()) continue;
-            bindingContext = context;
-            currentRecord = record;
-            bindingContext.init();
-            return context;
-        }
-        return BindingContext.EMPTY;
-    }
-
-    public void analyse(int entitySize, int mouseX, int mouseY, int layers, boolean hideDisabled, String idInField) {
-        target.setScale(target.getScale() * entitySize);
-        genContext();
-        records.removeIf(record -> {
-            boolean isIdInField = !idInField.isBlank() && record.textureId().contains(idInField);
-            return (hideDisabled && isIdInField) || (!isIdInField && target.getDisabledTextureIds().stream().anyMatch(record.textureId()::contains));
-        });
-        List<Triple> sortByDepth = new ArrayList<>();
-        records.stream().filter(record -> !UNFOCUSABLE_RENDER_TYPES.contains(record.renderType())).forEach(record -> {
-            VertexData[][] primitives = record.primitives();
-            for (int i = 0, primitiveCount = primitives.length; i < primitiveCount; i++) {
-                VertexData[] primitive = primitives[i];
-                int[] xs = new int[primitive.length], ys = new int[primitive.length];
-                for (int j = 0; j < primitive.length; j++) {
-                    xs[j] = (int) primitive[j].x();
-                    ys[j] = (int) primitive[j].y();
-                }
-                if (!new Polygon(xs, ys, primitive.length).contains(mouseX, mouseY)) continue;
-                VertexData point = primitive[0];
-                double deltaZ = point.normalZ() == 0 ? 0 : (point.normalX() * (mouseX - point.x()) + point.normalY() * (mouseY - point.y())) / point.normalZ();
-                sortByDepth.add(new Triple(point.z() - deltaZ, record, i));
-            }
-        });
-        if (!sortByDepth.isEmpty()) {
-            sortByDepth.sort(Comparator.comparingDouble(triple -> -triple.depth));
-            Triple result = sortByDepth.get(Math.min(sortByDepth.size() - 1, layers));
-            focusedRecord = result.record;
-            focusedIndex = result.index;
-        }
+    public void setup(BindingTarget target) {
+        this.target = target;
+        bindingContext = BindingContext.EMPTY;
+        focusedRecord = currentRecord = null;
+        focusedIndex = -1;
     }
 
     public String focusedTextureId() {
@@ -143,6 +79,78 @@ public class ModelAnalyser extends VertexRecorder {
                 drawNormal(graphics, getPosition(primitive, target.getForwardU(), target.getForwardV()), primitive[0].normal(), entitySize / 2, forwardArgb));
         currentRecord.findPrimitive(target.getUpwardU(), target.getUpwardV()).ifPresent(primitive ->
                 drawNormal(graphics, getPosition(primitive, target.getUpwardU(), target.getUpwardV()), primitive[0].normal(), entitySize / 2, upwardArgb));
+    }
+
+    public void analyse(int entitySize, int mouseX, int mouseY, int layers, boolean hideDisabled, String idInField) {
+        target.setScale(target.getScale() * entitySize);
+        genContext();
+        records.removeIf(record -> {
+            boolean isIdInField = !idInField.isBlank() && record.textureId().contains(idInField);
+            return (hideDisabled && isIdInField) || (!isIdInField && target.getDisabledTextureIds().stream().anyMatch(record.textureId()::contains));
+        });
+        List<Triple> sortByDepth = new ArrayList<>();
+        records.stream().filter(record -> !UNFOCUSABLE_RENDER_TYPES.contains(record.renderType())).forEach(record -> {
+            VertexData[][] primitives = record.primitives();
+            for (int i = 0, primitiveCount = primitives.length; i < primitiveCount; i++) {
+                VertexData[] primitive = primitives[i];
+                int[] xs = new int[primitive.length], ys = new int[primitive.length];
+                for (int j = 0; j < primitive.length; j++) {
+                    xs[j] = (int) primitive[j].x();
+                    ys[j] = (int) primitive[j].y();
+                }
+                if (!new Polygon(xs, ys, primitive.length).contains(mouseX, mouseY)) continue;
+                VertexData point = primitive[0];
+                double deltaZ = point.normalZ() == 0 ? 0 : (point.normalX() * (mouseX - point.x()) + point.normalY() * (mouseY - point.y())) / point.normalZ();
+                sortByDepth.add(new Triple(point.z() - deltaZ, record, i));
+            }
+        });
+        if (!sortByDepth.isEmpty()) {
+            sortByDepth.sort(Comparator.comparingDouble(triple -> -triple.depth));
+            Triple result = sortByDepth.get(Math.min(sortByDepth.size() - 1, layers));
+            focusedRecord = result.record;
+            focusedIndex = result.index;
+        }
+    }
+
+    @Override
+    public void updateModel(Minecraft client, Entity entity, float deltaTick, PoseStack poseStack) {
+        Lighting.setupForEntityInInventory();
+        MultiVertexCatcher catcher = new SimpleMultiVertexCatcher();
+        EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
+        dispatcher.setRenderShadow(false);
+        dispatcher.render(entity, 0, 0, 0, 0, deltaTick, poseStack, catcher, 0xF000f0);
+        dispatcher.setRenderShadow(true);
+        catcher.sendVertices(this);
+        Lighting.setupFor3DItems();
+    }
+
+    @Override
+    public BindingContext genContext() {
+        for (BuiltRecord record : records) {
+            BindingContext context = new BindingContext(target, true);
+            record.setupContext(context);
+            if (!context.available()) continue;
+            bindingContext = context;
+            currentRecord = record;
+            bindingContext.init();
+            return context;
+        }
+        return BindingContext.EMPTY;
+    }
+
+    private void drawPrimitive(GuiGraphics graphics, VertexData[] primitive, int argb, int offset) {
+        VertexConsumer buffer = graphics.bufferSource().getBuffer(RenderType.gui());
+        for (VertexData vertex : primitive) buffer.addVertex(vertex.x(), vertex.y(), vertex.z() + offset).setColor(argb);
+        if (primitive.length == 3) buffer.addVertex(primitive[2].x(), primitive[2].y(), primitive[2].z() + offset).setColor(argb);
+        graphics.flush();
+    }
+
+    private void drawNormal(GuiGraphics graphics, Vec3 start, Vec3 normal, int length, int argb) {
+        Vec3 end = normal.scale(length).add(start);
+        VertexConsumer buffer = graphics.bufferSource().getBuffer(RenderType.lineStrip());
+        buffer.addVertex((float) start.x(), (float) start.y(), (float) (start.z() + 1200f)).setColor(argb).setNormal((float) normal.x(), (float) normal.y(), (float) normal.z());
+        buffer.addVertex((float) end.x(), (float) end.y(), (float) (end.z() + 1200f)).setColor(argb).setNormal((float) normal.x(), (float) normal.y(), (float) normal.z());
+        graphics.flush();
     }
 
     private void drawFocused(GuiGraphics graphics) {

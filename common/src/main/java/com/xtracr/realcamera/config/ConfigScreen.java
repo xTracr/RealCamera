@@ -126,7 +126,7 @@ public class ConfigScreen {
                 .build());
         binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("legacyBindingMode"), config.binding.legacyBindingMode)
                 .setDefaultValue(false)
-                .setTooltip(LocUtil.CONFIG_TOOLTIP("legacyBindingMode"))
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("legacyBindingMode", LocUtil.MODEL_VIEW_TITLE()))
                 .setSaveConsumer(b -> config.binding.legacyBindingMode = b)
                 .build());
         binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("adjustOffset"), config.binding.adjustOffset)

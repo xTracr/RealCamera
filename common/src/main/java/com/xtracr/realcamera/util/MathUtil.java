@@ -24,8 +24,8 @@ public class MathUtil {
         return linePoint.add(lineNormal.scale(distance));
     }
 
-    public static Vec3 projectToVec2d(Vec3 vec3d, Matrix4f... projectionMatrices) {
-        Vector4f vector4f = new Vector4f((float) vec3d.x(), (float) vec3d.y(), (float) vec3d.z(), 1.0f);
+    public static Vec3 projectToVec2(Vec3 vec3, Matrix4f... projectionMatrices) {
+        Vector4f vector4f = new Vector4f((float) vec3.x(), (float) vec3.y(), (float) vec3.z(), 1.0f);
         for (Matrix4f matrix4f : projectionMatrices) vector4f.mul(matrix4f);
         if (vector4f.w() == 0.0) return Vec3.ZERO;
         return new Vec3(vector4f.x(), vector4f.y(), 0).scale(1 / (double) vector4f.w());

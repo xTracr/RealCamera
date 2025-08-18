@@ -20,8 +20,8 @@ public class LocUtil {
         return Component.translatable("config.option." + RealCamera.FULL_ID + "." + key, args);
     }
 
-    public static MutableComponent CONFIG_TOOLTIP(String key) {
-        return Component.translatable("config.tooltip." + RealCamera.FULL_ID + "." + key);
+    public static MutableComponent CONFIG_TOOLTIP(String key, Object... args) {
+        return Component.translatable("config.tooltip." + RealCamera.FULL_ID + "." + key, args);
     }
 
     public static MutableComponent MESSAGE(String key, Object... args) {

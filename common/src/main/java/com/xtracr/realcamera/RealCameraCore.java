@@ -66,6 +66,7 @@ public class RealCameraCore {
         Entity entity = client.getCameraEntity();
         active = ConfigFile.config().enabled() && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.MAIN_FEATURE.disabled(entity);
         rendering = active && ConfigFile.config().renderModel() && !DisableHelper.RENDER_MODEL.disabled(entity);
+        activeRecorder.records().clear();
     }
 
     public static void readyToSendMessage() {
