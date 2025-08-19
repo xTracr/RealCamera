@@ -7,7 +7,6 @@ import com.xtracr.realcamera.config.ConfigFile;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
@@ -55,7 +54,7 @@ public class VertexRecorder {
     public void updateModel(Minecraft client, Entity entity, float deltaTick, PoseStack poseStack) {
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         MultiVertexCatcher catcher = new SimpleMultiVertexCatcher();
-        dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack, catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
+        dispatcher.render(entity, 0, 0, 0, deltaTick, poseStack, catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
         catcher.sendVertices(this);
     }
 

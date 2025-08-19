@@ -57,14 +57,15 @@ public abstract class MixinCamera {
             setPosition(rawPos);
             setRotation(RealCameraCore.getYaw(yRot), RealCameraCore.getPitch(xRot));
         }
-        realcamera$clipToSpace(startVec, realcamera$getFov(deltaTick));
+        realcamera$clipToSpace(startVec, deltaTick);
         RealCameraCore.setCameraPos(position);
     }
 
     @Unique
-    private void realcamera$clipToSpace(Vec3 startVec, double fov) {
+    private void realcamera$clipToSpace(Vec3 startVec, float deltaTick) {
         Vec3 offset = position.subtract(startVec);
-        final float depth = 0.05f + (float) (fov * (0.0001 + 0.000005 * fov));
+        final float fov = ((GameRendererAccessor) Minecraft.getInstance().gameRenderer).invokeGetFov((Camera)(Object) this, deltaTick, true);
+        final float depth = 0.05f + fov * (0.0001f + 0.000005f * fov);
         for (int i = 0; i < 8; ++i) {
             float f = depth * ((i & 1) * 2 - 1);
             float g = depth * ((i >> 1 & 1) * 2 - 1);
@@ -77,13 +78,6 @@ public abstract class MixinCamera {
             offset = offset.scale(l / offset.length());
         }
         setPosition(startVec.add(offset));
-    }
-
-    @Unique
-    private static float realcamera$getFov(float deltaTick) {
-        Minecraft client = Minecraft.getInstance();
-        float fovModifier = Mth.lerp(deltaTick, ((GameRendererAccessor) client.gameRenderer).getOldFov(), ((GameRendererAccessor) client.gameRenderer).getFov());
-        return client.options.fov().get() * fovModifier;
     }
 
     @Shadow

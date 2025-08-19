@@ -10,6 +10,7 @@
     "MixinFishingHookRenderer",
     "MixinGameRenderer",
     "MixinGui",
+    "MixinGuiEntityRenderer",
     "MixinItem",
     "MixinItemInHandRenderer",
     "MixinLevelRenderer",
@@ -17,6 +18,7 @@
     "MixinStuckInBodyLayer",
     "accessor.CameraAccessor",
     "accessor.GameRendererAccessor",
+    "accessor.GuiGraphicsAccessor",
     "accessor.PlayerRendererAccessor"
   ],
   "server": [

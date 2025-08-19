@@ -7,7 +7,6 @@ import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.util.LocUtil;
 import com.xtracr.realcamera.util.MathUtil;
-import com.xtracr.realcamera.util.VertexData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -16,6 +15,9 @@ import net.minecraft.client.gui.layouts.FrameLayout;
 import net.minecraft.client.gui.layouts.GridLayout;
 import net.minecraft.client.gui.layouts.LayoutSettings;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
@@ -241,8 +243,6 @@ public class ModelViewScreen extends Screen {
     }
 
     protected void renderEntityInViewArea(GuiGraphics graphics, int x1, int y1, int x2, int y2, int mouseX, int mouseY, LivingEntity entity) {
-        float centerX = (float) (x1 + x2) / 2.0f;
-        float centerY = (float) (y1 + y2) / 2.0f;
         graphics.enableScissor(x1, y1, x2, y2);
         Quaternionf quaternionf = new Quaternionf().rotateX((float) Math.PI / 6 + xRot).rotateY((float) Math.PI / 6 + yRot).rotateZ((float) Math.PI);
         float entityBodyYaw = entity.yBodyRot;
@@ -256,7 +256,7 @@ public class ModelViewScreen extends Screen {
         entity.yHeadRot = entity.getYRot();
         entity.yHeadRotO = entity.getYRot();
         Vector3f vector3f = new Vector3f((float) entityX, (float) entityY + entity.getBbHeight() / 2.0f, -2.0f);
-        renderEntityWithAnalyser(graphics, centerX, centerY, mouseX, mouseY, vector3f, quaternionf, entity);
+        renderEntityWithAnalyser(graphics, x1, y1, x2, y2, mouseX, mouseY, vector3f, quaternionf, entity);
         entity.yBodyRot = entityBodyYaw;
         entity.setYRot(entityYaw);
         entity.setXRot(entityPitch);
@@ -265,22 +265,23 @@ public class ModelViewScreen extends Screen {
         graphics.disableScissor();
     }
 
-    protected void renderEntityWithAnalyser(GuiGraphics graphics, float x, float y, int mouseX, int mouseY, Vector3f offset, Quaternionf quaternionf, LivingEntity entity) {
-        analyser.setup(generateBindingTarget());
-        graphics.pose().pushPose();
-        graphics.pose().translate(x, y, 0);
-        graphics.pose().scale(entitySize, entitySize, -entitySize);
-        graphics.pose().translate(offset.x(), offset.y(), offset.z());
-        graphics.pose().mulPose(quaternionf);
-        analyser.updateModel(Minecraft.getInstance(), entity, 1.0f, graphics.pose());
+    protected void renderEntityWithAnalyser(GuiGraphics graphics, int x1, int y1, int x2, int y2, int mouseX, int mouseY, Vector3f offset, Quaternionf quaternionf, LivingEntity entity) {
+        analyser.setup(generateBindingTarget(), graphics, x1, y1, x2, y2);
+        analyser.poseStack.translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
+        analyser.poseStack.scale(entitySize, entitySize, -entitySize);
+        analyser.poseStack.translate(offset.x(), offset.y(), offset.z());
+        analyser.poseStack.mulPose(quaternionf);
+        analyser.updateModel(Minecraft.getInstance(), entity, 1.0f, analyser.poseStack);
         analyser.analyse(entitySize, mouseX, mouseY, layers, showDisabled.getValue() == 1, disabledIdField.getValue());
-        analyser.records().forEach(record -> VertexData.renderVertices(record.vertices(), graphics.bufferSource().getBuffer(record.renderType())));
-        graphics.flush();
+        EntityRenderDispatcher entityRenderDispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
+        EntityRenderer<? super LivingEntity, ?> entityRenderer = entityRenderDispatcher.getRenderer(entity);
+        EntityRenderState entityRenderState = entityRenderer.createRenderState(entity, 1.0F);
+        entityRenderState.hitboxesRenderState = null;
+        graphics.submitEntityRenderState(entityRenderState, entitySize, offset, quaternionf, null, x1, y1, x2, y2);
         focusedUV = analyser.getFocusedUV();
         focusedTextureId = analyser.focusedTextureId();
         if ((category & 0b1) == 0) analyser.drawSelected(graphics, entitySize);
         else analyser.previewEffect(graphics, entitySize, (category & 0b10) == 2);
-        graphics.pose().popPose();
     }
 
     protected BindingTarget generateBindingTarget() {

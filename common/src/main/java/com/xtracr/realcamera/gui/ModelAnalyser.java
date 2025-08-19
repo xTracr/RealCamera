@@ -2,11 +2,14 @@ package com.xtracr.realcamera.gui;
 
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.xtracr.realcamera.config.BindingTarget;
+import com.xtracr.realcamera.mixin.accessor.GuiGraphicsAccessor;
 import com.xtracr.realcamera.util.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.navigation.ScreenRectangle;
+import net.minecraft.client.gui.render.TextureSetup;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.world.entity.Entity;
@@ -22,14 +25,19 @@ import java.util.List;
 import java.util.Set;
 
 public class ModelAnalyser extends VertexRecorder {
-    private static final Set<RenderType> UNFOCUSABLE_RENDER_TYPES = Set.of(RenderType.armorEntityGlint(), RenderType.glintTranslucent(), RenderType.glint(), RenderType.entityGlint(), RenderType.entityGlintDirect());
+    private static final Set<RenderType> UNFOCUSABLE_RENDER_TYPES = Set.of(RenderType.armorEntityGlint(), RenderType.glintTranslucent(), RenderType.glint(), RenderType.entityGlint());
     private static final int primitiveArgb = 0x6F3333CC, forwardArgb = 0xFF00CC00, upwardArgb = 0xFFCC0000, leftArgb = 0xFF0000CC;
     private static final int focusedArgb = 0x7FFFFFFF, sideArgb = 0x3FFFFFFF;
+    public final PoseStack poseStack = new PoseStack();
     private BindingContext bindingContext = BindingContext.EMPTY;
     private BindingTarget target = new BindingTarget();
     @Nullable
     private BuiltRecord focusedRecord, currentRecord;
+    @Nullable
+    private ScreenRectangle scissorArea;
     private int focusedIndex = -1;
+
+    public ModelAnalyser() { }
 
     private static boolean intersects(VertexData[] p1, List<VertexData[]> primitives) {
         final float precision = 1.0E-05f;
@@ -37,11 +45,14 @@ public class ModelAnalyser extends VertexRecorder {
         return false;
     }
 
-    public void setup(BindingTarget target) {
+    public void setup(BindingTarget target, GuiGraphics graphics, int x1, int y1, int x2, int y2) {
         this.target = target;
         bindingContext = BindingContext.EMPTY;
         focusedRecord = currentRecord = null;
+        scissorArea = new ScreenRectangle(x1, y1, x2 - x1, y2 - y1).transformAxisAligned(graphics.pose());
         focusedIndex = -1;
+        if (!poseStack.isEmpty()) poseStack.popPose();
+        poseStack.pushPose();
     }
 
     public String focusedTextureId() {
@@ -114,14 +125,13 @@ public class ModelAnalyser extends VertexRecorder {
 
     @Override
     public void updateModel(Minecraft client, Entity entity, float deltaTick, PoseStack poseStack) {
-        Lighting.setupForEntityInInventory();
         MultiVertexCatcher catcher = new SimpleMultiVertexCatcher();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
+        client.gameRenderer.getLighting().setupFor(Lighting.Entry.ENTITY_IN_UI);
         dispatcher.setRenderShadow(false);
-        dispatcher.render(entity, 0, 0, 0, 0, deltaTick, poseStack, catcher, 0xF000f0);
+        dispatcher.render(entity, 0, 0, 0, deltaTick, poseStack, catcher, 0xF000f0);
         dispatcher.setRenderShadow(true);
         catcher.sendVertices(this);
-        Lighting.setupFor3DItems();
     }
 
     @Override
@@ -139,18 +149,34 @@ public class ModelAnalyser extends VertexRecorder {
     }
 
     private void drawPrimitive(GuiGraphics graphics, VertexData[] primitive, int argb, int offset) {
-        VertexConsumer buffer = graphics.bufferSource().getBuffer(RenderType.gui());
-        for (VertexData vertex : primitive) buffer.addVertex(vertex.x(), vertex.y(), vertex.z() + offset).setColor(argb);
-        if (primitive.length == 3) buffer.addVertex(primitive[2].x(), primitive[2].y(), primitive[2].z() + offset).setColor(argb);
-        graphics.flush();
+        if (primitive.length < 3) return;
+        int x0 = (int) primitive[0].x(), y0 = (int) primitive[0].y(), z0 = (int) primitive[0].z() + offset;
+        int x1 = (int) primitive[1].x(), y1 = (int) primitive[1].y(), z1 = (int) primitive[1].z() + offset;
+        int x2 = (int) primitive[2].x(), y2 = (int) primitive[2].y(), z2 = (int) primitive[2].z() + offset;
+        int x3 = x2, y3 = y2, z3 = z2;
+        if (primitive.length > 3) {
+            x3 = (int) primitive[3].x();
+            y3 = (int) primitive[3].y();
+            z3 = (int) primitive[3].z() + offset;
+        }
+        ((GuiGraphicsAccessor) graphics).getGuiRenderState().submitGuiElement(new ColoredQuadRenderState(
+                RenderPipelines.GUI, TextureSetup.noTexture(),
+                x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3, argb, scissorArea));
     }
 
     private void drawNormal(GuiGraphics graphics, Vec3 start, Vec3 normal, int length, int argb) {
         Vec3 end = normal.scale(length).add(start);
-        VertexConsumer buffer = graphics.bufferSource().getBuffer(RenderType.lineStrip());
-        buffer.addVertex((float) start.x(), (float) start.y(), (float) (start.z() + 1200f)).setColor(argb).setNormal((float) normal.x(), (float) normal.y(), (float) normal.z());
-        buffer.addVertex((float) end.x(), (float) end.y(), (float) (end.z() + 1200f)).setColor(argb).setNormal((float) normal.x(), (float) normal.y(), (float) normal.z());
-        graphics.flush();
+        final double width = 0.65;
+        int x0 = (int) (start.x() - width * normal.y()), y0 = (int) (start.y() + width * normal.x()), z0 = (int) start.z() + 1200;
+        int x1 = (int) (end.x() - width * normal.y()), y1 = (int) (end.y() + width * normal.x()), z1 = (int) end.z() + 1200;
+        int x2 = (int) (end.x() + width * normal.y()), y2 = (int) (end.y() - width * normal.x()), z2 = (int) end.z() + 1200;
+        int x3 = (int) (start.x() + width * normal.y()), y3 = (int) (start.y() - width * normal.x()), z3 = (int) start.z() + 1200;
+        ((GuiGraphicsAccessor) graphics).getGuiRenderState().submitGuiElement(new ColoredQuadRenderState(
+                RenderPipelines.GUI, TextureSetup.noTexture(),
+                x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3, argb, scissorArea));
+//        ((GuiGraphicsAccessor) graphics).getGuiRenderState().submitGuiElement(new ColoredLineRenderState(RenderPipelines.LINES, TextureSetup.noTexture(),
+//                (int) start.x(), (int) start.y(), (int) start.z() + 9999, (int) end.x(), (int) end.y(), (int) end.z() + 9999,
+//                (float) normal.x(), (float) normal.y(), (float) normal.z(), argb, null));
     }
 
     private void drawFocused(GuiGraphics graphics) {

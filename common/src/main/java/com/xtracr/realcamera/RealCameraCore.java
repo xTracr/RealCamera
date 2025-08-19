@@ -14,6 +14,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -98,8 +99,8 @@ public class RealCameraCore {
         }
         if (activeRecorder.records().isEmpty()) bindingContext.skipRendering = false;
         if (!bindingContext.available()) {
-            Entity player = client.player;
-            if (readyToSendMessage && player != null) player.sendSystemMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE()));
+            Player player = client.player;
+            if (readyToSendMessage && player != null) player.displayClientMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE()), false);
             active = readyToSendMessage = false;
             return;
         }

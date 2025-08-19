@@ -32,14 +32,14 @@ side = "BOTH"
 [[dependencies.realcamera]]
 modId = "minecraft"
 type = "required"
-versionRange = "[1.21.1,1.21.2)"
+versionRange = "[1.21.5,1.22)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.realcamera]]
 modId = "cloth_config"
 type = "optional"
-versionRange = "[15.0,)"
+versionRange = "[18.0,)"
 ordering = "NONE"
 side = "CLIENT"
 [dependencies.realcamera.mc-publish]

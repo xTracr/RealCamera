@@ -1,20 +1,20 @@
 package com.xtracr.realcamera.util;
 
 import com.mojang.blaze3d.platform.Window;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix3x2fStack;
 import org.joml.Matrix4f;
 
 public class CrosshairUtil {
     public static EntityHitResult capturedEntityHitResult;
     private static Vec3 offset = Vec3.ZERO;
 
-    public static void translateMatrices(PoseStack poseStack) {
-        poseStack.translate(offset.x(), -offset.y(), 0.0d);
+    public static void translateMatrices(Matrix3x2fStack poseStack) {
+        poseStack.translate((float) offset.x, (float) -offset.y);
     }
 
     public static void update(Minecraft client, Camera camera, Matrix4f... projectionMatrices) {
