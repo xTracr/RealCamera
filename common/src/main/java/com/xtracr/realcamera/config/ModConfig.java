@@ -113,6 +113,21 @@ public class ModConfig {
     }
 
     // classic
+    public boolean classicDisableWhenSneaking() {
+        return classic.classicDisableWhenSneaking;
+    }
+    public boolean getDisableWhenSneaking() {
+        return classic.classicDisableWhenSneaking;
+    }
+
+    public boolean getDisableWhenSwimming() {
+        return classic.classicDisableWhenSwimming;
+    }
+
+    public int getSwimOutTick() {
+        return classic.classicSwimOutTick;
+    }
+
     public double getClassicX() {
         return classic.cameraX * classic.scale;
     }
@@ -170,6 +185,10 @@ public class ModConfig {
         return binding.disableWhenSwimming;
     }
 
+    public int swimOutTick() {
+        return binding.swimOutTick;
+    }
+    
     public List<String> getDisableMainFeatureItems() {
         return binding.disableMainFeatureItems;
     }
@@ -200,6 +219,9 @@ public class ModConfig {
 
     public static class Classic {
         public AdjustMode adjustMode = AdjustMode.CAMERA;
+        public boolean classicDisableWhenSneaking = false;
+        public boolean classicDisableWhenSwimming = false;
+        public int classicSwimOutTick = 13;
         public double scale = 8.0;
         public double cameraX = -0.5;
         public double cameraY = 0.04;
@@ -244,6 +266,7 @@ public class ModConfig {
         public boolean rerenderModel = false;
         public boolean disableWhenSneaking = false;
         public boolean disableWhenSwimming = false;
+        public int swimOutTick = 13;
         public List<String> disableMainFeatureItems = List.of();
         public List<String> disableRenderItems = defaultDisableRenderItems;
         public List<BindingTarget> fixedTargetList = new ArrayList<>();
