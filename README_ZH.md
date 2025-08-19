@@ -45,18 +45,22 @@
   * OptiFine；
   * Armourer's Workshop（时装工坊）（真实相机0.6版本以上）；
   * 基于GeckoLib的盔甲；
-  * 自定义玩家模型；
+  * Customizable Player Models（自定义玩家模型）；
+  * Epic Fight（史诗战斗）（真实相机0.6版本以下）；
   * [TaCZ]永恒枪械工坊：零 1.1.4版本及以上。
 * 兼容:
   * 大多数修改玩家镜头的模组;
-  * 多数模型模组
+  * 多数模型模组;
+  * Armourer's Workshop（时装工坊）（真实相机0.6版本以下）；
+  * Epic Fight（史诗战斗）（真实相机0.6版本以上）；
+  * First-person Model（更真实的第一人称模型）；
+  * Not Enough Animations（更多动画）；
   * Player Animation Lib；
-  * 更真实的第一人称模型;
   * Pehkui；
   * ParCool！；
   * [TaCZ]永恒枪械工坊：零 1.0.3版本及以下；
-  * 史诗战斗（真实相机0.6版本以上）；
-  * Not Enough Animations（更多动画）。
+  * Yes Steve Model（是，史蒂夫模型）（真实相机0.6.15尝试修复了关于YSM的不兼容问题）。
+  
 
 
 * 模型模组与`Real Camera`兼容的必要条件（基于官方映射）：
