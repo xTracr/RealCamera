@@ -9,11 +9,11 @@
 
 ## 特性 ##
 
-* 将摄像头绑定到身体的特定部位;
-* 自定义摄像头的位置和旋转角度；
-* 在第一人称视角下渲染玩家模型；
-* 按下F6来开关，另外一些键来调整摄像头；
-* 模组版本0.6以上，在配置界面配置以上特性（需要Cloth Config展示配置界面）。
+* 将摄像头绑定到身体的特定部位
+* 自定义摄像头的位置和旋转角度
+* 在第一人称视角下渲染玩家模型
+* 按下F6来开关，另外一些键来调整摄像头
+* 在配置界面和模组版本0.6新加入的模型视图界面，配置以上特性（需要Cloth Config展示配置界面）。
 
 ### 配置 ###
 
@@ -42,23 +42,23 @@
 ### 兼容性 ###
 
 * 不兼容:
-  * OptiFine；
-  * Armourer's Workshop（时装工坊）（真实相机0.6版本以上）；
-  * 基于GeckoLib的盔甲；
-  * Customizable Player Models（自定义玩家模型）；
-  * Epic Fight（史诗战斗）（真实相机0.6版本以下）；
+  * OptiFine
+  * Armourer's Workshop（时装工坊）（真实相机0.6版本以上）
+  * 基于GeckoLib的盔甲
+  * Customizable Player Models（自定义玩家模型）
+  * Epic Fight（史诗战斗）（真实相机0.6版本以下）
   * [TaCZ]永恒枪械工坊：零 1.1.4版本及以上。
 * 兼容:
   * 大多数修改玩家镜头的模组;
   * 多数模型模组;
-  * Armourer's Workshop（时装工坊）（真实相机0.6版本以下）；
-  * Epic Fight（史诗战斗）（真实相机0.6版本以上）；
-  * First-person Model（更真实的第一人称模型）；
-  * Not Enough Animations（更多动画）；
-  * Player Animation Lib；
-  * Pehkui；
-  * ParCool！；
-  * [TaCZ]永恒枪械工坊：零 1.0.3版本及以下；
+  * Armourer's Workshop（时装工坊）（真实相机0.6版本以下）
+  * Epic Fight（史诗战斗）（真实相机0.6版本以上）
+  * First-person Model（更真实的第一人称模型）
+  * Not Enough Animations（更多动画）
+  * Player Animation Lib
+  * Pehkui
+  * ParCool！
+  * [TaCZ]永恒枪械工坊：零 1.0.3版本及以下
   * Yes Steve Model（是，史蒂夫模型）（真实相机0.6.15尝试修复了关于YSM的不兼容问题）。
   
 
