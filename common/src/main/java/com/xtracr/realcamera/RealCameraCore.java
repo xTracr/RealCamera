@@ -64,7 +64,7 @@ public class RealCameraCore {
 
     public static void initialize(Minecraft client) {
         Entity entity = client.getCameraEntity();
-        active = ConfigFile.config().enabled() && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.MAIN_FEATURE.disabled(entity) && !DisableHelper.CLASSIC_FEATURE.disabled(entity);
+        active = ConfigFile.config().enabled() && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.MAIN_FEATURE.disabled(entity);
         rendering = active && ConfigFile.config().renderModel() && !DisableHelper.RENDER_MODEL.disabled(entity);
         activeRecorder.records().clear();
     }
