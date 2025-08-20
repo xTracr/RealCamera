@@ -13,7 +13,7 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 * Customize the position and rotation of the camera.
 * Render player model in first-person perspective.
 * Use F6 to toggle the feature on or off and other hotkeys to adjust the camera.
-* Mod version 0.6+,configure these features in the config screen (Cloth Config required).
+* Mod version 0.6+,configure these features in the Model View Screen.
 
 ### Configuration (0.6+) ###
 
