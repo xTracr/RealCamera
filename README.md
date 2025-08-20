@@ -13,7 +13,7 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 * Customize the position and rotation of the camera.
 * Render player model in first-person perspective.
 * Use F6 to toggle the feature on or off and other hotkeys to adjust the camera.
-* Mod version 0.6+,configure these features in the Model View Screen.
+* Configure these features in the Config Screen (Cloth Config required) and the Model View Screen (0.6+).
 
 ### Configuration (0.6+) ###
 
@@ -42,25 +42,25 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 ### Compatibility ###
 
 * Incompatible:
-  * OptiFine;
-  * Armourer's Workshop(Mod version 0.6+);
-  * Armors based on GeckoLib;
-  * Customizable Player Models;
-  * Epic Fight(Mod version 0.6-);
-  * Timeless and Classics Zero,version 1.1.4+.
+  * OptiFine
+  * Armourer's Workshop(Mod version 0.6+)
+  * Armors based on GeckoLib
+  * Customizable Player Models
+  * Epic Fight(Mod version 0.6-)
+  * Timeless and Classics Zero,version 1.1.4+
 
 * Compatible:
-  * most camera mods;
-  * most player model mods;
-  * Armourer's Workshop(Mod version 0.6+);
-  * Epic Fight(Mod version 0.6+);
-  * First-person Model;
-  * Not Enough Animations;
-  * ParCool！;
-  * Pehkui;
-  * Player Animation Lib;
-  * Timeless and Classics Zero,version 1.0.3-;
-  * Yes Steve Model(Real Camera mod version 0.6.15 on github tried to fix problem about Yes Steve Model).
+  * most camera mods
+  * most player model mods
+  * Armourer's Workshop(Mod version 0.6+)
+  * Epic Fight(Mod version 0.6+)
+  * First-person Model
+  * Not Enough Animations
+  * ParCool！
+  * Pehkui
+  * Player Animation Lib
+  * Timeless and Classics Zero,version 1.0.3-
+  * Yes Steve Model(Real Camera mod version 0.6.15 on github tried to fix problem about Yes Steve Model)
 
 
 * Model Mod Compatibility Requirements with `Real Camera` (Based on Official Mappings)：
