@@ -3,7 +3,7 @@
 ## [English](README.md) ##
 
 使第一人称视角下的摄像头更加真实。  
-支持的版本: 1.20-1.21 Fabric & NeoForge  
+支持的版本: 1.18.2 - 1.20.4 Forge，1.18.2 - 1.21.4 Fabric，1.21 - 1.21.4 NeoForge
 从[Releases](https://github.com/xTracr/RealCamera/releases)、[Modrinth](https://modrinth.com/mod/real-camera)或[CurseForge](https://curseforge.com/minecraft/mc-mods/real-camera)下载  
 快照版在[这里](https://github.com/xTracr/RealCamera/actions/workflows/build.yml)
 
@@ -13,9 +13,9 @@
 * 自定义摄像头的位置和旋转角度
 * 在第一人称视角下渲染玩家模型
 * 按下F6来开关，另外一些键来调整摄像头
-* 在配置界面配置以上特性（需Cloth Config）
+* 在配置界面（需要Cloth Config）和模型视图（0.6+）界面，配置以上特性
 
-### 配置 ###
+### 配置（0.6+）###
 
 * 理论上支持大多数模组模型，但需要手动进行配置：
 * 首先设置`打开模型视图界面`的按键绑定
@@ -36,18 +36,31 @@
 ## 常见问题 ##
 
 * 模型的一部分（如头发）始终挡在面前，怎样隐藏它?
-  * 增加这个值或许有所帮助  
+  * 增加这个值或许有所帮助
     ![screenshot_2024_6_2_22_42](https://github.com/xTracr/RealCamera/assets/57320980/78c246e8-34aa-4979-89de-780ee907870b)
 
 ### 兼容性 ###
 
 * 不兼容:
   * OptiFine
-  * Armourer's Workshop
+  * Armourer's Workshop（时装工坊）（真实相机0.6版本以上）
   * 基于GeckoLib的盔甲
+  * Customizable Player Models（自定义玩家模型）
+  * Epic Fight（史诗战斗）（真实相机0.6版本以下）
+  * [TaCZ]永恒枪械工坊：零 1.1.4版本及以上
 * 兼容:
-  * 多数摄像头模组
+  * 大多数修改玩家镜头的模组
   * 多数模型模组
+  * Armourer's Workshop（时装工坊）（真实相机0.6版本以下）
+  * Epic Fight（史诗战斗）（真实相机0.6版本以上）
+  * First-person Model（更真实的第一人称模型）
+  * Not Enough Animations（更多动画）
+  * Player Animation Lib
+  * Pehkui
+  * ParCool！
+  * [TaCZ]永恒枪械工坊：零 1.0.3版本及以下
+  * Yes Steve Model（是，史蒂夫模型）（真实相机0.6.15尝试修复了关于YSM的不兼容问题）
+  
 
 
 * 模型模组与`Real Camera`兼容的必要条件（基于官方映射）：
