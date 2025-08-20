@@ -43,24 +43,24 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 
 * Incompatible:
   * OptiFine
-  * Armourer's Workshop(Mod version 0.6+)
+  * Armourer's Workshop (Mod version 0.6+)
   * Armors based on GeckoLib
   * Customizable Player Models
-  * Epic Fight(Mod version 0.6-)
+  * Epic Fight (Mod version 0.6-)
   * Timeless and Classics Zero,version 1.1.4+
 
 * Compatible:
   * most camera mods
   * most player model mods
-  * Armourer's Workshop(Mod version 0.6+)
-  * Epic Fight(Mod version 0.6+)
+  * Armourer's Workshop (Mod version 0.6+)
+  * Epic Fight (Mod version 0.6+)
   * First-person Model
   * Not Enough Animations
   * ParCool！
   * Pehkui
   * Player Animation Lib
   * Timeless and Classics Zero,version 1.0.3-
-  * Yes Steve Model(Real Camera mod version 0.6.15 on github tried to fix problem about Yes Steve Model)
+  * Yes Steve Model (Real Camera mod version 0.6.15 on github tried to fix problem about Yes Steve Model)
 
 
 * Model Mod Compatibility Requirements with `Real Camera` (Based on Official Mappings)：
