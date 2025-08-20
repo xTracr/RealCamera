@@ -70,6 +70,7 @@ public class DisableHelper {
         }
         return false;
     }
+    
     public static boolean DisableWhenSwimming(String model) {
         return switch(model) {
             case "classic" -> config.isClassic() && config.getDisableWhenSwimming();
