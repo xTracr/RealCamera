@@ -1,6 +1,7 @@
 package com.xtracr.realcamera.compat;
 
 import com.xtracr.realcamera.RealCameraCore;
+import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.config.ConfigFile;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.client.Minecraft;
@@ -10,6 +11,7 @@ import net.minecraft.world.entity.player.Player;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
+import net.minecraft.network.chat.Component;//测试
 
 public class DisableHelper {
     private static final Map<String, Entry> entries = new HashMap<>();
@@ -17,17 +19,15 @@ public class DisableHelper {
     public static final Entry MAIN_FEATURE = new Entry("mainFeature", player -> player.isSleeping() || player.isSpectator());
     public static final Entry RENDER_MODEL = new Entry("renderModel", Player::isScoping);
     public static final Entry RENDER_HANDS = new Entry("renderHands", player -> RealCameraCore.isRendering());
-    private static int exitTick = 0;
-    private static int exitTickClassic = 0;
-    static {
-        CLASSIC_FEATURE.registerOr(player -> ConfigFile.config().getDisableWhenSwimming() && classicSwimmingRecently((Player)player));          
-        CLASSIC_FEATURE.registerOr(player -> ConfigFile.config().getDisableWhenSneaking() && player.isCrouching());
-        MAIN_FEATURE.registerOr(player -> ConfigFile.config().disableWhenSwimming() && bindingSwimmingRecently((Player)player));
-        MAIN_FEATURE.registerOr(player -> ConfigFile.config().disableWhenSneaking() && player.isCrouching());
+    public static int exitTick = 0;
+    private static ModConfig config = ConfigFile.config();
+    static {      
+        MAIN_FEATURE.registerOr(player -> DisableWhenSneaking() && player.isCrouching());
+        MAIN_FEATURE.registerOr(player ->swimmingRecently((Player)player));
         MAIN_FEATURE.registerOr(player -> {
             String mainHand = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem()).toString();
             String offHand = BuiltInRegistries.ITEM.getKey(player.getOffhandItem().getItem()).toString();
-            for (String item : ConfigFile.config().getDisableMainFeatureItems())
+            for (String item : config.getDisableMainFeatureItems())
                 if (simpleWildcardMatch(mainHand, item) || simpleWildcardMatch(offHand, item))
                     return true;
             return false;
@@ -35,7 +35,7 @@ public class DisableHelper {
         RENDER_MODEL.registerOr(player -> {
             String mainHand = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem()).toString();
             String offHand = BuiltInRegistries.ITEM.getKey(player.getOffhandItem().getItem()).toString();
-            for (String item : ConfigFile.config().getDisableRenderItems())
+            for (String item : config.getDisableRenderItems())
                 if (simpleWildcardMatch(mainHand, item) || simpleWildcardMatch(offHand, item))
                     return true;
             return false;
@@ -47,38 +47,46 @@ public class DisableHelper {
         entries.get(name).registerOr(predicate::test);
     }
 
-    public static boolean bindingSwimmingRecently(Player player) {        
-        if(ConfigFile.config().disableWhenSwimming()
-        && Minecraft.getInstance() != null){
-            if (player.isSwimming()){
-                exitTick = player.tickCount;
-                return true;
-            }   
-            if (exitTick > 0 && !player.isSwimming()) {
-                int elapsedTicks = player.tickCount - exitTick;
-                    if (elapsedTicks <= ConfigFile.config().swimOutTick()) {
-                        return true;
-                    }
-                    exitTick = 0; 
-            }}
-        return false;   
-    } 
-
-    public static boolean classicSwimmingRecently(Player player) {   
-        if(ConfigFile.config().getDisableWhenSwimming()
-        && Minecraft.getInstance() != null){
-            if (player.isSwimming()){
-                exitTickClassic = player.tickCount;
-                return true;
-            }   
-            if (exitTickClassic > 0 && !player.isSwimming()) {
-                int elapsedTicksClassic = player.tickCount - exitTickClassic;
-                    if (elapsedTicksClassic <= ConfigFile.config().getSwimOutTick()) {
-                        return true;
-                    }
-                    exitTickClassic = 0; 
-            }}
-        return false;   
+    private static boolean swimmingRecently(Player player) {        
+        if(DisableWhenSwimming("binding") || DisableWhenSwimming("classic")) {
+        if (player.isSwimming()){
+            exitTick = player.tickCount;
+            return true;
+        }   
+        if (exitTick > 0 && !player.isSwimming()) {
+            int elapsedTicks = player.tickCount - exitTick;
+                if (elapsedTicks <= DisableSwimOutTick()) {
+                    return true;
+                }
+                exitTick = 0; 
+        }}
+        return false;
+    }     
+    private static boolean DisableWhenSneaking(){
+        if(config.isClassic() && config.getDisableWhenSneaking()){
+            return true;
+        }
+        if(!config.isClassic() && config.disableWhenSneaking()){
+            return true;
+        }
+        return false;
+    }
+    public static boolean DisableWhenSwimming(String model) {
+        return switch(model) {
+            case "classic" -> config.isClassic() && config.getDisableWhenSwimming();
+            case "binding" -> !config.isClassic() && config.disableWhenSwimming();
+            default -> false;
+        };
+    }
+    
+    private static int DisableSwimOutTick(){
+        if(DisableWhenSwimming("classic")){
+            return config.getSwimOutTick();
+        }
+        if(DisableWhenSwimming("binding")){
+            return config.swimOutTick();
+        }
+        return 0;
     }
 
     public static boolean simpleWildcardMatch(String text, String pattern) {
@@ -106,37 +114,19 @@ public class DisableHelper {
     }
 
     public static class Entry {
-        protected Predicate<Player> bindingPredicate;
-        protected Predicate<Player> classicPredicate;;
+        protected Predicate<Player> predicate;
 
         protected Entry(String name, Predicate<Player> predicate) {
-            this.bindingPredicate = predicate;
-            this.classicPredicate = predicate;
+            this.predicate = predicate;
             entries.put(name, this);
         }
 
         public void registerOr(Predicate<Player> predicate) {
-            this.bindingPredicate = this.bindingPredicate.or(predicate);
-            this.classicPredicate = this.classicPredicate.or(predicate);
-        }
-
-        public void registerOrInBindingMode(Predicate<Player> predicate) {
-            if (!ConfigFile.config().isClassic()) {
-                this.bindingPredicate = this.bindingPredicate.or(predicate);
-            }
-        }
-
-        public void registerOrInClassicMode(Predicate<Player> predicate) {
-            if (ConfigFile.config().isClassic()) {
-                this.classicPredicate = this.classicPredicate.or(predicate);
-            }
+            this.predicate = this.predicate.or(predicate);
         }
 
         public boolean disabled(Entity cameraEntity) {
-            if (ConfigFile.config().isClassic()) {
-                return  cameraEntity instanceof Player player &&classicPredicate.test(player);
-            } 
-            return cameraEntity instanceof Player player &&bindingPredicate.test(player);
+            return cameraEntity instanceof Player player && predicate.test(player);
         }
     }
 }
