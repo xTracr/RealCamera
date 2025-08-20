@@ -3,7 +3,7 @@
 ## [中文](README_ZH.md) ##
 
 Make the camera more realistic in the first-person view.  
-Supported versions: 1.18.2-1.20.4 Forge,1.18.2-1.21.4 Fabric,1.21-1.21.4 NeoForge.  
+Supported versions: 1.18.2-1.20.4 Forge, 1.18.2-1.21.4 Fabric, 1.21-1.21.4 NeoForge.  
 Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases), [Modrinth](https://modrinth.com/mod/real-camera) or [CurseForge](https://curseforge.com/minecraft/mc-mods/real-camera)  
 Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/build.yml)
 
