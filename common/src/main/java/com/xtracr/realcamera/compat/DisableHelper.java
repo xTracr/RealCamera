@@ -11,7 +11,6 @@ import net.minecraft.world.entity.player.Player;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
-import net.minecraft.network.chat.Component;//测试
 
 public class DisableHelper {
     private static final Map<String, Entry> entries = new HashMap<>();
