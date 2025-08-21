@@ -21,10 +21,10 @@ public class DisableHelper {
     public static int exitTick = 0;
     private static ModConfig config = ConfigFile.config();
     static {    
-        MAIN_FEATURE.registerOrInBinding(player -> config.disableWhenSneaking() && player.isCrouching());
-        MAIN_FEATURE.registerOrInClassic(player -> config.getDisableWhenSneaking() && player.isCrouching());
-        MAIN_FEATURE.registerOrInBinding(player -> config.disableWhenSwimming() && swimmingRecently(player, config.swimOutTick()));
-        MAIN_FEATURE.registerOrInClassic(player -> config.getDisableWhenSwimming() && swimmingRecently(player, config.getSwimOutTick()));
+        MAIN_FEATURE.registerOrInBinding(player -> config.bindingDisableWhenSneaking() && player.isCrouching());
+        MAIN_FEATURE.registerOrInClassic(player -> config.classicDisableWhenSneaking() && player.isCrouching());
+        MAIN_FEATURE.registerOrInBinding(player -> config.bindingDisableWhenSwimming() && swimmingRecently(player, config.bindingSwimOutTick()));
+        MAIN_FEATURE.registerOrInClassic(player -> config.classicDisableWhenSwimming() && swimmingRecently(player, config.classicSwimOutTick()));
         MAIN_FEATURE.registerOr(player -> {
             String mainHand = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem()).toString();
             String offHand = BuiltInRegistries.ITEM.getKey(player.getOffhandItem().getItem()).toString();
