@@ -7,9 +7,12 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.function.IntConsumer;
+
 public class CyclingTexturedButton extends AbstractButton {
     protected final ResourceLocation texture;
     protected final int textureWidth, textureHeight, u, v, vOffset, size;
+    private IntConsumer onPress;
     private int value;
 
     public CyclingTexturedButton(int u, int v, int value, int size) {
@@ -40,14 +43,20 @@ public class CyclingTexturedButton extends AbstractButton {
         this.value = (value % size + size) % size;
     }
 
+    public CyclingTexturedButton setOnPress(IntConsumer onPress) {
+        this.onPress = onPress;
+        return this;
+    }
+
     @Override
     public void onPress() {
         if (Screen.hasShiftDown()) setValue(value - 1);
         else setValue(value + 1);
+        if (onPress != null) onPress.accept(value);
     }
 
     @Override
-    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float deltaTick) {
         graphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0xFF646464);
         graphics.blit(texture, getX(), getY(), u, v + value * vOffset, width, height, textureWidth, textureHeight);
         if (isHoveredOrFocused()) graphics.renderOutline(getX(), getY(), getWidth(), getHeight(), 0xFFFFFFFF);

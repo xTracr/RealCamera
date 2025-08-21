@@ -89,9 +89,9 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
     }
 
     @Override
-    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float deltaTick) {
         checkText();
-        super.renderWidget(graphics, mouseX, mouseY, delta);
+        super.renderWidget(graphics, mouseX, mouseY, deltaTick);
     }
 
     private static class FloatField extends NumberField<Float> {

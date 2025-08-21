@@ -39,7 +39,7 @@ public class TexturedButton extends AbstractButton {
     }
 
     @Override
-    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float deltaTick) {
         graphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0xFF646464);
         graphics.blit(texture, getX(), getY(), u, v, width, height, textureWidth, textureHeight);
         if (isHoveredOrFocused()) graphics.renderOutline(getX(), getY(), getWidth(), getHeight(), 0xFFFFFFFF);

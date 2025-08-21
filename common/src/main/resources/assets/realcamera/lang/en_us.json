@@ -43,7 +43,7 @@
   "config.option.xtracr_realcamera.rerenderModel": "Rerender Model",
   "config.option.xtracr_realcamera.disableWhenSneaking": "Disable main feature when sneaking",
   "config.option.xtracr_realcamera.disableWhenSwimming": "Disable main feature when swimming",
-  "config.option.xtracr_realcamera.swimOutTick": "Exiting swimming state delay (in TICKs)",
+  "config.option.xtracr_realcamera.swimOutTick": "Exiting swimming state delay (in ticks)",
   "config.option.xtracr_realcamera.disableMainFeatureItems": "Disable main feature when holding",
   "config.option.xtracr_realcamera.disableRenderItems": "Disable rendering when holding",
   "config.tooltip.xtracr_realcamera.isClassic": "Classic mode only makes simple changes to the position and rotation of camera",
@@ -56,18 +56,20 @@
   "config.tooltip.xtracr_realcamera.adjustOffset": "When pressing the adjustment key, adjust the offset or rotation of camera",
   "config.tooltip.xtracr_realcamera.renderStuckObjects": "Arrows, bee stings and other objects that can be stuck in the player's body",
   "config.tooltip.xtracr_realcamera.rerenderModel": "Render the model again at the original rendering time to avoid some visual problems caused by rendering early",
+  "config.tooltip.xtracr_realcamera.swimOutTick": "The time before enabling main feature after exiting swimming state (1 tick = 0.05s)",
   "config.tooltip.xtracr_realcamera.disableRenderItems": "Support using `*` to match any number of characters, for example `minecraft:*sword` matches all swords",
 
   "message.xtracr_realcamera.bindingFailed": "[%s]: Binding failed, please go to the %s screen and configure manually",
 
   "screen.xtracr_realcamera.modelView_title": "Model View",
+  "screen.widget.xtracr_realcamera.modelView_settings": "Settings",
+  "screen.widget.xtracr_realcamera.modelView_preview": "Preview",
   "screen.widget.xtracr_realcamera.modelView_selectMode": "Selecting",
   "screen.widget.xtracr_realcamera.modelView_forwardMode": "Forward Vector",
   "screen.widget.xtracr_realcamera.modelView_upwardMode": "Upward Vector",
   "screen.widget.xtracr_realcamera.modelView_posMode": "Target Plane",
   "screen.widget.xtracr_realcamera.modelView_save": "Save",
-  "screen.widget.xtracr_realcamera.modelView_settings": "Settings",
-  "screen.widget.xtracr_realcamera.modelView_preview": "Preview",
+  "screen.widget.xtracr_realcamera.modelView_disableAll": "Disable All: ",
   "screen.widget.xtracr_realcamera.modelView_offsetX": "X Offset = %s",
   "screen.widget.xtracr_realcamera.modelView_offsetY": "Y Offset = %s",
   "screen.widget.xtracr_realcamera.modelView_offsetZ": "Z Offset = %s",
@@ -78,7 +80,6 @@
   "screen.widget.xtracr_realcamera.modelView_disable": "Disable",
   "screen.widget.xtracr_realcamera.modelView_copy": "Copy",
   "screen.widget.xtracr_realcamera.modelView_paste": "Paste",
-  "screen.widget.xtracr_realcamera.modelView_clear": "Clear",
   "screen.tooltip.xtracr_realcamera.modelView_selectMode": "Hold left Alt and left click to get the UV coordinates at the mouse pointer\nThe three sets of UV coordinates below are, from top to bottom, the UV coordinates of the forward vector, the upward vector, and a point on the target plane\nNote: Scroll with left Alt held to switch between the different layers of the model. Manually inputting UV coordinates allows you to bind more accurately to the target position",
   "screen.tooltip.xtracr_realcamera.modelView_textureId": "The texture id of the selected model (not necessary to be the full id), can be shortened when saving to make it easier to recognize.\nFor example, shorten minecraft:textures/entity/player/slim/alex.png to minecraft:textures/entity/player/.",
   "screen.tooltip.xtracr_realcamera.modelView_bindButtons": "When disabled, the camera's relative relationship to the model will not change, but the camera's corresponding attributes will not be modified by this mod",
@@ -89,5 +90,6 @@
   "screen.tooltip.xtracr_realcamera.modelView_configs": "Saved Configs",
   "screen.tooltip.xtracr_realcamera.modelView_disable": "Disabling Settings\nGlobal disabling settings are in the config screen",
   "screen.tooltip.xtracr_realcamera.modelView_copy": "Copy all entries",
-  "screen.tooltip.xtracr_realcamera.modelView_disabledIdField": "Hold left Alt and left click to get the texture id of the selected model, can be shortened to extend disabling range, but may cause the program to misjudge"
+  "screen.tooltip.xtracr_realcamera.modelView_addOrSaveAs": "Add or save as",
+  "screen.tooltip.xtracr_realcamera.modelView_disabledName": "Name of the disable config"
 }

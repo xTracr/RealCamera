@@ -3,10 +3,7 @@ package com.xtracr.realcamera.config;
 import com.xtracr.realcamera.util.VertexData;
 import net.minecraft.util.Mth;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 
 public record BindingTarget(
@@ -39,9 +36,9 @@ public record BindingTarget(
         TargetConfig targetConfig = new TargetConfig(0.1875f, 0.2f, 0.1875f, 0.075f, 0.1875f, 0.2f);
         BindConfig bindConfig = new BindConfig(shouldBind, true, shouldBind, shouldBind);
         OffsetConfig offsets = new OffsetConfig().setX(-0.1);
-        DisableConfig disableConfig1 = new DisableConfig("minecraft:textures/entity/enderdragon/dragon.png", true, new UVRectangle[0]);
-        DisableConfig disableConfig2 = new DisableConfig(textureId, false, new UVRectangle[]{new UVRectangle(0, 0, 1.0f, 0.25f)});
-        DisableConfig[] disableConfigs = new DisableConfig[]{disableConfig1, disableConfig2};
+        DisableConfig playerHead = new DisableConfig("player_head", textureId, false, new UVRectangle[]{new UVRectangle(0, 0, 1.0f, 0.25f)});
+        DisableConfig dragonHead = new DisableConfig("dragon_head", "minecraft:textures/entity/enderdragon/dragon.png", true, new UVRectangle[0]);
+        DisableConfig[] disableConfigs = new DisableConfig[]{playerHead, dragonHead};
         return new BindingTarget(name, textureId, priority, 0.1f, targetConfig, bindConfig, offsets, disableConfigs);
     }
 
@@ -129,7 +126,7 @@ public record BindingTarget(
         }
     }
 
-    public record DisableConfig(String textureId, boolean disableAll, UVRectangle[] rectangles) implements Predicate<VertexData> {
+    public record DisableConfig(String name, String textureId, boolean disableAll, UVRectangle[] rectangles) implements Predicate<VertexData> {
         @Override
         public boolean test(VertexData vertexData) {
             final float u = vertexData.u(), v = vertexData.v();

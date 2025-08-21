@@ -39,8 +39,7 @@ public class YSMCompat extends VertexRecorder {
         BindingContext context;
         for (BindingTarget target : ConfigFile.config().getTargetList()) {
             for (BuiltRecord record : records) {
-                contextMap.putIfAbsent(target, new BindingContext(target, false));
-                context = contextMap.get(target);
+                context = contextMap.computeIfAbsent(target, k -> new BindingContext(target, false));
                 record.setupContext(context, invertedPosition, invertedNormal);
                 context.skipRendering = false;
                 if (context.available()) return context;
