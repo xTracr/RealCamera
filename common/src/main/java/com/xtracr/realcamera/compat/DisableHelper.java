@@ -24,8 +24,7 @@ public class DisableHelper {
         MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSneaking() && player.isCrouching());
         MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().getBindingSwimOutTick()));
         MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().getClassicSwimOutTick()));
-
-        MAIN_FEATURE.registerOr(player -> {
+        MAIN_FEATURE.registerOrInBinding(player -> {
             String mainHand = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem()).toString();
             String offHand = BuiltInRegistries.ITEM.getKey(player.getOffhandItem().getItem()).toString();
             for (String item : ConfigFile.config().getDisableMainFeatureItems())
@@ -33,7 +32,7 @@ public class DisableHelper {
                     return true;
             return false;
         });
-        RENDER_MODEL.registerOr(player -> {
+        RENDER_MODEL.registerOrInBinding(player -> {
             String mainHand = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem()).toString();
             String offHand = BuiltInRegistries.ITEM.getKey(player.getOffhandItem().getItem()).toString();
             for (String item : ConfigFile.config().getDisableRenderItems())

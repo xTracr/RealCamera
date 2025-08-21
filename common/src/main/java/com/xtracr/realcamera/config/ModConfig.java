@@ -201,7 +201,7 @@ public class ModConfig {
     public BindingTarget getOrCreateFixedTarget(String name) {
         BindingTarget.fixedNames.add(name);
         return binding.fixedTargetList.stream().filter(target -> target.name().equals(name)).findFirst()
-                .orElseGet(() -> {                         
+                .orElseGet(() -> {
                     BindingTarget target = BindingTarget.blank(name, "");
                     Binding.putTarget(target, binding.fixedTargetList);
                     return target;
