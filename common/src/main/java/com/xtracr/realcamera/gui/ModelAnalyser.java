@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.xtracr.realcamera.config.BindingTarget;
+import com.xtracr.realcamera.config.BindingTarget.*;
 import com.xtracr.realcamera.util.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -26,7 +27,7 @@ public class ModelAnalyser extends VertexRecorder {
     private static final int primitiveArgb = 0x6F3333CC, forwardArgb = 0xFF00CC00, upwardArgb = 0xFFCC0000, leftArgb = 0xFF0000CC;
     private static final int focusedArgb = 0x7FFFFFFF, sideArgb = 0x3FFFFFFF;
     private BindingContext bindingContext = BindingContext.EMPTY;
-    private BindingTarget target = new BindingTarget();
+    private BindingTarget target = BindingTarget.EMPTY;
     @Nullable
     private BuiltRecord focusedRecord, currentRecord;
     private int focusedIndex = -1;
@@ -74,20 +75,15 @@ public class ModelAnalyser extends VertexRecorder {
         drawFocusedPolyhedron(graphics);
         drawFocused(graphics);
         if (currentRecord == null) return;
-        currentRecord.findPrimitive(target.getPosU(), target.getPosV()).ifPresent(primitive -> drawPrimitive(graphics, primitive, primitiveArgb, 1000));
-        currentRecord.findPrimitive(target.getForwardU(), target.getForwardV()).ifPresent(primitive ->
-                drawNormal(graphics, getPosition(primitive, target.getForwardU(), target.getForwardV()), primitive[0].normal(), entitySize / 2, forwardArgb));
-        currentRecord.findPrimitive(target.getUpwardU(), target.getUpwardV()).ifPresent(primitive ->
-                drawNormal(graphics, getPosition(primitive, target.getUpwardU(), target.getUpwardV()), primitive[0].normal(), entitySize / 2, upwardArgb));
+        TargetConfig config = target.targetConfig();
+        currentRecord.findPrimitive(config.posU(), config.posV()).ifPresent(primitive -> drawPrimitive(graphics, primitive, primitiveArgb, 1000));
+        currentRecord.findPrimitive(config.forwardU(), config.forwardV()).ifPresent(primitive -> drawNormal(graphics, getPosition(primitive, config.forwardU(), config.forwardV()), primitive[0].normal(), entitySize / 2, forwardArgb));
+        currentRecord.findPrimitive(config.upwardU(), config.upwardV()).ifPresent(primitive -> drawNormal(graphics, getPosition(primitive, config.upwardU(), config.upwardV()), primitive[0].normal(), entitySize / 2, upwardArgb));
     }
 
-    public void analyse(int entitySize, int mouseX, int mouseY, int layers, boolean hideDisabled, String idInField) {
-        target.setScale(target.getScale() * entitySize);
+    public void analyse(int entitySize, int mouseX, int mouseY, int layers) {
+        target.offsets().setScale(target.offsets().getScale() * entitySize);
         genContext();
-        records.removeIf(record -> {
-            boolean isIdInField = !idInField.isBlank() && record.textureId().contains(idInField);
-            return (hideDisabled && isIdInField) || (!isIdInField && target.getDisabledTextureIds().stream().anyMatch(record.textureId()::contains));
-        });
         List<Triple> sortByDepth = new ArrayList<>();
         records.stream().filter(record -> !UNFOCUSABLE_RENDER_TYPES.contains(record.renderType())).forEach(record -> {
             VertexData[][] primitives = record.primitives();
@@ -112,6 +108,31 @@ public class ModelAnalyser extends VertexRecorder {
         }
     }
 
+    public void drawModel(GuiGraphics graphics, List<String> hiddenTextureIds) {
+        records().forEach(record -> {
+            DisableConfig[] disableConfigs = target.filteredDisableConfigs(config -> record.textureId().contains(config.textureId()) && hiddenTextureIds.contains(config.textureId()));
+            for (DisableConfig disableConfig : disableConfigs) {
+                if (disableConfig.disableAll()) return;
+            }
+            VertexConsumer buffer = graphics.bufferSource().getBuffer(record.renderType());
+            if (!record.renderType().canConsolidateConsecutiveGeometry()) {
+                VertexData.renderVertices(record.vertices(), buffer);
+                return;
+            }
+            for (VertexData[] primitive : record.primitives()) {
+                outer:
+                for (VertexData vertex : primitive) {
+                    for (DisableConfig config : disableConfigs) {
+                        if (config.test(vertex)) continue outer;
+                    }
+                    VertexData.renderVertices(primitive, buffer);
+                    break;
+                }
+            }
+        });
+        graphics.flush();
+    }
+
     @Override
     public void updateModel(Minecraft client, Entity entity, float deltaTick, PoseStack poseStack) {
         Lighting.setupForEntityInInventory();
@@ -129,6 +150,7 @@ public class ModelAnalyser extends VertexRecorder {
         for (BuiltRecord record : records) {
             BindingContext context = new BindingContext(target, true);
             record.setupContext(context);
+            if (context.weakAvailable()) currentRecord = record;
             if (!context.available()) continue;
             bindingContext = context;
             currentRecord = record;
@@ -193,5 +215,5 @@ public class ModelAnalyser extends VertexRecorder {
         resultIndexes.forEach(i -> drawPrimitive(graphics, primitives[i], sideArgb, 1000));
     }
 
-    record Triple(double depth, BuiltRecord record, int index) {}
+    record Triple(double depth, BuiltRecord record, int index) { }
 }

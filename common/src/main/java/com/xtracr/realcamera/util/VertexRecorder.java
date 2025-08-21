@@ -86,22 +86,19 @@ public class VertexRecorder {
         }
 
         public void setupContext(BindingContext context) {
-            BindingTarget target = context.target;
-            if (!textureId.contains(target.textureId)) return;
-            findPrimitive(target.getPosU(), target.getPosV()).ifPresent(primitive -> context.setPosition(getPosition(primitive, target.getPosU(), target.getPosV())));
-            findPrimitive(target.getForwardU(), target.getForwardV()).ifPresent(primitive -> context.setForward(primitive[0].normal()));
-            findPrimitive(target.getUpwardU(), target.getUpwardV()).ifPresent(primitive -> context.setUpward(primitive[0].normal()));
+            if (!textureId.contains(context.target.textureId())) return;
+            BindingTarget.TargetConfig config = context.target.targetConfig();
+            findPrimitive(config.posU(), config.posV()).ifPresent(primitive -> context.setPosition(getPosition(primitive, config.posU(), config.posV())));
+            findPrimitive(config.forwardU(), config.forwardV()).ifPresent(primitive -> context.setForward(primitive[0].normal()));
+            findPrimitive(config.upwardU(), config.upwardV()).ifPresent(primitive -> context.setUpward(primitive[0].normal()));
         }
 
         public void setupContext(BindingContext context, Matrix4f positionMatrix, Matrix3f normalMatrix) {
-            BindingTarget target = context.target;
-            if (!textureId.contains(target.textureId)) return;
-            findPrimitive(target.getPosU(), target.getPosV()).ifPresent(primitive ->
-                    context.setPosition(new Vec3(getPosition(primitive, target.getPosU(), target.getPosV()).toVector3f().mulPosition(positionMatrix))));
-            findPrimitive(target.getForwardU(), target.getForwardV()).ifPresent(primitive ->
-                    context.setForward(new Vec3(primitive[0].normal().toVector3f().mul(normalMatrix))));
-            findPrimitive(target.getUpwardU(), target.getUpwardV()).ifPresent(primitive ->
-                    context.setUpward(new Vec3(primitive[0].normal().toVector3f().mul(normalMatrix))));
+            if (!textureId.contains(context.target.textureId())) return;
+            BindingTarget.TargetConfig config = context.target.targetConfig();
+            findPrimitive(config.posU(), config.posV()).ifPresent(primitive -> context.setPosition(new Vec3(getPosition(primitive, config.posU(), config.posV()).toVector3f().mulPosition(positionMatrix))));
+            findPrimitive(config.forwardU(), config.forwardV()).ifPresent(primitive -> context.setForward(new Vec3(primitive[0].normal().toVector3f().mul(normalMatrix))));
+            findPrimitive(config.upwardU(), config.upwardV()).ifPresent(primitive -> context.setUpward(new Vec3(primitive[0].normal().toVector3f().mul(normalMatrix))));
         }
     }
 }

@@ -75,8 +75,8 @@ public class ModConfig {
         } else {
             BindingTarget target = RealCameraCore.currentTarget();
             if (target.isEmpty()) return;
-            if (binding.adjustOffset) target.setOffsetX(target.getOffsetX() + count * adjustStep);
-            else target.setRoll(target.getRoll() + count * 100 * (float) adjustStep);
+            if (binding.adjustOffset) target.offsets().setX(target.offsets().getX() + count * adjustStep);
+            else target.offsets().setRoll(target.offsets().getRoll() + count * 100 * (float) adjustStep);
         }
     }
 
@@ -91,8 +91,8 @@ public class ModConfig {
         } else {
             BindingTarget target = RealCameraCore.currentTarget();
             if (target.isEmpty()) return;
-            if (binding.adjustOffset) target.setOffsetY(target.getOffsetY() + count * adjustStep);
-            else target.setYaw(target.getYaw() + count * 100 * (float) adjustStep);
+            if (binding.adjustOffset) target.offsets().setY(target.offsets().getY() + count * adjustStep);
+            else target.offsets().setYaw(target.offsets().getYaw() + count * 100 * (float) adjustStep);
         }
     }
 
@@ -107,8 +107,8 @@ public class ModConfig {
         } else {
             BindingTarget target = RealCameraCore.currentTarget();
             if (target.isEmpty()) return;
-            if (binding.adjustOffset) target.setOffsetZ(target.getOffsetZ() + count * adjustStep);
-            else target.setPitch(target.getPitch() + count * 100 * (float) adjustStep);
+            if (binding.adjustOffset) target.offsets().setZ(target.offsets().getZ() + count * adjustStep);
+            else target.offsets().setPitch(target.offsets().getPitch() + count * 100 * (float) adjustStep);
         }
     }
 
@@ -195,15 +195,14 @@ public class ModConfig {
     }
 
     public List<BindingTarget> getFixedTargetList() {
-        binding.clamp();
         return binding.fixedTargetList;
     }
 
     public BindingTarget getOrCreateFixedTarget(String name) {
         BindingTarget.fixedNames.add(name);
-        return binding.fixedTargetList.stream().filter(target -> target.name.equals(name)).findFirst()
+        return binding.fixedTargetList.stream().filter(target -> target.name().equals(name)).findFirst()
                 .orElseGet(() -> {                         
-                    BindingTarget target = new BindingTarget(name, "");
+                    BindingTarget target = BindingTarget.blank(name, "");
                     Binding.putTarget(target, binding.fixedTargetList);
                     return target;
                 });
@@ -271,10 +270,10 @@ public class ModConfig {
 
         private static void putTarget(BindingTarget target, List<BindingTarget> list) {
             IntStream.range(0, list.size())
-                    .filter(i -> list.get(i).name.equals(target.name))
+                    .filter(i -> list.get(i).name().equals(target.name()))
                     .findAny()
                     .ifPresentOrElse(i -> list.set(i, target), () -> list.add(target));
-            list.sort(Comparator.comparingInt(t -> -t.getPriority()));
+            list.sort(Comparator.comparingInt(t -> -t.priority()));
         }
 
         private void clamp() {
