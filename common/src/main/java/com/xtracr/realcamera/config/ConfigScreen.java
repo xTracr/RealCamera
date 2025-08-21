@@ -45,6 +45,7 @@ public class ConfigScreen {
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("adjustStep"))
                 .setSaveConsumer(d -> config.adjustStep = d)
                 .build());
+
         classic.addEntry(entryBuilder.startEnumSelector(LocUtil.CONFIG_OPTION("classicAdjustMode"), ModConfig.Classic.AdjustMode.class, config.classic.adjustMode)
                 .setDefaultValue(ModConfig.Classic.AdjustMode.CAMERA)
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("classicAdjustMode"))

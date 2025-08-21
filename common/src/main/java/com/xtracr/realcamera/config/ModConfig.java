@@ -121,7 +121,7 @@ public class ModConfig {
         return classic.disableWhenSwimming;
     }
 
-    public int classicSwimOutTick() {
+    public int getClassicSwimOutTick() {
         return classic.swimOutTick;
     }
 
@@ -182,7 +182,7 @@ public class ModConfig {
         return binding.disableWhenSwimming;
     }
 
-    public int bindingSwimOutTick() {
+    public int getBindingSwimOutTick() {
         return binding.swimOutTick;
     }
     

@@ -1,13 +1,12 @@
 package com.xtracr.realcamera.compat;
 
 import com.xtracr.realcamera.RealCameraCore;
-import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.config.ConfigFile;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -16,14 +15,15 @@ public class DisableHelper {
     private static final Predicate<Player> FALSE = player -> false;
     private static final Map<String, Entry> entries = new HashMap<>();
     public static final Entry MAIN_FEATURE = new Entry("mainFeature", player -> player.isSleeping() || player.isSpectator());
-    public static final Entry RENDER_MODEL = new Entry("renderModel", Player::isScoping);
+    public static final Entry RENDER_MODEL = new Entry("renderModel", FALSE, Player::isScoping);
     public static final Entry RENDER_HANDS = new Entry("renderHands", player -> RealCameraCore.isRendering());
     public static int exitTick = 0;
-    static {    
+
+    static {
         MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSneaking() && player.isCrouching());
         MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSneaking() && player.isCrouching());
-        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().bindingSwimOutTick()));
-        MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().classicSwimOutTick()));
+        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().getBindingSwimOutTick()));
+        MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().getClassicSwimOutTick()));
 
         MAIN_FEATURE.registerOr(player -> {
             String mainHand = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem()).toString();
@@ -40,27 +40,27 @@ public class DisableHelper {
                 if (simpleWildcardMatch(mainHand, item) || simpleWildcardMatch(offHand, item))
                     return true;
             return false;
-            });
+        });
     }
 
-    private static boolean swimmingRecently(Player player, int disableSwimOutTick) {
+    private static boolean swimmingRecently(Player player, int swimOutTick) {
         if (player.isSwimming()) {
             exitTick = player.tickCount;
             return true;
         }
         if (exitTick > 0 && !player.isSwimming()) {
             int elapsedTicks = player.tickCount - exitTick;
-            if (elapsedTicks <= disableSwimOutTick) {
+            if (elapsedTicks <= swimOutTick) {
                 return true;
             }
             exitTick = 0;
         }
         return false;
     }
-    
+
     @Deprecated
     public static void registerOr(String name, Predicate<LivingEntity> predicate) {
-        entries.get(name).registerOr(predicate::test);
+        entries.get(name).registerOrInBinding(predicate::test);
     }
 
     public static boolean simpleWildcardMatch(String text, String pattern) {

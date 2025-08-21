@@ -43,7 +43,7 @@
   "config.option.xtracr_realcamera.rerenderModel": "Rerender Model",
   "config.option.xtracr_realcamera.disableWhenSneaking": "Disable main feature when sneaking",
   "config.option.xtracr_realcamera.disableWhenSwimming": "Disable main feature when swimming",
-  "config.option.xtracr_realcamera.swimOutTick":"Exiting swimming state delay(in TICKs)",
+  "config.option.xtracr_realcamera.swimOutTick": "Exiting swimming state delay (in TICKs)",
   "config.option.xtracr_realcamera.disableMainFeatureItems": "Disable main feature when holding",
   "config.option.xtracr_realcamera.disableRenderItems": "Disable rendering when holding",
   "config.tooltip.xtracr_realcamera.isClassic": "Classic mode only makes simple changes to the position and rotation of camera",
