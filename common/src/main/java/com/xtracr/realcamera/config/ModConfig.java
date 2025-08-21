@@ -113,6 +113,18 @@ public class ModConfig {
     }
 
     // classic
+    public boolean classicDisableWhenSneaking() {
+        return classic.disableWhenSneaking;
+    }
+
+    public boolean classicDisableWhenSwimming() {
+        return classic.disableWhenSwimming;
+    }
+
+    public int classicSwimOutTick() {
+        return classic.swimOutTick;
+    }
+
     public double getClassicX() {
         return classic.cameraX * classic.scale;
     }
@@ -162,14 +174,18 @@ public class ModConfig {
         return binding.rerenderModel;
     }
 
-    public boolean disableWhenSneaking() {
+    public boolean bindingDisableWhenSneaking() {
         return binding.disableWhenSneaking;
     }
 
-    public boolean disableWhenSwimming() {
+    public boolean bindingDisableWhenSwimming() {
         return binding.disableWhenSwimming;
     }
 
+    public int bindingSwimOutTick() {
+        return binding.swimOutTick;
+    }
+    
     public List<String> getDisableMainFeatureItems() {
         return binding.disableMainFeatureItems;
     }
@@ -186,7 +202,7 @@ public class ModConfig {
     public BindingTarget getOrCreateFixedTarget(String name) {
         BindingTarget.fixedNames.add(name);
         return binding.fixedTargetList.stream().filter(target -> target.name.equals(name)).findFirst()
-                .orElseGet(() -> {
+                .orElseGet(() -> {                         
                     BindingTarget target = new BindingTarget(name, "");
                     Binding.putTarget(target, binding.fixedTargetList);
                     return target;
@@ -200,6 +216,9 @@ public class ModConfig {
 
     public static class Classic {
         public AdjustMode adjustMode = AdjustMode.CAMERA;
+        public boolean disableWhenSneaking = false;
+        public boolean disableWhenSwimming = false;
+        public int swimOutTick = 13;
         public double scale = 8.0;
         public double cameraX = -0.5;
         public double cameraY = 0.04;
@@ -244,6 +263,7 @@ public class ModConfig {
         public boolean rerenderModel = false;
         public boolean disableWhenSneaking = false;
         public boolean disableWhenSwimming = false;
+        public int swimOutTick = 13;
         public List<String> disableMainFeatureItems = List.of();
         public List<String> disableRenderItems = defaultDisableRenderItems;
         public List<BindingTarget> fixedTargetList = new ArrayList<>();

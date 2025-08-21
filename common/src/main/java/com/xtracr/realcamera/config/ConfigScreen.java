@@ -45,11 +45,26 @@ public class ConfigScreen {
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("adjustStep"))
                 .setSaveConsumer(d -> config.adjustStep = d)
                 .build());
-
         classic.addEntry(entryBuilder.startEnumSelector(LocUtil.CONFIG_OPTION("classicAdjustMode"), ModConfig.Classic.AdjustMode.class, config.classic.adjustMode)
                 .setDefaultValue(ModConfig.Classic.AdjustMode.CAMERA)
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("classicAdjustMode"))
                 .setSaveConsumer(e -> config.classic.adjustMode = e)
+                .build());
+        classic.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("disableWhenSneaking"), config.classic.disableWhenSneaking)
+                .setDefaultValue(false)
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("DisableWhenSneaking"))
+                .setSaveConsumer(b -> config.classic.disableWhenSneaking = b)
+                .build());
+        classic.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("disableWhenSwimming"), config.classic.disableWhenSwimming)
+                .setDefaultValue(false)
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("DisableWhenSwimming"))
+                .setSaveConsumer(b -> config.classic.disableWhenSwimming = b)
+                .build());
+        classic.addEntry(entryBuilder.startIntField(LocUtil.CONFIG_OPTION("swimOutTick"), config.classic.swimOutTick)
+                .setDefaultValue(13)
+                .setMin(0)
+                .setMax(40)
+                .setSaveConsumer(i -> config.classic.swimOutTick = i)
                 .build());
         classic.addEntry(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("scale"), config.classic.scale)
                 .setDefaultValue(8.0)
@@ -153,6 +168,12 @@ public class ConfigScreen {
                 .setDefaultValue(false)
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("disableWhenSwimming"))
                 .setSaveConsumer(b -> config.binding.disableWhenSwimming = b)
+                .build());
+        binding.addEntry(entryBuilder.startIntField(LocUtil.CONFIG_OPTION("swimOutTick"), config.binding.swimOutTick)
+                .setDefaultValue(13)
+                .setMin(0)
+                .setMax(40)
+                .setSaveConsumer(i -> config.binding.swimOutTick = i)
                 .build());
         binding.addEntry(entryBuilder.startStrList(LocUtil.CONFIG_OPTION("disableMainFeatureItems"), config.binding.disableMainFeatureItems)
                 .setDefaultValue(List.of())
