@@ -19,16 +19,16 @@ public class DisableHelper {
     public static final Entry RENDER_MODEL = new Entry("renderModel", Player::isScoping);
     public static final Entry RENDER_HANDS = new Entry("renderHands", player -> RealCameraCore.isRendering());
     public static int exitTick = 0;
-    private static ModConfig config = ConfigFile.config();
     static {    
-        MAIN_FEATURE.registerOrInBinding(player -> config.bindingDisableWhenSneaking() && player.isCrouching());
-        MAIN_FEATURE.registerOrInClassic(player -> config.classicDisableWhenSneaking() && player.isCrouching());
-        MAIN_FEATURE.registerOrInBinding(player -> config.bindingDisableWhenSwimming() && swimmingRecently(player, config.bindingSwimOutTick()));
-        MAIN_FEATURE.registerOrInClassic(player -> config.classicDisableWhenSwimming() && swimmingRecently(player, config.classicSwimOutTick()));
+        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSneaking() && player.isCrouching());
+        MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSneaking() && player.isCrouching());
+        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().bindingSwimOutTick()));
+        MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().classicSwimOutTick()));
+
         MAIN_FEATURE.registerOr(player -> {
             String mainHand = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem()).toString();
             String offHand = BuiltInRegistries.ITEM.getKey(player.getOffhandItem().getItem()).toString();
-            for (String item : config.getDisableMainFeatureItems())
+            for (String item : ConfigFile.config().getDisableMainFeatureItems())
                 if (simpleWildcardMatch(mainHand, item) || simpleWildcardMatch(offHand, item))
                     return true;
             return false;
@@ -36,7 +36,7 @@ public class DisableHelper {
         RENDER_MODEL.registerOr(player -> {
             String mainHand = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem()).toString();
             String offHand = BuiltInRegistries.ITEM.getKey(player.getOffhandItem().getItem()).toString();
-            for (String item : config.getDisableRenderItems())
+            for (String item : ConfigFile.config().getDisableRenderItems())
                 if (simpleWildcardMatch(mainHand, item) || simpleWildcardMatch(offHand, item))
                     return true;
             return false;
@@ -116,7 +116,7 @@ public class DisableHelper {
 
         public boolean disabled(Entity cameraEntity) {
             if (!(cameraEntity instanceof Player player)) return false;
-            return config.isClassic() ? predicateInClassic.test(player) : predicateInBinding.test(player);
+            return ConfigFile.config().isClassic() ? predicateInClassic.test(player) : predicateInBinding.test(player);
         }
     }
 }
