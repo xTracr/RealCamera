@@ -12,7 +12,7 @@ import java.util.function.IntConsumer;
 public class CyclingTexturedButton extends AbstractButton {
     protected final ResourceLocation texture;
     protected final int textureWidth, textureHeight, u, v, vOffset, size;
-    private IntConsumer onPress;
+    private IntConsumer onValueChange;
     private int value;
 
     public CyclingTexturedButton(int u, int v, int value, int size) {
@@ -43,8 +43,8 @@ public class CyclingTexturedButton extends AbstractButton {
         this.value = (value % size + size) % size;
     }
 
-    public CyclingTexturedButton setOnPress(IntConsumer onPress) {
-        this.onPress = onPress;
+    public CyclingTexturedButton setOnValueChange(IntConsumer onValueChange) {
+        this.onValueChange = onValueChange;
         return this;
     }
 
@@ -52,7 +52,7 @@ public class CyclingTexturedButton extends AbstractButton {
     public void onPress() {
         if (Screen.hasShiftDown()) setValue(value - 1);
         else setValue(value + 1);
-        if (onPress != null) onPress.accept(value);
+        if (onValueChange != null) onValueChange.accept(value);
     }
 
     @Override

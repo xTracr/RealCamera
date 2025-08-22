@@ -69,7 +69,11 @@
   "screen.widget.xtracr_realcamera.modelView_upwardMode": "Upward Vector",
   "screen.widget.xtracr_realcamera.modelView_posMode": "Target Plane",
   "screen.widget.xtracr_realcamera.modelView_save": "Save",
-  "screen.widget.xtracr_realcamera.modelView_disableAll": "Disable All: ",
+  "screen.widget.xtracr_realcamera.modelView_disableMode": "Disable Mode",
+  "screen.widget.xtracr_realcamera.modelView_all": "All",
+  "screen.widget.xtracr_realcamera.modelView_part": "Part",
+  "screen.widget.xtracr_realcamera.modelView_toggleSliderToField": "Toggle Slider to Field",
+  "screen.widget.xtracr_realcamera.modelView_toggleFieldToSlider": "Toggle Field to Slider",
   "screen.widget.xtracr_realcamera.modelView_offsetX": "X Offset = %s",
   "screen.widget.xtracr_realcamera.modelView_offsetY": "Y Offset = %s",
   "screen.widget.xtracr_realcamera.modelView_offsetZ": "Z Offset = %s",
@@ -82,6 +86,7 @@
   "screen.widget.xtracr_realcamera.modelView_paste": "Paste",
   "screen.tooltip.xtracr_realcamera.modelView_selectMode": "Hold left Alt and left click to get the UV coordinates at the mouse pointer\nThe three sets of UV coordinates below are, from top to bottom, the UV coordinates of the forward vector, the upward vector, and a point on the target plane\nNote: Scroll with left Alt held to switch between the different layers of the model. Manually inputting UV coordinates allows you to bind more accurately to the target position",
   "screen.tooltip.xtracr_realcamera.modelView_textureId": "The texture id of the selected model (not necessary to be the full id), can be shortened when saving to make it easier to recognize.\nFor example, shorten minecraft:textures/entity/player/slim/alex.png to minecraft:textures/entity/player/.",
+  "screen.tooltip.xtracr_realcamera.modelView_deleteSelectedRectangle": "Delete the selected rectangle",
   "screen.tooltip.xtracr_realcamera.modelView_bindButtons": "When disabled, the camera's relative relationship to the model will not change, but the camera's corresponding attributes will not be modified by this mod",
   "screen.tooltip.xtracr_realcamera.modelView_scale": "Scale, which controls the size of the offsets",
   "screen.tooltip.xtracr_realcamera.modelView_depth": "Planes where all vertex-to-screen distances are less than this value will not be rendered",
@@ -89,7 +94,7 @@
   "screen.tooltip.xtracr_realcamera.modelView_targetName": "Name of the config",
   "screen.tooltip.xtracr_realcamera.modelView_configs": "Saved Configs",
   "screen.tooltip.xtracr_realcamera.modelView_disable": "Disabling Settings\nGlobal disabling settings are in the config screen",
-  "screen.tooltip.xtracr_realcamera.modelView_copy": "Copy all entries",
+  "screen.tooltip.xtracr_realcamera.modelView_copy": "Copy all disabling settings",
   "screen.tooltip.xtracr_realcamera.modelView_addOrSaveAs": "Add or save as",
-  "screen.tooltip.xtracr_realcamera.modelView_disabledName": "Name of the disable config"
+  "screen.tooltip.xtracr_realcamera.modelView_disabledName": "Name of the disable setting"
 }

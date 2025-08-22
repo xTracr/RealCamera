@@ -64,7 +64,10 @@ public class ModelAnalyser extends VertexRecorder {
     }
 
     public void previewEffect(GuiGraphics graphics, boolean canSelect) {
-        if (canSelect) drawFocused(graphics);
+        if (canSelect) {
+            drawFocusedPolyhedron(graphics);
+            drawFocused(graphics);
+        }
         Vec3 start = bindingContext.getPosition();
         Matrix3f normal = bindingContext.normal;
         if (normal.m00() == 0 && normal.m11() == 0 && normal.m22() == 0) return;
