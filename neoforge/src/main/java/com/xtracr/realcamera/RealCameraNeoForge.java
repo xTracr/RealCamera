@@ -10,9 +10,12 @@ import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.NeoForge;
 
+import java.util.Map;
+
 @Mod(RealCamera.MODID)
 public class RealCameraNeoForge implements RealCamera {
     private final ModContainer modContainer;
+    private final Map<String, String> modIdMap = Map.of("cloth-config", "cloth_config");
 
     public RealCameraNeoForge(IEventBus modEventBus, ModContainer modContainer) {
         this.modContainer = modContainer;
@@ -26,7 +29,7 @@ public class RealCameraNeoForge implements RealCamera {
         NeoForge.EVENT_BUS.addListener(EventHandler::onClientTick);
         NeoForge.EVENT_BUS.addListener(EventHandler::onRenderLevelStage);
 
-        if (isModLoaded("cloth_config")) {
+        if (isModLoaded("cloth-config")) {
             modContainer.registerExtensionPoint(IConfigScreenFactory.class, (container, modListScreen) -> ConfigScreen.create(modListScreen));
         }
     }
@@ -37,6 +40,6 @@ public class RealCameraNeoForge implements RealCamera {
 
     @Override
     public boolean isModLoaded(String modId) {
-        return ModList.get().isLoaded(modId);
+        return ModList.get().isLoaded(modIdMap.getOrDefault(modId, modId));
     }
 }

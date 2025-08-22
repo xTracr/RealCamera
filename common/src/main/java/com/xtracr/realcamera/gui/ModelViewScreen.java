@@ -2,9 +2,11 @@ package com.xtracr.realcamera.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.xtracr.realcamera.RealCameraCore;
+import com.xtracr.realcamera.compat.CompatibilityHelper;
 import com.xtracr.realcamera.config.BindingTarget;
 import com.xtracr.realcamera.config.BindingTarget.*;
 import com.xtracr.realcamera.config.ConfigFile;
+import com.xtracr.realcamera.config.ConfigScreen;
 import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.util.*;
 import net.minecraft.ChatFormatting;
@@ -15,11 +17,11 @@ import net.minecraft.client.gui.layouts.FrameLayout;
 import net.minecraft.client.gui.layouts.GridLayout;
 import net.minecraft.client.gui.layouts.LayoutSettings;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.phys.Vec2;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -33,11 +35,15 @@ public class ModelViewScreen extends Screen {
     protected int xSize = 450, ySize = 206, middleWidth = xSize - 200, widgetWidth = (xSize - middleWidth) / 4 - 8, widgetHeight = 18;
     protected int x, y;
     private boolean initialized;
-    private int entityScale = 80, layers = 0, page = 0;
-    private double entityX, entityY;
+    private int modelScale = 80, textureScale = 80, layers = 0, page = 0;
+    private double modelX, modelY, textureX, textureY;
     private float xRot, yRot;
-    private Vec2 focusedUV;
     private String focusedTextureId;
+    private ScreenRectangle modelViewArea;
+    @Nullable
+    private ScreenRectangle textureViewArea;
+    private VertexData[] focusedPrimitive = new VertexData[0];
+    @Nullable
     private UVRectangleWidget focusedRectangle;
     private EditBox textureIdField, nameField, disabledNameField, disabledIdField;
     private NumberField<Integer> priorityField;
@@ -61,7 +67,10 @@ public class ModelViewScreen extends Screen {
     private final CycleButton<Integer> toggleSliderButton = createCyclingButton(Map.of(
                     0, LocUtil.MODEL_VIEW_WIDGET("toggleSliderToField"),
                     1, LocUtil.MODEL_VIEW_WIDGET("toggleFieldToSlider")),
-            widgetWidth * 2 + 4, (button, i) -> initWidgets(page));
+            widgetWidth * 2 + 4, (button, i) -> {
+                loadBindingTarget(generateBindingTarget(i == 1));
+                initWidgets(page);
+            });
     private final CycleButton<Integer> toggleConfigButton = createCyclingButton(Map.of(
                     0, LocUtil.MODEL_VIEW_WIDGET(toggleConfigMap.get(0)),
                     1, LocUtil.MODEL_VIEW_WIDGET(toggleConfigMap.get(1))),
@@ -101,14 +110,21 @@ public class ModelViewScreen extends Screen {
 
     private void initWidgets(int page) {
         this.page = page;
+        if (toggleConfigButton.getValue() == 1 && togglePreviewButton.getValue() == 0) {
+            modelViewArea = new ScreenRectangle(x + xSize / 2, y, middleWidth / 2, ySize);
+            textureViewArea = new ScreenRectangle(x + (xSize - middleWidth) / 2, y, middleWidth / 2, ySize);
+        } else {
+            modelViewArea = new ScreenRectangle(x + (xSize - middleWidth) / 2, y, middleWidth, ySize);
+            textureViewArea = null;
+        }
         clearWidgets();
         initLeftWidgets();
         addRenderableWidget(pauseButton).setPosition(x + (xSize + middleWidth) / 2 - 38, y + 4);
         addRenderableWidget(new TexturedButton(x + (xSize + middleWidth) / 2 - 20, y + 4, 16, 16, 0, 0, button -> {
-            entityScale = 80;
+            modelScale = textureScale = 80;
             entityYawSlider.setValue(0);
             entityPitchSlider.setValue(0);
-            entityX = entityY = 0;
+            modelX = modelY = textureX = textureY = 0;
             xRot = yRot = 0;
             layers = 0;
         }));
@@ -136,28 +152,14 @@ public class ModelViewScreen extends Screen {
         offsetRollField = createFloatField(widgetWidth * 2 - 20, 0, offsetRollField).setMin(-180.0f).setMax(180.0f);
         scaleField = createFloatField(widgetWidth, 1.0f, scaleField).setMax(64.0f);
         depthField = createFloatField(widgetWidth, 0.2f, depthField).setMax(16.0f);
-        boolean useOffsetSlider = toggleSliderButton.getValue() == 0;
-        if (useOffsetSlider) {
-            offsetXSlider.setValue(offsetXField.getNumber());
-            offsetYSlider.setValue(offsetYField.getNumber());
-            offsetZSlider.setValue(offsetZField.getNumber());
-            offsetPitchSlider.setValue(offsetPitchField.getNumber());
-            offsetYawSlider.setValue(offsetYawField.getNumber());
-            offsetRollSlider.setValue(offsetRollField.getNumber());
-        } else {
-            offsetXField.setNumber((float) offsetXSlider.getValue());
-            offsetYField.setNumber((float) offsetYSlider.getValue());
-            offsetZField.setNumber((float) offsetZSlider.getValue());
-            offsetPitchField.setNumber((float) offsetPitchSlider.getValue());
-            offsetYawField.setNumber((float) offsetYawSlider.getValue());
-            offsetRollField.setNumber((float) offsetRollSlider.getValue());
-        }
         GridLayout grid = new GridLayout();
         grid.defaultCellSetting().padding(4, 2, 0, 0);
         LayoutSettings smallSettings = grid.newCellSettings().padding(5, 3, 1, 1);
         GridLayout.RowHelper rows = grid.createRowHelper(2);
         if (togglePreviewButton.getValue() == 0) {
-            rows.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("settings"), widgetWidth * 2 + 4, button -> {}), 2);
+            rows.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("toConfigScreen"), widgetWidth * 2 + 4, button -> {
+                if (CompatibilityHelper.isModLoaded("cloth-config")) minecraft.setScreen(ConfigScreen.create(this));
+            }), 2).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("toConfigScreen"));
             if (toggleConfigButton.getValue() == 0) {
                 rows.addChild(entityPitchSlider, 2);
                 rows.addChild(entityYawSlider, 2);
@@ -181,29 +183,29 @@ public class ModelViewScreen extends Screen {
                 rows.addChild(uMaxField, 1, offsetXSettings);
                 rows.addChild(new StringWidget(26, widgetHeight, LocUtil.literal("vMax:"), font));
                 rows.addChild(vMaxField, 1, offsetXSettings);
-                rows.addChild(new StringWidget(widgetWidth, widgetHeight, Component.empty(), font));
                 rows.addChild(new TexturedButton(48, 0, button -> {
                     rectangleWidgets.remove(focusedRectangle);
                     focusedRectangle = null;
-                }), 1, grid.newCellSettings().padding(5 + widgetWidth - 18, 3, 1, 1)).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("deleteSelectedRectangle"));
+                }), 2, grid.newCellSettings().padding(5 + widgetWidth * 2 - 14, 3, 1, 1)).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("deleteSelectedRectangle"));
             }
         } else {
+            boolean useSliderOffset = toggleSliderButton.getValue() == 0;
             rows.addChild(toggleSliderButton, 2);
             LayoutSettings sliderSettings = grid.newCellSettings().padding(-20, 2, 0, 0);
             LayoutSettings fieldSettings = grid.newCellSettings().padding(-17, 3, 1, 1);
             rows.addChild(bindXButton, 1, smallSettings).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("bindButtons"));
-            if (useOffsetSlider) rows.addChild(offsetXSlider, 1, sliderSettings);
+            if (useSliderOffset) rows.addChild(offsetXSlider, 1, sliderSettings);
             else rows.addChild(offsetXField, 1, fieldSettings);
             rows.addChild(bindYButton, 1, smallSettings).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("bindButtons"));
-            if (useOffsetSlider) rows.addChild(offsetYSlider, 1, sliderSettings);
+            if (useSliderOffset) rows.addChild(offsetYSlider, 1, sliderSettings);
             else rows.addChild(offsetYField, 1, fieldSettings);
             rows.addChild(bindZButton, 1, smallSettings).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("bindButtons"));
-            if (useOffsetSlider) rows.addChild(offsetZSlider, 1, sliderSettings);
+            if (useSliderOffset) rows.addChild(offsetZSlider, 1, sliderSettings);
             else rows.addChild(offsetZField, 1, fieldSettings);
             rows.addChild(bindRotButton, 1, smallSettings).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("bindButtons"));
-            if (useOffsetSlider) rows.addChild(offsetPitchSlider, 1, sliderSettings);
+            if (useSliderOffset) rows.addChild(offsetPitchSlider, 1, sliderSettings);
             else rows.addChild(offsetPitchField, 1, fieldSettings);
-            if (useOffsetSlider) rows.addChild(offsetYawSlider, 2, grid.newCellSettings().padding(26, 2, 0, 0));
+            if (useSliderOffset) rows.addChild(offsetYawSlider, 2, grid.newCellSettings().padding(26, 2, 0, 0));
             else rows.addChild(offsetYawField, 2, grid.newCellSettings().padding(29, 3, 1, 1));
             rows.addChild(new TexturedButton(0, 0, button -> {
                 offsetXField.setNumber(0f);
@@ -219,13 +221,13 @@ public class ModelViewScreen extends Screen {
                 offsetYawSlider.setValue(0);
                 offsetRollSlider.setValue(0);
             }), 1, smallSettings);
-            if (useOffsetSlider) rows.addChild(offsetRollSlider, 1, sliderSettings);
+            if (useSliderOffset) rows.addChild(offsetRollSlider, 1, sliderSettings);
             else rows.addChild(offsetRollField, 1, fieldSettings);
             rows.addChild(scaleField, 1, smallSettings).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("scale"));
             rows.addChild(depthField, 1, smallSettings).setTooltip(LocUtil.MODEL_VIEW_TOOLTIP("depth"));
         }
         rows.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("save"), widgetWidth, button -> {
-            ConfigFile.config().binding.putTarget(generateBindingTarget());
+            ConfigFile.config().binding.putTarget(generateBindingTarget(toggleSliderButton.getValue() == 0));
             ConfigFile.save();
             initWidgets(page);
         }));
@@ -324,10 +326,22 @@ public class ModelViewScreen extends Screen {
         super.renderBackground(graphics, mouseX, mouseY, deltaTick);
         graphics.fill(x, y, x + (xSize - middleWidth) / 2 - 4, y + ySize, 0xFF444444);
         graphics.fill(x + (xSize + middleWidth) / 2 + 4, y, x + xSize, y + ySize, 0xFF444444);
-        renderEntityInViewArea(graphics, x + (xSize - middleWidth) / 2, y, x + (xSize + middleWidth) / 2, y + ySize, mouseX, mouseY, minecraft.player);
+        analyser.setup(generateBindingTarget(toggleSliderButton.getValue() == 0), modelScale, 512);
+        renderModelViewArea(graphics, minecraft.player);
+        renderTextureViewArea(graphics);
+        applyAnalyser(graphics, mouseX, mouseY);
     }
 
-    protected void renderEntityInViewArea(GuiGraphics graphics, int x1, int y1, int x2, int y2, int mouseX, int mouseY, LivingEntity entity) {
+    protected void applyAnalyser(GuiGraphics graphics, int mouseX, int mouseY) {
+        analyser.analyseEntity(mouseX, mouseY, layers);
+        focusedPrimitive = analyser.getFocusedPrimitive();
+        focusedTextureId = analyser.getFocusedTextureId();
+        if (toggleConfigButton.getValue() == 0 && togglePreviewButton.getValue() == 0) analyser.drawSelected(graphics);
+        else analyser.previewEffect(graphics, togglePreviewButton.getValue() == 0);
+    }
+
+    protected void renderModelViewArea(GuiGraphics graphics, LivingEntity entity) {
+        int x1 = modelViewArea.left(), y1 = modelViewArea.top(), x2 = modelViewArea.right(), y2 = modelViewArea.bottom();
         graphics.enableScissor(x1, y1, x2, y2);
         Quaternionf quaternionf = new Quaternionf().rotateX((float) Math.PI / 6 + xRot).rotateY((float) Math.PI / 6 + yRot).rotateZ((float) Math.PI);
         float entityBodyYaw = entity.yBodyRot;
@@ -340,8 +354,9 @@ public class ModelViewScreen extends Screen {
         entity.setXRot((float) entityPitchSlider.getValue());
         entity.yHeadRot = entity.getYRot();
         entity.yHeadRotO = entity.getYRot();
-        Vector3f vector3f = new Vector3f((float) entityX, (float) entityY, -2.0f);
-        renderEntityWithAnalyser(graphics, x1, y1, x2, y2, mouseX, mouseY, vector3f, quaternionf, entity);
+        graphics.fill(x1, y1, x2, y2, 0xFF222222);
+        Vector3f offset = new Vector3f((float) modelX, (float) modelY, -2.0f);
+        renderEntityWithAnalyser(graphics, x1, y1, x2, y2, modelScale, offset, quaternionf, entity);
         entity.yBodyRot = entityBodyYaw;
         entity.setYRot(entityYaw);
         entity.setXRot(entityPitch);
@@ -350,37 +365,48 @@ public class ModelViewScreen extends Screen {
         graphics.disableScissor();
     }
 
-    protected void renderEntityWithAnalyser(GuiGraphics graphics, int x1, int y1, int x2, int y2, int mouseX, int mouseY, Vector3f offset, Quaternionf quaternionf, LivingEntity entity) {
-        int offsetZ = (int) (-8 * entityScale * entity.getBbHeight());
-        graphics.fill(x1, y1, x2, y2, offsetZ, 0xFF222222);
-        analyser.setup(generateBindingTarget(), entityScale, offsetZ);
+    protected void renderEntityWithAnalyser(GuiGraphics graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset, Quaternionf quaternionf, LivingEntity entity) {
         graphics.pose().pushPose();
         graphics.pose().translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
-        graphics.pose().scale(entityScale, entityScale, -entityScale);
+        graphics.pose().scale(scale, scale, -scale);
         graphics.pose().translate(offset.x(), offset.y(), offset.z());
         graphics.pose().mulPose(quaternionf);
         graphics.pose().translate(0, -entity.getBbHeight() / 2.0f, 0);
         analyser.updateModel(minecraft, entity, 1.0f, graphics.pose());
-        analyser.analyse(mouseX, mouseY, layers);
         analyser.drawModel(graphics, hiddenNameMap, 1);
-        focusedUV = analyser.getFocusedUV();
-        focusedTextureId = analyser.getFocusedTextureId();
-        if (toggleConfigButton.getValue() == 0 && togglePreviewButton.getValue() == 0) analyser.drawSelected(graphics);
-        else analyser.previewEffect(graphics, togglePreviewButton.getValue() == 0);
         graphics.pose().popPose();
     }
 
-    protected BindingTarget generateBindingTarget() {
+    protected void renderTextureViewArea(GuiGraphics graphics) {
+        if (textureViewArea == null) return;
+        int x1 = textureViewArea.left(), y1 = textureViewArea.top(), x2 = textureViewArea.right(), y2 = textureViewArea.bottom();
+        graphics.enableScissor(x1, y1, x2, y2);
+        graphics.fill(x1, y1, x2, y2, 0xFF222222);
+        Vector3f offset = new Vector3f((float) textureX - 0.5f, (float) textureY - 0.5f, -2.0f);
+        renderTextureWithAnalyser(graphics, x1, y1, x2, y2, (float) (textureScale * textureViewArea.width()) / 80, offset);
+        graphics.disableScissor();
+    }
+
+    protected void renderTextureWithAnalyser(GuiGraphics graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset) {
+        graphics.pose().pushPose();
+        graphics.pose().translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
+        graphics.pose().scale(scale, scale, -scale);
+        graphics.pose().translate(offset.x(), offset.y(), offset.z());
+        analyser.drawTexture(graphics, disabledIdField.getValue(), 1);
+        graphics.pose().popPose();
+    }
+
+    protected BindingTarget generateBindingTarget(boolean useSliderOffset) {
         TargetConfig targetConfig = new TargetConfig( forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber());
         BindConfig bindConfig = new BindConfig( bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);
         OffsetConfig offsets = new OffsetConfig()
                 .setScale(scaleField.getNumber())
-                .setX(toggleSliderButton.getValue() == 0 ? offsetXSlider.getValue() : offsetXField.getNumber())
-                .setY(toggleSliderButton.getValue() == 0 ? offsetYSlider.getValue() : offsetYField.getNumber())
-                .setZ(toggleSliderButton.getValue() == 0 ? offsetZSlider.getValue() : offsetZField.getNumber())
-                .setPitch(toggleSliderButton.getValue() == 0 ? (float) offsetPitchSlider.getValue() : offsetPitchField.getNumber())
-                .setYaw(toggleSliderButton.getValue() == 0 ? (float) offsetYawSlider.getValue() : offsetYawField.getNumber())
-                .setRoll(toggleSliderButton.getValue() == 0 ? (float) offsetRollSlider.getValue() : offsetRollField.getNumber());
+                .setX(useSliderOffset ? offsetXSlider.getValue() : offsetXField.getNumber())
+                .setY(useSliderOffset ? offsetYSlider.getValue() : offsetYField.getNumber())
+                .setZ(useSliderOffset ? offsetZSlider.getValue() : offsetZField.getNumber())
+                .setPitch(useSliderOffset ? (float) offsetPitchSlider.getValue() : offsetPitchField.getNumber())
+                .setYaw(useSliderOffset ? (float) offsetYawSlider.getValue() : offsetYawField.getNumber())
+                .setRoll(useSliderOffset ? (float) offsetRollSlider.getValue() : offsetRollField.getNumber());
         return new BindingTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, disableConfigs.toArray(DisableConfig[]::new));
     }
 
@@ -448,28 +474,50 @@ public class ModelViewScreen extends Screen {
         return editBox;
     }
 
-    protected boolean mouseInViewArea(double mouseX, double mouseY) {
-        return mouseX >= x + (double) (xSize - middleWidth) / 2 && mouseX <= x + (double) (xSize + middleWidth) / 2 && mouseY >= y && mouseY <= y + ySize;
+    protected boolean inModelViewArea(double x, double y) {
+        return modelViewArea.containsPoint((int) x, (int) y);
+    }
+
+    protected boolean inTextureViewArea(double x, double y) {
+        return textureViewArea != null && textureViewArea.containsPoint((int) x, (int) y);
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (mouseInViewArea(mouseX, mouseY) && focusedUV != null && button == GLFW.GLFW_MOUSE_BUTTON_LEFT && toggleConfigButton.getValue() == 0 && InputConstants.isKeyDown(minecraft.getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_ALT)) {
-            if (togglePreviewButton.getValue() == 0) {
+        if (focusedPrimitive.length > 0 && button == GLFW.GLFW_MOUSE_BUTTON_LEFT && togglePreviewButton.getValue() == 0 && InputConstants.isKeyDown(minecraft.getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_ALT)) {
+            if (inModelViewArea(mouseX, mouseY) && toggleConfigButton.getValue() == 0) {
+                float u = 0, v = 0;
+                for (VertexData vertex : focusedPrimitive) {
+                    u += vertex.u();
+                    v += vertex.v();
+                }
+                u /= focusedPrimitive.length;
+                v /= focusedPrimitive.length;
                 if (selectingButton.getValue() == 0) {
-                    forwardUField.setNumber(focusedUV.x);
-                    forwardVField.setNumber(focusedUV.y);
+                    forwardUField.setNumber(u);
+                    forwardVField.setNumber(v);
                 } else if (selectingButton.getValue() == 1) {
-                    upwardUField.setNumber(focusedUV.x);
-                    upwardVField.setNumber(focusedUV.y);
+                    upwardUField.setNumber(u);
+                    upwardVField.setNumber(v);
                 } else {
-                    posUField.setNumber(focusedUV.x);
-                    posVField.setNumber(focusedUV.y);
+                    posUField.setNumber(u);
+                    posVField.setNumber(v);
                 }
                 textureIdField.setValue(focusedTextureId);
                 return true;
-            } else if (togglePreviewButton.getValue() == 1) {
+            } else if ((inModelViewArea(mouseX, mouseY) || inTextureViewArea(mouseX, mouseY)) && toggleConfigButton.getValue() == 1) {
+                float uMin = 1f, vMin = 1f, uMax = 0, vMax = 0;
+                for (VertexData vertex : focusedPrimitive) {
+                    if (vertex.u() < uMin) uMin = vertex.u();
+                    if (vertex.v() < vMin) vMin = vertex.v();
+                    if (vertex.u() > uMax) uMax = vertex.u();
+                    if (vertex.v() > vMax) vMax = vertex.v();
+                }
                 disabledIdField.setValue(focusedTextureId);
+                uMinField.setNumber(uMin);
+                vMinField.setNumber(vMin);
+                uMaxField.setNumber(uMax);
+                vMaxField.setNumber(vMax);
                 return true;
             }
         }
@@ -478,14 +526,20 @@ public class ModelViewScreen extends Screen {
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        if (mouseInViewArea(mouseX, mouseY)) {
-            if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && !InputConstants.isKeyDown(minecraft.getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_ALT)) {
+        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && !InputConstants.isKeyDown(minecraft.getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_ALT)) {
+            if (inModelViewArea(mouseX, mouseY)) {
                 xRot += (float) (Math.PI * deltaY / ySize);
                 yRot -= (float) (Math.PI * deltaX / middleWidth);
                 return true;
-            } else if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
-                entityX += deltaX / entityScale;
-                entityY += deltaY / entityScale;
+            }
+        } else if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+            if (inModelViewArea(mouseX, mouseY)) {
+                modelX += deltaX / modelScale;
+                modelY += deltaY / modelScale;
+                return true;
+            } else if (inTextureViewArea(mouseX, mouseY)) {
+                textureX += deltaX / textureScale;
+                textureY += deltaY / textureScale;
                 return true;
             }
         }
@@ -494,13 +548,15 @@ public class ModelViewScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        if (mouseInViewArea(mouseX, mouseY)) {
+        if (inModelViewArea(mouseX, mouseY)) {
             if (InputConstants.isKeyDown(minecraft.getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_ALT)) {
                 layers = Math.max(0, layers + (int) verticalAmount);
             } else {
-                entityScale = Mth.clamp(entityScale + (int) verticalAmount * entityScale / 16, 16, 1024);
+                modelScale = Mth.clamp(modelScale + (int) verticalAmount * modelScale / 16, 16, 1024);
             }
             return true;
+        } else if (inTextureViewArea(mouseX, mouseY)) {
+            textureScale = Mth.clamp(textureScale + (int) verticalAmount * textureScale / 16, 16, 1024);
         }
         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
