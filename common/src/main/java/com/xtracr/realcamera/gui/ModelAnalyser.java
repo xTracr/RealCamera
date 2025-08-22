@@ -27,12 +27,13 @@ public class ModelAnalyser extends VertexRecorder {
     private static final Set<RenderType> UNFOCUSABLE_RENDER_TYPES = Set.of(RenderType.armorEntityGlint(), RenderType.glintTranslucent(), RenderType.glint(), RenderType.entityGlint(), RenderType.entityGlintDirect());
     private static final int primitiveArgb = 0x6F3333CC, forwardArgb = 0xFF00CC00, upwardArgb = 0xFFCC0000, leftArgb = 0xFF0000CC;
     private static final int focusedArgb = 0x7FFFFFFF, sideArgb = 0x3FFFFFFF;
+    private static final int zOffset1 = 256, zOffset2 = 2 * zOffset1;
     public final PoseStack modelPose = new PoseStack(), texturePose = new PoseStack();
     private BindingContext bindingContext = BindingContext.EMPTY;
     private BindingTarget target = BindingTarget.EMPTY;
     @Nullable
     private BuiltRecord focusedRecord, currentRecord;
-    private int focusedIndex = -1, modelScale, offsetZ;
+    private int focusedIndex = -1, modelScale;
 
     private static boolean intersects(VertexData[] p1, List<VertexData[]> primitives) {
         final float precision = 1.0E-05f;
@@ -40,7 +41,7 @@ public class ModelAnalyser extends VertexRecorder {
         return false;
     }
 
-    public void setup(BindingTarget target, int modelScale, int offsetZ) {
+    public void setup(BindingTarget target, int modelScale) {
         this.target = target;
         modelPose.setIdentity();
         texturePose.setIdentity();
@@ -48,7 +49,6 @@ public class ModelAnalyser extends VertexRecorder {
         focusedRecord = currentRecord = null;
         focusedIndex = -1;
         this.modelScale = modelScale;
-        this.offsetZ = offsetZ;
     }
 
     public String getFocusedTextureId() {
@@ -94,11 +94,11 @@ public class ModelAnalyser extends VertexRecorder {
         graphics.disableScissor();
     }
 
-    public void drawModel(GuiGraphics graphics, Map<String, Set<String>> hiddenNameMap, PoseStack poseStack, int guiScale) {
+    public void drawModel(GuiGraphics graphics, Map<String, Set<String>> hiddenNameMap, PoseStack poseStack) {
         Set<String> hiddenNames = hiddenNameMap.getOrDefault(target.name(), Set.of());
         poseStack.pushPose();
         poseStack.mulPose(modelPose.last().pose().invert(new Matrix4f()));
-        Matrix4f positionMatrix = new Matrix4f().translate(0, 0, guiScale * offsetZ).mul(poseStack.last().pose());
+        Matrix4f positionMatrix = new Matrix4f().scale(1, 1, 0.1f).mul(poseStack.last().pose());
         Matrix3f normalMatrix = new Matrix3f(positionMatrix);
         records().forEach(record -> {
             DisableConfig[] disableConfigs = target.filteredDisableConfigs(config -> record.textureId().contains(config.textureId()) && hiddenNames.contains(config.name()));
@@ -125,11 +125,11 @@ public class ModelAnalyser extends VertexRecorder {
         graphics.flush();
     }
 
-    public void drawTextureAndComputeFocused(GuiGraphics graphics, String textureId, int mouseX, int mouseY, PoseStack poseStack, int guiScale) {
+    public void drawTextureAndComputeFocused(GuiGraphics graphics, String textureId, int mouseX, int mouseY, PoseStack poseStack) {
         Matrix4f positionMatrix1 = texturePose.last().pose();
         poseStack.pushPose();
         poseStack.mulPose(positionMatrix1.invert(new Matrix4f()));
-        Matrix4f positionMatrix2 = new Matrix4f().translate(0, 0, guiScale * offsetZ).mul(poseStack.last().pose());
+        Matrix4f positionMatrix2 = new Matrix4f().mul(poseStack.last().pose());
         records.forEach(record -> {
             if (textureId.isBlank() || !record.textureId().contains(textureId)) return;
             VertexConsumer buffer = graphics.bufferSource().getBuffer(record.renderType());
@@ -144,7 +144,7 @@ public class ModelAnalyser extends VertexRecorder {
                     xs[j] = (int) position.x();
                     ys[j] = (int) position.y();
                     position.mulPosition(positionMatrix2);
-                    buffer.addVertex(position.x(), position.y(), position.z(), vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
+                    buffer.addVertex(position.x(), position.y(), 0, vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
                 }
                 if (mouseX != -1 && new Polygon(xs, ys, length).contains(mouseX, mouseY)) {
                     focusedRecord = record;
@@ -185,18 +185,18 @@ public class ModelAnalyser extends VertexRecorder {
         return BindingContext.EMPTY;
     }
 
-    private void drawPrimitive(GuiGraphics graphics, VertexData[] primitive, int argb, int offset) {
+    private void drawPrimitive(GuiGraphics graphics, VertexData[] primitive, int z, int argb) {
         VertexConsumer buffer = graphics.bufferSource().getBuffer(RenderType.gui());
-        for (VertexData vertex : primitive) buffer.addVertex(vertex.x(), vertex.y(), vertex.z() + offsetZ + offset).setColor(argb);
-        if (primitive.length == 3) buffer.addVertex(primitive[2].x(), primitive[2].y(), primitive[2].z() + offsetZ + offset).setColor(argb);
+        for (VertexData vertex : primitive) buffer.addVertex(vertex.x(), vertex.y(), z).setColor(argb);
+        if (primitive.length == 3) buffer.addVertex(primitive[2].x(), primitive[2].y(), z).setColor(argb);
         graphics.flush();
     }
 
     private void drawNormal(GuiGraphics graphics, Vec3 start, Vec3 normal, int length, int argb) {
         Vec3 end = normal.scale(length).add(start);
         VertexConsumer buffer = graphics.bufferSource().getBuffer(RenderType.lineStrip());
-        buffer.addVertex((float) start.x(), (float) start.y(), (float) (start.z() + offsetZ + 100)).setColor(argb).setNormal((float) normal.x(), (float) normal.y(), (float) normal.z());
-        buffer.addVertex((float) end.x(), (float) end.y(), (float) (end.z() + offsetZ + 100)).setColor(argb).setNormal((float) normal.x(), (float) normal.y(), (float) normal.z());
+        buffer.addVertex((float) start.x(), (float) start.y(), zOffset2).setColor(argb).setNormal((float) normal.x(), (float) normal.y(), (float) normal.z());
+        buffer.addVertex((float) end.x(), (float) end.y(), zOffset2).setColor(argb).setNormal((float) normal.x(), (float) normal.y(), (float) normal.z());
         graphics.flush();
     }
 
@@ -212,7 +212,7 @@ public class ModelAnalyser extends VertexRecorder {
     private void drawBindingTarget(GuiGraphics graphics) {
         if (currentRecord == null) return;
         TargetConfig config = target.targetConfig();
-        currentRecord.findPrimitive(config.posU(), config.posV()).ifPresent(primitive -> drawPrimitive(graphics, primitive, primitiveArgb, 100));
+        currentRecord.findPrimitive(config.posU(), config.posV()).ifPresent(primitive -> drawPrimitive(graphics, primitive, zOffset2, primitiveArgb));
         currentRecord.findPrimitive(config.forwardU(), config.forwardV()).ifPresent(primitive -> drawNormal(graphics, getPosition(primitive, config.forwardU(), config.forwardV()), primitive[0].normal(), modelScale / 2, forwardArgb));
         currentRecord.findPrimitive(config.upwardU(), config.upwardV()).ifPresent(primitive -> drawNormal(graphics, getPosition(primitive, config.upwardU(), config.upwardV()), primitive[0].normal(), modelScale / 2, upwardArgb));
     }
@@ -248,32 +248,32 @@ public class ModelAnalyser extends VertexRecorder {
             resultIndexes.add(i);
         }
         graphics.enableScissor(modelViewArea.left(), modelViewArea.top(), modelViewArea.right(), modelViewArea.bottom());
-        drawPrimitive(graphics, focused, focusedArgb, 100);
-        drawPrimitive(graphics, reversedFocus, focusedArgb, 100);
-        resultIndexes.forEach(i -> drawPrimitive(graphics, primitives[i], sideArgb, 50));
+        drawPrimitive(graphics, focused, zOffset2, focusedArgb);
+        drawPrimitive(graphics, reversedFocus, zOffset2, focusedArgb);
+        resultIndexes.forEach(i -> drawPrimitive(graphics, primitives[i], zOffset1, sideArgb));
         graphics.disableScissor();
         if (textureViewArea == null) return;
         Matrix4f positionMatrix = texturePose.last().pose();
         for (int i = 0; i < focused.length; i++) {
             VertexData vertex = focused[i];
             Vector3f position = new Vector3f(vertex.u(), vertex.v(), 0).mulPosition(positionMatrix);
-            focused[i] = reversedFocus[focused.length - 1 - i] = new VertexData(position.x(), position.y(), position.z(), vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
+            focused[i] = reversedFocus[focused.length - 1 - i] = new VertexData(position.x(), position.y(), 0, vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
         }
         graphics.enableScissor(textureViewArea.left(), textureViewArea.top(), textureViewArea.right(), textureViewArea.bottom());
-        drawPrimitive(graphics, focused, focusedArgb, 100);
-        drawPrimitive(graphics, reversedFocus, focusedArgb, 100);
+        drawPrimitive(graphics, focused, 0, focusedArgb);
+        drawPrimitive(graphics, reversedFocus, 0, focusedArgb);
         resultIndexes.forEach(i -> {
             VertexData[] primitive = primitives[i], reversed = new VertexData[primitive.length];
             for (int j = 0; j < primitive.length; j++) {
                 VertexData vertex = primitive[j];
                 Vector3f position = new Vector3f(vertex.u(), vertex.v(), 0).mulPosition(positionMatrix);
-                primitive[j] = reversed[primitive.length - 1 - j] = new VertexData(position.x(), position.y(), position.z(), vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
+                primitive[j] = reversed[primitive.length - 1 - j] = new VertexData(position.x(), position.y(), 0, vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
             }
-            drawPrimitive(graphics, primitive, sideArgb, 50);
-            drawPrimitive(graphics, reversed, sideArgb, 50);
+            drawPrimitive(graphics, primitive, 0, sideArgb);
+            drawPrimitive(graphics, reversed, 0, sideArgb);
         });
         graphics.disableScissor();
     }
 
-    record Triple(double depth, BuiltRecord record, int index) { }
+    record Triple(double depth, BuiltRecord record, int index) {}
 }

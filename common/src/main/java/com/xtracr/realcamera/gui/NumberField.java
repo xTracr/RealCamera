@@ -11,6 +11,8 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSequence;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Consumer;
+
 public abstract class NumberField<T extends Comparable<T>> extends EditBox {
     private final T defaultValue;
     protected T maximum, minimum;
@@ -31,6 +33,10 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
 
     public static NumberField<Integer> ofInt(Font font, int width, int height, int defaultValue, @Nullable NumberField<Integer> copyFrom) {
         return new IntField(font, width, height, defaultValue, copyFrom);
+    }
+
+    public void setOnValueChange(Consumer<T> consumer) {
+        super.setResponder(str -> consumer.accept(getNumber()));
     }
 
     public T getNumber() {

@@ -6,12 +6,14 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.IntConsumer;
 
 public class CyclingTexturedButton extends AbstractButton {
     protected final ResourceLocation texture;
     protected final int textureWidth, textureHeight, u, v, vOffset, size;
+    @Nullable
     private IntConsumer onValueChange;
     private int value;
 
