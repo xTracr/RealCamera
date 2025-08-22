@@ -60,15 +60,52 @@ public class VertexRecorder {
     }
 
     public BindingContext genContext() {
-        BindingContext context;
+        // Collect all available contexts with their targets
+        List<BindingContext> availableContexts = new ArrayList<>();
+        
         for (BindingTarget target : ConfigFile.config().getTargetList()) {
             for (BuiltRecord record : records) {
-                context = new BindingContext(target, false);
+                BindingContext context = new BindingContext(target, false);
                 record.setupContext(context);
-                if (context.available()) return context;
+                if (context.available()) {
+                    availableContexts.add(context);
+                }
             }
         }
-        return BindingContext.EMPTY;
+        
+        if (availableContexts.isEmpty()) {
+            return BindingContext.EMPTY;
+        }
+        
+        // Sort contexts: 
+        // 1. Prefer targets with excludedRegions (non-empty)
+        // 2. Then by priority (higher first)
+        availableContexts.sort((c1, c2) -> {
+            boolean has1 = c1.target != null && c1.target.getExcludedRegions() != null && !c1.target.getExcludedRegions().isEmpty();
+            boolean has2 = c2.target != null && c2.target.getExcludedRegions() != null && !c2.target.getExcludedRegions().isEmpty();
+            
+            // If one has excludedRegions and the other doesn't, prefer the one with excludedRegions
+            if (has1 && !has2) return -1;
+            if (!has1 && has2) return 1;
+            
+            // Otherwise, sort by priority
+            int p1 = c1.target != null ? c1.target.getPriority() : 0;
+            int p2 = c2.target != null ? c2.target.getPriority() : 0;
+            return Integer.compare(p2, p1); // Higher priority first
+        });
+        
+        // Log the selected target for debugging
+        BindingContext selectedContext = availableContexts.get(0);
+        if (selectedContext.target != null) {
+            boolean hasExclusions = selectedContext.target.getExcludedRegions() != null && 
+                                   !selectedContext.target.getExcludedRegions().isEmpty();
+            System.out.println("[RealCamera] Selected target: " + selectedContext.target.name + 
+                             " (priority=" + selectedContext.target.getPriority() + 
+                             ", excludedRegions=" + (hasExclusions ? selectedContext.target.getExcludedRegions().size() : 0) + ")");
+        }
+        
+        // Return the best matching context
+        return selectedContext;
     }
 
     public record BuiltRecord(RenderType renderType, String textureId, VertexData[] vertices, VertexData[][] primitives) {
@@ -87,7 +124,8 @@ public class VertexRecorder {
 
         public void setupContext(BindingContext context) {
             BindingTarget target = context.target;
-            if (!textureId.contains(target.textureId)) return;
+            // Improved matching: More specific texture ID matching
+            if (!matchesTextureId(textureId, target.textureId)) return;
             findPrimitive(target.getPosU(), target.getPosV()).ifPresent(primitive -> context.setPosition(getPosition(primitive, target.getPosU(), target.getPosV())));
             findPrimitive(target.getForwardU(), target.getForwardV()).ifPresent(primitive -> context.setForward(primitive[0].normal()));
             findPrimitive(target.getUpwardU(), target.getUpwardV()).ifPresent(primitive -> context.setUpward(primitive[0].normal()));
@@ -95,13 +133,43 @@ public class VertexRecorder {
 
         public void setupContext(BindingContext context, Matrix4f positionMatrix, Matrix3f normalMatrix) {
             BindingTarget target = context.target;
-            if (!textureId.contains(target.textureId)) return;
+            // Improved matching: More specific texture ID matching
+            if (!matchesTextureId(textureId, target.textureId)) return;
             findPrimitive(target.getPosU(), target.getPosV()).ifPresent(primitive ->
                     context.setPosition(new Vec3(getPosition(primitive, target.getPosU(), target.getPosV()).toVector3f().mulPosition(positionMatrix))));
             findPrimitive(target.getForwardU(), target.getForwardV()).ifPresent(primitive ->
                     context.setForward(new Vec3(primitive[0].normal().toVector3f().mul(normalMatrix))));
             findPrimitive(target.getUpwardU(), target.getUpwardV()).ifPresent(primitive ->
                     context.setUpward(new Vec3(primitive[0].normal().toVector3f().mul(normalMatrix))));
+        }
+        
+        private boolean matchesTextureId(String recordTexture, String targetTexture) {
+            // If target texture is empty, it matches any texture
+            if (targetTexture == null || targetTexture.isEmpty()) {
+                return true;
+            }
+            
+            // Prioritize exact match
+            if (recordTexture.equals(targetTexture)) {
+                return true;
+            }
+            
+            // For player skins, use more specific matching
+            if (targetTexture.equals("minecraft:skins/")) {
+                // Only match skins, not regular player textures
+                return recordTexture.contains("minecraft:skins/") || 
+                       recordTexture.contains("/skin/") ||
+                       recordTexture.contains("_skin");
+            }
+            
+            if (targetTexture.equals("minecraft:textures/entity/player/")) {
+                // Only match player entity textures, not skins
+                return recordTexture.contains("minecraft:textures/entity/player/") &&
+                       !recordTexture.contains("minecraft:skins/");
+            }
+            
+            // Default: use contains for backward compatibility
+            return recordTexture.contains(targetTexture);
         }
     }
 }

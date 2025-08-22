@@ -2,6 +2,7 @@ package com.xtracr.realcamera.config;
 
 import net.minecraft.util.Mth;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -16,6 +17,7 @@ public class BindingTarget {
     private double scale = 1, offsetX = 0, offsetY = 0, offsetZ = 0;
     private float pitch = 0, yaw = 0, roll = 0;
     private List<String> disabledTextureIds = List.of();
+    private List<ExcludedRegion> excludedRegions = new ArrayList<>();
 
     static {
         defaultTargets = List.of(BindingTarget.vanillaTarget("minecraft_head", 5, false).setOffsetX(-0.1),
@@ -232,5 +234,49 @@ public class BindingTarget {
     public BindingTarget setRoll(float roll) {
         this.roll = Mth.wrapDegrees(roll);
         return this;
+    }
+
+    public List<ExcludedRegion> getExcludedRegions() {
+        return excludedRegions;
+    }
+
+    public BindingTarget setExcludedRegions(List<ExcludedRegion> excludedRegions) {
+        this.excludedRegions = excludedRegions != null ? excludedRegions : new ArrayList<>();
+        return this;
+    }
+
+    public BindingTarget addExcludedRegion(ExcludedRegion region) {
+        if (region != null && !excludedRegions.contains(region)) {
+            excludedRegions.add(region);
+        }
+        return this;
+    }
+
+    public BindingTarget removeExcludedRegion(ExcludedRegion region) {
+        excludedRegions.remove(region);
+        return this;
+    }
+
+    public void clearExcludedRegions() {
+        excludedRegions.clear();
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        
+        BindingTarget that = (BindingTarget) o;
+        
+        // Two BindingTargets are equal if they have the same name
+        // This matches the logic in putTarget() which uses name for identification
+        if (name == null) return that.name == null;
+        return name.equals(that.name);
+    }
+    
+    @Override
+    public int hashCode() {
+        // Hash based on name since it's the unique identifier
+        return name != null ? name.hashCode() : 0;
     }
 }
