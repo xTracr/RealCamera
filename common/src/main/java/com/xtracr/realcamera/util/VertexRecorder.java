@@ -56,6 +56,7 @@ public class VertexRecorder {
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         MultiVertexCatcher catcher = new SimpleMultiVertexCatcher();
         dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack, catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
+        records.clear();
         catcher.sendVertices(this);
     }
 
@@ -75,12 +76,13 @@ public class VertexRecorder {
         public Optional<VertexData[]> findPrimitive(float u, float v) {
             final int resolution = 1000000;
             for (VertexData[] primitive : primitives) {
-                int[] us = new int[primitive.length], vs = new int[primitive.length];
-                for (int i = 0; i < primitive.length; i++) {
+                int length = primitive.length;
+                int[] us = new int[length], vs = new int[length];
+                for (int i = 0; i < length; i++) {
                     us[i] = (int) (resolution * primitive[i].u());
                     vs[i] = (int) (resolution * primitive[i].v());
                 }
-                if (new Polygon(us, vs, primitive.length).contains(resolution * u, resolution * v)) return Optional.of(primitive);
+                if (new Polygon(us, vs, length).contains(resolution * u, resolution * v)) return Optional.of(primitive);
             }
             return Optional.empty();
         }

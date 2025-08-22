@@ -8,11 +8,12 @@ import com.xtracr.realcamera.config.BindingTarget.*;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ConfigScreen;
 import com.xtracr.realcamera.config.ModConfig;
-import com.xtracr.realcamera.util.*;
+import com.xtracr.realcamera.util.LocUtil;
+import com.xtracr.realcamera.util.MathUtil;
+import com.xtracr.realcamera.util.VertexData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.*;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.layouts.FrameLayout;
 import net.minecraft.client.gui.layouts.GridLayout;
 import net.minecraft.client.gui.layouts.LayoutSettings;
@@ -28,7 +29,6 @@ import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
-import java.util.List;
 
 public class ModelViewScreen extends Screen {
     public final ModelAnalyser analyser = new ModelAnalyser();
@@ -328,16 +328,16 @@ public class ModelViewScreen extends Screen {
         graphics.fill(x + (xSize + middleWidth) / 2 + 4, y, x + xSize, y + ySize, 0xFF444444);
         analyser.setup(generateBindingTarget(toggleSliderButton.getValue() == 0), modelScale, 512);
         renderModelViewArea(graphics, minecraft.player);
-        renderTextureViewArea(graphics);
+        renderTextureViewArea(graphics, mouseX, mouseY);
         applyAnalyser(graphics, mouseX, mouseY);
     }
 
     protected void applyAnalyser(GuiGraphics graphics, int mouseX, int mouseY) {
-        analyser.analyseEntity(mouseX, mouseY, layers);
+        analyser.genContext();
+        analyser.computeFocusedInEntity(inModelViewArea(mouseX, mouseY) ? mouseX : -1, mouseY, layers);
         focusedPrimitive = analyser.getFocusedPrimitive();
         focusedTextureId = analyser.getFocusedTextureId();
-        if (toggleConfigButton.getValue() == 0 && togglePreviewButton.getValue() == 0) analyser.drawSelected(graphics);
-        else analyser.previewEffect(graphics, togglePreviewButton.getValue() == 0);
+        analyser.drawLayers(graphics, modelViewArea, textureViewArea, togglePreviewButton.getValue() == 0, toggleConfigButton.getValue() == 0);
     }
 
     protected void renderModelViewArea(GuiGraphics graphics, LivingEntity entity) {
@@ -366,34 +366,30 @@ public class ModelViewScreen extends Screen {
     }
 
     protected void renderEntityWithAnalyser(GuiGraphics graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset, Quaternionf quaternionf, LivingEntity entity) {
-        graphics.pose().pushPose();
-        graphics.pose().translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
-        graphics.pose().scale(scale, scale, -scale);
-        graphics.pose().translate(offset.x(), offset.y(), offset.z());
-        graphics.pose().mulPose(quaternionf);
-        graphics.pose().translate(0, -entity.getBbHeight() / 2.0f, 0);
-        analyser.updateModel(minecraft, entity, 1.0f, graphics.pose());
-        analyser.drawModel(graphics, hiddenNameMap, 1);
-        graphics.pose().popPose();
+        analyser.modelPose.translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
+        analyser.modelPose.scale(scale, scale, -scale);
+        analyser.modelPose.translate(offset.x(), offset.y(), offset.z());
+        analyser.modelPose.mulPose(quaternionf);
+        analyser.modelPose.translate(0, -entity.getBbHeight() / 2.0f, 0);
+        analyser.updateModel(minecraft, entity, 1.0f, analyser.modelPose);
+        analyser.drawModel(graphics, hiddenNameMap, analyser.modelPose, 1);
     }
 
-    protected void renderTextureViewArea(GuiGraphics graphics) {
+    protected void renderTextureViewArea(GuiGraphics graphics, int mouseX, int mouseY) {
         if (textureViewArea == null) return;
         int x1 = textureViewArea.left(), y1 = textureViewArea.top(), x2 = textureViewArea.right(), y2 = textureViewArea.bottom();
         graphics.enableScissor(x1, y1, x2, y2);
         graphics.fill(x1, y1, x2, y2, 0xFF222222);
         Vector3f offset = new Vector3f((float) textureX - 0.5f, (float) textureY - 0.5f, -2.0f);
-        renderTextureWithAnalyser(graphics, x1, y1, x2, y2, (float) (textureScale * textureViewArea.width()) / 80, offset);
+        renderTextureWithAnalyser(graphics, x1, y1, x2, y2,inTextureViewArea(mouseX, mouseY) ? mouseX : -1, mouseY, (float) (textureScale * textureViewArea.width()) / 80, offset);
         graphics.disableScissor();
     }
 
-    protected void renderTextureWithAnalyser(GuiGraphics graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset) {
-        graphics.pose().pushPose();
-        graphics.pose().translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
-        graphics.pose().scale(scale, scale, -scale);
-        graphics.pose().translate(offset.x(), offset.y(), offset.z());
-        analyser.drawTexture(graphics, disabledIdField.getValue(), 1);
-        graphics.pose().popPose();
+    protected void renderTextureWithAnalyser(GuiGraphics graphics, int x1, int y1, int x2, int y2, int mouseX, int mouseY, float scale, Vector3f offset) {
+        analyser.texturePose.translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
+        analyser.texturePose.scale(scale, scale, -scale);
+        analyser.texturePose.translate(offset.x(), offset.y(), offset.z());
+        analyser.drawTextureAndComputeFocused(graphics, disabledIdField.getValue(), mouseX, mouseY, analyser.texturePose, 1);
     }
 
     protected BindingTarget generateBindingTarget(boolean useSliderOffset) {
