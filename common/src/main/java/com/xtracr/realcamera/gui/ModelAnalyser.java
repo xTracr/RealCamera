@@ -69,7 +69,7 @@ public class ModelAnalyser extends VertexRecorder {
                 VertexData[] primitive = primitives[i];
                 int length = primitive.length;
                 int[] xs = new int[length], ys = new int[length];
-                boolean vertexDisabled = false;
+                boolean disabled = false;
                 for (int j = 0; j < length; j++) {
                     VertexData vertex = primitive[j];
                     xs[j] = (int) vertex.x();
@@ -77,10 +77,10 @@ public class ModelAnalyser extends VertexRecorder {
                     if (vertex.z() < minEntityZ) minEntityZ = vertex.z();
                     if (vertex.z() > maxEntityZ) maxEntityZ = vertex.z();
                     for (DisableConfig config : disableConfigs) {
-                        if (config.disableAll() || config.test(vertex)) vertexDisabled = true;
+                        if (!config.disableAll() && !config.test(vertex)) disabled = true;
                     }
                 }
-                if (vertexDisabled || !new Polygon(xs, ys, length).contains(mouseX, mouseY)) continue;
+                if (disabled || !new Polygon(xs, ys, length).contains(mouseX, mouseY)) continue;
                 VertexData point = primitive[0];
                 double deltaZ = point.normalZ() == 0 ? 0 : (point.normalX() * (mouseX - point.x()) + point.normalY() * (mouseY - point.y())) / point.normalZ();
                 sortByDepth.add(new Triple(point.z() - deltaZ, record, i));
