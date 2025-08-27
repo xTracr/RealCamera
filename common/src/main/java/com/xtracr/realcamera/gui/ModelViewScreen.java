@@ -45,14 +45,15 @@ public class ModelViewScreen extends Screen {
     @Nullable
     private ScreenRectangle textureViewArea;
     private VertexData[][] focusedPolyhedron = new VertexData[0][];
+    private List<DisableConfig> configsInClipBoard = new ArrayList<>();
     @Nullable
     private UVRectangleWidget focusedRectangle;
+    private StringWidget rectangleWidgetsSizeWidget;
     private EditBox textureIdField, nameField, disabledNameField, disabledIdField;
-    private NumberField<Integer> priorityField;
+    private NumberField<Integer> priorityField, focusedRectangleNumberField;
     private NumberField<Float> forwardUField, forwardVField, upwardUField, upwardVField, posUField, posVField;
     private NumberField<Float> uMinField, vMinField, uMaxField, vMaxField;
     private NumberField<Float> offsetXField, offsetYField, offsetZField, offsetPitchField, offsetYawField, offsetRollField, scaleField, depthField;
-    private List<DisableConfig> configsInClipBoard = new ArrayList<>();
     private final List<DisableConfig> disableConfigs = new ArrayList<>();
     private final List<UVRectangleWidget> rectangleWidgets = new ArrayList<>();
     private final Map<String, Set<String>> hiddenNameMap = new HashMap<>();
@@ -153,6 +154,7 @@ public class ModelViewScreen extends Screen {
     }
 
     private void initLeftWidgets() {
+        rectangleWidgetsSizeWidget = new StringWidget(x + 4 + widgetWidth + 5, y + 4 + (widgetHeight + 2) * 3, widgetWidth - 22, widgetHeight, LocUtil.literal(String.valueOf(rectangleWidgets.size())), font);
         forwardUField = createFloatField(widgetWidth, 0, forwardUField);
         forwardVField = createFloatField(widgetWidth, 0, forwardVField);
         upwardUField = createFloatField(widgetWidth, 0, upwardUField);
@@ -161,6 +163,7 @@ public class ModelViewScreen extends Screen {
         posVField = createFloatField(widgetWidth, 0, posVField);
         textureIdField = createTextField(widgetWidth * 2 + 4, 1024, textureIdField);
         disabledIdField = createTextField(widgetWidth * 2 + 4, 1024, disabledIdField);
+        focusedRectangleNumberField = NumberField.ofInt(font, widgetWidth - 2, widgetHeight - 2, 0, focusedRectangleNumberField).setMin(0).setMax(rectangleWidgets.size());
         uMinField = createFloatField(widgetWidth * 2 - 24, 0, uMinField).setMin(-1f).setMax(2f);
         uMaxField = createFloatField(widgetWidth * 2 - 24, 0, uMaxField).setMin(-1f).setMax(2f);
         vMinField = createFloatField(widgetWidth * 2 - 24, 0, vMinField).setMin(-1f).setMax(2f);
@@ -185,53 +188,65 @@ public class ModelViewScreen extends Screen {
                 rows.addChild(entityPitchSlider, 2);
                 rows.addChild(entityYawSlider, 2);
                 rows.addChild(selectingButton, 2).setTooltip(createTooltip("selectMode"));
-                rows.addChild(forwardUField, 1, smallSettings);
-                rows.addChild(forwardVField, 1, smallSettings);
-                rows.addChild(upwardUField, 1, smallSettings);
-                rows.addChild(upwardVField, 1, smallSettings);
-                rows.addChild(posUField, 1, smallSettings);
-                rows.addChild(posVField, 1, smallSettings);
+                rows.addChild(forwardUField, smallSettings);
+                rows.addChild(forwardVField, smallSettings);
+                rows.addChild(upwardUField, smallSettings);
+                rows.addChild(upwardVField, smallSettings);
+                rows.addChild(posUField, smallSettings);
+                rows.addChild(posVField, smallSettings);
                 rows.addChild(textureIdField, 2, smallSettings).setTooltip(createTooltip("textureId"));
             } else {
                 LayoutSettings offsetXSettings = grid.newCellSettings().padding(-13, 3, 1, 1);
                 rows.addChild(disableModeButton, 2);
                 rows.addChild(disabledIdField, 2, smallSettings).setTooltip(createTooltip("textureId"));
+                rows.addChild(focusedRectangleNumberField, smallSettings).setOnValueChange(index -> {
+                    if (index == 0) focusedRectangle = null;
+                    else if (index > 0 && index <= rectangleWidgets.size()) {
+                        focusedRectangle = rectangleWidgets.get(index - 1);
+                        uMinField.setNumber(focusedRectangle.uMin);
+                        vMinField.setNumber(focusedRectangle.vMin);
+                        uMaxField.setNumber(focusedRectangle.uMax);
+                        vMaxField.setNumber(focusedRectangle.vMax);
+                    }
+                }).setTooltip(createTooltip("focusedRectangleNumber"));
+                addRenderableWidget(new StringWidget(x + 4 + widgetWidth + 3, y + 4 + (widgetHeight + 2) * 3, 6, widgetHeight, LocUtil.literal("/"), font));
+                addRenderableWidget(rectangleWidgetsSizeWidget);
+                rows.addChild(new TexturedButton(48, 0, button -> deleteFocusedRectangle()), grid.newCellSettings().padding(5 + widgetWidth - 18, 3, 1, 1))
+                        .setTooltip(createTooltip("deleteSelectedRectangle"));
                 rows.addChild(new StringWidget(26, widgetHeight, LocUtil.literal("uMin:"), font));
-                rows.addChild(uMinField, 1, offsetXSettings).setOnValueChange(f -> {
+                rows.addChild(uMinField, offsetXSettings).setOnValueChange(f -> {
                     if (focusedRectangle != null) focusedRectangle.uMin = f;
                 });
                 rows.addChild(new StringWidget(26, widgetHeight, LocUtil.literal("vMin:"), font));
-                rows.addChild(vMinField, 1, offsetXSettings).setOnValueChange(f -> {
+                rows.addChild(vMinField, offsetXSettings).setOnValueChange(f -> {
                     if (focusedRectangle != null) focusedRectangle.vMin = f;
                 });
                 rows.addChild(new StringWidget(26, widgetHeight, LocUtil.literal("uMax:"), font));
-                rows.addChild(uMaxField, 1, offsetXSettings).setOnValueChange(f -> {
+                rows.addChild(uMaxField, offsetXSettings).setOnValueChange(f -> {
                     if (focusedRectangle != null) focusedRectangle.uMax = f;
                 });
                 rows.addChild(new StringWidget(26, widgetHeight, LocUtil.literal("vMax:"), font));
-                rows.addChild(vMaxField, 1, offsetXSettings).setOnValueChange(f -> {
+                rows.addChild(vMaxField, offsetXSettings).setOnValueChange(f -> {
                     if (focusedRectangle != null) focusedRectangle.vMax = f;
                 });
-                rows.addChild(new TexturedButton(48, 0, button -> deleteFocusedRectangle()), 2, grid.newCellSettings().padding(5 + widgetWidth * 2 - 14, 3, 1, 1))
-                        .setTooltip(createTooltip("deleteSelectedRectangle"));
             }
         } else {
             boolean useSliderOffset = toggleSliderButton.getValue() == 0;
             rows.addChild(toggleSliderButton, 2);
             LayoutSettings sliderSettings = grid.newCellSettings().padding(-20, 2, 0, 0);
             LayoutSettings fieldSettings = grid.newCellSettings().padding(-17, 3, 1, 1);
-            rows.addChild(bindXButton, 1, smallSettings).setTooltip(createTooltip("bindButtons"));
-            if (useSliderOffset) rows.addChild(offsetXSlider, 1, sliderSettings);
-            else rows.addChild(offsetXField, 1, fieldSettings);
-            rows.addChild(bindYButton, 1, smallSettings).setTooltip(createTooltip("bindButtons"));
-            if (useSliderOffset) rows.addChild(offsetYSlider, 1, sliderSettings);
-            else rows.addChild(offsetYField, 1, fieldSettings);
-            rows.addChild(bindZButton, 1, smallSettings).setTooltip(createTooltip("bindButtons"));
-            if (useSliderOffset) rows.addChild(offsetZSlider, 1, sliderSettings);
-            else rows.addChild(offsetZField, 1, fieldSettings);
-            rows.addChild(bindRotButton, 1, smallSettings).setTooltip(createTooltip("bindButtons"));
-            if (useSliderOffset) rows.addChild(offsetPitchSlider, 1, sliderSettings);
-            else rows.addChild(offsetPitchField, 1, fieldSettings);
+            rows.addChild(bindXButton, smallSettings).setTooltip(createTooltip("bindButtons"));
+            if (useSliderOffset) rows.addChild(offsetXSlider, sliderSettings);
+            else rows.addChild(offsetXField, fieldSettings);
+            rows.addChild(bindYButton, smallSettings).setTooltip(createTooltip("bindButtons"));
+            if (useSliderOffset) rows.addChild(offsetYSlider, sliderSettings);
+            else rows.addChild(offsetYField, fieldSettings);
+            rows.addChild(bindZButton, smallSettings).setTooltip(createTooltip("bindButtons"));
+            if (useSliderOffset) rows.addChild(offsetZSlider, sliderSettings);
+            else rows.addChild(offsetZField, fieldSettings);
+            rows.addChild(bindRotButton, smallSettings).setTooltip(createTooltip("bindButtons"));
+            if (useSliderOffset) rows.addChild(offsetPitchSlider, sliderSettings);
+            else rows.addChild(offsetPitchField, fieldSettings);
             if (useSliderOffset) rows.addChild(offsetYawSlider, 2, grid.newCellSettings().padding(26, 2, 0, 0));
             else rows.addChild(offsetYawField, 2, grid.newCellSettings().padding(29, 3, 1, 1));
             rows.addChild(new TexturedButton(0, 0, button -> {
@@ -247,11 +262,11 @@ public class ModelViewScreen extends Screen {
                 offsetPitchSlider.setValue(0);
                 offsetYawSlider.setValue(0);
                 offsetRollSlider.setValue(0);
-            }), 1, smallSettings);
-            if (useSliderOffset) rows.addChild(offsetRollSlider, 1, sliderSettings);
-            else rows.addChild(offsetRollField, 1, fieldSettings);
-            rows.addChild(scaleField, 1, smallSettings).setTooltip(createTooltip("scale"));
-            rows.addChild(depthField, 1, smallSettings).setTooltip(createTooltip("depth"));
+            }), smallSettings);
+            if (useSliderOffset) rows.addChild(offsetRollSlider, sliderSettings);
+            else rows.addChild(offsetRollField, fieldSettings);
+            rows.addChild(scaleField, smallSettings).setTooltip(createTooltip("scale"));
+            rows.addChild(depthField, smallSettings).setTooltip(createTooltip("depth"));
         }
         rows.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("save"), widgetWidth, button -> {
             if (nameField.getValue().isBlank()) {
@@ -263,7 +278,7 @@ public class ModelViewScreen extends Screen {
             ConfigFile.save();
             initWidgets(page);
         }));
-        rows.addChild(priorityField = NumberField.ofInt(font, widgetWidth - 2, widgetHeight - 2, 0, priorityField), 1, smallSettings).setTooltip(createTooltip("priority"));
+        rows.addChild(priorityField = NumberField.ofInt(font, widgetWidth - 2, widgetHeight - 2, 0, priorityField), smallSettings).setTooltip(createTooltip("priority"));
         rows.addChild(nameField = createTextField(widgetWidth * 2 + 4, 20, nameField), 2, smallSettings).setTooltip(createTooltip("targetName"));
         grid.arrangeElements();
         FrameLayout.alignInRectangle(grid, x, y + 2, x + (xSize - middleWidth) / 2 - 4, y + ySize, 0, 0);
@@ -294,7 +309,7 @@ public class ModelViewScreen extends Screen {
                     targetList.remove(target);
                     ConfigFile.save();
                     initWidgets(page * widgetsPerPage > size - 2 && size > 1 ? page - 1 : page);
-                }), 1, smallSettings);
+                }), smallSettings);
             }
         } else {
             widgetsPerPage = 6;
@@ -324,7 +339,7 @@ public class ModelViewScreen extends Screen {
                     disableConfigs.add(disableConfig);
                     initWidgets(page);
                 }
-            }), 1, smallSettings).setTooltip(createTooltip("saveAs"));
+            }), smallSettings).setTooltip(createTooltip("saveAs"));
             for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, size); i++) {
                 DisableConfig config = disableConfigs.get(i);
                 String targetName = nameField.getValue();
@@ -346,7 +361,7 @@ public class ModelViewScreen extends Screen {
                 rows.addChild(new TexturedButton(48, 0, button -> {
                     disableConfigs.removeIf(disableConfig -> disableConfig.name().equals(config.name()));
                     initWidgets(page * widgetsPerPage > size - 2 && size > 1 ? page - 1 : page);
-                }), 1, smallSettings);
+                }), smallSettings);
             }
         }
         grid.arrangeElements();
@@ -358,13 +373,17 @@ public class ModelViewScreen extends Screen {
         addRenderableWidget(new TexturedButton(x + xSize - 21, y + ySize - 20, 16, 16, 32, 0, button -> initWidgets((page + 1) % pages)));
     }
 
-    public void setFocusedRectangle(@NotNull UVRectangleWidget rectangleWidget) {
-        focusedRectangle = rectangleWidget;
+    public void setFocusedRectangle(@NotNull UVRectangleWidget rectangle) {
+        UVRectangleWidget foundRectangle = rectangleWidgets.stream().filter(r -> r.contains(rectangle)).findFirst().orElse(null);
+        focusedRectangle = foundRectangle == null ? rectangle : foundRectangle;
         setFocused(focusedRectangle);
-        if (!rectangleWidgets.contains(focusedRectangle)) {
+        if (foundRectangle == null) {
             rectangleWidgets.add(focusedRectangle);
+            focusedRectangleNumberField.setMax(rectangleWidgets.size());
+            rectangleWidgetsSizeWidget.setMessage(LocUtil.literal(String.valueOf(rectangleWidgets.size())));
             addRenderableWidget(focusedRectangle);
         }
+        focusedRectangleNumberField.setNumber(rectangleWidgets.indexOf(focusedRectangle) + 1);
         uMinField.setNumber(focusedRectangle.uMin);
         vMinField.setNumber(focusedRectangle.vMin);
         uMaxField.setNumber(focusedRectangle.uMax);
@@ -375,7 +394,9 @@ public class ModelViewScreen extends Screen {
         if (focusedRectangle == null) return;
         rectangleWidgets.remove(focusedRectangle);
         removeWidget(focusedRectangle);
-        focusedRectangle = null;
+        focusedRectangleNumberField.setNumber(0);
+        focusedRectangleNumberField.setMax(rectangleWidgets.size());
+        rectangleWidgetsSizeWidget.setMessage(LocUtil.literal(String.valueOf(rectangleWidgets.size())));
     }
 
     @Override
@@ -694,6 +715,10 @@ public class ModelViewScreen extends Screen {
 
         public UVRectangle toRectangle() {
             return new UVRectangle(uMin, vMin, uMax, vMax);
+        }
+
+        public boolean contains(UVRectangleWidget another) {
+            return uMin <= another.uMin && vMin <= another.vMin && uMax >= another.uMax && vMax >= another.vMax;
         }
 
         private void update() {

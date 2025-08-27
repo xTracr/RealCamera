@@ -35,10 +35,6 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
         return new IntField(font, width, height, defaultValue, copyFrom);
     }
 
-    public void setOnValueChange(Consumer<T> consumer) {
-        super.setResponder(str -> consumer.accept(getNumber()));
-    }
-
     public T getNumber() {
         try {
             return getNumberInternal();
@@ -63,6 +59,11 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
 
     public NumberField<T> setMin(T minimum) {
         this.minimum = minimum;
+        return this;
+    }
+
+    public NumberField<T> setOnValueChange(Consumer<T> consumer) {
+        super.setResponder(str -> consumer.accept(getNumber()));
         return this;
     }
 
