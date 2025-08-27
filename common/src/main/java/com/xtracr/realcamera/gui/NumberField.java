@@ -103,7 +103,7 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
     private static class FloatField extends NumberField<Float> {
         FloatField(Font font, int width, int height, float defaultValue, @Nullable NumberField<Float> copyFrom) {
             super(font, width, height, defaultValue, Float.MAX_VALUE, -Float.MAX_VALUE, copyFrom);
-            setMaxLength(9);
+            setMaxLength(16);
         }
 
         @Override

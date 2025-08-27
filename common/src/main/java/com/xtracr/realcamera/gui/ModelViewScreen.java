@@ -395,6 +395,7 @@ public class ModelViewScreen extends Screen {
     public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float deltaTick) {
         super.renderBackground(graphics, mouseX, mouseY, deltaTick);
         graphics.fill(x, y, x + (xSize - middleWidth) / 2 - 4, y + ySize, 0xFF444444);
+        graphics.fill(x + (xSize - middleWidth) / 2, y, x + (xSize + middleWidth) / 2, y + ySize, 0xFF222222);
         graphics.fill(x + (xSize + middleWidth) / 2 + 4, y, x + xSize, y + ySize, 0xFF444444);
         analyser.setup(genBindingTarget(), modelScale);
         renderModelViewArea(graphics, minecraft.player);
@@ -403,14 +404,27 @@ public class ModelViewScreen extends Screen {
     }
 
     protected void applyAnalyser(GuiGraphics graphics, int mouseX, int mouseY) {
-        analyser.genContext();
-        String textureId = toggleConfigButton.getValue() == 1 && togglePreviewButton.getValue() == 0 ? disabledIdField.getValue() : "";
+        String textureId = textureViewArea == null ? "" : disabledIdField.getValue();
         Set<String> hiddenNames = hiddenNameMap.getOrDefault(nameField.getValue(), Set.of());
-        analyser.analyseEntity(textureId, hiddenNames, inModelViewArea(mouseX, mouseY) ? mouseX : -1, mouseY, layers);
+        analyser.genContext();
+        analyser.applyDisableConfigs(textureId, hiddenNames);
+        analyser.computeFocusedOnTexture(inTextureViewArea(mouseX, mouseY) ? mouseX : -1, mouseY);
+        analyser.computeFocusedOnModel(inModelViewArea(mouseX, mouseY) ? mouseX : -1, mouseY, layers);
         analyser.computeFocusedPolyhedron();
         focusedPolyhedron = analyser.focusedPolyhedron.toArray(VertexData[][]::new);
         focusedTextureId = analyser.getFocusedTextureId();
-        analyser.drawLayers(graphics, modelViewArea, textureViewArea, togglePreviewButton.getValue() == 0, toggleConfigButton.getValue() == 0 && togglePreviewButton.getValue() == 0);
+        enableScissor(graphics, modelViewArea);
+        analyser.drawModel(graphics, analyser.modelPose);
+        if (togglePreviewButton.getValue() == 0) analyser.drawFocusedInModelArea(graphics);
+        if (toggleConfigButton.getValue() == 0 && togglePreviewButton.getValue() == 0) analyser.drawBindingTarget(graphics);
+        else analyser.drawCameraDirections(graphics);
+        graphics.disableScissor();
+        if (textureViewArea != null) {
+            enableScissor(graphics, textureViewArea);
+            analyser.drawTexture(graphics, analyser.texturePose);
+            analyser.drawFocusedInTextureArea(graphics);
+            graphics.disableScissor();
+        }
     }
 
     protected void renderModelViewArea(GuiGraphics graphics, LivingEntity entity) {
@@ -427,7 +441,6 @@ public class ModelViewScreen extends Screen {
         entity.setXRot((float) entityPitchSlider.getValue());
         entity.yHeadRot = entity.getYRot();
         entity.yHeadRotO = entity.getYRot();
-        graphics.fill(x1, y1, x2, y2, 0xFF222222);
         Vector3f offset = new Vector3f((float) modelX, (float) modelY, 0);
         renderEntityWithAnalyser(graphics, x1, y1, x2, y2, modelScale, offset, quaternionf, entity);
         entity.yBodyRot = entityBodyYaw;
@@ -445,16 +458,12 @@ public class ModelViewScreen extends Screen {
         analyser.modelPose.mulPose(quaternionf);
         analyser.modelPose.translate(0, -entity.getBbHeight() / 2.0f, 0);
         analyser.updateModel(minecraft, entity, 1.0f, analyser.modelPose);
-        String textureId = toggleConfigButton.getValue() == 1 && togglePreviewButton.getValue() == 0 ? disabledIdField.getValue() : "";
-        Set<String> hiddenNames = hiddenNameMap.getOrDefault(nameField.getValue(), Set.of());
-        analyser.drawModel(graphics, textureId, hiddenNames, analyser.modelPose);
     }
 
     protected void renderTextureViewArea(GuiGraphics graphics, int mouseX, int mouseY) {
         if (textureViewArea == null) return;
         int x1 = textureViewArea.left(), y1 = textureViewArea.top(), x2 = textureViewArea.right(), y2 = textureViewArea.bottom();
         graphics.enableScissor(x1, y1, x2, y2);
-        graphics.fill(x1, y1, x2, y2, 0xFF222222);
         Vector3f offset = new Vector3f((float) textureX - 0.5f, (float) textureY - 0.5f, 0);
         renderTextureWithAnalyser(graphics, x1, y1, x2, y2,inTextureViewArea(mouseX, mouseY) ? mouseX : -1, mouseY, (float) (textureScale * textureViewArea.width()) / 80, offset);
         graphics.disableScissor();
@@ -464,7 +473,6 @@ public class ModelViewScreen extends Screen {
         analyser.texturePose.translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
         analyser.texturePose.scale(scale, scale, -scale);
         analyser.texturePose.translate(offset.x(), offset.y(), offset.z());
-        analyser.drawTextureAndComputeFocused(graphics, disabledIdField.getValue(), mouseX, mouseY, analyser.texturePose);
     }
 
     protected BindingTarget genBindingTarget() {
@@ -726,7 +734,7 @@ public class ModelViewScreen extends Screen {
             enableScissor(graphics, textureViewArea);
             graphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0x4F3333CC);
             if (isHoveredOrFocused()) graphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0x2F3333CC);
-            if (isFocused()) graphics.renderOutline(getX(), getY(), getWidth(), getHeight(), 0xAAFFFFFF);
+            if (isFocused() || this == focusedRectangle) graphics.renderOutline(getX(), getY(), getWidth(), getHeight(), 0xAAFFFFFF);
             graphics.disableScissor();
         }
 
