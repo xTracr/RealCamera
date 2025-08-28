@@ -40,8 +40,7 @@ public class YSMCompat extends VertexRecorder {
         BindingContext context;
         for (BindingTarget target : ConfigFile.config().getTargetList()) {
             for (BuiltRecord record : records) {
-                contextMap.putIfAbsent(target, new BindingContext(target, false));
-                context = contextMap.get(target);
+                context = contextMap.computeIfAbsent(target, k -> new BindingContext(target, false));
                 record.setupContext(context, invertedPosition, invertedNormal);
                 context.skipRendering = false;
                 if (context.available()) return context;
@@ -72,7 +71,7 @@ public class YSMCompat extends VertexRecorder {
         updateModel(pitch, yaw);
         context = genContextInternal();
         if (context.available()) return context;
-        updateModel(pitch, 2 *yaw);
+        updateModel(pitch, 2 * yaw);
         context = genContextInternal();
         if (context.available()) return context;
         return BindingContext.EMPTY;

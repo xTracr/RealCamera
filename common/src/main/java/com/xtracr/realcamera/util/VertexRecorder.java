@@ -56,6 +56,7 @@ public class VertexRecorder {
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         MultiVertexCatcher catcher = new SimpleMultiVertexCatcher();
         dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack, catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
+        records.clear();
         catcher.sendVertices(this);
     }
 
@@ -75,33 +76,31 @@ public class VertexRecorder {
         public Optional<VertexData[]> findPrimitive(float u, float v) {
             final int resolution = 1000000;
             for (VertexData[] primitive : primitives) {
-                int[] us = new int[primitive.length], vs = new int[primitive.length];
-                for (int i = 0; i < primitive.length; i++) {
+                int length = primitive.length;
+                int[] us = new int[length], vs = new int[length];
+                for (int i = 0; i < length; i++) {
                     us[i] = (int) (resolution * primitive[i].u());
                     vs[i] = (int) (resolution * primitive[i].v());
                 }
-                if (new Polygon(us, vs, primitive.length).contains(resolution * u, resolution * v)) return Optional.of(primitive);
+                if (new Polygon(us, vs, length).contains(resolution * u, resolution * v)) return Optional.of(primitive);
             }
             return Optional.empty();
         }
 
         public void setupContext(BindingContext context) {
-            BindingTarget target = context.target;
-            if (!textureId.contains(target.textureId)) return;
-            findPrimitive(target.getPosU(), target.getPosV()).ifPresent(primitive -> context.setPosition(getPosition(primitive, target.getPosU(), target.getPosV())));
-            findPrimitive(target.getForwardU(), target.getForwardV()).ifPresent(primitive -> context.setForward(primitive[0].normal()));
-            findPrimitive(target.getUpwardU(), target.getUpwardV()).ifPresent(primitive -> context.setUpward(primitive[0].normal()));
+            if (!textureId.contains(context.target.textureId())) return;
+            BindingTarget.TargetConfig config = context.target.targetConfig();
+            findPrimitive(config.posU(), config.posV()).ifPresent(primitive -> context.setPosition(getPosition(primitive, config.posU(), config.posV())));
+            findPrimitive(config.forwardU(), config.forwardV()).ifPresent(primitive -> context.setForward(primitive[0].normal()));
+            findPrimitive(config.upwardU(), config.upwardV()).ifPresent(primitive -> context.setUpward(primitive[0].normal()));
         }
 
         public void setupContext(BindingContext context, Matrix4f positionMatrix, Matrix3f normalMatrix) {
-            BindingTarget target = context.target;
-            if (!textureId.contains(target.textureId)) return;
-            findPrimitive(target.getPosU(), target.getPosV()).ifPresent(primitive ->
-                    context.setPosition(new Vec3(getPosition(primitive, target.getPosU(), target.getPosV()).toVector3f().mulPosition(positionMatrix))));
-            findPrimitive(target.getForwardU(), target.getForwardV()).ifPresent(primitive ->
-                    context.setForward(new Vec3(primitive[0].normal().toVector3f().mul(normalMatrix))));
-            findPrimitive(target.getUpwardU(), target.getUpwardV()).ifPresent(primitive ->
-                    context.setUpward(new Vec3(primitive[0].normal().toVector3f().mul(normalMatrix))));
+            if (!textureId.contains(context.target.textureId())) return;
+            BindingTarget.TargetConfig config = context.target.targetConfig();
+            findPrimitive(config.posU(), config.posV()).ifPresent(primitive -> context.setPosition(new Vec3(getPosition(primitive, config.posU(), config.posV()).toVector3f().mulPosition(positionMatrix))));
+            findPrimitive(config.forwardU(), config.forwardV()).ifPresent(primitive -> context.setForward(new Vec3(primitive[0].normal().toVector3f().mul(normalMatrix))));
+            findPrimitive(config.upwardU(), config.upwardV()).ifPresent(primitive -> context.setUpward(new Vec3(primitive[0].normal().toVector3f().mul(normalMatrix))));
         }
     }
 }

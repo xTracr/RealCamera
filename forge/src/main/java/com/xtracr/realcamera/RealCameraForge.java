@@ -12,8 +12,12 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
+import java.util.Map;
+
 @Mod(RealCamera.MODID)
 public class RealCameraForge implements RealCamera {
+    private final Map<String, String> modIdMap = Map.of("cloth-config", "cloth_config");
+
     public RealCameraForge() {
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
         eventBus.addListener(this::clientSetup);
@@ -27,7 +31,7 @@ public class RealCameraForge implements RealCamera {
         MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, EventHandler::onCameraSetup);
         MinecraftForge.EVENT_BUS.addListener(EventHandler::onRenderLevelStage);
 
-        if (isModLoaded("cloth_config")) {
+        if (isModLoaded("cloth-config")) {
             ModLoadingContext.get().registerExtensionPoint(ConfigScreenFactory.class,
                     () -> new ConfigScreenFactory((client, parent) -> ConfigScreen.create(parent)));
         }
@@ -39,6 +43,6 @@ public class RealCameraForge implements RealCamera {
 
     @Override
     public boolean isModLoaded(String modId) {
-        return ModList.get().isLoaded(modId);
+        return ModList.get().isLoaded(modIdMap.getOrDefault(modId, modId));
     }
 }

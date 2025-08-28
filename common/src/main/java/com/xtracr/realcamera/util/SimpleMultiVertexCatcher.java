@@ -14,7 +14,6 @@ public class SimpleMultiVertexCatcher implements MultiVertexCatcher {
 
     @Override
     public void sendVertices(VertexRecorder recorder) {
-        recorder.records().clear();
         for (RecordBuilder catcher : catchers) {
             recorder.records().add(VertexRecorder.buildVertices(catcher.renderType(), catcher.collectVertices()));
         }
@@ -28,7 +27,7 @@ public class SimpleMultiVertexCatcher implements MultiVertexCatcher {
         return catchers.peek();
     }
 
-    public static class RecordBuilder extends VertexCatcher {
+    protected static class RecordBuilder extends VertexCatcher {
         protected final List<VertexData> vertexList = new ArrayList<>();
 
         public RecordBuilder(RenderType renderType) {

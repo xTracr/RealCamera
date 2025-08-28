@@ -23,7 +23,7 @@ public class CrosshairUtil {
         if (client.crosshairPickEntity != null) hitResult = capturedEntityHitResult;
         if (hitResult == null) return;
         Window window = client.getWindow();
-        offset = MathUtil.projectToVec2d(hitResult.getLocation().subtract(camera.getPosition()), projectionMatrices)
+        offset = MathUtil.projectToVec2(hitResult.getLocation().subtract(camera.getPosition()), projectionMatrices)
                 .multiply(0.5 * window.getGuiScaledWidth(), 0.5 * window.getGuiScaledHeight(), 0.0d);
     }
 }

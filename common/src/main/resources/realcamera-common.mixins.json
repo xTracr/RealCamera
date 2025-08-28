@@ -6,8 +6,6 @@
   "mixins": [
   ],
   "client": [
-    "CameraAccessor",
-    "GameRendererAccessor",
     "MixinCamera",
     "MixinFishingHookRenderer",
     "MixinGameRenderer",
@@ -16,7 +14,10 @@
     "MixinItemInHandRenderer",
     "MixinLevelRenderer",
     "MixinLocalPlayer",
-    "MixinStuckInBodyLater"
+    "MixinStuckInBodyLayer",
+    "accessor.CameraAccessor",
+    "accessor.GameRendererAccessor",
+    "accessor.PlayerRendererAccessor"
   ],
   "server": [
   ],

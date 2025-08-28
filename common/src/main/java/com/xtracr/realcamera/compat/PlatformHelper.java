@@ -1,5 +1,5 @@
 package com.xtracr.realcamera.compat;
 
-public interface LoaderHelper {
+public interface PlatformHelper {
     boolean isModLoaded(String modId);
 }

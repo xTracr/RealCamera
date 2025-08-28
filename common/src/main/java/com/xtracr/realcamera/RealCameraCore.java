@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.xtracr.realcamera.api.RealCameraAPI;
 import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.BindingTarget;
+import com.xtracr.realcamera.config.BindingTarget.DisableConfig;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.util.BindingContext;
 import com.xtracr.realcamera.util.LocUtil;
@@ -34,28 +35,30 @@ public class RealCameraCore {
     }
 
     public static float getPitch(float f) {
-        if (currentTarget().isBindRotation()) return (float) bindingContext.getEulerAngle().x();
+        if (currentTarget().bindConfig().bindRotation()) return (float) bindingContext.getEulerAngle().x();
         return f;
     }
 
     public static float getYaw(float f) {
-        if (currentTarget().isBindRotation()) return (float) -bindingContext.getEulerAngle().y();
+        if (currentTarget().bindConfig().bindRotation()) return (float) -bindingContext.getEulerAngle().y();
         return f;
     }
 
     public static float getRoll(float f) {
         if (ConfigFile.config().isClassic()) return f + ConfigFile.config().getClassicRoll();
-        if (currentTarget().isBindRotation()) return (float) bindingContext.getEulerAngle().z();
+        if (currentTarget().bindConfig().bindRotation()) return (float) bindingContext.getEulerAngle().z();
         return f;
     }
 
     public static Vec3 getRawPos(Vec3 vec) {
         Vec3 rawPos = bindingContext.getPosition().add(entityPos);
-        return new Vec3(currentTarget().isBindX() ? rawPos.x() : vec.x(), currentTarget().isBindY() ? rawPos.y() : vec.y(), currentTarget().isBindZ() ? rawPos.z() : vec.z());
+        BindingTarget.BindConfig bindConfig = currentTarget().bindConfig();
+        return new Vec3(bindConfig.bindX() ? rawPos.x() : vec.x(), bindConfig.bindY() ? rawPos.y() : vec.y(), bindConfig.bindZ() ? rawPos.z() : vec.z());
     }
 
     public static Vec3 getCameraPos(Vec3 vec) {
-        return new Vec3(currentTarget().isBindX() ? cameraPos.x() : vec.x(), currentTarget().isBindY() ? cameraPos.y() : vec.y(), currentTarget().isBindZ() ? cameraPos.z() : vec.z());
+        BindingTarget.BindConfig bindConfig = currentTarget().bindConfig();
+        return new Vec3(bindConfig.bindX() ? cameraPos.x() : vec.x(), bindConfig.bindY() ? cameraPos.y() : vec.y(), bindConfig.bindZ() ? cameraPos.z() : vec.z());
     }
 
     public static void setCameraPos(Vec3 vec) {
@@ -66,6 +69,7 @@ public class RealCameraCore {
         Entity entity = client.getCameraEntity();
         active = ConfigFile.config().enabled() && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.MAIN_FEATURE.disabled(entity);
         rendering = active && ConfigFile.config().renderModel() && !DisableHelper.RENDER_MODEL.disabled(entity);
+        activeRecorder.records().clear();
     }
 
     public static void readyToSendMessage() {
@@ -123,19 +127,26 @@ public class RealCameraCore {
         Matrix4f positionMatrix = new Matrix4f(invertedCameraPose).mul(poseStack.last().pose().invert(new Matrix4f()));
         Matrix3f normalMatrix = new Matrix3f(positionMatrix);
         activeRecorder.records().forEach(record -> {
-            if (currentTarget().getDisabledTextureIds().stream().anyMatch(record.textureId()::contains)) return;
+            DisableConfig[] disableConfigs = currentTarget().filteredDisableConfigs(config -> record.textureId().contains(config.textureId()));
+            for (DisableConfig config : disableConfigs) {
+                if (config.disableAll()) return;
+            }
             VertexConsumer buffer = bufferSource.getBuffer(record.renderType());
             if (!record.renderType().canConsolidateConsecutiveGeometry()) {
                 VertexData.renderVertices(record.vertices(), buffer);
                 return;
             }
-            final double depth = currentTarget().getDisablingDepth();
+            final double depth = currentTarget().disablingDepth();
             final int primitiveLength = record.renderType().mode().primitiveLength;
             for (VertexData[] primitive : record.primitives()) {
                 VertexData[] newPrimitive = new VertexData[primitiveLength];
                 for (int j = 0; j < primitiveLength ; j++) newPrimitive[j] = primitive[j].transform(positionMatrix, normalMatrix);
+                outer:
                 for (VertexData vertex : newPrimitive) {
                     if (vertex.z() > -depth) continue;
+                    for (DisableConfig config : disableConfigs) {
+                        if (config.test(vertex)) continue outer;
+                    }
                     VertexData.renderVertices(newPrimitive, buffer);
                     break;
                 }

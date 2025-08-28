@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(StuckInBodyLayer.class)
-public abstract class MixinStuckInBodyLater<T extends LivingEntity> {
+public abstract class MixinStuckInBodyLayer<T extends LivingEntity> {
     @Inject(method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/world/entity/LivingEntity;FFFFFF)V", at = @At("HEAD"), cancellable = true)
     private void realcamera$cancelRender(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, T livingEntity, float f, float g, float h, float j, float k, float l, CallbackInfo ci) {
         if (livingEntity instanceof LocalPlayer && RealCameraCore.isRendering() && !ConfigFile.config().isClassic() && !ConfigFile.config().renderStuckObjects()) {

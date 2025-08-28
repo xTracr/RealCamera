@@ -5,22 +5,22 @@ import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.util.BindingContext;
 import net.minecraft.client.Minecraft;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class RealCameraAPI {
-    private static final List<Consumer<Object>> poseHandlerConsumers = new ArrayList<>();
+    private static final Map<String, Consumer<Object>> poseHandlerConsumers = new HashMap<>();
 
-    public static void registerPoseHandlerConsumer(Consumer<Object> consumer) {
-        poseHandlerConsumers.add(consumer);
+    public static void registerPoseHandlerConsumer(String id, Consumer<Object> consumer) {
+        poseHandlerConsumers.put(id, consumer);
     }
 
     public static BindingContext genBindingContext(Minecraft client, float deltaTick) {
-        BindingTarget target = ConfigFile.config().findFixedTarget(BindingTarget.API_ONLY);
-        for (Consumer<Object> consumer : poseHandlerConsumers) {
+        for (Map.Entry<String, Consumer<Object>> entry : poseHandlerConsumers.entrySet()) {
+            BindingTarget target = ConfigFile.config().getOrCreateFixedTarget(entry.getKey());
             BindingContext context = new BindingContext(target, client, deltaTick, false);
-            consumer.accept(context);
+            entry.getValue().accept(context);
             if (context.available()) return context;
         }
         return BindingContext.EMPTY;

@@ -12,15 +12,19 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 public class DisableHelper {
+    private static final Predicate<Player> FALSE = player -> false;
     private static final Map<String, Entry> entries = new HashMap<>();
-    public static final Entry MAIN_FEATURE = new Entry("mainFeature", Player::isSleeping);
-    public static final Entry RENDER_MODEL = new Entry("renderModel", Player::isScoping);
-    public static final Entry RENDER_HANDS = new Entry("renderHands", false, player -> RealCameraCore.isRendering());
+    public static final Entry MAIN_FEATURE = new Entry("mainFeature", player -> player.isSleeping() || player.isSpectator());
+    public static final Entry RENDER_MODEL = new Entry("renderModel", FALSE, Player::isScoping);
+    public static final Entry RENDER_HANDS = new Entry("renderHands", player -> RealCameraCore.isRendering());
+    public static int exitTick = 0;
 
     static {
-        MAIN_FEATURE.registerOr(player -> ConfigFile.config().disableWhenSwimming() && player.isSwimming());
-        MAIN_FEATURE.registerOr(player -> ConfigFile.config().disableWhenSneaking() && player.isCrouching());
-        MAIN_FEATURE.registerOr(player -> {
+        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSneaking() && player.isCrouching());
+        MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSneaking() && player.isCrouching());
+        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().getBindingSwimOutTick()));
+        MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().getClassicSwimOutTick()));
+        MAIN_FEATURE.registerOrInBinding(player -> {
             String mainHand = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem()).toString();
             String offHand = BuiltInRegistries.ITEM.getKey(player.getOffhandItem().getItem()).toString();
             for (String item : ConfigFile.config().getDisableMainFeatureItems())
@@ -28,7 +32,7 @@ public class DisableHelper {
                     return true;
             return false;
         });
-        RENDER_MODEL.registerOr(player -> {
+        RENDER_MODEL.registerOrInBinding(player -> {
             String mainHand = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem()).toString();
             String offHand = BuiltInRegistries.ITEM.getKey(player.getOffhandItem().getItem()).toString();
             for (String item : ConfigFile.config().getDisableRenderItems())
@@ -38,9 +42,24 @@ public class DisableHelper {
         });
     }
 
+    private static boolean swimmingRecently(Player player, int swimOutTick) {
+        if (player.isSwimming()) {
+            exitTick = player.tickCount;
+            return true;
+        }
+        if (exitTick > 0 && !player.isSwimming()) {
+            int elapsedTicks = player.tickCount - exitTick;
+            if (elapsedTicks <= swimOutTick) {
+                return true;
+            }
+            exitTick = 0;
+        }
+        return false;
+    }
+
     @Deprecated
     public static void registerOr(String name, Predicate<LivingEntity> predicate) {
-        entries.get(name).registerOr(predicate::test);
+        entries.get(name).registerOrInBinding(predicate::test);
     }
 
     public static boolean simpleWildcardMatch(String text, String pattern) {
@@ -68,26 +87,35 @@ public class DisableHelper {
     }
 
     public static class Entry {
-        final private boolean ignoreInClassic;
-        protected Predicate<Player> predicate;
+        protected Predicate<Player> predicateInClassic;
+        protected Predicate<Player> predicateInBinding;
 
         protected Entry(String name, Predicate<Player> predicate) {
-            this(name, true, predicate);
+            this(name, predicate, predicate);
         }
 
-        protected Entry(String name, boolean ignoreInClassic, Predicate<Player> predicate) {
-            this.ignoreInClassic = ignoreInClassic;
-            this.predicate = predicate;
+        protected Entry(String name, Predicate<Player> predicateInClassic, Predicate<Player> predicateInBinding) {
+            this.predicateInClassic = predicateInClassic;
+            this.predicateInBinding = predicateInBinding;
             entries.put(name, this);
         }
 
         public void registerOr(Predicate<Player> predicate) {
-            this.predicate = this.predicate.or(predicate);
+            registerOrInClassic(predicate);
+            registerOrInBinding(predicate);
+        }
+
+        public void registerOrInClassic(Predicate<Player> predicate) {
+            this.predicateInClassic = this.predicateInClassic.or(predicate);
+        }
+
+        public void registerOrInBinding(Predicate<Player> predicate) {
+            this.predicateInBinding = this.predicateInBinding.or(predicate);
         }
 
         public boolean disabled(Entity cameraEntity) {
-            if (ignoreInClassic && ConfigFile.config().isClassic()) return false;
-            return cameraEntity instanceof Player player && predicate.test(player);
+            if (!(cameraEntity instanceof Player player)) return false;
+            return ConfigFile.config().isClassic() ? predicateInClassic.test(player) : predicateInBinding.test(player);
         }
     }
 }

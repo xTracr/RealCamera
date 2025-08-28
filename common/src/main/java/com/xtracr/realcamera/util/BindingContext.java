@@ -8,7 +8,7 @@ import org.joml.Matrix3f;
 import org.joml.Vector3f;
 
 public class BindingContext implements PoseHandler {
-    public static final BindingContext EMPTY = new BindingContext(new BindingTarget(), false);
+    public static final BindingContext EMPTY = new BindingContext(BindingTarget.EMPTY, false);
     public final BindingTarget target;
     public final Matrix3f normal = new Matrix3f();
     public final boolean mirrored;
@@ -30,6 +30,10 @@ public class BindingContext implements PoseHandler {
 
     public boolean available() {
         return !target.isEmpty() && !forward.equals(Vec3.ZERO) && !upward.equals(Vec3.ZERO) && Double.isFinite(position.lengthSqr()) && Math.abs(normal.determinant() - 1) < 0.01f;
+    }
+
+    public boolean weakAvailable() {
+        return !target.isEmpty() && (!forward.equals(Vec3.ZERO) || !upward.equals(Vec3.ZERO) || position != Vec3.ZERO) && Double.isFinite(position.lengthSqr());
     }
 
     public Vec3 getPosition() {
@@ -71,11 +75,12 @@ public class BindingContext implements PoseHandler {
         upward = forward.cross(upward.cross(forward)).normalize();
         Vec3 left = upward.cross(forward).scale(orientation);
         normal.set(left.toVector3f(), upward.toVector3f(), forward.toVector3f());
-        Vector3f offset = new Vector3f((float) target.getOffsetZ(), (float) target.getOffsetY(), (float) target.getOffsetX()).mul((float) target.getScale()).mul(normal);
+        BindingTarget.OffsetConfig offsets = target.offsets();
+        Vector3f offset = new Vector3f((float) offsets.getZ(), (float) offsets.getY(), (float) offsets.getX()).mul((float) offsets.getScale()).mul(normal);
         position = position.add(offset.x(), offset.y(), offset.z());
-        normal.rotateLocal(orientation * (float) Math.toRadians(target.getYaw()), normal.m10, normal.m11, normal.m12);
-        normal.rotateLocal(orientation * (float) Math.toRadians(target.getPitch()), normal.m00, normal.m01, normal.m02);
-        normal.rotateLocal(orientation * (float) Math.toRadians(target.getRoll()), normal.m20, normal.m21, normal.m22);
+        normal.rotateLocal(orientation * (float) Math.toRadians(offsets.getYaw()), normal.m10, normal.m11, normal.m12);
+        normal.rotateLocal(orientation * (float) Math.toRadians(offsets.getPitch()), normal.m00, normal.m01, normal.m02);
+        normal.rotateLocal(orientation * (float) Math.toRadians(offsets.getRoll()), normal.m20, normal.m21, normal.m22);
         eulerAngle = MathUtil.getEulerAngleYXZ(normal).scale(Math.toDegrees(1));
     }
 }

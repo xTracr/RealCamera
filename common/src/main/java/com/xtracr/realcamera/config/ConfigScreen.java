@@ -51,6 +51,21 @@ public class ConfigScreen {
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("classicAdjustMode"))
                 .setSaveConsumer(e -> config.classic.adjustMode = e)
                 .build());
+        classic.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("disableWhenSneaking"), config.classic.disableWhenSneaking)
+                .setDefaultValue(false)
+                .setSaveConsumer(b -> config.classic.disableWhenSneaking = b)
+                .build());
+        classic.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("disableWhenSwimming"), config.classic.disableWhenSwimming)
+                .setDefaultValue(false)
+                .setSaveConsumer(b -> config.classic.disableWhenSwimming = b)
+                .build());
+        classic.addEntry(entryBuilder.startIntField(LocUtil.CONFIG_OPTION("swimOutTick"), config.classic.swimOutTick)
+                .setDefaultValue(13)
+                .setMin(0)
+                .setMax(40)
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("swimOutTick"))
+                .setSaveConsumer(i -> config.classic.swimOutTick = i)
+                .build());
         classic.addEntry(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("scale"), config.classic.scale)
                 .setDefaultValue(8.0)
                 .setMin(0.0)
@@ -122,7 +137,12 @@ public class ConfigScreen {
         classic.addEntry(classicCameraRotation.build());
 
         binding.addEntry(entryBuilder.startTextDescription(LocUtil.CONFIG_OPTION("toModelViewScreen",
-                        LocUtil.MODEL_VIEW_TITLE().withStyle(s -> s.withColor(ChatFormatting.BLUE))))
+                        LocUtil.MODEL_VIEW_TITLE().withStyle(ChatFormatting.BLUE)))
+                .build());
+        binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("legacyBindingMode"), config.binding.legacyBindingMode)
+                .setDefaultValue(false)
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("legacyBindingMode", LocUtil.MODEL_VIEW_TITLE()))
+                .setSaveConsumer(b -> config.binding.legacyBindingMode = b)
                 .build());
         binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("adjustOffset"), config.binding.adjustOffset)
                 .setDefaultValue(true)
@@ -141,13 +161,18 @@ public class ConfigScreen {
                 .build());
         binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("disableWhenSneaking"), config.binding.disableWhenSneaking)
                 .setDefaultValue(false)
-                .setTooltip(LocUtil.CONFIG_TOOLTIP("disableWhenSneaking"))
                 .setSaveConsumer(b -> config.binding.disableWhenSneaking = b)
                 .build());
         binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("disableWhenSwimming"), config.binding.disableWhenSwimming)
                 .setDefaultValue(false)
-                .setTooltip(LocUtil.CONFIG_TOOLTIP("disableWhenSwimming"))
                 .setSaveConsumer(b -> config.binding.disableWhenSwimming = b)
+                .build());
+        binding.addEntry(entryBuilder.startIntField(LocUtil.CONFIG_OPTION("swimOutTick"), config.binding.swimOutTick)
+                .setDefaultValue(13)
+                .setMin(0)
+                .setMax(40)
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("swimOutTick"))
+                .setSaveConsumer(i -> config.binding.swimOutTick = i)
                 .build());
         binding.addEntry(entryBuilder.startStrList(LocUtil.CONFIG_OPTION("disableMainFeatureItems"), config.binding.disableMainFeatureItems)
                 .setDefaultValue(List.of())

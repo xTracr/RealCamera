@@ -7,7 +7,9 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 public record VertexData(float x, float y, float z, int argb, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) {
-    public static final VertexData ZERO = new VertexData(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    public static void renderVertices(VertexData[] vertices, VertexConsumer buffer, Matrix4f positionMatrix, Matrix3f normalMatrix) {
+        for (VertexData vertex : vertices) vertex.transform(positionMatrix, normalMatrix).render(buffer);
+    }
 
     public static void renderVertices(VertexData[] vertices, VertexConsumer buffer) {
         for (VertexData vertex : vertices) vertex.render(buffer);
@@ -32,5 +34,4 @@ public record VertexData(float x, float y, float z, int argb, float u, float v, 
                 (float) (argb >> 16 & 0xFF) / 255, (float) (argb >> 8 & 0xFF) / 255, (float) (argb & 0xFF) / 255, (float) (argb >> 24) / 255,
                 u, v, overlay, light, normalX, normalY, normalZ);
     }
-
 }

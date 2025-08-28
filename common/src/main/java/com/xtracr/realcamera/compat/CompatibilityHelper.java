@@ -3,18 +3,18 @@ package com.xtracr.realcamera.compat;
 import com.xtracr.realcamera.RealCamera;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.mixin.CameraAccessor;
+import com.xtracr.realcamera.mixin.accessor.CameraAccessor;
 import net.minecraft.client.Camera;
 
 import java.lang.reflect.Method;
 
 public class CompatibilityHelper {
-    private static LoaderHelper loaderHelper;
-    private static Class<?> NEA_NEAnimationsLoader = null;
-    private static Method NEA_playerTransformer_setDeltaTick = null;
+    private static PlatformHelper platformHelper;
+    private static Class<?> NEA_NEAnimationsLoader;
+    private static Method NEA_playerTransformer_setDeltaTick;
 
-    public static void initialize(LoaderHelper loaderHelper) {
-        CompatibilityHelper.loaderHelper = loaderHelper;
+    public static void initialize(PlatformHelper platformHelper) {
+        CompatibilityHelper.platformHelper = platformHelper;
         if (isModLoaded("yes_steve_model")) RealCameraCore.setActiveRecorder(YSMCompat.INSTANCE);
         if (isModLoaded("notenoughanimations")) try {
             NEA_NEAnimationsLoader = Class.forName("dev.tr7zw.notenoughanimations.NEAnimationsLoader");
@@ -41,6 +41,6 @@ public class CompatibilityHelper {
     }
 
     public static boolean isModLoaded(String modId) {
-        return loaderHelper != null && loaderHelper.isModLoaded(modId);
+        return platformHelper != null && platformHelper.isModLoaded(modId);
     }
 }

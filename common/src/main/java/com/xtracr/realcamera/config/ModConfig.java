@@ -75,8 +75,8 @@ public class ModConfig {
         } else {
             BindingTarget target = RealCameraCore.currentTarget();
             if (target.isEmpty()) return;
-            if (binding.adjustOffset) target.setOffsetX(target.getOffsetX() + count * adjustStep);
-            else target.setRoll(target.getRoll() + count * 100 * (float) adjustStep);
+            if (binding.adjustOffset) target.offsets().setX(target.offsets().getX() + count * adjustStep);
+            else target.offsets().setRoll(target.offsets().getRoll() + count * 100 * (float) adjustStep);
         }
     }
 
@@ -91,8 +91,8 @@ public class ModConfig {
         } else {
             BindingTarget target = RealCameraCore.currentTarget();
             if (target.isEmpty()) return;
-            if (binding.adjustOffset) target.setOffsetY(target.getOffsetY() + count * adjustStep);
-            else target.setYaw(target.getYaw() + count * 100 * (float) adjustStep);
+            if (binding.adjustOffset) target.offsets().setY(target.offsets().getY() + count * adjustStep);
+            else target.offsets().setYaw(target.offsets().getYaw() + count * 100 * (float) adjustStep);
         }
     }
 
@@ -107,12 +107,24 @@ public class ModConfig {
         } else {
             BindingTarget target = RealCameraCore.currentTarget();
             if (target.isEmpty()) return;
-            if (binding.adjustOffset) target.setOffsetZ(target.getOffsetZ() + count * adjustStep);
-            else target.setPitch(target.getPitch() + count * 100 * (float) adjustStep);
+            if (binding.adjustOffset) target.offsets().setZ(target.offsets().getZ() + count * adjustStep);
+            else target.offsets().setPitch(target.offsets().getPitch() + count * 100 * (float) adjustStep);
         }
     }
 
     // classic
+    public boolean classicDisableWhenSneaking() {
+        return classic.disableWhenSneaking;
+    }
+
+    public boolean classicDisableWhenSwimming() {
+        return classic.disableWhenSwimming;
+    }
+
+    public int getClassicSwimOutTick() {
+        return classic.swimOutTick;
+    }
+
     public double getClassicX() {
         return classic.cameraX * classic.scale;
     }
@@ -150,6 +162,10 @@ public class ModConfig {
     }
 
     // binding
+    public boolean legacyBindingMode() {
+        return binding.legacyBindingMode;
+    }
+
     public boolean renderStuckObjects() {
         return binding.renderStuckObjects;
     }
@@ -158,14 +174,18 @@ public class ModConfig {
         return binding.rerenderModel;
     }
 
-    public boolean disableWhenSneaking() {
+    public boolean bindingDisableWhenSneaking() {
         return binding.disableWhenSneaking;
     }
 
-    public boolean disableWhenSwimming() {
+    public boolean bindingDisableWhenSwimming() {
         return binding.disableWhenSwimming;
     }
 
+    public int getBindingSwimOutTick() {
+        return binding.swimOutTick;
+    }
+    
     public List<String> getDisableMainFeatureItems() {
         return binding.disableMainFeatureItems;
     }
@@ -175,12 +195,17 @@ public class ModConfig {
     }
 
     public List<BindingTarget> getFixedTargetList() {
-        binding.clamp();
         return binding.fixedTargetList;
     }
 
-    public BindingTarget findFixedTarget(String name) {
-        return binding.fixedTargetList.stream().filter(target -> target.name.equals(name)).findFirst().orElse(binding.fixedTargetList.get(0));
+    public BindingTarget getOrCreateFixedTarget(String name) {
+        BindingTarget.fixedNames.add(name);
+        return binding.fixedTargetList.stream().filter(target -> target.name().equals(name)).findFirst()
+                .orElseGet(() -> {
+                    BindingTarget target = BindingTarget.blank(name, "");
+                    Binding.putTarget(target, binding.fixedTargetList);
+                    return target;
+                });
     }
 
     public List<BindingTarget> getTargetList() {
@@ -190,6 +215,9 @@ public class ModConfig {
 
     public static class Classic {
         public AdjustMode adjustMode = AdjustMode.CAMERA;
+        public boolean disableWhenSneaking = false;
+        public boolean disableWhenSwimming = false;
+        public int swimOutTick = 13;
         public double scale = 8.0;
         public double cameraX = -0.5;
         public double cameraY = 0.04;
@@ -228,30 +256,31 @@ public class ModConfig {
 
     public static class Binding {
         protected static final List<String> defaultDisableRenderItems = List.of("minecraft:filled_map");
+        public boolean legacyBindingMode = false;
         public boolean adjustOffset = true;
         public boolean renderStuckObjects = true;
         public boolean rerenderModel = false;
         public boolean disableWhenSneaking = false;
         public boolean disableWhenSwimming = false;
+        public int swimOutTick = 13;
         public List<String> disableMainFeatureItems = List.of();
         public List<String> disableRenderItems = defaultDisableRenderItems;
-        public List<BindingTarget> fixedTargetList = new ArrayList<>(BindingTarget.fixedTargets);
+        public List<BindingTarget> fixedTargetList = new ArrayList<>();
         public List<BindingTarget> targetList = new ArrayList<>(BindingTarget.defaultTargets);
 
         private static void putTarget(BindingTarget target, List<BindingTarget> list) {
             IntStream.range(0, list.size())
-                    .filter(i -> list.get(i).name.equals(target.name))
+                    .filter(i -> list.get(i).name().equals(target.name()))
                     .findAny()
                     .ifPresentOrElse(i -> list.set(i, target), () -> list.add(target));
-            list.sort(Comparator.comparingInt(t -> -t.getPriority()));
+            list.sort(Comparator.comparingInt(t -> -t.priority()));
         }
 
         private void clamp() {
             if (disableMainFeatureItems == null) disableMainFeatureItems = List.of();
             if (disableRenderItems == null) disableRenderItems = List.of();
-            if (fixedTargetList == null || fixedTargetList.isEmpty()) fixedTargetList = new ArrayList<>(BindingTarget.fixedTargets);
+            if (fixedTargetList == null) fixedTargetList = new ArrayList<>();
             if (targetList == null || targetList.isEmpty()) targetList = new ArrayList<>(BindingTarget.defaultTargets);
-            fixedTargetList.removeIf(target -> !target.fixed());
             targetList.removeIf(BindingTarget::fixed);
         }
 
