@@ -46,7 +46,7 @@ public record BindingTarget(
     }
 
     public boolean isEmpty() {
-        return name == null || name.isEmpty();
+        return name == null;
     }
 
     public boolean fixed() {

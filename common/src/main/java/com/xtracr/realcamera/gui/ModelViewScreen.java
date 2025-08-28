@@ -197,7 +197,7 @@ public class ModelViewScreen extends Screen {
                 rows.addChild(textureIdField, 2, smallSettings).setTooltip(createTooltip("textureId"));
             } else {
                 LayoutSettings offsetXSettings = grid.newCellSettings().padding(-13, 3, 1, 1);
-                rows.addChild(disableModeButton, 2);
+                rows.addChild(disableModeButton, 2).setTooltip(createTooltip("disableMode"));
                 rows.addChild(disabledIdField, 2, smallSettings).setTooltip(createTooltip("textureId"));
                 rows.addChild(focusedRectangleNumberField, smallSettings).setOnValueChange(index -> {
                     if (index == 0) focusedRectangle = null;
