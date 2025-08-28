@@ -26,6 +26,17 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
   * ![preview](https://cdn.modrinth.com/data/fYYSAh4R/images/22cfcf444bbf2d3c0d0280e470a29f01b9308617.png)
 * Enter a name and save (if needed, other settings such as priority can be changed).
 
+#### Tips
+
+* Configs can have their priority adjusted - higher priority configs appear higher in the right-side list
+* Disable depth in `Preview` section to hide models blocking the view
+* About `Disable` section (current version still rough, complex operations):
+    * When texture ID field is empty, use Left Alt+Left Click to select texture
+    * Model parts contained by blue boxes won't be rendered
+    * Left-click drag to select in texture view, other keys cancel selection
+    * Left Alt+Left Click quickly selects hovered parts
+    * In `All` mode, entire texture's model won't render (blue box containing the texture in left panel indicates this)
+
 ## Dependencies ##
 
 * Fabric:
@@ -36,9 +47,16 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 ## FAQ ##
 
 * A part of the model (e.g. hair) is always in the way, how to make it invisible?
-  * Increasing this value may help  
+  * Increasing this value may help, or use `Disable` section  
     ![screenshot_2024_6_2_22_42](https://github.com/xTracr/RealCamera/assets/57320980/78c246e8-34aa-4979-89de-780ee907870b)
-
+* What key to press can open Model View Screen?
+  * Set the key binding by yourself
+* Why can't i open the Config Screen?
+  * Please downlowd [Cloth Config API](https://modrinth.com/mod/cloth-config)
+* Why does it show binding failed when use YSM models?
+  * Snapshot 0.6.15 "try" to fix problems, but it didn't fix completely
+* why does the head of YSM model disappear when in the Model View Screen?
+  * You downloaded Better Combat, just put it away
 ### Compatibility ###
 
 * Incompatible:
