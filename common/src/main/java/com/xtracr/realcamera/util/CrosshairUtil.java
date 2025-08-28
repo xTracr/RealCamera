@@ -11,7 +11,7 @@ import org.joml.Matrix4f;
 
 public class CrosshairUtil {
     public static EntityHitResult capturedEntityHitResult;
-    private static Vec3 offset = Vec3.ZERO;
+    public static Vec3 offset = Vec3.ZERO;
 
     public static void translateMatrices(PoseStack poseStack) {
         poseStack.translate(offset.x(), -offset.y(), 0.0d);

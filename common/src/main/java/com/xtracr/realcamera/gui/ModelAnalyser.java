@@ -265,7 +265,7 @@ public class ModelAnalyser extends VertexRecorder {
     public BindingContext genContext() {
         target.offsets().setScale(target.offsets().getScale() * modelScale);
         for (BuiltRecord record : records) {
-            BindingContext context = new BindingContext(target, true);
+            BindingContext context = new BindingContext(target, false);
             record.setupContext(context);
             if (context.weakAvailable()) currentRecord = record;
             if (!context.available()) continue;
