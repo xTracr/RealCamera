@@ -20,8 +20,6 @@ import net.minecraft.client.gui.layouts.LayoutSettings;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -423,7 +421,7 @@ public class ModelViewScreen extends Screen {
         graphics.fill(x + (xSize + middleWidth) / 2 + 4, y, x + xSize, y + ySize, 0xFF444444);
         analyser.setup(genBindingTarget(), modelScale);
         renderModelViewArea(graphics, minecraft.player);
-        renderTextureViewArea(graphics, mouseX, mouseY, minecraft.player);
+        renderTextureViewArea(graphics, minecraft.player);
         applyAnalyser(graphics, mouseX, mouseY);
     }
 
@@ -451,7 +449,6 @@ public class ModelViewScreen extends Screen {
 
     protected void renderModelViewArea(GuiGraphics graphics, LivingEntity entity) {
         int x1 = modelViewArea.left(), y1 = modelViewArea.top(), x2 = modelViewArea.right(), y2 = modelViewArea.bottom();
-        graphics.enableScissor(x1, y1, x2, y2);
         Quaternionf quaternionf = new Quaternionf().rotateX((float) Math.PI / 6 + xRot).rotateY((float) Math.PI / 6 + yRot).rotateZ((float) Math.PI);
         float entityBodyYaw = entity.yBodyRot;
         float entityYaw = entity.getYRot();
@@ -470,7 +467,6 @@ public class ModelViewScreen extends Screen {
         entity.setXRot(entityPitch);
         entity.yHeadRotO = entityPrevHeadYaw;
         entity.yHeadRot = entityHeadYaw;
-        graphics.disableScissor();
     }
 
     protected void renderEntityWithAnalyser(GuiGraphics graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset, Quaternionf quaternionf, LivingEntity entity) {
@@ -479,27 +475,23 @@ public class ModelViewScreen extends Screen {
         analyser.modelPose.translate(offset.x(), offset.y(), offset.z());
         analyser.modelPose.mulPose(quaternionf);
         analyser.updateModel(minecraft, entity, 1.0f, analyser.modelPose);
-        EntityRenderDispatcher entityRenderDispatcher = minecraft.getEntityRenderDispatcher();
-        EntityRenderer<? super LivingEntity, ?> entityRenderer = entityRenderDispatcher.getRenderer(entity);
-        EntityRenderState entityRenderState = entityRenderer.createRenderState(entity, 1.0F);
+        EntityRenderState entityRenderState = minecraft.getEntityRenderDispatcher().getRenderer(entity).createRenderState(entity, 1.0F);
         entityRenderState.hitboxesRenderState = null;
         graphics.submitEntityRenderState(entityRenderState, scale, offset, quaternionf, new Quaternionf(), x1, y1, x2, y2);
     }
 
-    protected void renderTextureViewArea(GuiGraphics graphics, int mouseX, int mouseY, LivingEntity entity) {
+    protected void renderTextureViewArea(GuiGraphics graphics, LivingEntity entity) {
         if (textureViewArea == null) return;
         int x1 = textureViewArea.left(), y1 = textureViewArea.top(), x2 = textureViewArea.right(), y2 = textureViewArea.bottom();
         Vector3f offset = new Vector3f((float) textureX - 0.5f, (float) textureY - 0.5f, 0);
-        renderTextureWithAnalyser(graphics, x1, y1, x2, y2,inTextureViewArea(mouseX, mouseY) ? mouseX : -1, mouseY, (float) (textureScale * textureViewArea.width()) / 80, offset, entity);
+        renderTextureWithAnalyser(graphics, x1, y1, x2, y2, (float) (textureScale * textureViewArea.width()) / 80, offset, entity);
     }
 
-    protected void renderTextureWithAnalyser(GuiGraphics graphics, int x1, int y1, int x2, int y2, int mouseX, int mouseY, float scale, Vector3f offset, LivingEntity entity) {
+    protected void renderTextureWithAnalyser(GuiGraphics graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset, LivingEntity entity) {
         analyser.texturePose.translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
         analyser.texturePose.scale(scale, scale, -scale);
         analyser.texturePose.translate(offset.x(), offset.y(), offset.z());
-        EntityRenderDispatcher entityRenderDispatcher = minecraft.getEntityRenderDispatcher();
-        EntityRenderer<? super LivingEntity, ?> entityRenderer = entityRenderDispatcher.getRenderer(entity);
-        EntityRenderState entityRenderState = entityRenderer.createRenderState(entity, 1.0F);
+        EntityRenderState entityRenderState = minecraft.getEntityRenderDispatcher().getRenderer(entity).createRenderState(entity, 1.0F);
         entityRenderState.hitboxesRenderState = null;
         graphics.submitEntityRenderState(entityRenderState, scale, offset, new Quaternionf(), null, x1, y1, x2, y2);
     }

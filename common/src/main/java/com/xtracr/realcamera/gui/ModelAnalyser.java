@@ -202,24 +202,24 @@ public class ModelAnalyser extends VertexRecorder {
     public void drawFocusedInModelArea(GuiGraphics graphics) {
         if (focusedPolyhedron.isEmpty() || focusedRecord == null) return;
         VertexData[] focused = focusedPolyhedron.getFirst();
-        VertexData[] reversedFocus = new VertexData[focused.length];
-        for (int i = 0; i < focused.length; i++) reversedFocus[i] = focused[focused.length - 1 - i];
-        drawPrimitive(graphics, reversedFocus, z1, focusedArgb);
+        VertexData[] reversed = new VertexData[focused.length];
+        for (int i = 0; i < focused.length; i++) reversed[i] = focused[focused.length - 1 - i];
+        drawPrimitive(graphics, reversed, z1, focusedArgb);
         focusedPolyhedron.forEach(primitive -> drawPrimitive(graphics, primitive, z1, focusedArgb));
     }
 
     public void drawFocusedInTextureArea(GuiGraphics graphics) {
         Matrix4f positionMatrix = texturePose.last().pose();
-        focusedPolyhedron.forEach(primitive -> {
-            VertexData[] reversed = new VertexData[primitive.length];
-            for (int j = 0; j < primitive.length; j++) {
-                VertexData vertex = primitive[j];
+        for (VertexData[] primitive : focusedPolyhedron) {
+            VertexData[] transformed = new VertexData[primitive.length], reversed = new VertexData[primitive.length];
+            for (int i = 0; i < primitive.length; i++) {
+                VertexData vertex = primitive[i];
                 Vector3f position = new Vector3f(vertex.u(), vertex.v(), 0).mulPosition(positionMatrix);
-                primitive[j] = reversed[primitive.length - 1 - j] = new VertexData(position.x(), position.y(), 0, vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
+                transformed[i] = reversed[primitive.length - 1 - i] = new VertexData(position.x(), position.y(), 0, vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
             }
-            drawPrimitive(graphics, primitive, 0, focusedArgb);
-            drawPrimitive(graphics, reversed, 0, focusedArgb);
-        });
+            drawPrimitive(graphics, transformed, 10, focusedArgb);
+            drawPrimitive(graphics, reversed, 10, focusedArgb);
+        }
     }
 
     public void drawModel(MultiBufferSource bufferSource, PoseStack poseStack) {
