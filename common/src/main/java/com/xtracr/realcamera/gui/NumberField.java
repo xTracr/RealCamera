@@ -11,6 +11,8 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSequence;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Consumer;
+
 public abstract class NumberField<T extends Comparable<T>> extends EditBox {
     private final T defaultValue;
     protected T maximum, minimum;
@@ -60,6 +62,11 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
         return this;
     }
 
+    public NumberField<T> setOnValueChange(Consumer<T> consumer) {
+        super.setResponder(str -> consumer.accept(getNumber()));
+        return this;
+    }
+
     abstract protected T getNumberInternal();
 
     protected void checkText() {
@@ -89,15 +96,15 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
     }
 
     @Override
-    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
+    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float deltaTick) {
         checkText();
-        super.renderWidget(graphics, mouseX, mouseY, delta);
+        super.renderWidget(graphics, mouseX, mouseY, deltaTick);
     }
 
     private static class FloatField extends NumberField<Float> {
         FloatField(Font font, int width, int height, float defaultValue, @Nullable NumberField<Float> copyFrom) {
             super(font, width, height, defaultValue, Float.MAX_VALUE, -Float.MAX_VALUE, copyFrom);
-            setMaxLength(8);
+            setMaxLength(16);
         }
 
         @Override

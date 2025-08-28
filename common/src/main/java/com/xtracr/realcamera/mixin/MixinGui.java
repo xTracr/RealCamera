@@ -24,7 +24,7 @@ public abstract class MixinGui {
     @Inject(method = "renderCrosshair", at = @At("RETURN"))
     private void realcamera$atRenderCrosshairRETURN(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         if (ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
-            guiGraphics.pose().pushMatrix();
+            guiGraphics.pose().popMatrix();
         }
     }
 }

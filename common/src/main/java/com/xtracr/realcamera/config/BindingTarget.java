@@ -1,236 +1,148 @@
 package com.xtracr.realcamera.config;
 
+import com.xtracr.realcamera.util.VertexData;
 import net.minecraft.util.Mth;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
-public class BindingTarget {
-    protected static final Set<String> fixedNames = new HashSet<>();
-    protected static final List<BindingTarget> defaultTargets;
-    public final String name, textureId;
-    private int priority = 0;
-    private float forwardU = 0, forwardV = 0, upwardU = 0, upwardV = 0, posU = 0, posV = 0, disablingDepth = 0.2f;
-    private boolean bindX = false, bindY = true, bindZ = false, bindRotation = false;
-    private double scale = 1, offsetX = 0, offsetY = 0, offsetZ = 0;
-    private float pitch = 0, yaw = 0, roll = 0;
-    private List<String> disabledTextureIds = List.of();
+public record BindingTarget(
+        String name, String textureId, int priority, float disablingDepth,
+        TargetConfig targetConfig,
+        BindConfig bindConfig,
+        OffsetConfig offsets,
+        DisableConfig[] disableConfigs) {
+    public static final Set<String> fixedNames = new HashSet<>();
+    public static final List<BindingTarget> defaultTargets;
+    public static final BindingTarget EMPTY = blank(null, null);
 
     static {
-        defaultTargets = List.of(BindingTarget.vanillaTarget("minecraft_head", 5, false).setOffsetX(-0.1),
-                BindingTarget.vanillaTarget("skin_head", 5, false).setOffsetX(-0.1),
-                BindingTarget.vanillaTarget("minecraft_head_2", 1, true).setOffsetX(-0.1),
-                BindingTarget.vanillaTarget("skin_head_2", 1, true).setOffsetX(-0.1));
+        defaultTargets = List.of(
+                BindingTarget.vanillaTarget("minecraft_head", 5, false),
+                BindingTarget.vanillaTarget("skin_head", 5, false),
+                BindingTarget.vanillaTarget("minecraft_head_2", 1, true),
+                BindingTarget.vanillaTarget("skin_head_2", 1, true)
+        );
     }
 
-    public BindingTarget() {
-        this(null, null);
+    public static BindingTarget blank(String name, String textureId) {
+        TargetConfig targetConfig = new TargetConfig(0, 0, 0, 0, 0, 0);
+        BindConfig bindConfig = new BindConfig(false, true, false, false);
+        return new BindingTarget(name, textureId, 0, 0.2f, targetConfig, bindConfig, new OffsetConfig(), new DisableConfig[0]);
     }
 
-    protected BindingTarget(String name, String textureId) {
-        this.name = name;
-        this.textureId = textureId;
-    }
-
-    protected static BindingTarget vanillaTarget(String name, int priority, boolean shouldBind) {
-        return new BindingTarget(name, name.contains("skin") ? "minecraft:skins/" : "minecraft:textures/entity/player/").setPriority(priority)
-                .setForwardU(0.1875f).setForwardV(0.2f)
-                .setUpwardU(0.1875f).setUpwardV(0.075f)
-                .setPosU(0.1875f).setPosV(0.2f)
-                .setBindX(shouldBind).setBindZ(shouldBind).setBindRotation(shouldBind)
-                .setDisabledTextureIds(List.of("minecraft:textures/entity/enderdragon/dragon.png"));
-    }
-
-    public static BindingTarget create(String name, String textureId) {
-        return new BindingTarget(name, textureId);
+    private static BindingTarget vanillaTarget(String name, int priority, boolean shouldBind) {
+        String textureId = name.contains("skin") ? "minecraft:skins/" : "minecraft:textures/entity/player/";
+        TargetConfig targetConfig = new TargetConfig(0.1875f, 0.2f, 0.1875f, 0.075f, 0.1875f, 0.2f);
+        BindConfig bindConfig = new BindConfig(shouldBind, true, shouldBind, shouldBind);
+        OffsetConfig offsets = new OffsetConfig().setX(-0.1);
+        DisableConfig playerHead = new DisableConfig("player_head", textureId, false, new UVRectangle[]{new UVRectangle(0, 0, 1.0f, 0.25f)});
+        DisableConfig dragonHead = new DisableConfig("dragon_head", "minecraft:textures/entity/enderdragon/dragon.png", true, new UVRectangle[0]);
+        DisableConfig[] disableConfigs = new DisableConfig[]{playerHead, dragonHead};
+        return new BindingTarget(name, textureId, priority, 0.1f, targetConfig, bindConfig, offsets, disableConfigs);
     }
 
     public boolean isEmpty() {
-        return name == null || name.isEmpty();
+        return name == null;
     }
 
     public boolean fixed() {
         return fixedNames.contains(name);
     }
 
-    public int getPriority() {
-        return priority;
+    public DisableConfig[] filteredDisableConfigs(Predicate<DisableConfig> filter) {
+        return Arrays.stream(disableConfigs).filter(filter).toArray(DisableConfig[]::new);
     }
 
-    public BindingTarget setPriority(int priority) {
-        this.priority = priority;
-        return this;
+    public record TargetConfig(float forwardU, float forwardV, float upwardU, float upwardV, float posU, float posV) {}
+
+    public record BindConfig(boolean bindX, boolean bindY, boolean bindZ, boolean bindRotation) {}
+
+    public static class OffsetConfig {
+        private double scale = 1, x = 0, y = 0, z = 0;
+        private float pitch = 0, yaw = 0, roll = 0;
+
+        public double getScale() {
+            return scale;
+        }
+
+        public OffsetConfig setScale(double scale) {
+            this.scale = scale;
+            return this;
+        }
+
+        public double getX() {
+            return x;
+        }
+
+        public OffsetConfig setX(double x) {
+            this.x = Mth.clamp(x, ModConfig.MIN_DOUBLE, ModConfig.MAX_DOUBLE);
+            return this;
+        }
+
+        public double getY() {
+            return y;
+        }
+
+        public OffsetConfig setY(double y) {
+            this.y = Mth.clamp(y, ModConfig.MIN_DOUBLE, ModConfig.MAX_DOUBLE);
+            return this;
+        }
+
+        public double getZ() {
+            return z;
+        }
+
+        public OffsetConfig setZ(double z) {
+            this.z = Mth.clamp(z, ModConfig.MIN_DOUBLE, ModConfig.MAX_DOUBLE);
+            return this;
+        }
+
+        public float getPitch() {
+            return pitch;
+        }
+
+        public OffsetConfig setPitch(float pitch) {
+            this.pitch = Mth.wrapDegrees(pitch);
+            return this;
+        }
+
+        public float getYaw() {
+            return yaw;
+        }
+
+        public OffsetConfig setYaw(float yaw) {
+            this.yaw = Mth.wrapDegrees(yaw);
+            return this;
+        }
+
+        public float getRoll() {
+            return roll;
+        }
+
+        public OffsetConfig setRoll(float roll) {
+            this.roll = Mth.wrapDegrees(roll);
+            return this;
+        }
     }
 
-    public float getForwardU() {
-        return forwardU;
+    public record DisableConfig(String name, String textureId, boolean disableAll, UVRectangle[] rectangles) implements Predicate<VertexData> {
+        @Override
+        public boolean test(VertexData vertexData) {
+            final float u = vertexData.u(), v = vertexData.v();
+            for (UVRectangle rectangle : rectangles) {
+                if (rectangle.contains(u, v)) return true;
+            }
+            return false;
+        }
     }
 
-    public BindingTarget setForwardU(float forwardU) {
-        this.forwardU = forwardU;
-        return this;
-    }
-
-    public float getForwardV() {
-        return forwardV;
-    }
-
-    public BindingTarget setForwardV(float forwardV) {
-        this.forwardV = forwardV;
-        return this;
-    }
-
-    public float getUpwardU() {
-        return upwardU;
-    }
-
-    public BindingTarget setUpwardU(float upwardU) {
-        this.upwardU = upwardU;
-        return this;
-    }
-
-    public float getUpwardV() {
-        return upwardV;
-    }
-
-    public BindingTarget setUpwardV(float upwardV) {
-        this.upwardV = upwardV;
-        return this;
-    }
-
-    public float getPosU() {
-        return posU;
-    }
-
-    public BindingTarget setPosU(float posU) {
-        this.posU = posU;
-        return this;
-    }
-
-    public float getPosV() {
-        return posV;
-    }
-
-    public BindingTarget setPosV(float posV) {
-        this.posV = posV;
-        return this;
-    }
-
-    public float getDisablingDepth() {
-        return disablingDepth;
-    }
-
-    public BindingTarget setDisablingDepth(float disablingDepth) {
-        this.disablingDepth = disablingDepth;
-        return this;
-    }
-
-    public boolean isBindX() {
-        return bindX;
-    }
-
-    public BindingTarget setBindX(boolean bindX) {
-        this.bindX = bindX;
-        return this;
-    }
-
-    public boolean isBindY() {
-        return bindY;
-    }
-
-    public BindingTarget setBindY(boolean bindY) {
-        this.bindY = bindY;
-        return this;
-    }
-
-    public boolean isBindZ() {
-        return bindZ;
-    }
-
-    public BindingTarget setBindZ(boolean bindZ) {
-        this.bindZ = bindZ;
-        return this;
-    }
-
-    public boolean isBindRotation() {
-        return bindRotation;
-    }
-
-    public BindingTarget setBindRotation(boolean bindRotation) {
-        this.bindRotation = bindRotation;
-        return this;
-    }
-
-    public double getScale() {
-        return scale;
-    }
-
-    public BindingTarget setScale(double scale) {
-        this.scale = scale;
-        return this;
-    }
-
-    public List<String> getDisabledTextureIds() {
-        return disabledTextureIds;
-    }
-
-    public BindingTarget setDisabledTextureIds(List<String> disabledTextureIds) {
-        this.disabledTextureIds = disabledTextureIds;
-        return this;
-    }
-
-    public double getOffsetX() {
-        return offsetX;
-    }
-    
-    public BindingTarget setOffsetX(double offsetX) {
-        this.offsetX = Mth.clamp(offsetX, ModConfig.MIN_DOUBLE, ModConfig.MAX_DOUBLE);
-        return this;
-    }
-    
-    public double getOffsetY() {
-        return offsetY;
-    }
-
-    public BindingTarget setOffsetY(double offsetY) {
-        this.offsetY = Mth.clamp(offsetY, ModConfig.MIN_DOUBLE, ModConfig.MAX_DOUBLE);
-        return this;
-    }
-    
-    public double getOffsetZ() {
-        return offsetZ;
-    }
-
-    public BindingTarget setOffsetZ(double offsetZ) {
-        this.offsetZ = Mth.clamp(offsetZ, ModConfig.MIN_DOUBLE, ModConfig.MAX_DOUBLE);
-        return this;
-    }
-
-    public float getPitch() {
-        return pitch;
-    }
-
-    public BindingTarget setPitch(float pitch) {
-        this.pitch = Mth.wrapDegrees(pitch);
-        return this;
-    }
-
-    public float getYaw() {
-        return yaw;
-    }
-
-    public BindingTarget setYaw(float yaw) {
-        this.yaw = Mth.wrapDegrees(yaw);
-        return this;
-    }
-
-    public float getRoll() {
-        return roll;
-    }
-
-    public BindingTarget setRoll(float roll) {
-        this.roll = Mth.wrapDegrees(roll);
-        return this;
+    public record UVRectangle(float uMin, float vMin, float uMax, float vMax) {
+        public boolean contains(float u, float v) {
+            return u >= uMin && u <= uMax && v >= vMin && v <= vMax;
+        }
     }
 }

@@ -27,11 +27,6 @@ public class LegacyBindingMode {
         PoseStack poseStack = new PoseStack();
         AbstractClientPlayer player = client.player;
         // WorldRenderer.render
-        if (player.tickCount == 0) {
-            player.xOld = player.getX();
-            player.yOld = player.getY();
-            player.zOld = player.getZ();
-        }
         // EntityRenderDispatcher.render
         PlayerRenderer playerRenderer = (PlayerRenderer) client.getEntityRenderDispatcher().getRenderer(player);
         PlayerRenderState renderState = playerRenderer.createRenderState(player, deltaTick);

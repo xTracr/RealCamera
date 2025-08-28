@@ -31,7 +31,9 @@ dependencies {
     modImplementation("com.terraformersmc:modmenu:${rootProject.modmenu_version}") {
         exclude(group: "net.fabricmc.fabric-api")
     }
-    // modImplementation "maven.modrinth:"
+
+//    modImplementation "maven.modrinth:minihud:qbsbGm0M"
+//    modImplementation "maven.modrinth:malilib:xTezyq2N"
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }

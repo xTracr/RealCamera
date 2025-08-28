@@ -18,7 +18,6 @@
     "MixinStuckInBodyLayer",
     "accessor.CameraAccessor",
     "accessor.GameRendererAccessor",
-    "accessor.GuiGraphicsAccessor",
     "accessor.PlayerRendererAccessor"
   ],
   "server": [
