@@ -45,6 +45,7 @@
   * (可选但建议)[Cloth Config API](https://modrinth.com/mod/cloth-config)
 
 ## 常见问题
+
 * 模型的一部分（如头发）始终挡在面前，怎样隐藏它?
   * 增加这个值或许有所帮助，或者使用`禁用`功能
     ![screenshot_2024_6_2_22_42](https://github.com/xTracr/RealCamera/assets/57320980/78c246e8-34aa-4979-89de-780ee907870b)
@@ -56,6 +57,7 @@
   * 快照0.6.15“尝试”修复了ysm问题，但没有修复透彻
 * 为什么配置ysm时候，模型视图界面中ysm模型头部消失?
   * 安装了Better Combat模组，去掉就可以了
+
 ### 兼容性
 
 * 不兼容:
