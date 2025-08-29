@@ -61,9 +61,9 @@ public abstract class MixinGameRenderer {
     }
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;prepareCullFrustum(Lnet/minecraft/world/phys/Vec3;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V"))
-    private void realcamera$atAfterCameraSetup(DeltaTracker deltaTracker, CallbackInfo ci, @Local(ordinal = 1) Matrix4f matrix4f2) {
+    private void realcamera$atAfterCameraSetup(DeltaTracker deltaTracker, CallbackInfo ci, @Local(ordinal = 2) Matrix4f matrix4f3) {
         if (RealCameraCore.isActive()) {
-            matrix4f2.rotateLocalZ(RealCameraCore.getRoll(0) * (float) (Math.PI / 180.0));
+            matrix4f3.rotateLocalZ(RealCameraCore.getRoll(0) * (float) (Math.PI / 180.0));
         }
     }
 
