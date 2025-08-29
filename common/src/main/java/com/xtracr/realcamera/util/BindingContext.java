@@ -10,12 +10,12 @@ import org.joml.Vector3f;
 public class BindingContext implements PoseHandler {
     public static final BindingContext EMPTY = new BindingContext(BindingTarget.EMPTY, false);
     public final BindingTarget target;
-    public final Matrix3f normal = new Matrix3f();
+    public final Matrix3f rotation = new Matrix3f();
     public final boolean mirrored;
     private final Minecraft client;
     private final float deltaTick;
     public boolean skipRendering = true;
-    private Vec3 position = Vec3.ZERO, forward = Vec3.ZERO, upward = Vec3.ZERO, eulerAngle = Vec3.ZERO;
+    private Vec3 position = Vec3.ZERO, forward = Vec3.ZERO, upward = Vec3.ZERO;
 
     public BindingContext(BindingTarget target, boolean mirrored) {
         this(target, Minecraft.getInstance(), 0, mirrored);
@@ -29,7 +29,7 @@ public class BindingContext implements PoseHandler {
     }
 
     public boolean available() {
-        return !target.isEmpty() && !forward.equals(Vec3.ZERO) && !upward.equals(Vec3.ZERO) && Double.isFinite(position.lengthSqr()) && Math.abs(normal.determinant() - 1) < 0.01f;
+        return !target.isEmpty() && !forward.equals(Vec3.ZERO) && !upward.equals(Vec3.ZERO) && Double.isFinite(position.lengthSqr()) && Math.abs(rotation.determinant() - 1) < 0.01f;
     }
 
     public boolean weakAvailable() {
@@ -38,6 +38,10 @@ public class BindingContext implements PoseHandler {
 
     public Vec3 getPosition() {
         return position;
+    }
+
+    public Matrix3f getRotation() {
+        return rotation;
     }
 
     @Override
@@ -65,22 +69,17 @@ public class BindingContext implements PoseHandler {
         upward = vec.normalize();
     }
 
-    public Vec3 getEulerAngle() {
-        return eulerAngle;
-    }
-
     public void init() {
         if (!available()) return;
         final int orientation = mirrored ? -1 : 1;
         upward = forward.cross(upward.cross(forward)).normalize();
         Vec3 left = upward.cross(forward).scale(orientation);
-        normal.set(left.toVector3f(), upward.toVector3f(), forward.toVector3f());
+        rotation.set(left.toVector3f(), upward.toVector3f(), forward.toVector3f());
         BindingTarget.OffsetConfig offsets = target.offsets();
-        Vector3f offset = new Vector3f((float) offsets.getZ(), (float) offsets.getY(), (float) offsets.getX()).mul((float) offsets.getScale()).mul(normal);
+        Vector3f offset = new Vector3f((float) offsets.getZ(), (float) offsets.getY(), (float) offsets.getX()).mul((float) offsets.getScale()).mul(rotation);
         position = position.add(offset.x(), offset.y(), offset.z());
-        normal.rotateLocal(orientation * (float) Math.toRadians(offsets.getYaw()), normal.m10, normal.m11, normal.m12);
-        normal.rotateLocal(orientation * (float) Math.toRadians(offsets.getPitch()), normal.m00, normal.m01, normal.m02);
-        normal.rotateLocal(orientation * (float) Math.toRadians(offsets.getRoll()), normal.m20, normal.m21, normal.m22);
-        eulerAngle = MathUtil.getEulerAngleYXZ(normal).scale(Math.toDegrees(1));
+        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.getYaw()), rotation.m10, rotation.m11, rotation.m12);
+        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.getPitch()), rotation.m00, rotation.m01, rotation.m02);
+        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.getRoll()), rotation.m20, rotation.m21, rotation.m22);
     }
 }

@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 public class ModConfig {
-    public static final double MIN_DOUBLE = -1.0;
-    public static final double MAX_DOUBLE = 1.0;
+    public static final double MIN_OFFSET = -1.0;
+    public static final double MAX_OFFSET = 1.0;
     public boolean enabled = false;
     public boolean isClassic = false;
     public boolean dynamicCrosshair = false;
@@ -30,7 +30,7 @@ public class ModConfig {
     }
 
     public void clamp() {
-        adjustStep = Mth.clamp(adjustStep, 0.0d, MAX_DOUBLE);
+        adjustStep = Mth.clamp(adjustStep, 0.0, MAX_OFFSET);
         classic.clamp();
         binding.clamp();
     }
@@ -182,7 +182,15 @@ public class ModConfig {
     public int getBindingSwimOutTick() {
         return binding.swimOutTick;
     }
-    
+
+    public double getDisplacementSmoothFactor() {
+        return binding.displacementSmoothFactor;
+    }
+
+    public double getRotationSmoothFactor() {
+        return binding.rotationSmoothFactor;
+    }
+
     public List<String> getDisableMainFeatureItems() {
         return binding.disableMainFeatureItems;
     }
@@ -228,13 +236,14 @@ public class ModConfig {
 
         private void clamp() {
             if (adjustMode == null) adjustMode = AdjustMode.CAMERA;
+            swimOutTick = Mth.clamp(swimOutTick, 0, 40);
             scale = Mth.clamp(scale, 0.0, 64.0);
-            cameraX = Mth.clamp(cameraX, MIN_DOUBLE, MAX_DOUBLE);
-            cameraY = Mth.clamp(cameraY, MIN_DOUBLE, MAX_DOUBLE);
-            cameraZ = Mth.clamp(cameraZ, MIN_DOUBLE, MAX_DOUBLE);
-            centerX = Mth.clamp(centerX, MIN_DOUBLE, MAX_DOUBLE);
-            centerY = Mth.clamp(centerY, MIN_DOUBLE, MAX_DOUBLE);
-            centerZ = Mth.clamp(centerZ, MIN_DOUBLE, MAX_DOUBLE);
+            cameraX = Mth.clamp(cameraX, MIN_OFFSET, MAX_OFFSET);
+            cameraY = Mth.clamp(cameraY, MIN_OFFSET, MAX_OFFSET);
+            cameraZ = Mth.clamp(cameraZ, MIN_OFFSET, MAX_OFFSET);
+            centerX = Mth.clamp(centerX, MIN_OFFSET, MAX_OFFSET);
+            centerY = Mth.clamp(centerY, MIN_OFFSET, MAX_OFFSET);
+            centerZ = Mth.clamp(centerZ, MIN_OFFSET, MAX_OFFSET);
             pitch = Mth.wrapDegrees(pitch);
             yaw = Mth.wrapDegrees(yaw);
             roll = Mth.wrapDegrees(roll);
@@ -260,6 +269,8 @@ public class ModConfig {
         public boolean disableWhenSneaking = false;
         public boolean disableWhenSwimming = false;
         public int swimOutTick = 13;
+        public double displacementSmoothFactor = 0.4;
+        public double rotationSmoothFactor = 0.4;
         public List<String> disableMainFeatureItems = List.of();
         public List<String> disableRenderItems = defaultDisableRenderItems;
         public List<BindingTarget> fixedTargetList = new ArrayList<>();
@@ -274,6 +285,9 @@ public class ModConfig {
         }
 
         private void clamp() {
+            swimOutTick = Mth.clamp(swimOutTick, 0, 40);
+            displacementSmoothFactor = Mth.clamp(displacementSmoothFactor, 0.0, 1.0);
+            rotationSmoothFactor = Mth.clamp(rotationSmoothFactor, 0.0, 1.0);
             if (disableMainFeatureItems == null) disableMainFeatureItems = List.of();
             if (disableRenderItems == null) disableRenderItems = List.of();
             if (fixedTargetList == null) fixedTargetList = new ArrayList<>();

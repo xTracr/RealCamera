@@ -179,7 +179,7 @@ public class ModelAnalyser extends VertexRecorder {
 
     public void drawCameraDirections(GuiGraphics graphics) {
         Vec3 start = bindingContext.getPosition();
-        Matrix3f normal = bindingContext.normal;
+        Matrix3f normal = bindingContext.rotation;
         if (normal.m00() == 0 && normal.m11() == 0 && normal.m22() == 0) return;
         drawNormal(graphics, start, new Vec3(normal.m20(), normal.m21(), normal.m22()), modelScale / 3, forwardArgb);
         drawNormal(graphics, start, new Vec3(normal.m10(), normal.m11(), normal.m12()), modelScale / 6, upwardArgb);

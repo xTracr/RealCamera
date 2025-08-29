@@ -79,7 +79,7 @@ public record BindingTarget(
         }
 
         public OffsetConfig setX(double x) {
-            this.x = Mth.clamp(x, ModConfig.MIN_DOUBLE, ModConfig.MAX_DOUBLE);
+            this.x = Mth.clamp(x, ModConfig.MIN_OFFSET, ModConfig.MAX_OFFSET);
             return this;
         }
 
@@ -88,7 +88,7 @@ public record BindingTarget(
         }
 
         public OffsetConfig setY(double y) {
-            this.y = Mth.clamp(y, ModConfig.MIN_DOUBLE, ModConfig.MAX_DOUBLE);
+            this.y = Mth.clamp(y, ModConfig.MIN_OFFSET, ModConfig.MAX_OFFSET);
             return this;
         }
 
@@ -97,7 +97,7 @@ public record BindingTarget(
         }
 
         public OffsetConfig setZ(double z) {
-            this.z = Mth.clamp(z, ModConfig.MIN_DOUBLE, ModConfig.MAX_DOUBLE);
+            this.z = Mth.clamp(z, ModConfig.MIN_OFFSET, ModConfig.MAX_OFFSET);
             return this;
         }
 
