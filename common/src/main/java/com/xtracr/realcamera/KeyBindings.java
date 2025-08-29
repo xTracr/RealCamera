@@ -13,9 +13,10 @@ import java.util.function.Consumer;
 
 public final class KeyBindings {
     private static final Map<KeyMapping, Consumer<Minecraft>> KEY_BINDINGS = new HashMap<>();
+    public static final KeyMapping MODEL_VIEW_SCREEN;
 
     static {
-        createKeyBinding("modelViewScreen", client -> client.setScreen(new ModelViewScreen()));
+        MODEL_VIEW_SCREEN = createKeyBinding("modelViewScreen", client -> client.setScreen(new ModelViewScreen()));
         createKeyBinding("togglePerspective", GLFW.GLFW_KEY_F6, client -> {
             boolean enabled = ConfigFile.config().enabled();
             ConfigFile.load();
@@ -32,12 +33,14 @@ public final class KeyBindings {
         createKeyBinding("adjustRIGHT", client -> ConfigFile.config().adjustOffsetZ(-1));
     }
 
-    private static void createKeyBinding(String id, Consumer<Minecraft> whenPressed) {
-        createKeyBinding(id, GLFW.GLFW_KEY_UNKNOWN, whenPressed);
+    private static KeyMapping createKeyBinding(String id, Consumer<Minecraft> whenPressed) {
+        return createKeyBinding(id, GLFW.GLFW_KEY_UNKNOWN, whenPressed);
     }
 
-    private static void createKeyBinding(String id, int code, Consumer<Minecraft> whenPressed) {
-        KEY_BINDINGS.put(new KeyMapping("key." + RealCamera.FULL_ID + "." + id, code, LocUtil.KEY_MOD_NAME), whenPressed);
+    private static KeyMapping createKeyBinding(String id, int code, Consumer<Minecraft> whenPressed) {
+        KeyMapping keyMapping = new KeyMapping("key." + RealCamera.FULL_ID + "." + id, code, LocUtil.KEY_MOD_NAME);
+        KEY_BINDINGS.put(keyMapping, whenPressed);
+        return keyMapping;
     }
 
     public static void register(Consumer<KeyMapping> registerer) {
