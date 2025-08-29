@@ -28,9 +28,9 @@ public class ModelAnalyser extends VertexRecorder {
     private static final Set<RenderType> UNFOCUSABLE_RENDER_TYPES = Set.of(RenderType.armorEntityGlint(), RenderType.glintTranslucent(), RenderType.glint(), RenderType.entityGlint(), RenderType.entityGlintDirect());
     private static final int planeArgb = 0x6F3333CC, forwardArgb = 0xFF00CC00, upwardArgb = 0xFFCC0000, leftArgb = 0xFF0000CC, focusedArgb = 0x4FFFFFFF;
     private static final int z1 = 210, z2 = z1 + 10;
-    private final List<BuiltRecord> textureRecords = new ArrayList<>();
     public final List<VertexData[]> focusedPolyhedron = new ArrayList<>();
     public final PoseStack modelPose = new PoseStack(), texturePose = new PoseStack();
+    private final List<BuiltRecord> textureRecords = new ArrayList<>();
     private BindingContext bindingContext = BindingContext.EMPTY;
     private BindingTarget target = BindingTarget.EMPTY;
     @Nullable
@@ -197,24 +197,24 @@ public class ModelAnalyser extends VertexRecorder {
     public void drawFocusedInModelArea(GuiGraphics graphics) {
         if (focusedPolyhedron.isEmpty() || focusedRecord == null) return;
         VertexData[] focused = focusedPolyhedron.get(0);
-        VertexData[] reversedFocus = new VertexData[focused.length];
-        for (int i = 0; i < focused.length; i++) reversedFocus[i] = focused[focused.length - 1 - i];
-        drawPrimitive(graphics, reversedFocus, z1, focusedArgb);
+        VertexData[] reversed = new VertexData[focused.length];
+        for (int i = 0; i < focused.length; i++) reversed[i] = focused[focused.length - 1 - i];
+        drawPrimitive(graphics, reversed, z1, focusedArgb);
         focusedPolyhedron.forEach(primitive -> drawPrimitive(graphics, primitive, z1, focusedArgb));
     }
 
     public void drawFocusedInTextureArea(GuiGraphics graphics) {
         Matrix4f positionMatrix = texturePose.last().pose();
-        focusedPolyhedron.forEach(primitive -> {
-            VertexData[] reversed = new VertexData[primitive.length];
-            for (int j = 0; j < primitive.length; j++) {
-                VertexData vertex = primitive[j];
+        for (VertexData[] primitive : focusedPolyhedron) {
+            VertexData[] transformed = new VertexData[primitive.length], reversed = new VertexData[primitive.length];
+            for (int i = 0; i < primitive.length; i++) {
+                VertexData vertex = primitive[i];
                 Vector3f position = new Vector3f(vertex.u(), vertex.v(), 0).mulPosition(positionMatrix);
-                primitive[j] = reversed[primitive.length - 1 - j] = new VertexData(position.x(), position.y(), 0, vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
+                transformed[i] = reversed[primitive.length - 1 - i] = new VertexData(position.x(), position.y(), 0, vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
             }
-            drawPrimitive(graphics, primitive, 0, focusedArgb);
+            drawPrimitive(graphics, transformed, 0, focusedArgb);
             drawPrimitive(graphics, reversed, 0, focusedArgb);
-        });
+        }
     }
 
     public void drawModel(GuiGraphics graphics, PoseStack poseStack) {

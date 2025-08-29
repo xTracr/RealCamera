@@ -74,7 +74,6 @@ public class ModConfig {
             classic.clamp();
         } else {
             BindingTarget target = RealCameraCore.currentTarget();
-            if (target.isEmpty()) return;
             if (binding.adjustOffset) target.offsets().setX(target.offsets().getX() + count * adjustStep);
             else target.offsets().setRoll(target.offsets().getRoll() + count * 100 * (float) adjustStep);
         }
@@ -90,7 +89,6 @@ public class ModConfig {
             classic.clamp();
         } else {
             BindingTarget target = RealCameraCore.currentTarget();
-            if (target.isEmpty()) return;
             if (binding.adjustOffset) target.offsets().setY(target.offsets().getY() + count * adjustStep);
             else target.offsets().setYaw(target.offsets().getYaw() + count * 100 * (float) adjustStep);
         }
@@ -106,7 +104,6 @@ public class ModConfig {
             classic.clamp();
         } else {
             BindingTarget target = RealCameraCore.currentTarget();
-            if (target.isEmpty()) return;
             if (binding.adjustOffset) target.offsets().setZ(target.offsets().getZ() + count * adjustStep);
             else target.offsets().setPitch(target.offsets().getPitch() + count * 100 * (float) adjustStep);
         }
@@ -280,8 +277,11 @@ public class ModConfig {
             if (disableMainFeatureItems == null) disableMainFeatureItems = List.of();
             if (disableRenderItems == null) disableRenderItems = List.of();
             if (fixedTargetList == null) fixedTargetList = new ArrayList<>();
-            if (targetList == null || targetList.isEmpty()) targetList = new ArrayList<>(BindingTarget.defaultTargets);
-            targetList.removeIf(BindingTarget::fixed);
+            if (targetList == null) targetList = new ArrayList<>(BindingTarget.defaultTargets);
+            else {
+                targetList.removeIf(target -> target.fixed() || target.isEmpty());
+                if (targetList.isEmpty()) targetList = new ArrayList<>(BindingTarget.defaultTargets);
+            }
         }
 
         public void putTarget(BindingTarget target) {

@@ -27,7 +27,7 @@ public abstract class MixinLevelRenderer {
     private void realcamera$renderLocalPlayer(PoseStack poseStack, float deltaTick, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f matrix4f, CallbackInfo ci) {
         if (!RealCameraCore.isRendering()) return;
         MultiBufferSource.BufferSource bufferSource = this.renderBuffers.bufferSource();
-        if (!ConfigFile.config().isClassic()) RealCameraCore.renderCameraEntity(minecraft, deltaTick, bufferSource, poseStack.last().pose());
+        if (!ConfigFile.config().isClassic()) RealCameraCore.renderCameraEntity(minecraft, deltaTick, bufferSource);
         else {
             Vec3 cameraPos = camera.getPosition();
             renderEntity(camera.getEntity(), cameraPos.x(), cameraPos.y(), cameraPos.z(), deltaTick, poseStack, bufferSource);

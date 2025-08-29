@@ -59,7 +59,7 @@
   "config.tooltip.xtracr_realcamera.swimOutTick": "The time before enabling main feature after exiting swimming state (1 tick = 0.05s)",
   "config.tooltip.xtracr_realcamera.disableRenderItems": "Support using `*` to match any number of characters, for example `minecraft:*sword` matches all swords",
 
-  "message.xtracr_realcamera.bindingFailed": "[%s]: Binding failed, please go to the %s screen and configure manually",
+  "message.xtracr_realcamera.bindingFailed": "[%s]: Binding failed, please go to the %s screen and configure manually (Key: %s)",
 
   "screen.xtracr_realcamera.modelView_title": "Model View",
   "screen.widget.xtracr_realcamera.modelView_toConfigScreen": "To Config Screen",

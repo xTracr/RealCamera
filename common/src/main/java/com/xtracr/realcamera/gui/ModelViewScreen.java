@@ -405,7 +405,7 @@ public class ModelViewScreen extends Screen {
         renderBackground(graphics); // 1.20.1 only
         analyser.setup(genBindingTarget(), modelScale);
         renderModelViewArea(graphics, minecraft.player);
-        renderTextureViewArea(graphics, mouseX, mouseY);
+        renderTextureViewArea(graphics);
         applyAnalyser(graphics, mouseX, mouseY);
         super.render(graphics, mouseX, mouseY, deltaTick);
         if (textureViewArea != null) {
@@ -452,7 +452,6 @@ public class ModelViewScreen extends Screen {
 
     protected void renderModelViewArea(GuiGraphics graphics, LivingEntity entity) {
         int x1 = modelViewArea.left(), y1 = modelViewArea.top(), x2 = modelViewArea.right(), y2 = modelViewArea.bottom();
-        graphics.enableScissor(x1, y1, x2, y2);
         Quaternionf quaternionf = new Quaternionf().rotateX((float) Math.PI / 6 + xRot).rotateY((float) Math.PI / 6 + yRot).rotateZ((float) Math.PI);
         float entityBodyYaw = entity.yBodyRot;
         float entityYaw = entity.getYRot();
@@ -471,7 +470,6 @@ public class ModelViewScreen extends Screen {
         entity.setXRot(entityPitch);
         entity.yHeadRotO = entityPrevHeadYaw;
         entity.yHeadRot = entityHeadYaw;
-        graphics.disableScissor();
     }
 
     protected void renderEntityWithAnalyser(GuiGraphics graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset, Quaternionf quaternionf, LivingEntity entity) {
@@ -483,16 +481,14 @@ public class ModelViewScreen extends Screen {
         analyser.updateModel(minecraft, entity, 1.0f, analyser.modelPose);
     }
 
-    protected void renderTextureViewArea(GuiGraphics graphics, int mouseX, int mouseY) {
+    protected void renderTextureViewArea(GuiGraphics graphics) {
         if (textureViewArea == null) return;
         int x1 = textureViewArea.left(), y1 = textureViewArea.top(), x2 = textureViewArea.right(), y2 = textureViewArea.bottom();
-        graphics.enableScissor(x1, y1, x2, y2);
         Vector3f offset = new Vector3f((float) textureX - 0.5f, (float) textureY - 0.5f, 0);
-        renderTextureWithAnalyser(graphics, x1, y1, x2, y2,inTextureViewArea(mouseX, mouseY) ? mouseX : -1, mouseY, (float) (textureScale * textureViewArea.width()) / 80, offset);
-        graphics.disableScissor();
+        renderTextureWithAnalyser(graphics, x1, y1, x2, y2, (float) (textureScale * textureViewArea.width()) / 80, offset);
     }
 
-    protected void renderTextureWithAnalyser(GuiGraphics graphics, int x1, int y1, int x2, int y2, int mouseX, int mouseY, float scale, Vector3f offset) {
+    protected void renderTextureWithAnalyser(GuiGraphics graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset) {
         analyser.texturePose.translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
         analyser.texturePose.mulPoseMatrix(new Matrix4f().scaling(scale, scale, -scale));
         analyser.texturePose.translate(offset.x(), offset.y(), offset.z());

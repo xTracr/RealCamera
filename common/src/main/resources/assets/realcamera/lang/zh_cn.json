@@ -59,7 +59,7 @@
   "config.tooltip.xtracr_realcamera.swimOutTick": "玩家停止游泳状态后重启主要功能的时间（1 tick = 0.05s）",
   "config.tooltip.xtracr_realcamera.disableRenderItems": "支持用`*`匹配任意数量字符，比如用`minecraft:*sword`匹配所有剑",
 
-  "message.xtracr_realcamera.bindingFailed": "[%s]: 绑定失败，请前往%s界面手动设置",
+  "message.xtracr_realcamera.bindingFailed": "[%s]: 绑定失败，请前往%s界面手动设置（键位：%s）",
 
   "screen.xtracr_realcamera.modelView_title": "模型视图",
   "screen.widget.xtracr_realcamera.modelView_toConfigScreen": "前往配置屏幕",

@@ -46,7 +46,7 @@ public record BindingTarget(
     }
 
     public boolean isEmpty() {
-        return name == null;
+        return name == null || targetConfig == null || bindConfig == null || offsets == null || disableConfigs == null;
     }
 
     public boolean fixed() {
