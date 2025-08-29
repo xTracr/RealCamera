@@ -49,3 +49,10 @@ side = "CLIENT"
 ignore = false
 modrinth = "cloth-config"
 curseforge = "cloth-config"
+
+[[dependencies.realcamera]]
+modId = "tacz"
+mandatory = false
+versionRange = "[1.1.7,)"
+ordering = "NONE"
+side = "BOTH"

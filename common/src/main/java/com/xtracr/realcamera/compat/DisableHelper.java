@@ -2,7 +2,9 @@ package com.xtracr.realcamera.compat;
 
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
+import com.tacz.guns.api.client.gameplay.IClientPlayerGunOperator;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -18,12 +20,13 @@ public class DisableHelper {
     public static final Entry RENDER_MODEL = new Entry("renderModel", FALSE, Player::isScoping);
     public static final Entry RENDER_HANDS = new Entry("renderHands", player -> RealCameraCore.isRendering());
     public static int exitTick = 0;
-
+    private static boolean isTaczLoaded = CompatibilityHelper.isModLoaded("tacz");
     static {
         MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSneaking() && player.isCrouching());
         MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSneaking() && player.isCrouching());
         MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().getBindingSwimOutTick()));
         MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().getClassicSwimOutTick()));
+        MAIN_FEATURE.registerOrInBinding(player -> gunsIsAiming() || gunsisReloading());
         MAIN_FEATURE.registerOrInBinding(player -> {
             String mainHand = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem()).toString();
             String offHand = BuiltInRegistries.ITEM.getKey(player.getOffhandItem().getItem()).toString();
@@ -32,6 +35,7 @@ public class DisableHelper {
                     return true;
             return false;
         });
+        RENDER_MODEL.registerOrInBinding(player -> gunsisInspecting());
         RENDER_MODEL.registerOrInBinding(player -> {
             String mainHand = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem()).toString();
             String offHand = BuiltInRegistries.ITEM.getKey(player.getOffhandItem().getItem()).toString();
@@ -40,6 +44,29 @@ public class DisableHelper {
                     return true;
             return false;
         });
+    }
+
+    //tacz
+    private static boolean gunsIsAiming() {
+        if (!isTaczLoaded) return false;
+        IClientPlayerGunOperator operator = IClientPlayerGunOperator.fromLocalPlayer(Minecraft.getInstance().player);
+            if (operator == null) return false;
+        float AimingProgress = operator.getClientAimingProgress(Minecraft.getInstance().getFrameTime());
+            return AimingProgress > 0;
+    }
+    
+    private static boolean gunsisReloading(){
+        if (!isTaczLoaded) return false;
+        IClientPlayerGunOperator operator = IClientPlayerGunOperator.fromLocalPlayer(Minecraft.getInstance().player);
+            if (operator == null) return false;
+            return operator.isReloading();
+    }
+
+    private static boolean gunsisInspecting(){
+        if (!isTaczLoaded) return false;
+        IClientPlayerGunOperator operator = IClientPlayerGunOperator.fromLocalPlayer(Minecraft.getInstance().player);
+            if (operator == null) return false;
+            return operator.isInspecting();
     }
 
     private static boolean swimmingRecently(Player player, int swimOutTick) {
