@@ -3,7 +3,7 @@
 ### [中文](README_ZH.md)
 
 Make the camera more realistic in the first-person view.  
-Supported versions: 1.18.2-1.20.4 Forge, 1.18.2-1.21.4 Fabric, 1.21-1.21.4 NeoForge.  
+Supported versions: 1.18.2-1.20.4 Forge, 1.18.2-1.21.8 Fabric, 1.21-1.21.8 NeoForge.  
 Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases), [Modrinth](https://modrinth.com/mod/real-camera) or [CurseForge](https://curseforge.com/minecraft/mc-mods/real-camera)  
 Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/build.yml)
 
@@ -15,15 +15,16 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 * Use F6 to toggle the feature on or off and other hotkeys to adjust the camera.
 * Configure these features in the Config Screen (Cloth Config required) and the Model View Screen (0.6+).
 
+
 ### Configuration (0.6+)
 
 * Theoretically, most mod models are supported, but need to be configured manually:
 * First, set the key binding for `Open Model View Screen`.
-  * ![model view screen](https://cdn.modrinth.com/data/fYYSAh4R/images/cc484d54238992077ab3632c274a2631efeca35f.png)
+  * ![gui_configs](https://cdn.modrinth.com/data/fYYSAh4R/images/4625282a5683cd38eba2947be1ca82e595e18bad.png)
 * Open the model view screen and left click with left Alt held to select the corresponding face of the model, scroll with left Alt held to switch between the different layers of the model.
 * By clicking the `Selecting` button on the left, switch between the three to select the `Forward Vector`, `Upward Vector`, and `Target Plane`.
 * From the top right button, enter the `Preview` section, where you can see the relative relationship between the camera and the model and make certain adjustments (you can also adjust through key bindings).
-  * ![preview](https://cdn.modrinth.com/data/fYYSAh4R/images/22cfcf444bbf2d3c0d0280e470a29f01b9308617.png)
+  * ![gui_preview](https://cdn.modrinth.com/data/fYYSAh4R/images/44c87a6f1750f8d1b03422120e6042d1098896cb.png)
 * Enter a name and save.
 
 #### Tips
@@ -31,11 +32,12 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 * Configs can have their priority adjusted - higher priority configs appear higher in the right-side list
 * Disable depth in `Preview` section to hide models blocking the view
 * About `Disable` section (current version still rough, complex operations):
-    * When texture ID field is empty, use Left Alt+Left Click to select texture
-    * Model parts contained by blue boxes won't be rendered
-    * Left-click drag to select in texture view, other keys cancel selection
-    * Left Alt+Left Click quickly selects hovered parts
-    * In `All` mode, entire texture's model won't render (blue box containing the texture in left panel indicates this)
+  * When texture ID field is empty, use Left Alt+Left Click to select texture
+  * Model parts contained by blue boxes won't be rendered
+  * Left-click drag to select in texture view, other keys cancel selection
+  * Left Alt+Left Click quickly selects hovered parts
+  * In `All` mode, entire texture's model won't render (blue box containing the texture in left panel indicates this)
+  * ![gui_disable](https://cdn.modrinth.com/data/fYYSAh4R/images/b49ac4da6bf8a59f13c7e93ca1ef76b73e5d23b4.png)
 
 ## Dependencies
 
@@ -44,7 +46,20 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 * Both:
   * (Optional but recommended) [Cloth Config API](https://modrinth.com/mod/cloth-config)
 
-## FAQ ##
+## FAQ
+
+* A part of the model (e.g. hair) is always in the way, how to make it invisible?
+  * Increasing this value may help, or use `Disable` section  
+    ![disable_depth](https://github.com/xTracr/RealCamera/assets/57320980/78c246e8-34aa-4979-89de-780ee907870b)
+* What key to press can open Model View Screen?
+  * Set the key binding by yourself
+* Why can't i open the Config Screen?
+  * Please downlowd [Cloth Config API](https://modrinth.com/mod/cloth-config)
+* Why does it show binding failed when use YSM models?
+  * Snapshot 0.6.15 "try" to fix problems, but it didn't fix completely
+  * If Minecraft version is 1.20.1, then bind upward vector to head left (or right) side, and set roll angle to 90 (or -90) in preview section
+* Why does the head of YSM model disappear when in the Model View Screen?
+  * You downloaded Better Combat, just put it away
 
 ### Compatibility
 

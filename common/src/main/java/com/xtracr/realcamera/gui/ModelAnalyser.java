@@ -31,9 +31,9 @@ public class ModelAnalyser extends VertexRecorder {
     private static final Set<RenderType> UNFOCUSABLE_RENDER_TYPES = Set.of(RenderType.armorEntityGlint(), RenderType.glintTranslucent(), RenderType.glint(), RenderType.entityGlint());
     private static final int planeArgb = 0x6F3333CC, forwardArgb = 0xFF00CC00, upwardArgb = 0xFFCC0000, leftArgb = 0xFF0000CC, focusedArgb = 0x4FFFFFFF;
     private static final int z1 = 210, z2 = z1 + 10;
-    private final List<BuiltRecord> textureRecords = new ArrayList<>();
     public final List<VertexData[]> focusedPolyhedron = new ArrayList<>();
     public final PoseStack modelPose = new PoseStack(), texturePose = new PoseStack();
+    private final List<BuiltRecord> textureRecords = new ArrayList<>();
     private BindingContext bindingContext = BindingContext.EMPTY;
     private BindingTarget target = BindingTarget.EMPTY;
     @Nullable

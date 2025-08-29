@@ -19,11 +19,11 @@
 
 * 理论上支持大多数模组模型，但需要手动进行配置：
 * 首先设置`打开模型视图界面`的按键绑定
-  * ![model view screen](https://cdn.modrinth.com/data/fYYSAh4R/images/cc484d54238992077ab3632c274a2631efeca35f.png)
+  * ![gui_configs](https://cdn.modrinth.com/data/fYYSAh4R/images/4625282a5683cd38eba2947be1ca82e595e18bad.png)
 * 打开模型视图界面，左Alt+左键选择模型的对应的面，左Alt+滚轮可以在模型的不同层间切换
 * 通过点击左侧的`选择`按钮，在三者间切换，选好`向前矢量`、`向上矢量`和`目标平面`
 * 从右上角的按钮进入`预览`界面，在这里可以看到摄像头与模型的相对关系，并进行一定的调整（也可以通过按键绑定调整）
-  * ![preview](https://cdn.modrinth.com/data/fYYSAh4R/images/22cfcf444bbf2d3c0d0280e470a29f01b9308617.png)
+  * ![gui_preview](https://cdn.modrinth.com/data/fYYSAh4R/images/44c87a6f1750f8d1b03422120e6042d1098896cb.png)
 * 输入名称并保存
 
 #### Tips
@@ -36,6 +36,7 @@
   * 在左侧材质视图中鼠标左键框选，其它键取消选择
   * Alt+左键可快速选中被鼠标指针指向的部分
   * `全部`模式下，整个材质所对应的模型都不会被渲染（左侧会有一个包含整个材质的蓝框来表示这一点）
+  * ![gui_disable](https://cdn.modrinth.com/data/fYYSAh4R/images/b49ac4da6bf8a59f13c7e93ca1ef76b73e5d23b4.png)
 
 ## 依赖项目
 
@@ -45,6 +46,19 @@
   * (可选但建议)[Cloth Config API](https://modrinth.com/mod/cloth-config)
 
 ## 常见问题
+
+* 模型的一部分（如头发）始终挡在面前，怎样隐藏它?
+  * 增加这个值或许有所帮助，或者使用`禁用`功能
+    ![disable_depth](https://github.com/xTracr/RealCamera/assets/57320980/78c246e8-34aa-4979-89de-780ee907870b)
+* 按什么键打开模组视图界面?
+  * 在按键绑定里自己设置
+* 为什么打不开配置界面（模组设置）?
+  * 没有安装[Cloth Config API](https://modrinth.com/mod/cloth-config)
+* 为什么ysm模型有时候会弹出绑定失败?
+  * 快照0.6.15“尝试”修复了ysm问题，但没有修复透彻
+  * 如果Minecraft版本为1.20.1，那么需要将向上矢量绑定在头部的左面（或右面），并在预览界面中将翻滚角设置为90度（或-90度）
+* 为什么配置ysm时候，模型视图界面中ysm模型头部消失?
+  * 安装了Better Combat模组，去掉就可以了
 
 ### 兼容性
 

@@ -103,7 +103,8 @@ public class RealCameraCore {
         if (activeRecorder.records().isEmpty()) bindingContext.skipRendering = false;
         if (!bindingContext.available()) {
             Player player = client.player;
-            if (readyToSendMessage && player != null) player.displayClientMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE()), false);
+            if (readyToSendMessage && player != null)
+                player.displayClientMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE(), KeyBindings.MODEL_VIEW_SCREEN.getTranslatedKeyMessage()), false);
             active = readyToSendMessage = false;
             return;
         }
