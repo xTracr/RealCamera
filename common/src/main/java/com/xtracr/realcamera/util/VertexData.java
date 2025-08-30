@@ -15,6 +15,18 @@ public record VertexData(float x, float y, float z, int argb, float u, float v, 
         for (VertexData vertex : vertices) vertex.render(buffer);
     }
 
+    public static Vec3 normal(VertexData[] polygon) {
+        return switch (polygon.length) {
+            case 0 -> Vec3.ZERO;
+            case 1 -> polygon[0].normal();
+            case 2 -> polygon[1].pos().subtract(polygon[0].pos()).normalize();
+            default -> {
+                Vec3 a = polygon[0].pos(), b = polygon[1].pos(), c = polygon[2].pos();
+                yield b.subtract(a).cross(c.subtract(a)).normalize();
+            }
+        };
+    }
+
     public Vec3 pos() {
         return new Vec3(x, y, z);
     }
