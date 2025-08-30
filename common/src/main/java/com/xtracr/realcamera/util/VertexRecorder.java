@@ -54,7 +54,7 @@ public class VertexRecorder {
 
     public void updateModel(Minecraft client, Entity entity, float deltaTick, PoseStack poseStack) {
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
-        MultiVertexCatcher catcher = new SimpleMultiVertexCatcher();
+        MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
         dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack, catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
         records.clear();
         catcher.sendVertices(this);
