@@ -251,7 +251,7 @@ public class ModelAnalyser extends VertexRecorder {
     @Override
     public void updateModel(Minecraft client, Entity entity, float deltaTick, PoseStack poseStack) {
         Lighting.setupForEntityInInventory();
-        MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
+        MultiVertexCatcher catcher = MultiVertexCatcher.simpleCatcher();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         dispatcher.setRenderShadow(false);
         dispatcher.render(entity, 0, 0, 0, 0, deltaTick, poseStack, catcher, 0xF000f0);
