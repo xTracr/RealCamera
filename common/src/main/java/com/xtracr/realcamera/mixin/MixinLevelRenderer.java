@@ -26,13 +26,13 @@ public abstract class MixinLevelRenderer {
     @Final private RenderBuffers renderBuffers;
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;endLastBatch()V", ordinal = 0))
-    private void realcamera$renderLocalPlayer(DeltaTracker deltaTracker, boolean bl, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f matrix4f, Matrix4f matrix4f2, CallbackInfo ci) {
+    private void realcamera$renderCameraEntity(DeltaTracker deltaTracker, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f modelView, Matrix4f projection, CallbackInfo ci) {
         if (!RealCameraCore.isRendering()) return;
-        MultiBufferSource.BufferSource bufferSource = this.renderBuffers.bufferSource();
+        MultiBufferSource.BufferSource bufferSource = renderBuffers.bufferSource();
         Entity entity = camera.getEntity();
         TickRateManager tickManager = minecraft.level.tickRateManager();
         float deltaTick = deltaTracker.getGameTimeDeltaPartialTick(!tickManager.isEntityFrozen(entity));
-        if (!ConfigFile.config().isClassic()) RealCameraCore.renderCameraEntity(minecraft, deltaTick, bufferSource, matrix4f);
+        if (!ConfigFile.config().isClassic()) RealCameraCore.renderCameraEntity(minecraft, deltaTick, bufferSource, modelView);
         else {
             Vec3 cameraPos = camera.getPosition();
             renderEntity(entity, cameraPos.x(), cameraPos.y(), cameraPos.z(), deltaTick, new PoseStack(), bufferSource);
@@ -40,5 +40,5 @@ public abstract class MixinLevelRenderer {
     }
 
     @Shadow
-    protected abstract void renderEntity(Entity entity, double cameraX, double cameraY, double cameraZ, float deltaTick, PoseStack matrices, MultiBufferSource vertexConsumers);
+    protected abstract void renderEntity(Entity entity, double cameraX, double cameraY, double cameraZ, float deltaTick, PoseStack poseStack, MultiBufferSource bufferSource);
 }

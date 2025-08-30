@@ -1,6 +1,5 @@
 package com.xtracr.realcamera.util;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectSortedMaps;
@@ -31,32 +30,46 @@ public interface MultiVertexCatcher extends MultiBufferSource {
         protected void putVertexData(RenderType renderType, MeshData meshData) {
             ByteBuffer vertexBuffer = meshData.vertexBuffer();
             MeshData.DrawState drawState = meshData.drawState();
-            VertexFormat vertexFormat = drawState.format();
-            boolean fullFormat = vertexFormat == DefaultVertexFormat.NEW_ENTITY;
+            VertexFormat format = drawState.format();
             int vertexCount = drawState.vertexCount();
-            int vertexSize = vertexFormat.getVertexSize();
+            int vertexSize = format.getVertexSize();
+            int positionOffset = format.getOffset(VertexFormatElement.POSITION);
+            int colorOffset = format.getOffset(VertexFormatElement.COLOR);
+            int uvOffset = format.getOffset(VertexFormatElement.UV0);
+            int overlayOffset = format.getOffset(VertexFormatElement.UV1);
+            int lightOffset = format.getOffset(VertexFormatElement.UV2);
+            int normalOffset = format.getOffset(VertexFormatElement.NORMAL);
             VertexData[] vertices = new VertexData[vertexCount];
-            for (int i = 0; i < vertexCount; i++) {
-                int vertexOffset = i * vertexSize;
-                float x = vertexBuffer.getFloat(vertexOffset);
-                float y = vertexBuffer.getFloat(vertexOffset + 4);
-                float z = vertexBuffer.getFloat(vertexOffset + 8);
-                int argb = vertexBuffer.getInt(vertexOffset + 12);
-                argb = IS_LITTLE_ENDIAN ? argb : Integer.reverseBytes(argb);
-                float u = vertexBuffer.getFloat(vertexOffset + 16);
-                float v = vertexBuffer.getFloat(vertexOffset + 20);
-                int overlay = vertexBuffer.getInt(vertexOffset + 24);
-                int offset, light;
-                if (fullFormat) {
-                    offset = vertexOffset + 28;
-                    light = vertexBuffer.getInt(offset);
-                } else {
-                    offset = vertexOffset + 24;
-                    light = 0;
+            for (int i = 0; i < vertexCount; i ++) {
+                float x = 0, y = 0, z = 0, u = 0, v = 0, normalX = 0, normalY = 0, normalZ = 0;
+                int argb = 0, overlay = 0, light = 0;
+                int vertexOffset = i * vertexSize, offset = vertexOffset + positionOffset;
+                if (positionOffset != -1) {
+                    x = vertexBuffer.getFloat(offset);
+                    y = vertexBuffer.getFloat(offset + 4);
+                    z = vertexBuffer.getFloat(offset + 8);
                 }
-                float normalX = ((int) vertexBuffer.get(offset + 4)) / 127.0f;
-                float normalY = ((int) vertexBuffer.get(offset + 5)) / 127.0f;
-                float normalZ = ((int) vertexBuffer.get(offset + 6)) / 127.0f;
+                if (colorOffset != -1) {
+                    argb = vertexBuffer.getInt(vertexOffset + colorOffset);
+                    argb = IS_LITTLE_ENDIAN ? argb : Integer.reverseBytes(argb);
+                }
+                if (uvOffset != -1) {
+                    offset = vertexOffset + uvOffset;
+                    u = vertexBuffer.getFloat(offset);
+                    v = vertexBuffer.getFloat(offset + 4);
+                }
+                if (overlayOffset != -1) {
+                    overlay = vertexBuffer.getInt(vertexOffset + overlayOffset);
+                }
+                if (lightOffset != -1) {
+                    light = vertexBuffer.getInt(vertexOffset + lightOffset);
+                }
+                if (normalOffset != -1) {
+                    offset = vertexOffset + normalOffset;
+                    normalX = ((int) vertexBuffer.get(offset)) / 127.0f;
+                    normalY = ((int) vertexBuffer.get(offset + 1)) / 127.0f;
+                    normalZ = ((int) vertexBuffer.get(offset + 2)) / 127.0f;
+                }
                 vertices[i] = new VertexData(x, y, z, argb, u, v, overlay, light, normalX, normalY, normalZ);
             }
             caughtData.put(vertices, renderType);
@@ -76,14 +89,10 @@ public interface MultiVertexCatcher extends MultiBufferSource {
         protected void endBatch(RenderType renderType, BufferBuilder bufferBuilder) {
             MeshData meshData = bufferBuilder.build();
             if (meshData != null) {
-                if (renderType.sortOnUpload()) {
-                    ByteBufferBuilder byteBufferBuilder = this.fixedBuffers.getOrDefault(renderType, this.sharedBuffer);
-                    meshData.sortQuads(byteBufferBuilder, RenderSystem.getVertexSorting());
-                }
                 putVertexData(renderType, meshData);
             }
-            if (renderType.equals(this.lastSharedType)) {
-                this.lastSharedType = null;
+            if (renderType.equals(lastSharedType)) {
+                lastSharedType = null;
             }
         }
     }

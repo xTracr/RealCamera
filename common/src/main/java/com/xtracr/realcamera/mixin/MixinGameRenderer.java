@@ -48,8 +48,8 @@ public abstract class MixinGameRenderer {
     }
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setup(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/world/entity/Entity;ZZF)V"))
-    private void realcamera$atBeforeCameraSetup(DeltaTracker tickCounter, CallbackInfo ci) {
-        final float deltaTick = tickCounter.getGameTimeDeltaPartialTick(true);
+    private void realcamera$atCameraSetup(DeltaTracker deltaTracker, CallbackInfo ci) {
+        final float deltaTick = deltaTracker.getGameTimeDeltaPartialTick(true);
         CompatibilityHelper.NEA_setDeltaTick(deltaTick);
         RealCameraCore.initialize(minecraft);
         if (RealCameraCore.isActive() && !ConfigFile.config().isClassic()) {
@@ -60,14 +60,10 @@ public abstract class MixinGameRenderer {
     }
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;prepareCullFrustum(Lnet/minecraft/world/phys/Vec3;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V"))
-    private void realcamera$atAfterCameraSetup(DeltaTracker deltaTracker, CallbackInfo ci, @Local(ordinal = 1) Matrix4f matrix4f2) {
+    private void realcamera$atPrepareCullFrustum(DeltaTracker deltaTracker, CallbackInfo ci, @Local(ordinal = 1) Matrix4f modelView) {
         if (RealCameraCore.isActive()) {
-            matrix4f2.rotateLocalZ(RealCameraCore.getRoll(0) * (float) (Math.PI / 180.0));
+            modelView.rotateLocalZ(RealCameraCore.getRoll(0) * (float) (Math.PI / 180.0));
         }
-    }
-
-    @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;prepareCullFrustum(Lnet/minecraft/world/phys/Vec3;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V"))
-    private void realcamera$atBeforePrePareFrustum(CallbackInfo ci) {
         CompatibilityHelper.forceSetCameraPos(mainCamera);
     }
 }
