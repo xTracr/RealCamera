@@ -23,6 +23,11 @@ public class CompatibilityHelper {
         } catch (Exception exception) {
             RealCamera.LOGGER.warn("Compatibility with Not Enough Animations is outdated: [{}] {}", exception.getClass().getName(), exception.getMessage());
         }
+        if(isModLoaded("tacz")) try {
+            Class<?> TACZ_IClientPlayerGunOperator = Class.forName("com.tacz.guns.api.client.gameplay.IClientPlayerGunOperator");
+        } catch (ClassNotFoundException e) {
+            RealCamera.LOGGER.warn("Compatibility with TACZ is outdated: [{}] {}", e.getClass().getName(), e.getMessage());
+        }
     }
 
     public static void NEA_setDeltaTick(float deltaTick) {

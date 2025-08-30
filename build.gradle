@@ -16,6 +16,7 @@ subprojects {
 
     dependencies {
         minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
+        modImplementation "maven.modrinth:timeless-and-classics-zero:1.1.6-hotfix"
         mappings loom.officialMojangMappings()
         //mappings "net.fabricmc:yarn:${rootProject.yarn_mappings}:v2"
     }

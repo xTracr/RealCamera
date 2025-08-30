@@ -2,7 +2,11 @@ package com.xtracr.realcamera.compat;
 
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
+import com.xtracr.realcamera.compat.CompatibilityHelper;
+import com.tacz.guns.api.client.gameplay.IClientPlayerGunOperator;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -18,12 +22,14 @@ public class DisableHelper {
     public static final Entry RENDER_MODEL = new Entry("renderModel", FALSE, Player::isScoping);
     public static final Entry RENDER_HANDS = new Entry("renderHands", player -> RealCameraCore.isRendering());
     public static int exitTick = 0;
+    public static boolean isTaczLoaded = CompatibilityHelper.isModLoaded("tacz");
 
     static {
         MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSneaking() && player.isCrouching());
         MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSneaking() && player.isCrouching());
         MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().getBindingSwimOutTick()));
         MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().getClassicSwimOutTick()));
+        MAIN_FEATURE.registerOrInBinding(player -> gunsIsAiming(player));
         MAIN_FEATURE.registerOrInBinding(player -> {
             String mainHand = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem()).toString();
             String offHand = BuiltInRegistries.ITEM.getKey(player.getOffhandItem().getItem()).toString();
@@ -40,6 +46,17 @@ public class DisableHelper {
                     return true;
             return false;
         });
+    }
+    
+    //tacz
+    private static boolean gunsIsAiming(Player player) {
+        if (!isTaczLoaded) return false;
+        if (!(player instanceof LocalPlayer)) return false;
+        LocalPlayer localPlayer = (LocalPlayer) player;
+        IClientPlayerGunOperator operator = IClientPlayerGunOperator.fromLocalPlayer(localPlayer);
+            if (operator == null) return false;
+        float AimingProgress = operator.getClientAimingProgress(Minecraft.getInstance().getFrameTime());
+            return AimingProgress > 0;
     }
 
     private static boolean swimmingRecently(Player player, int swimOutTick) {
