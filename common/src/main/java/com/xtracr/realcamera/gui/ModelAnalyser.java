@@ -179,7 +179,7 @@ public class ModelAnalyser extends VertexRecorder {
 
     public void drawCameraDirections(GuiGraphics graphics) {
         Vec3 start = bindingContext.getPosition();
-        Matrix3f normal = bindingContext.normal;
+        Matrix3f normal = bindingContext.rotation;
         if (normal.m00() == 0 && normal.m11() == 0 && normal.m22() == 0) return;
         drawNormal(graphics, start, new Vec3(normal.m20(), normal.m21(), normal.m22()), modelScale / 3, forwardArgb);
         drawNormal(graphics, start, new Vec3(normal.m10(), normal.m11(), normal.m12()), modelScale / 6, upwardArgb);
@@ -190,8 +190,8 @@ public class ModelAnalyser extends VertexRecorder {
         if (currentRecord == null) return;
         TargetConfig config = target.targetConfig();
         currentRecord.findPrimitive(config.posU(), config.posV()).ifPresent(primitive -> drawPrimitive(graphics, primitive, z1, planeArgb));
-        currentRecord.findPrimitive(config.forwardU(), config.forwardV()).ifPresent(primitive -> drawNormal(graphics, getPosition(primitive, config.forwardU(), config.forwardV()), primitive[0].normal(), modelScale / 2, forwardArgb));
-        currentRecord.findPrimitive(config.upwardU(), config.upwardV()).ifPresent(primitive -> drawNormal(graphics, getPosition(primitive, config.upwardU(), config.upwardV()), primitive[0].normal(), modelScale / 2, upwardArgb));
+        currentRecord.findPrimitive(config.forwardU(), config.forwardV()).ifPresent(primitive -> drawNormal(graphics, getPosition(primitive, config.forwardU(), config.forwardV()), VertexData.normal(primitive), -modelScale / 2, forwardArgb));
+        currentRecord.findPrimitive(config.upwardU(), config.upwardV()).ifPresent(primitive -> drawNormal(graphics, getPosition(primitive, config.upwardU(), config.upwardV()), VertexData.normal(primitive), -modelScale / 2, upwardArgb));
     }
 
     public void drawFocusedInModelArea(GuiGraphics graphics) {
@@ -251,7 +251,7 @@ public class ModelAnalyser extends VertexRecorder {
     @Override
     public void updateModel(Minecraft client, Entity entity, float deltaTick, PoseStack poseStack) {
         Lighting.setupForEntityInInventory();
-        MultiVertexCatcher catcher = new SimpleMultiVertexCatcher();
+        MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         dispatcher.setRenderShadow(false);
         dispatcher.render(entity, 0, 0, 0, 0, deltaTick, poseStack, catcher, 0xF000f0);
@@ -263,10 +263,12 @@ public class ModelAnalyser extends VertexRecorder {
 
     @Override
     public BindingContext genContext() {
+        Matrix4f matrix4f = new Matrix4f();
+        Matrix3f matrix3f = new Matrix3f().scale(-1);
         target.offsets().setScale(target.offsets().getScale() * modelScale);
         for (BuiltRecord record : records) {
-            BindingContext context = new BindingContext(target, false);
-            record.setupContext(context);
+            BindingContext context = new BindingContext(target, true);
+            record.setupContext(context, matrix4f, matrix3f);
             if (context.weakAvailable()) currentRecord = record;
             if (!context.available()) continue;
             bindingContext = context;

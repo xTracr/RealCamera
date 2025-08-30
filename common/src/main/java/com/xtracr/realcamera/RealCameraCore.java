@@ -7,10 +7,7 @@ import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.BindingTarget;
 import com.xtracr.realcamera.config.BindingTarget.DisableConfig;
 import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.util.BindingContext;
-import com.xtracr.realcamera.util.LocUtil;
-import com.xtracr.realcamera.util.VertexData;
-import com.xtracr.realcamera.util.VertexRecorder;
+import com.xtracr.realcamera.util.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.util.Mth;
@@ -23,7 +20,7 @@ public class RealCameraCore {
     private static final VertexRecorder defaultRecorder = new VertexRecorder();
     private static VertexRecorder activeRecorder = defaultRecorder;
     private static BindingContext bindingContext = BindingContext.EMPTY;
-    private static Vec3 cameraPos = Vec3.ZERO, entityPos = Vec3.ZERO;
+    private static Vec3 cameraPos = Vec3.ZERO, entityPos = Vec3.ZERO, eulerAngle = Vec3.ZERO;
     private static boolean active = false, rendering = false, readyToSendMessage = true;
 
     public static void setActiveRecorder(VertexRecorder recorder) {
@@ -35,23 +32,23 @@ public class RealCameraCore {
     }
 
     public static float getPitch(float f) {
-        if (currentTarget().bindConfig().bindRotation()) return (float) bindingContext.getEulerAngle().x();
+        if (currentTarget().bindConfig().bindRotation()) return (float) eulerAngle.x();
         return f;
     }
 
     public static float getYaw(float f) {
-        if (currentTarget().bindConfig().bindRotation()) return (float) -bindingContext.getEulerAngle().y();
+        if (currentTarget().bindConfig().bindRotation()) return (float) -eulerAngle.y();
         return f;
     }
 
     public static float getRoll(float f) {
         if (ConfigFile.config().isClassic()) return f + ConfigFile.config().getClassicRoll();
-        if (currentTarget().bindConfig().bindRotation()) return (float) bindingContext.getEulerAngle().z();
+        if (currentTarget().bindConfig().bindRotation()) return (float) eulerAngle.z();
         return f;
     }
 
     public static Vec3 getRawPos(Vec3 vec) {
-        Vec3 rawPos = bindingContext.getPosition().add(entityPos);
+        Vec3 rawPos = SmoothUtil.smoothPosition(bindingContext.getPosition()).add(entityPos);
         BindingTarget.BindConfig bindConfig = currentTarget().bindConfig();
         return new Vec3(bindConfig.bindX() ? rawPos.x() : vec.x(), bindConfig.bindY() ? rawPos.y() : vec.y(), bindConfig.bindZ() ? rawPos.z() : vec.z());
     }
@@ -109,14 +106,15 @@ public class RealCameraCore {
         }
         readyToSendMessage = true;
         bindingContext.init();
+        eulerAngle = MathUtil.getEulerAngleYXZ(SmoothUtil.smoothRotation(bindingContext.getRotation())).scale(Math.toDegrees(1));
     }
 
     public static void renderCameraEntity(Minecraft client, float deltaTick, MultiBufferSource bufferSource) {
-        Vec3 eulerAngle = bindingContext.getEulerAngle();
+        Vec3 targetEulerAngle = MathUtil.getEulerAngleYXZ(bindingContext.getRotation());
         Matrix4f invertedCameraPose = new Matrix4f()
-                .rotateZ((float) Math.toRadians(eulerAngle.z()))
-                .rotateX((float) Math.toRadians(eulerAngle.x()))
-                .rotateY((float) Math.toRadians(180.0f - eulerAngle.y()))
+                .rotateZ((float) targetEulerAngle.z())
+                .rotateX((float) targetEulerAngle.x())
+                .rotateY((float) (Math.PI - targetEulerAngle.y()))
                 .transpose()
                 .invert()
                 .translate(Vec3.ZERO.subtract(bindingContext.getPosition()).toVector3f());

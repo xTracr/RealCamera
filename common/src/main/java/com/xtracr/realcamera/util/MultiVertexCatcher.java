@@ -1,98 +1,89 @@
 package com.xtracr.realcamera.util;
 
-import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.google.common.collect.ImmutableMap;
+import com.mojang.blaze3d.vertex.*;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import org.jetbrains.annotations.NotNull;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.*;
 
 public interface MultiVertexCatcher extends MultiBufferSource {
     void sendVertices(VertexRecorder recorder);
 
-    abstract class VertexCatcher implements VertexConsumer {
-        protected final RenderType renderType;
-        private float x, y, z, u, v, normalX, normalY, normalZ;
-        private int argb, overlay, light;
-        private boolean active;
+    static MultiVertexCatcher defaultImpl() {
+        return MultiMeshCatcher.INSTANCE;
+    }
 
-        protected VertexCatcher(RenderType renderType) {
-            this.renderType = renderType;
+    class MultiMeshCatcher extends MultiBufferSource.BufferSource implements MultiVertexCatcher {
+        private static final boolean IS_LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
+        protected final static MultiMeshCatcher INSTANCE = new MultiMeshCatcher();
+        protected final SortedMap<VertexData[], RenderType> caughtData = new Object2ObjectLinkedOpenHashMap<>();
+
+        protected MultiMeshCatcher() {
+            super(new BufferBuilder(256), ImmutableMap.of());
         }
 
-        public void endVertex() {
-            if (!active) return;
-            addVertexInternal(x, y, z, argb, u, v, overlay, light, normalX, normalY, normalZ);
-            x = y = z = normalX = normalY = normalZ = 0;
-            u = v = overlay = light = argb = 0;
-            active = false;
-        }
-
-        protected abstract void addVertexInternal(float x, float y, float z, int argb, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ);
-
-        public RenderType renderType() {
-            return renderType;
-        }
-
-        @Override
-        public @NotNull VertexConsumer vertex(double x, double y, double z) {
-            endVertex();
-            active = true;
-            this.x = (float) x;
-            this.y = (float) y;
-            this.z = (float) z;
-            return this;
-        }
-
-        @Override
-        public @NotNull VertexConsumer color(int red, int green, int blue, int alpha) {
-            argb = alpha << 24 | red << 16 | green << 8 | blue;
-            return this;
-        }
-
-        @Override
-        public @NotNull VertexConsumer uv(float u, float v) {
-            this.u = u;
-            this.v = v;
-            return this;
-        }
-
-        @Override
-        public @NotNull VertexConsumer overlayCoords(int u, int v) {
-            overlay = (short) u | (short) v << 16;
-            return this;
+        protected void putVertexData(RenderType renderType, BufferBuilder.RenderedBuffer renderedBuffer) {
+            ByteBuffer vertexBuffer = renderedBuffer.vertexBuffer();
+            BufferBuilder.DrawState drawState = renderedBuffer.drawState();
+            VertexFormat vertexFormat = drawState.format();
+            boolean fullFormat = vertexFormat == DefaultVertexFormat.NEW_ENTITY;
+            int vertexCount = drawState.vertexCount();
+            int vertexSize = vertexFormat.getVertexSize();
+            VertexData[] vertices = new VertexData[vertexCount];
+            for (int i = 0; i < vertexCount; i++) {
+                int vertexOffset = i * vertexSize;
+                float x = vertexBuffer.getFloat(vertexOffset);
+                float y = vertexBuffer.getFloat(vertexOffset + 4);
+                float z = vertexBuffer.getFloat(vertexOffset + 8);
+                int argb = vertexBuffer.getInt(vertexOffset + 12);
+                argb = IS_LITTLE_ENDIAN ? argb : Integer.reverseBytes(argb);
+                float u = vertexBuffer.getFloat(vertexOffset + 16);
+                float v = vertexBuffer.getFloat(vertexOffset + 20);
+                int overlay = vertexBuffer.getInt(vertexOffset + 24);
+                int offset, light;
+                if (fullFormat) {
+                    offset = vertexOffset + 28;
+                    light = vertexBuffer.getInt(offset);
+                } else {
+                    offset = vertexOffset + 24;
+                    light = 0;
+                }
+                float normalX = ((int) vertexBuffer.get(offset + 4)) / 127.0f;
+                float normalY = ((int) vertexBuffer.get(offset + 5)) / 127.0f;
+                float normalZ = ((int) vertexBuffer.get(offset + 6)) / 127.0f;
+                vertices[i] = new VertexData(x, y, z, argb, u, v, overlay, light, normalX, normalY, normalZ);
+            }
+            caughtData.put(vertices, renderType);
+            renderedBuffer.release();
         }
 
         @Override
-        public @NotNull VertexConsumer uv2(int u, int v) {
-            light = (short) u | (short) v << 16;
-            return this;
+        public void sendVertices(VertexRecorder recorder) {
+            endLastBatch();
+            for (Map.Entry<VertexData[], RenderType> entry : caughtData.entrySet()) {
+                recorder.records().add(VertexRecorder.buildVertices(entry.getValue(), entry.getKey()));
+            }
+            caughtData.clear();
         }
 
         @Override
-        public @NotNull VertexConsumer normal(float x, float y, float z) {
-            normalX = x;
-            normalY = y;
-            normalZ = z;
-            return this;
-        }
-
-        @Override
-        public void vertex(float x, float y, float z, float red, float green, float blue, float alpha, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) {
-            int argb = (int) (alpha * 255.0f) << 24 | (int) (red * 255.0f) << 16 | (int) (green * 255.0f) << 8 | (int) (blue * 255.0f);
-            addVertexInternal(x, y, z, argb, u, v, overlay, light, normalX, normalY, normalZ);
-        }
-
-        @Override
-        public @NotNull VertexConsumer color(int argb) {
-            this.argb = argb;
-            return this;
-        }
-
-        @Override
-        public void defaultColor(int red, int green, int blue, int alpha) {
-        }
-
-        @Override
-        public void unsetDefaultColor() {
+        public void endBatch(RenderType renderType) {
+            BufferBuilder bufferBuilder = getBuilderRaw(renderType);
+            boolean bl = Objects.equals(lastState, renderType.asOptional());
+            if (bl || bufferBuilder != builder) {
+                if (startedBuffers.remove(bufferBuilder)) {
+                    if (bufferBuilder.building()) {
+                        putVertexData(renderType, bufferBuilder.end());
+                    }
+                    if (bl) {
+                        lastState = Optional.empty();
+                    }
+                }
+            }
         }
     }
 }
