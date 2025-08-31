@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 public class VertexRecorder {
     protected static final Pattern textureIdPattern = Pattern.compile("texture\\[Optional\\[(.*?)]");
     protected final List<BuiltRecord> records = new ArrayList<>();
+    private MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
 
     protected static Vec3 getPosition(VertexData[] primitive, float u, float v) {
         if (primitive.length < 3) return primitive[0].pos();
@@ -52,9 +53,12 @@ public class VertexRecorder {
         return records;
     }
 
+    public void setCatcher(MultiVertexCatcher catcher) {
+        this.catcher = catcher;
+    }
+
     public void updateModel(Minecraft client, Entity entity, float deltaTick, PoseStack poseStack) {
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
-        MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
         dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack, catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
         records.clear();
         catcher.sendVertices(this);

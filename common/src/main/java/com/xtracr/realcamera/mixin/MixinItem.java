@@ -16,10 +16,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(Item.class)
 public abstract class MixinItem {
     @Inject(method = "getPlayerPOVHitResult", at = @At("HEAD"), cancellable = true)
-    private static void realcamera$coverHitResult(Level world, Player player, ClipContext.Fluid fluidHandling, CallbackInfoReturnable<BlockHitResult> cir) {
+    private static void realcamera$coverHitResult(Level level, Player player, ClipContext.Fluid fluid, CallbackInfoReturnable<BlockHitResult> cir) {
         if (!ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
             RaycastUtil.update(player, 25.0d, 1.0f);
-            cir.setReturnValue(world.clip(RaycastUtil.getClipContext(ClipContext.Block.OUTLINE, fluidHandling, player)));
+            cir.setReturnValue(level.clip(RaycastUtil.getClipContext(ClipContext.Block.OUTLINE, fluid, player)));
         }
     }
 }

@@ -56,7 +56,7 @@ public abstract class MixinGameRenderer {
     }
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;prepareCullFrustum(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/world/phys/Vec3;Lorg/joml/Matrix4f;)V"))
-    private void realcamera$atBeforePrePareFrustum(CallbackInfo ci) {
+    private void realcamera$atPrepareCullFrustum(CallbackInfo ci) {
         CompatibilityHelper.forceSetCameraPos(mainCamera);
     }
 }

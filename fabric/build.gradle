@@ -32,8 +32,8 @@ dependencies {
         exclude(group: "net.fabricmc.fabric-api")
     }
 
-//    modImplementation "maven.modrinth:minihud:qbsbGm0M"
-//    modImplementation "maven.modrinth:malilib:xTezyq2N"
+//    modImplementation "maven.modrinth:iris:1.8.8+1.21.1-fabric"
+//    modImplementation "maven.modrinth:sodium:mc1.21.1-0.6.13-fabric"
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
