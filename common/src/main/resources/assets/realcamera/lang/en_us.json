@@ -44,6 +44,8 @@
   "config.option.xtracr_realcamera.disableWhenSneaking": "Disable main feature when sneaking",
   "config.option.xtracr_realcamera.disableWhenSwimming": "Disable main feature when swimming",
   "config.option.xtracr_realcamera.swimOutTick": "Exiting swimming state delay (in ticks)",
+  "config.option.xtracr_realcamera.displacementSmoothFactor": "Displacement Smooth Factor",
+  "config.option.xtracr_realcamera.rotationSmoothFactor": "Rotation Smooth Factor",
   "config.option.xtracr_realcamera.disableMainFeatureItems": "Disable main feature when holding",
   "config.option.xtracr_realcamera.disableRenderItems": "Disable rendering when holding",
   "config.tooltip.xtracr_realcamera.isClassic": "Classic mode only makes simple changes to the position and rotation of camera",
@@ -57,6 +59,8 @@
   "config.tooltip.xtracr_realcamera.renderStuckObjects": "Arrows, bee stings and other objects that can be stuck in the player's body",
   "config.tooltip.xtracr_realcamera.rerenderModel": "Render the model again at the original rendering time to avoid some visual problems caused by rendering early",
   "config.tooltip.xtracr_realcamera.swimOutTick": "The time before enabling main feature after exiting swimming state (1 tick = 0.05s)",
+  "config.tooltip.xtracr_realcamera.displacementSmoothFactor": "Smooth factor of camera displacement, the higher the value, the smoother the movement",
+  "config.tooltip.xtracr_realcamera.rotationSmoothFactor": "Smooth factor of camera rotation, the higher the value, the smoother the movement",
   "config.tooltip.xtracr_realcamera.disableRenderItems": "Support using `*` to match any number of characters, for example `minecraft:*sword` matches all swords",
 
   "message.xtracr_realcamera.bindingFailed": "[%s]: Binding failed, please go to the %s screen and configure manually (Key: %s)",
