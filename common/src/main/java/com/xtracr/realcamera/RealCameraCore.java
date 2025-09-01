@@ -83,12 +83,16 @@ public class RealCameraCore {
     }
 
     public static void computeCamera(Minecraft client, float deltaTick) {
+        Entity entity = client.getCameraEntity();
+        boolean invisible = entity.isInvisible();
+        entity.setInvisible(false);
         BindResult newResult = RealCameraAPI.computeBindResult(client, deltaTick);
         if (!newResult.available()) {
-            activeRecorder.updateModel(client, client.getCameraEntity(), deltaTick, new PoseStack());
+            activeRecorder.updateModel(client, entity, deltaTick, new PoseStack());
             newResult = activeRecorder.computeBindResult();
         }
-        if (activeRecorder.records().isEmpty()) newResult.skipRendering = false;
+        entity.setInvisible(invisible);
+        if (activeRecorder.records().isEmpty() || invisible) newResult.skipRendering = false;
         if (!newResult.available()) {
             failureFrames++;
             Entity player = client.player;
