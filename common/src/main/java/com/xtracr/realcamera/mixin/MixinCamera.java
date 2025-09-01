@@ -26,8 +26,6 @@ public abstract class MixinCamera {
     @Shadow
     private BlockGetter level;
     @Shadow
-    private Entity entity;
-    @Shadow
     private Vec3 position;
     @Shadow
     private float xRot;
@@ -35,13 +33,13 @@ public abstract class MixinCamera {
     private float yRot;
 
     @Inject(method = "setup", at = @At("RETURN"))
-    private void realcamera$setupCamera(BlockGetter area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float deltaTick, CallbackInfo ci) {
+    private void realcamera$setupCamera(BlockGetter area, Entity entity, boolean thirdPerson, boolean inverseView, float deltaTick, CallbackInfo ci) {
         if (!RealCameraCore.isActive()) return;
         ModConfig config = ConfigFile.config();
         Vec3 startVec = position;
-        AABB box = focusedEntity.getBoundingBox();
+        AABB box = entity.getBoundingBox();
         if (config.isClassic()) {
-            double scale = focusedEntity instanceof LivingEntity livingEntity ? livingEntity.getScale() : 1;
+            double scale = entity instanceof LivingEntity livingEntity ? livingEntity.getScale() : 1;
             Vec3 offset = new Vec3(config.getClassicX(), config.getClassicY(), config.getClassicZ()).scale(scale);
             Vec3 center = new Vec3(config.getCenterX(), config.getCenterY(), config.getCenterZ()).scale(scale);
             float newPitch = xRot + config.getClassicPitch();
@@ -51,18 +49,19 @@ public abstract class MixinCamera {
             setRotation(newYaw, newPitch);
             move(offset.x(), offset.y(), offset.z());
         } else {
-            Vec3 rawPos = RealCameraCore.getRawPos(position);
+            Vec3 entityPos = new Vec3(Mth.lerp(deltaTick, entity.xOld, entity.getX()), Mth.lerp(deltaTick, entity.yOld, entity.getY()), Mth.lerp(deltaTick, entity.zOld, entity.getZ()));
+            Vec3 rawPos = RealCameraCore.getRawPos(position, entityPos);
             double restrictedY = Mth.clamp(rawPos.y(), box.minY + 0.1D, box.maxY - 0.1D);
             startVec = new Vec3(position.x(), restrictedY, position.z());
             setPosition(rawPos);
             setRotation(RealCameraCore.getYaw(yRot), RealCameraCore.getPitch(xRot));
         }
-        realcamera$clipToSpace(startVec, realcamera$getFov(deltaTick));
+        realcamera$clipToSpace(startVec, entity, realcamera$getFov(deltaTick));
         RealCameraCore.setCameraPos(position);
     }
 
     @Unique
-    private void realcamera$clipToSpace(Vec3 startVec, double fov) {
+    private void realcamera$clipToSpace(Vec3 startVec, Entity entity, double fov) {
         Vec3 offset = position.subtract(startVec);
         final float depth = 0.05f + (float) (fov * (0.0001 + 0.000005 * fov));
         for (int i = 0; i < 8; ++i) {

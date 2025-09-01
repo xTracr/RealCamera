@@ -1,9 +1,9 @@
 package com.xtracr.realcamera.compat;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.xtracr.realcamera.config.BindingTarget;
+import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.util.BindingContext;
+import com.xtracr.realcamera.util.BindResult;
 import com.xtracr.realcamera.util.VertexRecorder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
@@ -15,7 +15,7 @@ import java.util.Map;
 
 public class YSMCompat extends VertexRecorder {
     public static final YSMCompat INSTANCE = new YSMCompat();
-    private final Map<BindingTarget, BindingContext> contextMap = new HashMap<>();
+    private final Map<BindTarget, BindResult> resultMap = new HashMap<>();
     private final Matrix4f positionMatrix = new Matrix4f();
     private final Matrix3f normalMatrix = new Matrix3f();
     private Minecraft client;
@@ -34,19 +34,19 @@ public class YSMCompat extends VertexRecorder {
         super.updateModel(client, cameraEntity, deltaTick, poseStack);
     }
 
-    private BindingContext genContextInternal() {
+    private BindResult computeResultInternal() {
         Matrix4f invertedPosition = positionMatrix.invert(new Matrix4f());
         Matrix3f invertedNormal = normalMatrix.invert(new Matrix3f());
-        BindingContext context;
-        for (BindingTarget target : ConfigFile.config().getTargetList()) {
+        BindResult result;
+        for (BindTarget target : ConfigFile.config().getTargetList()) {
             for (BuiltRecord record : records) {
-                context = contextMap.computeIfAbsent(target, k -> new BindingContext(target, false));
-                record.setupContext(context, invertedPosition, invertedNormal);
-                context.skipRendering = false;
-                if (context.available()) return context;
+                result = resultMap.computeIfAbsent(target, k -> new BindResult(target, false));
+                record.exportToBindResult(result, invertedPosition, invertedNormal);
+                result.skipRendering = false;
+                if (result.available()) return result;
             }
         }
-        return BindingContext.EMPTY;
+        return BindResult.EMPTY;
     }
 
     @Override
@@ -60,20 +60,20 @@ public class YSMCompat extends VertexRecorder {
     }
 
     @Override
-    public BindingContext genContext() {
-        contextMap.clear();
-        BindingContext context = genContextInternal();
-        if (context.available()) return context;
+    public BindResult computeBindResult() {
+        resultMap.clear();
+        BindResult result = computeResultInternal();
+        if (result.available()) return result;
         final float pitch = 1.9106332f, yaw = 2.0943951f;
         updateModel(pitch, 0);
-        context = genContextInternal();
-        if (context.available()) return context;
+        result = computeResultInternal();
+        if (result.available()) return result;
         updateModel(pitch, yaw);
-        context = genContextInternal();
-        if (context.available()) return context;
+        result = computeResultInternal();
+        if (result.available()) return result;
         updateModel(pitch, 2 * yaw);
-        context = genContextInternal();
-        if (context.available()) return context;
-        return BindingContext.EMPTY;
+        result = computeResultInternal();
+        if (result.available()) return result;
+        return BindResult.EMPTY;
     }
 }

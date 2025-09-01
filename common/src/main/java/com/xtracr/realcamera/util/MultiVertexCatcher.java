@@ -1,7 +1,9 @@
 package com.xtracr.realcamera.util;
 
 import com.google.common.collect.ImmutableMap;
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormatElement;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -13,14 +15,14 @@ public interface MultiVertexCatcher extends MultiBufferSource {
     void sendVertices(VertexRecorder recorder);
 
     static MultiVertexCatcher defaultImpl() {
-        return MultiMeshCatcher.INSTANCE;
+        return MeshCatcher.INSTANCE;
     }
 
-    class MultiMeshCatcher extends MultiBufferSource.BufferSource implements MultiVertexCatcher {
-        protected final static MultiMeshCatcher INSTANCE = new MultiMeshCatcher();
+    class MeshCatcher extends MultiBufferSource.BufferSource implements MultiVertexCatcher {
+        protected final static MeshCatcher INSTANCE = new MeshCatcher();
         protected final SortedMap<VertexData[], RenderType> caughtData = new Object2ObjectLinkedOpenHashMap<>();
 
-        protected MultiMeshCatcher() {
+        protected MeshCatcher() {
             super(new BufferBuilder(256), ImmutableMap.of());
         }
 

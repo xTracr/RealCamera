@@ -9,32 +9,32 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
-public record BindingTarget(
+public record BindTarget(
         String name, String textureId, int priority, float disablingDepth,
         TargetConfig targetConfig,
         BindConfig bindConfig,
         OffsetConfig offsets,
         DisableConfig[] disableConfigs) {
     public static final Set<String> fixedNames = new HashSet<>();
-    public static final List<BindingTarget> defaultTargets;
-    public static final BindingTarget EMPTY = blank(null, null);
+    public static final List<BindTarget> defaultTargets;
+    public static final BindTarget EMPTY = blank(null, null);
 
     static {
         defaultTargets = List.of(
-                BindingTarget.vanillaTarget("minecraft_head", 5, false),
-                BindingTarget.vanillaTarget("skin_head", 5, false),
-                BindingTarget.vanillaTarget("minecraft_head_2", 1, true),
-                BindingTarget.vanillaTarget("skin_head_2", 1, true)
+                BindTarget.vanillaTarget("minecraft_head", 5, false),
+                BindTarget.vanillaTarget("skin_head", 5, false),
+                BindTarget.vanillaTarget("minecraft_head_2", 1, true),
+                BindTarget.vanillaTarget("skin_head_2", 1, true)
         );
     }
 
-    public static BindingTarget blank(String name, String textureId) {
+    public static BindTarget blank(String name, String textureId) {
         TargetConfig targetConfig = new TargetConfig(0, 0, 0, 0, 0, 0);
         BindConfig bindConfig = new BindConfig(false, true, false, false);
-        return new BindingTarget(name, textureId, 0, 0.2f, targetConfig, bindConfig, new OffsetConfig(), new DisableConfig[0]);
+        return new BindTarget(name, textureId, 0, 0.2f, targetConfig, bindConfig, new OffsetConfig(), new DisableConfig[0]);
     }
 
-    private static BindingTarget vanillaTarget(String name, int priority, boolean shouldBind) {
+    private static BindTarget vanillaTarget(String name, int priority, boolean shouldBind) {
         String textureId = name.contains("skin") ? "minecraft:skins/" : "minecraft:textures/entity/player/";
         TargetConfig targetConfig = new TargetConfig(0.1875f, 0.2f, 0.1875f, 0.075f, 0.1875f, 0.2f);
         BindConfig bindConfig = new BindConfig(shouldBind, true, shouldBind, shouldBind);
@@ -42,7 +42,7 @@ public record BindingTarget(
         DisableConfig playerHead = new DisableConfig("player_head", textureId, false, new UVRectangle[]{new UVRectangle(0, 0, 1.0f, 0.25f)});
         DisableConfig dragonHead = new DisableConfig("dragon_head", "minecraft:textures/entity/enderdragon/dragon.png", true, new UVRectangle[0]);
         DisableConfig[] disableConfigs = new DisableConfig[]{playerHead, dragonHead};
-        return new BindingTarget(name, textureId, priority, 0.1f, targetConfig, bindConfig, offsets, disableConfigs);
+        return new BindTarget(name, textureId, priority, 0.1f, targetConfig, bindConfig, offsets, disableConfigs);
     }
 
     public boolean isEmpty() {

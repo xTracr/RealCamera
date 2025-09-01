@@ -73,7 +73,7 @@ public class ModConfig {
             }
             classic.clamp();
         } else {
-            BindingTarget target = RealCameraCore.currentTarget();
+            BindTarget target = RealCameraCore.currentTarget();
             if (binding.adjustOffset) target.offsets().setX(target.offsets().getX() + count * adjustStep);
             else target.offsets().setRoll(target.offsets().getRoll() + count * 100 * (float) adjustStep);
         }
@@ -88,7 +88,7 @@ public class ModConfig {
             }
             classic.clamp();
         } else {
-            BindingTarget target = RealCameraCore.currentTarget();
+            BindTarget target = RealCameraCore.currentTarget();
             if (binding.adjustOffset) target.offsets().setY(target.offsets().getY() + count * adjustStep);
             else target.offsets().setYaw(target.offsets().getYaw() + count * 100 * (float) adjustStep);
         }
@@ -103,7 +103,7 @@ public class ModConfig {
             }
             classic.clamp();
         } else {
-            BindingTarget target = RealCameraCore.currentTarget();
+            BindTarget target = RealCameraCore.currentTarget();
             if (binding.adjustOffset) target.offsets().setZ(target.offsets().getZ() + count * adjustStep);
             else target.offsets().setPitch(target.offsets().getPitch() + count * 100 * (float) adjustStep);
         }
@@ -183,6 +183,10 @@ public class ModConfig {
         return binding.swimOutTick;
     }
 
+    public int getBindResultRetentionFrames() {
+        return binding.bindResultRetentionFrames;
+    }
+
     public double getDisplacementSmoothFactor() {
         return binding.displacementSmoothFactor;
     }
@@ -199,21 +203,21 @@ public class ModConfig {
         return binding.disableRenderItems;
     }
 
-    public List<BindingTarget> getFixedTargetList() {
+    public List<BindTarget> getFixedTargetList() {
         return binding.fixedTargetList;
     }
 
-    public BindingTarget getOrCreateFixedTarget(String name) {
-        BindingTarget.fixedNames.add(name);
+    public BindTarget getOrCreateFixedTarget(String name) {
+        BindTarget.fixedNames.add(name);
         return binding.fixedTargetList.stream().filter(target -> target.name().equals(name)).findFirst()
                 .orElseGet(() -> {
-                    BindingTarget target = BindingTarget.blank(name, "");
+                    BindTarget target = BindTarget.blank(name, "");
                     Binding.putTarget(target, binding.fixedTargetList);
                     return target;
                 });
     }
 
-    public List<BindingTarget> getTargetList() {
+    public List<BindTarget> getTargetList() {
         binding.clamp();
         return binding.targetList;
     }
@@ -269,14 +273,15 @@ public class ModConfig {
         public boolean disableWhenSneaking = false;
         public boolean disableWhenSwimming = false;
         public int swimOutTick = 13;
+        public int bindResultRetentionFrames = 2;
         public double displacementSmoothFactor = 0.4;
         public double rotationSmoothFactor = 0.4;
         public List<String> disableMainFeatureItems = List.of();
         public List<String> disableRenderItems = defaultDisableRenderItems;
-        public List<BindingTarget> fixedTargetList = new ArrayList<>();
-        public List<BindingTarget> targetList = new ArrayList<>(BindingTarget.defaultTargets);
+        public List<BindTarget> fixedTargetList = new ArrayList<>();
+        public List<BindTarget> targetList = new ArrayList<>(BindTarget.defaultTargets);
 
-        private static void putTarget(BindingTarget target, List<BindingTarget> list) {
+        private static void putTarget(BindTarget target, List<BindTarget> list) {
             IntStream.range(0, list.size())
                     .filter(i -> list.get(i).name().equals(target.name()))
                     .findAny()
@@ -286,19 +291,20 @@ public class ModConfig {
 
         private void clamp() {
             swimOutTick = Mth.clamp(swimOutTick, 0, 40);
+            bindResultRetentionFrames = Mth.clamp(bindResultRetentionFrames, 0, 40);
             displacementSmoothFactor = Mth.clamp(displacementSmoothFactor, 0.0, 1.0);
             rotationSmoothFactor = Mth.clamp(rotationSmoothFactor, 0.0, 1.0);
             if (disableMainFeatureItems == null) disableMainFeatureItems = List.of();
             if (disableRenderItems == null) disableRenderItems = List.of();
             if (fixedTargetList == null) fixedTargetList = new ArrayList<>();
-            if (targetList == null) targetList = new ArrayList<>(BindingTarget.defaultTargets);
+            if (targetList == null) targetList = new ArrayList<>(BindTarget.defaultTargets);
             else {
                 targetList.removeIf(target -> target.fixed() || target.isEmpty());
-                if (targetList.isEmpty()) targetList = new ArrayList<>(BindingTarget.defaultTargets);
+                if (targetList.isEmpty()) targetList = new ArrayList<>(BindTarget.defaultTargets);
             }
         }
 
-        public void putTarget(BindingTarget target) {
+        public void putTarget(BindTarget target) {
             if (target.isEmpty()) return;
             if (target.fixed()) putTarget(target, fixedTargetList);
             else putTarget(target, targetList);

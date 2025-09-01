@@ -21,7 +21,7 @@ public final class KeyBindings {
             boolean enabled = ConfigFile.config().enabled();
             ConfigFile.load();
             ConfigFile.config().setEnabled(!enabled);
-            RealCameraCore.readyToSendMessage();
+            RealCameraCore.reset();
         });
         createKeyBinding("toggleAdjustMode", client -> ConfigFile.config().cycleAdjustMode());
         createKeyBinding("toggleCameraMode", client -> ConfigFile.config().setClassic(!ConfigFile.config().isClassic()));

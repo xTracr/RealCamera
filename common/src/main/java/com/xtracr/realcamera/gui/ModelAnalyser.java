@@ -3,10 +3,13 @@ package com.xtracr.realcamera.gui;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.xtracr.realcamera.config.BindingTarget;
-import com.xtracr.realcamera.config.BindingTarget.DisableConfig;
-import com.xtracr.realcamera.config.BindingTarget.TargetConfig;
-import com.xtracr.realcamera.util.*;
+import com.xtracr.realcamera.config.BindTarget;
+import com.xtracr.realcamera.config.BindTarget.DisableConfig;
+import com.xtracr.realcamera.config.BindTarget.TargetConfig;
+import com.xtracr.realcamera.util.BindResult;
+import com.xtracr.realcamera.util.MultiVertexCatcher;
+import com.xtracr.realcamera.util.VertexData;
+import com.xtracr.realcamera.util.VertexRecorder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderType;
@@ -31,8 +34,8 @@ public class ModelAnalyser extends VertexRecorder {
     public final List<VertexData[]> focusedPolyhedron = new ArrayList<>();
     public final PoseStack modelPose = new PoseStack(), texturePose = new PoseStack();
     private final List<BuiltRecord> textureRecords = new ArrayList<>();
-    private BindingContext bindingContext = BindingContext.EMPTY;
-    private BindingTarget target = BindingTarget.EMPTY;
+    private BindResult bindResult = BindResult.EMPTY;
+    private BindTarget target = BindTarget.EMPTY;
     @Nullable
     private BuiltRecord focusedRecord, currentRecord;
     private int focusedIndex = -1, modelScale;
@@ -44,14 +47,14 @@ public class ModelAnalyser extends VertexRecorder {
         return false;
     }
 
-    public void setup(BindingTarget target, int modelScale) {
+    public void setup(BindTarget target, int modelScale) {
         this.target = target;
         this.modelScale = modelScale;
         textureRecords.clear();
         focusedPolyhedron.clear();
         modelPose.setIdentity();
         texturePose.setIdentity();
-        bindingContext = BindingContext.EMPTY;
+        bindResult = BindResult.EMPTY;
         focusedRecord = currentRecord = null;
         focusedIndex = -1;
     }
@@ -178,8 +181,8 @@ public class ModelAnalyser extends VertexRecorder {
     }
 
     public void drawCameraDirections(GuiGraphics graphics) {
-        Vec3 start = bindingContext.getPosition();
-        Matrix3f normal = bindingContext.rotation;
+        Vec3 start = bindResult.getPosition();
+        Matrix3f normal = bindResult.rotation;
         if (normal.m00() == 0 && normal.m11() == 0 && normal.m22() == 0) return;
         drawNormal(graphics, start, new Vec3(normal.m20(), normal.m21(), normal.m22()), modelScale / 3, forwardArgb);
         drawNormal(graphics, start, new Vec3(normal.m10(), normal.m11(), normal.m12()), modelScale / 6, upwardArgb);
@@ -262,21 +265,20 @@ public class ModelAnalyser extends VertexRecorder {
     }
 
     @Override
-    public BindingContext genContext() {
+    public BindResult computeBindResult() {
         Matrix4f matrix4f = new Matrix4f();
         Matrix3f matrix3f = new Matrix3f().scale(-1);
         target.offsets().setScale(target.offsets().getScale() * modelScale);
         for (BuiltRecord record : records) {
-            BindingContext context = new BindingContext(target, true);
-            record.setupContext(context, matrix4f, matrix3f);
-            if (context.weakAvailable()) currentRecord = record;
-            if (!context.available()) continue;
-            bindingContext = context;
+            BindResult result = new BindResult(target, true);
+            record.exportToBindResult(result, matrix4f, matrix3f);
+            if (result.weakAvailable()) currentRecord = record;
+            if (!result.available()) continue;
+            bindResult = result.init();
             currentRecord = record;
-            bindingContext.init();
-            return context;
+            return result;
         }
-        return BindingContext.EMPTY;
+        return BindResult.EMPTY;
     }
 
     private void drawPrimitive(GuiGraphics graphics, VertexData[] primitive, int z, int argb) {

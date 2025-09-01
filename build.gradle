@@ -12,6 +12,7 @@ subprojects {
 
     loom {
         silentMojangMappingsLicense()
+        accessWidenerPath = project(":common").file("src/main/resources/realcamera.accesswidener")
     }
 
     dependencies {
@@ -34,6 +35,7 @@ allprojects {
     group = rootProject.maven_group
 
     repositories {
+        maven { url "https://maven.neoforged.net/releases" }
         maven { url "https://maven.shedaniel.me/" }
         maven { url "https://maven.terraformersmc.com/releases/" }
         maven { url "https://api.modrinth.com/maven" }
