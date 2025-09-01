@@ -23,12 +23,32 @@ public class RealCameraCore {
     private static boolean active = false, rendering = false;
     private static int failureFrames = 0;
 
+    public static boolean isActive() {
+        return active;
+    }
+
+    public static boolean isRendering() {
+        return isActive() && rendering;
+    }
+
     public static void setActiveRecorder(VertexRecorder recorder) {
         activeRecorder = recorder;
     }
 
     public static BindTarget currentTarget() {
         return bindResult.target;
+    }
+
+    public static void initialize(Minecraft client) {
+        Entity entity = client.getCameraEntity();
+        active = ConfigFile.config().enabled() && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.MAIN_FEATURE.disabled(entity);
+        rendering = ConfigFile.config().renderModel() && !DisableHelper.RENDER_MODEL.disabled(entity);
+        activeRecorder.records().clear();
+    }
+
+    public static void reset() {
+        cameraPos = eulerAngle = Vec3.ZERO;
+        failureFrames = 0;
     }
 
     public static float getPitch(float f) {
@@ -62,28 +82,8 @@ public class RealCameraCore {
         cameraPos = vec;
     }
 
-    public static void initialize(Minecraft client) {
-        Entity entity = client.getCameraEntity();
-        active = ConfigFile.config().enabled() && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.MAIN_FEATURE.disabled(entity);
-        rendering = active && ConfigFile.config().renderModel() && !DisableHelper.RENDER_MODEL.disabled(entity);
-        activeRecorder.records().clear();
-    }
-
-    public static void reset() {
-        cameraPos = eulerAngle = Vec3.ZERO;
-        failureFrames = 0;
-    }
-
-    public static boolean isActive() {
-        return active;
-    }
-
-    public static boolean isRendering() {
-        return isActive() && rendering;
-    }
-
     public static void computeCamera(Minecraft client, float deltaTick) {
-        BindResult newResult = RealCameraAPI.genBindResult(client, deltaTick);
+        BindResult newResult = RealCameraAPI.computeBindResult(client, deltaTick);
         if (!newResult.available()) {
             activeRecorder.updateModel(client, client.getCameraEntity(), deltaTick, new PoseStack());
             newResult = activeRecorder.computeBindResult();

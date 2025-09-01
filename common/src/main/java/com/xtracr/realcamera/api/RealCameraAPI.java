@@ -16,7 +16,7 @@ public class RealCameraAPI {
         poseHandlerConsumers.put(id, consumer);
     }
 
-    public static BindResult genBindResult(Minecraft client, float deltaTick) {
+    public static BindResult computeBindResult(Minecraft client, float deltaTick) {
         for (Map.Entry<String, Consumer<Object>> entry : poseHandlerConsumers.entrySet()) {
             BindTarget target = ConfigFile.config().getOrCreateFixedTarget(entry.getKey());
             BindResult result = new BindResult(target, client, deltaTick, false);
