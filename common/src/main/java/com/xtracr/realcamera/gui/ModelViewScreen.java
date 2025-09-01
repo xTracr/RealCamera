@@ -3,8 +3,8 @@ package com.xtracr.realcamera.gui;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.compat.CompatibilityHelper;
-import com.xtracr.realcamera.config.BindingTarget;
-import com.xtracr.realcamera.config.BindingTarget.*;
+import com.xtracr.realcamera.config.BindTarget;
+import com.xtracr.realcamera.config.BindTarget.*;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ConfigScreen;
 import com.xtracr.realcamera.config.ModConfig;
@@ -296,12 +296,12 @@ public class ModelViewScreen extends Screen {
         final int widgetsPerPage, size;
         if (toggleConfigButton.getValue() == 0) {
             widgetsPerPage = 8;
-            List<BindingTarget> fixedTargetList = ConfigFile.config().getFixedTargetList().stream().filter(target -> target.name().equals(RealCameraCore.currentTarget().name())).toList();
-            List<BindingTarget> targetList = ConfigFile.config().getTargetList();
+            List<BindTarget> fixedTargetList = ConfigFile.config().getFixedTargetList().stream().filter(target -> target.name().equals(RealCameraCore.currentTarget().name())).toList();
+            List<BindTarget> targetList = ConfigFile.config().getTargetList();
             final int fixedTargetCount = fixedTargetList.size();
             size = fixedTargetCount + targetList.size();
             for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, size); i++) {
-                BindingTarget target = i < fixedTargetCount ? fixedTargetList.get(i) : targetList.get(i - fixedTargetCount);
+                BindTarget target = i < fixedTargetCount ? fixedTargetList.get(i) : targetList.get(i - fixedTargetCount);
                 String name = target.name();
                 rows.addChild(createButton(LocUtil.literal(name), widgetWidth * 2 - 18, button -> loadBindingTarget(target)), 3).setTooltip(Tooltip.create(LocUtil.literal(name)));
                 if (i < fixedTargetCount) continue;
@@ -427,7 +427,7 @@ public class ModelViewScreen extends Screen {
     protected void applyAnalyser(GuiGraphics graphics, int mouseX, int mouseY) {
         String textureId = textureViewArea == null ? "" : disabledIdField.getValue();
         Set<String> hiddenNames = hiddenNameMap.getOrDefault(nameField.getValue(), Set.of());
-        analyser.genContext();
+        analyser.computeBindResult();
         analyser.applyDisableConfigs(textureId, hiddenNames);
         analyser.computeFocusedOnTexture(inTextureViewArea(mouseX, mouseY) ? mouseX : -1, mouseY);
         analyser.computeFocusedOnModel(inModelViewArea(mouseX, mouseY) ? mouseX : -1, mouseY, layers);
@@ -492,7 +492,7 @@ public class ModelViewScreen extends Screen {
         analyser.texturePose.translate(offset.x(), offset.y(), offset.z());
     }
 
-    protected BindingTarget genBindingTarget() {
+    protected BindTarget genBindingTarget() {
         TargetConfig targetConfig = new TargetConfig( forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber());
         BindConfig bindConfig = new BindConfig( bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);
         OffsetConfig offsets = new OffsetConfig()
@@ -508,10 +508,10 @@ public class ModelViewScreen extends Screen {
         for (int i = 0; i < disableConfigArray.length; i++) {
             if (disableConfigArray[i].name().equals(currentDisableConfig.name())) disableConfigArray[i] = currentDisableConfig;
         }
-        return new BindingTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, disableConfigArray);
+        return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, disableConfigArray);
     }
 
-    protected void loadBindingTarget(BindingTarget target) {
+    protected void loadBindingTarget(BindTarget target) {
         if (target.isEmpty()) return;
         nameField.setValue(target.name());
         textureIdField.setValue(target.textureId());

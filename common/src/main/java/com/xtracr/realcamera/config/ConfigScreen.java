@@ -174,6 +174,13 @@ public class ConfigScreen {
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("swimOutTick"))
                 .setSaveConsumer(i -> config.binding.swimOutTick = i)
                 .build());
+        binding.addEntry(entryBuilder.startIntField(LocUtil.CONFIG_OPTION("bindResultRetentionFrames"), config.binding.bindResultRetentionFrames)
+                .setDefaultValue(2)
+                .setMin(0)
+                .setMax(100)
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("bindResultRetentionFrames"))
+                .setSaveConsumer(i -> config.binding.bindResultRetentionFrames = i)
+                .build());
         binding.addEntry(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("displacementSmoothFactor"), config.binding.displacementSmoothFactor)
                 .setDefaultValue(0.4)
                 .setMin(0.0)

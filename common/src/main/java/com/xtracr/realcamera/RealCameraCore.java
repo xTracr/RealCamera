@@ -4,13 +4,12 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.xtracr.realcamera.api.RealCameraAPI;
 import com.xtracr.realcamera.compat.DisableHelper;
-import com.xtracr.realcamera.config.BindingTarget;
-import com.xtracr.realcamera.config.BindingTarget.DisableConfig;
+import com.xtracr.realcamera.config.BindTarget;
+import com.xtracr.realcamera.config.BindTarget.DisableConfig;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.util.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
@@ -19,16 +18,17 @@ import org.joml.Matrix4f;
 public class RealCameraCore {
     private static final VertexRecorder defaultRecorder = new VertexRecorder();
     private static VertexRecorder activeRecorder = defaultRecorder;
-    private static BindingContext bindingContext = BindingContext.EMPTY;
-    private static Vec3 cameraPos = Vec3.ZERO, entityPos = Vec3.ZERO, eulerAngle = Vec3.ZERO;
-    private static boolean active = false, rendering = false, readyToSendMessage = true;
+    private static BindResult bindResult = BindResult.EMPTY;
+    private static Vec3 cameraPos = Vec3.ZERO, eulerAngle = Vec3.ZERO;
+    private static boolean active = false, rendering = false;
+    private static int failureFrames = 0;
 
     public static void setActiveRecorder(VertexRecorder recorder) {
         activeRecorder = recorder;
     }
 
-    public static BindingTarget currentTarget() {
-        return bindingContext.target;
+    public static BindTarget currentTarget() {
+        return bindResult.target;
     }
 
     public static float getPitch(float f) {
@@ -47,14 +47,14 @@ public class RealCameraCore {
         return f;
     }
 
-    public static Vec3 getRawPos(Vec3 vec) {
-        Vec3 rawPos = SmoothUtil.smoothPosition(bindingContext.getPosition()).add(entityPos);
-        BindingTarget.BindConfig bindConfig = currentTarget().bindConfig();
-        return new Vec3(bindConfig.bindX() ? rawPos.x() : vec.x(), bindConfig.bindY() ? rawPos.y() : vec.y(), bindConfig.bindZ() ? rawPos.z() : vec.z());
+    public static Vec3 getRawPos(Vec3 cameraPos, Vec3 entityPos) {
+        Vec3 rawPos = SmoothUtil.smoothPosition(bindResult.getPosition()).add(entityPos);
+        BindTarget.BindConfig bindConfig = currentTarget().bindConfig();
+        return new Vec3(bindConfig.bindX() ? rawPos.x() : cameraPos.x(), bindConfig.bindY() ? rawPos.y() : cameraPos.y(), bindConfig.bindZ() ? rawPos.z() : cameraPos.z());
     }
 
     public static Vec3 getCameraPos(Vec3 vec) {
-        BindingTarget.BindConfig bindConfig = currentTarget().bindConfig();
+        BindTarget.BindConfig bindConfig = currentTarget().bindConfig();
         return new Vec3(bindConfig.bindX() ? cameraPos.x() : vec.x(), bindConfig.bindY() ? cameraPos.y() : vec.y(), bindConfig.bindZ() ? cameraPos.z() : vec.z());
     }
 
@@ -69,8 +69,9 @@ public class RealCameraCore {
         activeRecorder.records().clear();
     }
 
-    public static void readyToSendMessage() {
-        readyToSendMessage = ConfigFile.config().enabled();
+    public static void reset() {
+        cameraPos = eulerAngle = Vec3.ZERO;
+        failureFrames = 0;
     }
 
     public static boolean isActive() {
@@ -82,44 +83,41 @@ public class RealCameraCore {
     }
 
     public static void computeCamera(Minecraft client, float deltaTick) {
-        Entity entity = client.getCameraEntity();
-        if (entity.tickCount == 0) {
-            entity.xOld = entity.getX();
-            entity.yOld = entity.getY();
-            entity.zOld = entity.getZ();
-        }
-        entityPos = new Vec3(Mth.lerp(deltaTick, entity.xOld, entity.getX()), Mth.lerp(deltaTick, entity.yOld, entity.getY()), Mth.lerp(deltaTick, entity.zOld, entity.getZ()));
-
-        BindingContext apiContext = RealCameraAPI.genBindingContext(client, deltaTick);
-        if (apiContext.available()) bindingContext = apiContext;
-        else {
+        BindResult newResult = RealCameraAPI.genBindResult(client, deltaTick);
+        if (!newResult.available()) {
             activeRecorder.updateModel(client, client.getCameraEntity(), deltaTick, new PoseStack());
-            bindingContext = activeRecorder.genContext();
+            newResult = activeRecorder.computeBindResult();
         }
-        if (activeRecorder.records().isEmpty()) bindingContext.skipRendering = false;
-        if (!bindingContext.available()) {
+        if (activeRecorder.records().isEmpty()) newResult.skipRendering = false;
+        if (!newResult.available()) {
+            failureFrames++;
             Entity player = client.player;
-            if (readyToSendMessage && player != null)
+            int retentionFrames = ConfigFile.config().getBindResultRetentionFrames();
+            if (failureFrames == retentionFrames + 1 && player != null) {
                 player.sendSystemMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE(), KeyBindings.MODEL_VIEW_SCREEN.getTranslatedKeyMessage()));
-            active = readyToSendMessage = false;
-            return;
+            }
+            if (!bindResult.available() || failureFrames > retentionFrames) {
+                active = false;
+                return;
+            }
+        } else {
+            failureFrames = 0;
+            bindResult = newResult.init();
         }
-        readyToSendMessage = true;
-        bindingContext.init();
-        eulerAngle = MathUtil.getEulerAngleYXZ(SmoothUtil.smoothRotation(bindingContext.getRotation())).scale(Math.toDegrees(1));
+        eulerAngle = MathUtil.getEulerAngleYXZ(SmoothUtil.smoothRotation(bindResult.getRotation())).scale(Math.toDegrees(1));
     }
 
     public static void renderCameraEntity(Minecraft client, float deltaTick, MultiBufferSource bufferSource, Matrix4f cameraPose) {
-        Vec3 targetEulerAngle = MathUtil.getEulerAngleYXZ(bindingContext.getRotation());
+        Vec3 targetEulerAngle = MathUtil.getEulerAngleYXZ(bindResult.getRotation());
         Matrix4f invertedCameraPose = new Matrix4f()
                 .rotateZ((float) targetEulerAngle.z())
                 .rotateX((float) targetEulerAngle.x())
                 .rotateY((float) (Math.PI - targetEulerAngle.y()))
                 .transpose()
                 .invert()
-                .translate(Vec3.ZERO.subtract(bindingContext.getPosition()).toVector3f());
+                .translate(Vec3.ZERO.subtract(bindResult.getPosition()).toVector3f());
         PoseStack poseStack = new PoseStack();
-        if (!bindingContext.skipRendering || ConfigFile.config().rerenderModel()) {
+        if (!bindResult.skipRendering || ConfigFile.config().rerenderModel()) {
             poseStack.mulPose(new Matrix4f(invertedCameraPose).mulLocal(cameraPose.invert(new Matrix4f())));
             activeRecorder.updateModel(client, client.getCameraEntity(), deltaTick, poseStack);
         }

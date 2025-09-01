@@ -15,15 +15,15 @@ public interface MultiVertexCatcher extends MultiBufferSource {
     void sendVertices(VertexRecorder recorder);
 
     static MultiVertexCatcher defaultImpl() {
-        return MultiMeshCatcher.INSTANCE;
+        return MeshCatcher.INSTANCE;
     }
 
-    class MultiMeshCatcher extends MultiBufferSource.BufferSource implements MultiVertexCatcher {
+    class MeshCatcher extends MultiBufferSource.BufferSource implements MultiVertexCatcher {
         private static final boolean IS_LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
-        protected static final MultiMeshCatcher INSTANCE = new MultiMeshCatcher();
+        protected static final MeshCatcher INSTANCE = new MeshCatcher();
         protected final SortedMap<VertexData[], RenderType> caughtData = new Object2ObjectLinkedOpenHashMap<>();
 
-        protected MultiMeshCatcher() {
+        protected MeshCatcher() {
             super(new ByteBufferBuilder(786432), Object2ObjectSortedMaps.emptyMap());
         }
 

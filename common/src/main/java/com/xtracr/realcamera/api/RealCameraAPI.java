@@ -1,8 +1,8 @@
 package com.xtracr.realcamera.api;
 
-import com.xtracr.realcamera.config.BindingTarget;
+import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.util.BindingContext;
+import com.xtracr.realcamera.util.BindResult;
 import net.minecraft.client.Minecraft;
 
 import java.util.HashMap;
@@ -16,13 +16,13 @@ public class RealCameraAPI {
         poseHandlerConsumers.put(id, consumer);
     }
 
-    public static BindingContext genBindingContext(Minecraft client, float deltaTick) {
+    public static BindResult genBindResult(Minecraft client, float deltaTick) {
         for (Map.Entry<String, Consumer<Object>> entry : poseHandlerConsumers.entrySet()) {
-            BindingTarget target = ConfigFile.config().getOrCreateFixedTarget(entry.getKey());
-            BindingContext context = new BindingContext(target, client, deltaTick, false);
-            entry.getValue().accept(context);
-            if (context.available()) return context;
+            BindTarget target = ConfigFile.config().getOrCreateFixedTarget(entry.getKey());
+            BindResult result = new BindResult(target, client, deltaTick, false);
+            entry.getValue().accept(result);
+            if (result.available()) return result;
         }
-        return BindingContext.EMPTY;
+        return BindResult.EMPTY;
     }
 }
