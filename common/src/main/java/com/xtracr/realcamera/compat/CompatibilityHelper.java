@@ -17,7 +17,7 @@ public class CompatibilityHelper {
     private static Method NEA_playerTransformer_setDeltaTick;
     private static Class<?> TACZ_IClientPlayerGunOperator;
     private static Method TACZ_IClientPlayerGunOperator_fromLocalPlayer;
-    
+
     public static void initialize(PlatformHelper platformHelper) {
         CompatibilityHelper.platformHelper = platformHelper;
         if (isModLoaded("yes_steve_model")) RealCameraCore.setActiveRecorder(YSMCompat.INSTANCE);
@@ -28,7 +28,7 @@ public class CompatibilityHelper {
         } catch (Exception exception) {
             RealCamera.LOGGER.warn("Compatibility with Not Enough Animations is outdated: [{}] {}", exception.getClass().getName(), exception.getMessage());
         }
-        if(isModLoaded("tacz")) try {
+        if (isModLoaded("tacz")) try {
             TACZ_IClientPlayerGunOperator = Class.forName("com.tacz.guns.api.client.gameplay.IClientPlayerGunOperator"); 
             TACZ_IClientPlayerGunOperator_fromLocalPlayer = TACZ_IClientPlayerGunOperator.getMethod("fromLocalPlayer", LocalPlayer.class);
             DisableHelper.MAIN_FEATURE.registerOrInBinding(player -> TACZ_gunsIsAiming(player));
@@ -37,11 +37,9 @@ public class CompatibilityHelper {
         }
     }
 
-    //tacz
     private static boolean TACZ_gunsIsAiming(Player player) {
-        if (!(player instanceof LocalPlayer)) return false;
-        LocalPlayer localPlayer = (LocalPlayer) player;
-        try{
+        if (!(player instanceof LocalPlayer localPlayer)) return false;
+        try {
             Object operator = TACZ_IClientPlayerGunOperator_fromLocalPlayer.invoke(null, localPlayer);
             Method getProgressMethod = TACZ_IClientPlayerGunOperator.getMethod("getClientAimingProgress", float.class);
             float aimingProgress = (float) getProgressMethod.invoke(operator, Minecraft.getInstance().getFrameTime());
