@@ -8,7 +8,6 @@ import net.minecraft.client.renderer.RenderType;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Map;
 import java.util.SortedMap;
 
 public interface MultiVertexCatcher extends MultiBufferSource {
@@ -79,9 +78,7 @@ public interface MultiVertexCatcher extends MultiBufferSource {
         @Override
         public void sendVertices(VertexRecorder recorder) {
             endLastBatch();
-            for (Map.Entry<VertexData[], RenderType> entry : caughtData.entrySet()) {
-                recorder.records().add(VertexRecorder.buildVertices(entry.getValue(), entry.getKey()));
-            }
+            caughtData.forEach((vertices, renderType) -> recorder.records().add(VertexRecorder.buildVertices(renderType, vertices)));
             caughtData.clear();
         }
 
