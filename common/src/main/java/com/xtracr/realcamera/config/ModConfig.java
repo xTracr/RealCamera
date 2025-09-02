@@ -15,7 +15,7 @@ public class ModConfig {
     public boolean isClassic = false;
     public boolean dynamicCrosshair = false;
     public boolean renderModel = true;
-    public double adjustStep = 0.01d;
+    public double adjustStep = 0.01;
     public Classic classic = new Classic();
     public Binding binding = new Binding();
 
@@ -171,6 +171,10 @@ public class ModConfig {
         return binding.rerenderModel;
     }
 
+    public boolean hideBindingFailureMessage() {
+        return binding.hideFailureMessage;
+    }
+
     public boolean bindingDisableWhenSneaking() {
         return binding.disableWhenSneaking;
     }
@@ -268,6 +272,7 @@ public class ModConfig {
         protected static final List<String> defaultDisableRenderItems = List.of("minecraft:filled_map");
         public boolean legacyBindingMode = false;
         public boolean adjustOffset = true;
+        public boolean hideFailureMessage = false;
         public boolean renderStuckObjects = true;
         public boolean rerenderModel = false;
         public boolean disableWhenSneaking = false;

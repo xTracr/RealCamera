@@ -6,7 +6,10 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.BindTarget.DisableConfig;
 import com.xtracr.realcamera.config.BindTarget.TargetConfig;
-import com.xtracr.realcamera.util.*;
+import com.xtracr.realcamera.util.BindResult;
+import com.xtracr.realcamera.util.MultiVertexCatcher;
+import com.xtracr.realcamera.util.VertexData;
+import com.xtracr.realcamera.util.VertexRecorder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderType;
@@ -224,10 +227,6 @@ public class ModelAnalyser extends VertexRecorder {
         Matrix3f normalMatrix = new Matrix3f(positionMatrix);
         records.forEach(record -> {
             VertexConsumer buffer = graphics.bufferSource().getBuffer(record.renderType());
-            if (!record.renderType().canConsolidateConsecutiveGeometry()) {
-                VertexData.renderVertices(record.vertices(), buffer);
-                return;
-            }
             for (VertexData[] primitive : record.primitives()) {
                 VertexData.renderVertices(primitive, buffer, positionMatrix, normalMatrix);
             }
@@ -287,7 +286,7 @@ public class ModelAnalyser extends VertexRecorder {
 
     private void drawNormal(GuiGraphics graphics, Vec3 start, Vec3 normal, int length, int argb) {
         Vec3 end = normal.scale(length).add(start);
-        VertexConsumer buffer = graphics.bufferSource().getBuffer(RenderType.lineStrip());
+        VertexConsumer buffer = graphics.bufferSource().getBuffer(RenderType.lines());
         buffer.addVertex((float) start.x(), (float) start.y(), z2).setColor(argb).setNormal((float) normal.x(), (float) normal.y(), (float) normal.z());
         buffer.addVertex((float) end.x(), (float) end.y(), z2).setColor(argb).setNormal((float) normal.x(), (float) normal.y(), (float) normal.z());
         graphics.flush();

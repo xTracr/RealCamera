@@ -45,11 +45,6 @@ public class BindResult implements PoseHandler {
     }
 
     @Override
-    public void setPosition(Vec3 vec) {
-        position = vec;
-    }
-
-    @Override
     public Minecraft getClient() {
         return client;
     }
@@ -57,6 +52,11 @@ public class BindResult implements PoseHandler {
     @Override
     public float getDeltaTick() {
         return deltaTick;
+    }
+
+    @Override
+    public void setPosition(Vec3 vec) {
+        position = vec;
     }
 
     @Override

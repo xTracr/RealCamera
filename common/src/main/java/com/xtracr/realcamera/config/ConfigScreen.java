@@ -149,6 +149,11 @@ public class ConfigScreen {
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("adjustOffset"))
                 .setSaveConsumer(b -> config.binding.adjustOffset = b)
                 .build());
+        binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("hideBindingFailureMessage"), config.binding.hideFailureMessage)
+                .setDefaultValue(false)
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("hideBindingFailureMessage"))
+                .setSaveConsumer(b -> config.binding.hideFailureMessage = b)
+                .build());
         binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("renderStuckObjects"), config.binding.renderStuckObjects)
                 .setDefaultValue(true)
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("renderStuckObjects"))

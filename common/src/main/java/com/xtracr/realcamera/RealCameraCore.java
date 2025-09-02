@@ -97,7 +97,7 @@ public class RealCameraCore {
             failureFrames++;
             Entity player = client.player;
             int retentionFrames = ConfigFile.config().getBindResultRetentionFrames();
-            if (failureFrames == retentionFrames + 1 && player != null) {
+            if (!ConfigFile.config().hideBindingFailureMessage() && failureFrames == retentionFrames + 1 && player != null) {
                 player.sendSystemMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE(), KeyBindings.MODEL_VIEW_SCREEN.getTranslatedKeyMessage()));
             }
             if (!bindResult.available() || failureFrames > retentionFrames) {
@@ -127,6 +127,7 @@ public class RealCameraCore {
         }
         Matrix4f positionMatrix = new Matrix4f(invertedCameraPose).mul(poseStack.last().pose().invert(new Matrix4f()));
         final double m02 = positionMatrix.m02(), m12 = positionMatrix.m12(), m22 = positionMatrix.m22(), m32 = positionMatrix.m32();
+        final double depth = currentTarget().disablingDepth();
         positionMatrix.mulLocal(cameraPose.invert(new Matrix4f()));
         Matrix3f normalMatrix = new Matrix3f(positionMatrix);
         activeRecorder.records().forEach(record -> {
@@ -136,10 +137,9 @@ public class RealCameraCore {
             }
             VertexConsumer buffer = bufferSource.getBuffer(record.renderType());
             if (!record.renderType().canConsolidateConsecutiveGeometry()) {
-                VertexData.renderVertices(record.vertices(), buffer);
+                VertexData.renderVertices(record.vertices(), buffer, positionMatrix, normalMatrix);
                 return;
             }
-            final double depth = currentTarget().disablingDepth();
             for (VertexData[] primitive : record.primitives()) {
                 outer:
                 for (VertexData vertex : primitive) {
