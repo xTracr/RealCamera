@@ -9,6 +9,10 @@ architectury {
     neoForge()
 }
 
+repositories {
+    maven { url "https://maven.neoforged.net/releases" }
+}
+
 loom {
     neoForge {}
 }

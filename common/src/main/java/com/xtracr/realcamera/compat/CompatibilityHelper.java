@@ -16,6 +16,19 @@ public class CompatibilityHelper {
     public static void initialize(PlatformHelper platformHelper) {
         CompatibilityHelper.platformHelper = platformHelper;
         if (isModLoaded("yes_steve_model")) RealCameraCore.setActiveRecorder(YSMCompat.INSTANCE);
+        if (isModLoaded("freecam")) try {
+            Class<?> FC_Freecam = Class.forName("net.xolt.freecam.Freecam");
+            Method FC_Freecam_isEnabled = FC_Freecam.getDeclaredMethod("isEnabled");
+            DisableHelper.MAIN_FEATURE.registerOr(player -> {
+                try {
+                    return (boolean) FC_Freecam_isEnabled.invoke(null);
+                } catch (Exception exception) {
+                    return false;
+                }
+            });
+        } catch (Exception exception) {
+            RealCamera.LOGGER.warn("Compatibility with Freecam is outdated: [{}] {}", exception.getClass().getName(), exception.getMessage());
+        }
         if (isModLoaded("notenoughanimations")) try {
             NEA_NEAnimationsLoader = Class.forName("dev.tr7zw.notenoughanimations.NEAnimationsLoader");
             Class<?> NEA_PlayerTransformer = Class.forName("dev.tr7zw.notenoughanimations.logic.PlayerTransformer");
