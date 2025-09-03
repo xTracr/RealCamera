@@ -237,7 +237,7 @@ public class ModelAnalyser extends VertexRecorder {
         drawNormal(graphics, start, new Vec3(normal.m00(), normal.m01(), normal.m02()), modelScale / 6, leftArgb);
     }
 
-    public void drawBindingTarget(GuiGraphics graphics) {
+    public void drawBindTarget(GuiGraphics graphics) {
         if (currentRecord == null) return;
         TargetConfig config = target.targetConfig();
         currentRecord.findPrimitive(config.posU(), config.posV()).ifPresent(primitive -> drawPrimitive(graphics, primitive, z1, planeArgb));

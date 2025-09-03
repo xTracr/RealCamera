@@ -101,7 +101,7 @@
   "screen.tooltip.xtracr_realcamera.modelView_textureId": "被选中的模型的纹理的id（不是完整的id也可以识别），保存时可以缩短一部分以便于程序识别\n比如将minecraft:textures/entity/player/slim/alex.png缩短为minecraft:textures/entity/player/",
   "screen.tooltip.xtracr_realcamera.modelView_disableMode": "被蓝框包含的部分会被禁用\n可在左侧材质视图中鼠标左键框选，其它键取消选择\n左Alt+左键可快速选择被鼠标指针指向的部分",
   "screen.tooltip.xtracr_realcamera.modelView_selectionMode": "决定左Alt+左键快速选择的模式",
-  "screen.tooltip.xtracr_realcamera.modelView_focusedRectangleNumber": "选中的矩形编号（0表示不选中）\n可通过Enter键定位到当前选中的矩形",
+  "screen.tooltip.xtracr_realcamera.modelView_focusedRectangleNumber": "选中的矩形编号\n（0表示不选中）\n可通过空格或回车键定位到当前选中的矩形（当正在输入时，按两次即可定位）",
   "screen.tooltip.xtracr_realcamera.modelView_deleteSelectedRectangle": "删除选中的矩形\n（或使用Delete键）",
   "screen.tooltip.xtracr_realcamera.modelView_bindButtons": "当禁用时，摄像头与模型的相对关系不会变化，但摄像头的对应属性不会被本模组修改",
   "screen.tooltip.xtracr_realcamera.modelView_scale": "缩放比例，控制偏移量的大小",

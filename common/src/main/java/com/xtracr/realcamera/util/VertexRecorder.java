@@ -66,7 +66,7 @@ public class VertexRecorder {
 
     public BindResult computeBindResult() {
         BindResult result;
-        for (BindTarget target : ConfigFile.config().getTargetList()) {
+        for (BindTarget target : ConfigFile.config().getBindTargetList()) {
             for (BuiltRecord record : records) {
                 result = new BindResult(target, false);
                 record.exportToBindResult(result);

@@ -101,7 +101,7 @@
   "screen.tooltip.xtracr_realcamera.modelView_textureId": "The texture id of the selected model (not necessary to be the full id), can be shortened when saving to make it easier to recognize.\nFor example, shorten minecraft:textures/entity/player/slim/alex.png to minecraft:textures/entity/player/.",
   "screen.tooltip.xtracr_realcamera.modelView_disableMode": "The parts contained in the blue boxes will be disabled\nLeft Click to select, other keys to cancel selection\nLeft Alt+Left Click to quickly select the part pointed to by the mouse pointer",
   "screen.tooltip.xtracr_realcamera.modelView_selectionMode": "Decide the mode of Left Alt+Left Click quick selection",
-  "screen.tooltip.xtracr_realcamera.modelView_focusedRectangleNumber": "Focused Rectangle Number (0 means no selection)\nPress Enter to locate the current focused rectangle",
+  "screen.tooltip.xtracr_realcamera.modelView_focusedRectangleNumber": "Focused Rectangle Number\n(0 means no selection)\nPress Space or Enter to locate the current focused rectangle (When typing, press twice to locate)",
   "screen.tooltip.xtracr_realcamera.modelView_deleteSelectedRectangle": "Delete the selected rectangle\n(Or use the Delete key)",
   "screen.tooltip.xtracr_realcamera.modelView_bindButtons": "When disabled, the camera's relative relationship to the model will not change, but the camera's corresponding attributes will not be modified by this mod",
   "screen.tooltip.xtracr_realcamera.modelView_scale": "Scale, which controls the size of the offsets",

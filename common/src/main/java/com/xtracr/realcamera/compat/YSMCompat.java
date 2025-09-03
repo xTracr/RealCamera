@@ -37,7 +37,7 @@ public class YSMCompat extends VertexRecorder {
         Matrix4f invertedPosition = positionMatrix.invert(new Matrix4f());
         Matrix3f invertedNormal = normalMatrix.invert(new Matrix3f());
         BindResult result;
-        for (BindTarget target : ConfigFile.config().getTargetList()) {
+        for (BindTarget target : ConfigFile.config().getBindTargetList()) {
             for (BuiltRecord record : records) {
                 result = resultMap.computeIfAbsent(target, k -> new BindResult(target, false));
                 record.exportToBindResult(result, invertedPosition, invertedNormal);

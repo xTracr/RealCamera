@@ -216,14 +216,20 @@ public class ModConfig {
         return binding.fixedTargetList.stream().filter(target -> target.name().equals(name)).findFirst()
                 .orElseGet(() -> {
                     BindTarget target = BindTarget.blank(name, "");
-                    Binding.putTarget(target, binding.fixedTargetList);
+                    Binding.putBindTarget(target, binding.fixedTargetList);
                     return target;
                 });
     }
 
-    public List<BindTarget> getTargetList() {
+    public List<BindTarget> getBindTargetList() {
         binding.clamp();
         return binding.targetList;
+    }
+
+    public void putBindTarget(BindTarget target) {
+        if (target.isEmpty()) return;
+        if (target.fixed()) Binding.putBindTarget(target, binding.fixedTargetList);
+        else Binding.putBindTarget(target, binding.targetList);
     }
 
     public static class Classic {
@@ -286,7 +292,7 @@ public class ModConfig {
         public List<BindTarget> fixedTargetList = new ArrayList<>();
         public List<BindTarget> targetList = new ArrayList<>(BindTarget.defaultTargets);
 
-        private static void putTarget(BindTarget target, List<BindTarget> list) {
+        private static void putBindTarget(BindTarget target, List<BindTarget> list) {
             IntStream.range(0, list.size())
                     .filter(i -> list.get(i).name().equals(target.name()))
                     .findAny()
@@ -302,17 +308,12 @@ public class ModConfig {
             if (disableMainFeatureItems == null) disableMainFeatureItems = List.of();
             if (disableRenderItems == null) disableRenderItems = List.of();
             if (fixedTargetList == null) fixedTargetList = new ArrayList<>();
+            else fixedTargetList.removeIf(BindTarget::isEmpty);
             if (targetList == null) targetList = new ArrayList<>(BindTarget.defaultTargets);
             else {
                 targetList.removeIf(target -> target.fixed() || target.isEmpty());
                 if (targetList.isEmpty()) targetList = new ArrayList<>(BindTarget.defaultTargets);
             }
-        }
-
-        public void putTarget(BindTarget target) {
-            if (target.isEmpty()) return;
-            if (target.fixed()) putTarget(target, fixedTargetList);
-            else putTarget(target, targetList);
         }
     }
 }
