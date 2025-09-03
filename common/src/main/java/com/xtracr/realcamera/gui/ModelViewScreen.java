@@ -719,7 +719,7 @@ public class ModelViewScreen extends Screen {
         if (inModelViewArea(mouseX, mouseY)) {
             if (InputConstants.isKeyDown(minecraft.getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_ALT)) {
                 if (toggleConfigButton.getValue() == 1 && selectionModeButton.getValue() == 2)
-                    selectionRadius = Mth.clamp(selectionRadius + (int) verticalAmount * 2, 2, 40);
+                    selectionRadius = Mth.clamp(selectionRadius + (int) verticalAmount * 2, 2, 48);
                 else layers = Math.max(0, layers + (int) verticalAmount);
             } else {
                 modelScale = Mth.clamp(modelScale + (int) verticalAmount * modelScale / 16, 16, 1024);
@@ -736,6 +736,7 @@ public class ModelViewScreen extends Screen {
         return pauseButton.getValue() == 1;
     }
 
+    @SuppressWarnings("ConstantConditions")
     public class UVRectangleWidget extends AbstractWidget {
         protected float uMin, vMin, uMax, vMax;
 
@@ -802,10 +803,10 @@ public class ModelViewScreen extends Screen {
         @Override
         public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
             if (keyCode == GLFW.GLFW_KEY_DELETE && deleteFocusedRectangle()) return true;
-            if (keyCode == GLFW.GLFW_KEY_ENTER) {
+            if (keyCode == GLFW.GLFW_KEY_ENTER && uMin < uMax) {
                 textureX = 0.5 * (1 - uMin - uMax);
                 textureY = 0.5 * (1 - vMin - vMax);
-                textureScale = (int) (2560 / (0.5 * (uMax - uMin) * textureViewArea.width()));
+                textureScale = Mth.clamp((int) (5120 / ((uMax - uMin) * textureViewArea.width())), 16, 1024);
                 return true;
             }
             return super.keyPressed(keyCode, scanCode, modifiers);

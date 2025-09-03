@@ -1,8 +1,10 @@
 package com.xtracr.realcamera.util;
 
 import com.mojang.blaze3d.vertex.*;
+import com.xtracr.realcamera.mixin.accessor.BufferSourceAccessor;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectSortedMaps;
+import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 
@@ -14,16 +16,23 @@ public interface MultiVertexCatcher extends MultiBufferSource {
     void sendVertices(VertexRecorder recorder);
 
     static MultiVertexCatcher defaultImpl() {
-        return MeshCatcher.INSTANCE;
+        if (MeshCatcher.meshCatcher == null) {
+            MeshCatcher.meshCatcher = new MeshCatcher(Minecraft.getInstance().renderBuffers().bufferSource());
+        }
+        return MeshCatcher.meshCatcher;
     }
 
     class MeshCatcher extends MultiBufferSource.BufferSource implements MultiVertexCatcher {
         private static final boolean IS_LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
-        protected static final MeshCatcher INSTANCE = new MeshCatcher();
+        private static MeshCatcher meshCatcher;
         protected final SortedMap<VertexData[], RenderType> caughtData = new Object2ObjectLinkedOpenHashMap<>();
 
-        protected MeshCatcher() {
-            super(new ByteBufferBuilder(786432), Object2ObjectSortedMaps.emptyMap());
+        protected MeshCatcher(BufferSource bufferSource) {
+            super(new ByteBufferBuilder(786432), Util.make(new Object2ObjectLinkedOpenHashMap<>(), map -> {
+                for (RenderType renderType : ((BufferSourceAccessor) bufferSource).getFixedBuffers().sequencedKeySet()) {
+                    map.put(renderType, new ByteBufferBuilder(renderType.bufferSize()));
+                }
+            }));
         }
 
         protected void putVertexData(RenderType renderType, MeshData meshData) {
@@ -77,7 +86,7 @@ public interface MultiVertexCatcher extends MultiBufferSource {
 
         @Override
         public void sendVertices(VertexRecorder recorder) {
-            endLastBatch();
+            endBatch();
             caughtData.forEach((vertices, renderType) -> recorder.records().add(VertexRecorder.buildVertices(renderType, vertices)));
             caughtData.clear();
         }
