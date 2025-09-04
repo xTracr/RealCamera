@@ -57,9 +57,9 @@ public record BindTarget(
         return Arrays.stream(disableConfigs).filter(filter).toArray(DisableConfig[]::new);
     }
 
-    public record TargetConfig(float forwardU, float forwardV, float upwardU, float upwardV, float posU, float posV) {}
+    public record TargetConfig(float forwardU, float forwardV, float upwardU, float upwardV, float posU, float posV) { }
 
-    public record BindConfig(boolean bindX, boolean bindY, boolean bindZ, boolean bindRotation) {}
+    public record BindConfig(boolean bindX, boolean bindY, boolean bindZ, boolean bindRotation) { }
 
     public static class OffsetConfig {
         private double scale = 1, x = 0, y = 0, z = 0;
@@ -133,8 +133,8 @@ public record BindTarget(
         @Override
         public boolean test(VertexData vertexData) {
             final float u = vertexData.u(), v = vertexData.v();
-            for (UVRectangle rectangle : rectangles) {
-                if (rectangle.contains(u, v)) return true;
+            for (UVRectangle rect : rectangles) {
+                if (rect.contains(u, v)) return true;
             }
             return false;
         }

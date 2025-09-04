@@ -21,6 +21,19 @@ public class CompatibilityHelper {
     public static void initialize(PlatformHelper platformHelper) {
         CompatibilityHelper.platformHelper = platformHelper;
         if (isModLoaded("yes_steve_model")) RealCameraCore.setActiveRecorder(YSMCompat.INSTANCE);
+        if (isModLoaded("freecam")) try {
+            Class<?> FC_Freecam = Class.forName("net.xolt.freecam.Freecam");
+            Method FC_Freecam_isEnabled = FC_Freecam.getDeclaredMethod("isEnabled");
+            DisableHelper.MAIN_FEATURE.registerOr(player -> {
+                try {
+                    return (boolean) FC_Freecam_isEnabled.invoke(null);
+                } catch (Exception exception) {
+                    return false;
+                }
+            });
+        } catch (Exception exception) {
+            RealCamera.LOGGER.warn("Compatibility with Freecam is outdated: [{}] {}", exception.getClass().getName(), exception.getMessage());
+        }
         if (isModLoaded("notenoughanimations")) try {
             NEA_NEAnimationsLoader = Class.forName("dev.tr7zw.notenoughanimations.NEAnimationsLoader");
             Class<?> NEA_PlayerTransformer = Class.forName("dev.tr7zw.notenoughanimations.logic.PlayerTransformer");
@@ -31,7 +44,7 @@ public class CompatibilityHelper {
         if (isModLoaded("tacz")) try {
             TACZ_IClientPlayerGunOperator = Class.forName("com.tacz.guns.api.client.gameplay.IClientPlayerGunOperator"); 
             TACZ_IClientPlayerGunOperator_fromLocalPlayer = TACZ_IClientPlayerGunOperator.getMethod("fromLocalPlayer", LocalPlayer.class);
-            DisableHelper.MAIN_FEATURE.registerOrInBinding(player -> TACZ_gunsIsAiming(player));
+            DisableHelper.MAIN_FEATURE.registerOrInBinding(CompatibilityHelper::TACZ_gunsIsAiming);
         } catch (Exception e) {
             RealCamera.LOGGER.warn("TACZ is not loaded correctly: [{}] {}", e.getClass().getName(), e.getMessage());
         }
@@ -43,7 +56,7 @@ public class CompatibilityHelper {
             Object operator = TACZ_IClientPlayerGunOperator_fromLocalPlayer.invoke(null, localPlayer);
             Method getProgressMethod = TACZ_IClientPlayerGunOperator.getMethod("getClientAimingProgress", float.class);
             float aimingProgress = (float) getProgressMethod.invoke(operator, Minecraft.getInstance().getFrameTime());
-                return aimingProgress > 0;
+            return aimingProgress > 0;
         } catch (Exception e) {
             return false;
         }

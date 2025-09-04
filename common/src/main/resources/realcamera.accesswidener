@@ -1,3 +1,2 @@
 accessWidener   v2  named
 extendable method net/minecraft/client/renderer/MultiBufferSource$BufferSource getBuilderRaw (Lnet/minecraft/client/renderer/RenderType;)Lcom/mojang/blaze3d/vertex/BufferBuilder;
-accessible field net/minecraft/client/renderer/RenderBuffers fixedBuffers Ljava/util/SortedMap;

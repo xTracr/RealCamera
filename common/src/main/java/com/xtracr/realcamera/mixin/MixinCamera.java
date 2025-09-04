@@ -49,7 +49,7 @@ public abstract class MixinCamera {
             setRotation(newYaw, newPitch);
             move(offset.x(), offset.y(), offset.z());
         } else {
-            Vec3 entityPos = new Vec3(Mth.lerp(deltaTick, entity.xOld, entity.getX()), Mth.lerp(deltaTick, entity.yOld, entity.getY()), Mth.lerp(deltaTick, entity.zOld, entity.getZ()));
+            Vec3 entityPos = entity.position().add(entity.position().subtract(entity.xOld, entity.yOld, entity.zOld).scale(entity.tickCount == 0 ? 0 : deltaTick - 1));
             Vec3 rawPos = RealCameraCore.getRawPos(position, entityPos);
             double restrictedY = Mth.clamp(rawPos.y(), box.minY + 0.1D, box.maxY - 0.1D);
             startVec = new Vec3(position.x(), restrictedY, position.z());

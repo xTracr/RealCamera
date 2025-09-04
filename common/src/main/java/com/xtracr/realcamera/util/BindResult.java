@@ -10,8 +10,8 @@ import org.joml.Vector3f;
 public class BindResult implements PoseHandler {
     public static final BindResult EMPTY = new BindResult(BindTarget.EMPTY, false);
     public final BindTarget target;
-    public final Matrix3f rotation = new Matrix3f();
-    public final boolean mirrored;
+    protected final Matrix3f rotation = new Matrix3f();
+    protected final boolean mirrored;
     private final Minecraft client;
     private final float deltaTick;
     public boolean skipRendering = true;
@@ -45,11 +45,6 @@ public class BindResult implements PoseHandler {
     }
 
     @Override
-    public void setPosition(Vec3 vec) {
-        position = vec;
-    }
-
-    @Override
     public Minecraft getClient() {
         return client;
     }
@@ -57,6 +52,11 @@ public class BindResult implements PoseHandler {
     @Override
     public float getDeltaTick() {
         return deltaTick;
+    }
+
+    @Override
+    public void setPosition(Vec3 vec) {
+        position = vec;
     }
 
     @Override

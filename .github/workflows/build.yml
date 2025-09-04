@@ -1,6 +1,11 @@
 name: Build
 
 on:
+  pull_request:
+    paths-ignore:
+      - '**/lang/**'
+      - '**.md'
+      - 'LICENSE'
   push:
     branches:
       - '**'

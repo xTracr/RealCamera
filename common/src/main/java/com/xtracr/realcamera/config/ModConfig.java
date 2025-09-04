@@ -15,7 +15,7 @@ public class ModConfig {
     public boolean isClassic = false;
     public boolean dynamicCrosshair = false;
     public boolean renderModel = true;
-    public double adjustStep = 0.01d;
+    public double adjustStep = 0.01;
     public Classic classic = new Classic();
     public Binding binding = new Binding();
 
@@ -171,6 +171,10 @@ public class ModConfig {
         return binding.rerenderModel;
     }
 
+    public boolean hideBindingFailureMessage() {
+        return binding.hideFailureMessage;
+    }
+
     public boolean bindingDisableWhenSneaking() {
         return binding.disableWhenSneaking;
     }
@@ -212,14 +216,20 @@ public class ModConfig {
         return binding.fixedTargetList.stream().filter(target -> target.name().equals(name)).findFirst()
                 .orElseGet(() -> {
                     BindTarget target = BindTarget.blank(name, "");
-                    Binding.putTarget(target, binding.fixedTargetList);
+                    Binding.putBindTarget(target, binding.fixedTargetList);
                     return target;
                 });
     }
 
-    public List<BindTarget> getTargetList() {
+    public List<BindTarget> getBindTargetList() {
         binding.clamp();
         return binding.targetList;
+    }
+
+    public void putBindTarget(BindTarget target) {
+        if (target.isEmpty()) return;
+        if (target.fixed()) Binding.putBindTarget(target, binding.fixedTargetList);
+        else Binding.putBindTarget(target, binding.targetList);
     }
 
     public static class Classic {
@@ -268,6 +278,7 @@ public class ModConfig {
         protected static final List<String> defaultDisableRenderItems = List.of("minecraft:filled_map");
         public boolean legacyBindingMode = false;
         public boolean adjustOffset = true;
+        public boolean hideFailureMessage = false;
         public boolean renderStuckObjects = true;
         public boolean rerenderModel = false;
         public boolean disableWhenSneaking = false;
@@ -281,7 +292,7 @@ public class ModConfig {
         public List<BindTarget> fixedTargetList = new ArrayList<>();
         public List<BindTarget> targetList = new ArrayList<>(BindTarget.defaultTargets);
 
-        private static void putTarget(BindTarget target, List<BindTarget> list) {
+        private static void putBindTarget(BindTarget target, List<BindTarget> list) {
             IntStream.range(0, list.size())
                     .filter(i -> list.get(i).name().equals(target.name()))
                     .findAny()
@@ -297,17 +308,12 @@ public class ModConfig {
             if (disableMainFeatureItems == null) disableMainFeatureItems = List.of();
             if (disableRenderItems == null) disableRenderItems = List.of();
             if (fixedTargetList == null) fixedTargetList = new ArrayList<>();
+            else fixedTargetList.removeIf(BindTarget::isEmpty);
             if (targetList == null) targetList = new ArrayList<>(BindTarget.defaultTargets);
             else {
                 targetList.removeIf(target -> target.fixed() || target.isEmpty());
                 if (targetList.isEmpty()) targetList = new ArrayList<>(BindTarget.defaultTargets);
             }
-        }
-
-        public void putTarget(BindTarget target) {
-            if (target.isEmpty()) return;
-            if (target.fixed()) putTarget(target, fixedTargetList);
-            else putTarget(target, targetList);
         }
     }
 }

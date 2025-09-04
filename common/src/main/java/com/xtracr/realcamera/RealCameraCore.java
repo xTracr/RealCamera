@@ -23,12 +23,32 @@ public class RealCameraCore {
     private static boolean active = false, rendering = false;
     private static int failureFrames = 0;
 
+    public static boolean isActive() {
+        return active;
+    }
+
+    public static boolean isRendering() {
+        return isActive() && rendering;
+    }
+
     public static void setActiveRecorder(VertexRecorder recorder) {
         activeRecorder = recorder;
     }
 
     public static BindTarget currentTarget() {
         return bindResult.target;
+    }
+
+    public static void initialize(Minecraft client) {
+        Entity entity = client.getCameraEntity();
+        active = ConfigFile.config().enabled() && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.MAIN_FEATURE.disabled(entity);
+        rendering = ConfigFile.config().renderModel() && !DisableHelper.RENDER_MODEL.disabled(entity);
+        activeRecorder.records().clear();
+    }
+
+    public static void reset() {
+        cameraPos = eulerAngle = Vec3.ZERO;
+        failureFrames = 0;
     }
 
     public static float getPitch(float f) {
@@ -62,38 +82,22 @@ public class RealCameraCore {
         cameraPos = vec;
     }
 
-    public static void initialize(Minecraft client) {
-        Entity entity = client.getCameraEntity();
-        active = ConfigFile.config().enabled() && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.MAIN_FEATURE.disabled(entity);
-        rendering = active && ConfigFile.config().renderModel() && !DisableHelper.RENDER_MODEL.disabled(entity);
-        activeRecorder.records().clear();
-    }
-
-    public static void reset() {
-        cameraPos = eulerAngle = Vec3.ZERO;
-        failureFrames = 0;
-    }
-
-    public static boolean isActive() {
-        return active;
-    }
-
-    public static boolean isRendering() {
-        return isActive() && rendering;
-    }
-
     public static void computeCamera(Minecraft client, float deltaTick) {
-        BindResult newResult = RealCameraAPI.genBindResult(client, deltaTick);
+        Entity entity = client.getCameraEntity();
+        boolean invisible = entity.isInvisible();
+        entity.setInvisible(false);
+        BindResult newResult = RealCameraAPI.computeBindResult(client, deltaTick);
         if (!newResult.available()) {
-            activeRecorder.updateModel(client, client.getCameraEntity(), deltaTick, new PoseStack());
+            activeRecorder.updateModel(client, entity, deltaTick, new PoseStack());
             newResult = activeRecorder.computeBindResult();
         }
-        if (activeRecorder.records().isEmpty()) newResult.skipRendering = false;
+        entity.setInvisible(invisible);
+        if (activeRecorder.records().isEmpty() || invisible) newResult.skipRendering = false;
         if (!newResult.available()) {
             failureFrames++;
             Entity player = client.player;
             int retentionFrames = ConfigFile.config().getBindResultRetentionFrames();
-            if (failureFrames == retentionFrames + 1 && player != null) {
+            if (!ConfigFile.config().hideBindingFailureMessage() && failureFrames == retentionFrames + 1 && player != null) {
                 player.sendSystemMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE(), KeyBindings.MODEL_VIEW_SCREEN.getTranslatedKeyMessage()));
             }
             if (!bindResult.available() || failureFrames > retentionFrames) {
@@ -130,7 +134,7 @@ public class RealCameraCore {
             }
             VertexConsumer buffer = bufferSource.getBuffer(record.renderType());
             if (!record.renderType().canConsolidateConsecutiveGeometry()) {
-                VertexData.renderVertices(record.vertices(), buffer);
+                VertexData.renderVertices(record.vertices(), buffer, positionMatrix, normalMatrix);
                 return;
             }
             final double depth = currentTarget().disablingDepth();
