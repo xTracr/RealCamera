@@ -114,6 +114,6 @@
   "screen.tooltip.xtracr_realcamera.modelView_paste": "粘贴剪贴板中的所有禁用设置到当前配置\n（不会覆盖同名设置）",
   "screen.tooltip.xtracr_realcamera.modelView_emptyName": "名称不能为空！",
   "screen.tooltip.xtracr_realcamera.modelView_emptyTextureId": "材质id不能为空！",
-  "screen.tooltip.xtracr_realcamera.modelView_saveAs": "保存为",
+  "screen.tooltip.xtracr_realcamera.modelView_saveAs": "保存为\n（当存在同名设置时，也可使用左侧保存按钮）",
   "screen.tooltip.xtracr_realcamera.modelView_disabledName": "禁用设置的名称"
 }

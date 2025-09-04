@@ -114,6 +114,6 @@
   "screen.tooltip.xtracr_realcamera.modelView_paste": "Paste all disabling settings in the clipboard to current config\n(Will not override existing setting with the same name)",
   "screen.tooltip.xtracr_realcamera.modelView_emptyName": "Name cannot be empty!",
   "screen.tooltip.xtracr_realcamera.modelView_emptyTextureId": "Texture id cannot be empty!",
-  "screen.tooltip.xtracr_realcamera.modelView_saveAs": "Save as",
+  "screen.tooltip.xtracr_realcamera.modelView_saveAs": "Save as\n(When there is a setting with the same name, you can also press the save button on the left)",
   "screen.tooltip.xtracr_realcamera.modelView_disabledName": "Name of the disable setting"
 }

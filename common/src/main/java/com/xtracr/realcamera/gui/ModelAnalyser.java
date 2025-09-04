@@ -98,7 +98,7 @@ public class ModelAnalyser extends VertexRecorder {
                     break;
                 }
             }
-            records.set(i, new BuiltRecord(record.renderType(), record.textureId(), record.vertices(), primitives.toArray(VertexData[][]::new)));
+            records.set(i, new BuiltRecord(record.renderType(), record.textureId(), record.vertices(), primitives.toArray(new VertexData[0][])));
         }
     }
 
@@ -127,27 +127,27 @@ public class ModelAnalyser extends VertexRecorder {
 
     public void computeFocusedOnModel(int mouseX, int mouseY, int layers) {
         if (focusedRecord != null && !focusedPolyhedron.isEmpty()) return;
-        List<Triple> sortByDepth = new ArrayList<>();
+        List<Object[]> sortByZ = new ArrayList<>();
         for (BuiltRecord record : records) {
             if (UNFOCUSABLE_RENDER_TYPES.contains(record.renderType())) continue;
             VertexData[][] primitives = record.primitives();
             for (VertexData[] primitive : primitives) {
                 if (!getPolygon(primitive).contains(mouseX, mouseY)) continue;
-                VertexData point = primitive[0];
-                double deltaZ = point.normalZ() == 0 ? 0 : (point.normalX() * (mouseX - point.x()) + point.normalY() * (mouseY - point.y())) / point.normalZ();
-                sortByDepth.add(new Triple(point.z() - deltaZ, record, primitive));
+                VertexData vertex = primitive[0];
+                float deltaZ = vertex.normalZ() == 0 ? 0 : (vertex.normalX() * (mouseX - vertex.x()) + vertex.normalY() * (mouseY - vertex.y())) / vertex.normalZ();
+                sortByZ.add(new Object[]{record, primitive, vertex.z() - deltaZ});
             }
         }
-        if (sortByDepth.isEmpty()) return;
-        sortByDepth.sort(Comparator.comparingDouble(triple -> -triple.depth));
-        Triple result = sortByDepth.get(Math.min(sortByDepth.size() - 1, layers));
-        focusedRecord = result.record;
-        focusedPolyhedron.add(result.primitive);
+        if (sortByZ.isEmpty()) return;
+        sortByZ.sort(Comparator.comparingDouble(array -> -(float) array[2]));
+        Object[] result = sortByZ.get(Math.min(sortByZ.size() - 1, layers));
+        focusedRecord = (BuiltRecord) result[0];
+        focusedPolyhedron.add((VertexData[]) result[1]);
     }
 
     public void computeFocusedOnModel(int minX, int minY, int maxX, int maxY) {
         if (focusedRecord != null && !focusedPolyhedron.isEmpty()) return;
-        List<Triple> sortByDepth = new ArrayList<>();
+        List<Object[]> sortByZ = new ArrayList<>();
         for (BuiltRecord record : records) {
             if (UNFOCUSABLE_RENDER_TYPES.contains(record.renderType())) continue;
             VertexData[][] primitives = record.primitives();
@@ -159,22 +159,21 @@ public class ModelAnalyser extends VertexRecorder {
                     if (x < minX || y < minY || x > maxX || y > maxY) continue outer;
                     if (vertex.z() > maxZ) maxZ = vertex.z();
                 }
-                sortByDepth.add(new Triple(maxZ, record, primitive));
+                sortByZ.add(new Object[]{record, primitive, maxZ});
             }
         }
-        if (sortByDepth.isEmpty()) return;
-        sortByDepth.sort(Comparator.comparingDouble(triple -> -triple.depth));
-        List<Triple> results = new ArrayList<>();
+        if (sortByZ.isEmpty()) return;
+        sortByZ.sort(Comparator.comparingDouble(array -> -(float) array[2]));
         List<Polygon> polygons = new ArrayList<>();
-        Triple first = sortByDepth.getFirst();
-        focusedRecord = first.record;
-        while (!sortByDepth.isEmpty()) {
-            results.add(first = sortByDepth.getFirst());
-            polygons.add(getPolygon(first.primitive));
-            sortByDepth.removeFirst();
-            sortByDepth.removeIf(triple -> {
-                if (triple.record != focusedRecord) return true;
-                VertexData[] primitive = triple.primitive;
+        focusedRecord = (BuiltRecord) sortByZ.getFirst()[0];
+        while (!sortByZ.isEmpty()) {
+            VertexData[] first = (VertexData[]) sortByZ.getFirst()[1];
+            focusedPolyhedron.add(first);
+            polygons.add(getPolygon(first));
+            sortByZ.removeFirst();
+            sortByZ.removeIf(array -> {
+                if (array[0] != focusedRecord) return true;
+                VertexData[] primitive = (VertexData[]) array[1];
                 outer:
                 for (VertexData vertex : primitive) {
                     float x = vertex.x(), y = vertex.y();
@@ -186,7 +185,6 @@ public class ModelAnalyser extends VertexRecorder {
                 return true;
             });
         }
-        for (Triple triple : results) focusedPolyhedron.add(triple.primitive);
     }
 
     public void computeFocusedPolyhedron() {
@@ -350,6 +348,4 @@ public class ModelAnalyser extends VertexRecorder {
         buffer.addVertex((float) end.x(), (float) end.y(), z2).setColor(argb).setNormal((float) normal.x(), (float) normal.y(), (float) normal.z());
         graphics.flush();
     }
-
-    record Triple(double depth, BuiltRecord record, VertexData[] primitive) { }
 }
