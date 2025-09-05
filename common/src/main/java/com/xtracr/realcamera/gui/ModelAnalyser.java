@@ -57,7 +57,7 @@ public class ModelAnalyser extends VertexRecorder {
         return new Polygon(xs, ys, length);
     }
 
-    public void setup(BindTarget target, int modelScale) {
+    public void initialize(BindTarget target, int modelScale) {
         this.target = target;
         this.modelScale = modelScale;
         textureRecords.clear();
@@ -66,6 +66,7 @@ public class ModelAnalyser extends VertexRecorder {
         texturePose.setIdentity();
         bindResult = BindResult.EMPTY;
         focusedRecord = currentRecord = null;
+        if (catcher == null) setCatcher(MultiVertexCatcher.defaultImpl());
     }
 
     public String getFocusedTextureId() {
@@ -307,7 +308,6 @@ public class ModelAnalyser extends VertexRecorder {
     @Override
     public void updateModel(Minecraft client, Entity entity, float deltaTick, PoseStack poseStack) {
         Lighting.setupForEntityInInventory();
-        MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         dispatcher.setRenderShadow(false);
         dispatcher.render(entity, 0, 0, 0, 0, deltaTick, poseStack, catcher, 0xF000f0);
@@ -327,7 +327,7 @@ public class ModelAnalyser extends VertexRecorder {
             record.exportToBindResult(result, matrix4f, matrix3f);
             if (result.weakAvailable()) currentRecord = record;
             if (!result.available()) continue;
-            bindResult = result.init();
+            bindResult = result.computeCamera();
             currentRecord = record;
             return result;
         }

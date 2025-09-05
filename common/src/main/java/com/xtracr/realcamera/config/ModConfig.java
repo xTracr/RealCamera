@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 public class ModConfig {
-    public static final double MIN_OFFSET = -1.0;
-    public static final double MAX_OFFSET = 1.0;
+    public static final double MIN_OFFSET_D = -1.0, MAX_OFFSET_D = 1.0;
+    public static final float MIN_OFFSET_F = -1.0f, MAX_OFFSET_F = 1.0f;
     public boolean enabled = false;
     public boolean isClassic = false;
     public boolean dynamicCrosshair = false;
@@ -30,7 +30,7 @@ public class ModConfig {
     }
 
     public void clamp() {
-        adjustStep = Mth.clamp(adjustStep, 0.0, MAX_OFFSET);
+        adjustStep = Mth.clamp(adjustStep, 0.0, MAX_OFFSET_D);
         classic.clamp();
         binding.clamp();
     }
@@ -74,7 +74,7 @@ public class ModConfig {
             classic.clamp();
         } else {
             BindTarget target = RealCameraCore.currentTarget();
-            if (binding.adjustOffset) target.offsets().setX(target.offsets().getX() + count * adjustStep);
+            if (binding.adjustOffset) target.offsets().setX(target.offsets().getX() + count * (float) adjustStep);
             else target.offsets().setRoll(target.offsets().getRoll() + count * 100 * (float) adjustStep);
         }
     }
@@ -89,7 +89,7 @@ public class ModConfig {
             classic.clamp();
         } else {
             BindTarget target = RealCameraCore.currentTarget();
-            if (binding.adjustOffset) target.offsets().setY(target.offsets().getY() + count * adjustStep);
+            if (binding.adjustOffset) target.offsets().setY(target.offsets().getY() + count * (float) adjustStep);
             else target.offsets().setYaw(target.offsets().getYaw() + count * 100 * (float) adjustStep);
         }
     }
@@ -104,7 +104,7 @@ public class ModConfig {
             classic.clamp();
         } else {
             BindTarget target = RealCameraCore.currentTarget();
-            if (binding.adjustOffset) target.offsets().setZ(target.offsets().getZ() + count * adjustStep);
+            if (binding.adjustOffset) target.offsets().setZ(target.offsets().getZ() + count * (float) adjustStep);
             else target.offsets().setPitch(target.offsets().getPitch() + count * 100 * (float) adjustStep);
         }
     }
@@ -252,12 +252,12 @@ public class ModConfig {
             if (adjustMode == null) adjustMode = AdjustMode.CAMERA;
             swimOutTick = Mth.clamp(swimOutTick, 0, 40);
             scale = Mth.clamp(scale, 0.0, 64.0);
-            cameraX = Mth.clamp(cameraX, MIN_OFFSET, MAX_OFFSET);
-            cameraY = Mth.clamp(cameraY, MIN_OFFSET, MAX_OFFSET);
-            cameraZ = Mth.clamp(cameraZ, MIN_OFFSET, MAX_OFFSET);
-            centerX = Mth.clamp(centerX, MIN_OFFSET, MAX_OFFSET);
-            centerY = Mth.clamp(centerY, MIN_OFFSET, MAX_OFFSET);
-            centerZ = Mth.clamp(centerZ, MIN_OFFSET, MAX_OFFSET);
+            cameraX = Mth.clamp(cameraX, MIN_OFFSET_D, MAX_OFFSET_D);
+            cameraY = Mth.clamp(cameraY, MIN_OFFSET_D, MAX_OFFSET_D);
+            cameraZ = Mth.clamp(cameraZ, MIN_OFFSET_D, MAX_OFFSET_D);
+            centerX = Mth.clamp(centerX, MIN_OFFSET_D, MAX_OFFSET_D);
+            centerY = Mth.clamp(centerY, MIN_OFFSET_D, MAX_OFFSET_D);
+            centerZ = Mth.clamp(centerZ, MIN_OFFSET_D, MAX_OFFSET_D);
             pitch = Mth.wrapDegrees(pitch);
             yaw = Mth.wrapDegrees(yaw);
             roll = Mth.wrapDegrees(roll);

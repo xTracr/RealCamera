@@ -106,7 +106,7 @@ public class RealCameraCore {
             }
         } else {
             failureFrames = 0;
-            bindResult = newResult.init();
+            bindResult = newResult.computeCamera();
         }
         eulerAngle = MathUtil.getEulerAngleYXZ(SmoothUtil.smoothRotation(bindResult.getRotation())).scale(Math.toDegrees(1));
     }

@@ -41,7 +41,7 @@ public class ConfigScreen {
         general.addEntry(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("adjustStep"), config.adjustStep)
                 .setDefaultValue(0.01)
                 .setMin(0.0)
-                .setMax(ModConfig.MAX_OFFSET)
+                .setMax(ModConfig.MAX_OFFSET_D)
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("adjustStep"))
                 .setSaveConsumer(d -> config.adjustStep = d)
                 .build());
@@ -77,40 +77,40 @@ public class ConfigScreen {
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("classicOffset"), LocUtil.CONFIG_TOOLTIP("classicOffset_n"));
         classicCameraOffset.add(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("cameraOffset", "X"), config.classic.cameraX)
                 .setDefaultValue(-0.5)
-                .setMin(ModConfig.MIN_OFFSET)
-                .setMax(ModConfig.MAX_OFFSET)
+                .setMin(ModConfig.MIN_OFFSET_D)
+                .setMax(ModConfig.MAX_OFFSET_D)
                 .setSaveConsumer(d -> config.classic.cameraX = d)
                 .build());
         classicCameraOffset.add(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("cameraOffset", "Y"), config.classic.cameraY)
                 .setDefaultValue(0.04)
-                .setMin(ModConfig.MIN_OFFSET)
-                .setMax(ModConfig.MAX_OFFSET)
+                .setMin(ModConfig.MIN_OFFSET_D)
+                .setMax(ModConfig.MAX_OFFSET_D)
                 .setSaveConsumer(d -> config.classic.cameraY = d)
                 .build());
         classicCameraOffset.add(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("cameraOffset", "Z"), config.classic.cameraZ)
                 .setDefaultValue(-0.15)
-                .setMin(ModConfig.MIN_OFFSET)
-                .setMax(ModConfig.MAX_OFFSET)
+                .setMin(ModConfig.MIN_OFFSET_D)
+                .setMax(ModConfig.MAX_OFFSET_D)
                 .setSaveConsumer(d -> config.classic.cameraZ = d)
                 .build());
         classic.addEntry(classicCameraOffset.build());
         SubCategoryBuilder classicCenterOffset = entryBuilder.startSubCategory(LocUtil.CONFIG_CATEGORY("centerOffset")).setTooltip(LocUtil.CONFIG_TOOLTIP("centerOffset"));
         classicCenterOffset.add(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("centerOffset", "X"), config.classic.centerX)
                 .setDefaultValue(0.0)
-                .setMin(ModConfig.MIN_OFFSET)
-                .setMax(ModConfig.MAX_OFFSET)
+                .setMin(ModConfig.MIN_OFFSET_D)
+                .setMax(ModConfig.MAX_OFFSET_D)
                 .setSaveConsumer(d -> config.classic.centerX = d)
                 .build());
         classicCenterOffset.add(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("centerOffset", "Y"), config.classic.centerY)
                 .setDefaultValue(0.0)
-                .setMin(ModConfig.MIN_OFFSET)
-                .setMax(ModConfig.MAX_OFFSET)
+                .setMin(ModConfig.MIN_OFFSET_D)
+                .setMax(ModConfig.MAX_OFFSET_D)
                 .setSaveConsumer(d -> config.classic.centerY = d)
                 .build());
         classicCenterOffset.add(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("centerOffset", "Z"), config.classic.centerZ)
                 .setDefaultValue(0.0)
-                .setMin(ModConfig.MIN_OFFSET)
-                .setMax(ModConfig.MAX_OFFSET)
+                .setMin(ModConfig.MIN_OFFSET_D)
+                .setMax(ModConfig.MAX_OFFSET_D)
                 .setSaveConsumer(d -> config.classic.centerZ = d)
                 .build());
         classic.addEntry(classicCenterOffset.build());

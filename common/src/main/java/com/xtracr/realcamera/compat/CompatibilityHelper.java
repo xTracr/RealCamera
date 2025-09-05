@@ -22,19 +22,19 @@ public class CompatibilityHelper {
             DisableHelper.MAIN_FEATURE.registerOr(player -> {
                 try {
                     return (boolean) FC_Freecam_isEnabled.invoke(null);
-                } catch (Exception exception) {
+                } catch (Exception e) {
                     return false;
                 }
             });
-        } catch (Exception exception) {
-            RealCamera.LOGGER.warn("Compatibility with Freecam is outdated: [{}] {}", exception.getClass().getName(), exception.getMessage());
+        } catch (Exception e) {
+            RealCamera.LOGGER.warn("Compatibility with Freecam is outdated: [{}] {}", e.getClass().getName(), e.getMessage());
         }
         if (isModLoaded("notenoughanimations")) try {
             NEA_NEAnimationsLoader = Class.forName("dev.tr7zw.notenoughanimations.NEAnimationsLoader");
             Class<?> NEA_PlayerTransformer = Class.forName("dev.tr7zw.notenoughanimations.logic.PlayerTransformer");
             NEA_playerTransformer_setDeltaTick = NEA_PlayerTransformer.getDeclaredMethod("setDeltaTick", float.class);
-        } catch (Exception exception) {
-            RealCamera.LOGGER.warn("Compatibility with Not Enough Animations is outdated: [{}] {}", exception.getClass().getName(), exception.getMessage());
+        } catch (Exception e) {
+            RealCamera.LOGGER.warn("Compatibility with Not Enough Animations is outdated: [{}] {}", e.getClass().getName(), e.getMessage());
         }
     }
 

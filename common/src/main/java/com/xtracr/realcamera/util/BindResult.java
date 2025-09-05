@@ -69,14 +69,14 @@ public class BindResult implements PoseHandler {
         upward = vec.normalize();
     }
 
-    public BindResult init() {
+    public BindResult computeCamera() {
         if (!available()) return this;
         final int orientation = mirrored ? -1 : 1;
         upward = forward.cross(upward.cross(forward)).normalize();
         Vec3 left = upward.cross(forward).scale(orientation);
         rotation.set(left.toVector3f(), upward.toVector3f(), forward.toVector3f());
         BindTarget.OffsetConfig offsets = target.offsets();
-        Vector3f offset = new Vector3f((float) offsets.getZ(), (float) offsets.getY(), (float) offsets.getX()).mul((float) offsets.getScale()).mul(rotation);
+        Vector3f offset = new Vector3f(offsets.getZ(), offsets.getY(), offsets.getX()).mul(offsets.getScale()).mul(rotation);
         position = position.add(offset.x(), offset.y(), offset.z());
         rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.getYaw()), rotation.m10, rotation.m11, rotation.m12);
         rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.getPitch()), rotation.m00, rotation.m01, rotation.m02);
