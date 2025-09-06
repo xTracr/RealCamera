@@ -531,7 +531,7 @@ public class ModelViewScreen extends Screen {
             BindTarget target = BindTarget.read(byteBuf);
             if (target.isEmpty()) throw new IllegalArgumentException("Invalid config format");
             loadBindTarget(target);
-            button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("importSucceeded").withStyle(ChatFormatting.GREEN)));
+            button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("importSucceeded", LocUtil.literal("'" + target.name() + "'").withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GREEN)));
         } catch (Exception e) {
             String message = e.getClass().getSimpleName();
             if (e instanceof IllegalArgumentException) message += ": " + e.getMessage();

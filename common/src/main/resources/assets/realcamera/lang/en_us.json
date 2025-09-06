@@ -98,7 +98,7 @@
   "screen.widget.xtracr_realcamera.modelView_copy": "Copy",
   "screen.widget.xtracr_realcamera.modelView_paste": "Paste",
   "screen.tooltip.xtracr_realcamera.modelView_import": "Import the config from the clipboard",
-  "screen.tooltip.xtracr_realcamera.modelView_importSucceeded": "Import succeeded!",
+  "screen.tooltip.xtracr_realcamera.modelView_importSucceeded": "Import %s succeeded!",
   "screen.tooltip.xtracr_realcamera.modelView_importFailed": "Import failed: \n%s",
   "screen.tooltip.xtracr_realcamera.modelView_export": "Export the current config to the clipboard",
   "screen.tooltip.xtracr_realcamera.modelView_exportSucceeded": "Export succeeded!",

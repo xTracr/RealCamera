@@ -99,7 +99,7 @@
   "screen.widget.xtracr_realcamera.modelView_paste": "粘贴",
   "screen.tooltip.xtracr_realcamera.modelView_import": "从剪贴板导入配置",
   "screen.tooltip.xtracr_realcamera.modelView_importFailed": "导入失败：\n%s",
-  "screen.tooltip.xtracr_realcamera.modelView_importSucceeded": "导入成功！",
+  "screen.tooltip.xtracr_realcamera.modelView_importSucceeded": "导入%s成功！",
   "screen.tooltip.xtracr_realcamera.modelView_export": "导出当前配置到剪贴板",
   "screen.tooltip.xtracr_realcamera.modelView_exportSucceeded": "导出成功！",
   "screen.tooltip.xtracr_realcamera.modelView_exportFailed": "导出失败：\n%s",

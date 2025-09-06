@@ -1,12 +1,10 @@
 package com.xtracr.realcamera.util;
 
 import com.mojang.blaze3d.vertex.*;
-import com.xtracr.realcamera.mixin.accessor.BufferSourceAccessor;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
-import net.minecraft.Util;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -14,9 +12,6 @@ import java.util.SortedMap;
 
 public interface MultiVertexCatcher extends MultiBufferSource {
     static MultiVertexCatcher defaultImpl() {
-        if (MeshCatcher.meshCatcher == null) {
-            MeshCatcher.meshCatcher = new MeshCatcher(Minecraft.getInstance().renderBuffers().bufferSource());
-        }
         return MeshCatcher.meshCatcher;
     }
 
@@ -24,15 +19,11 @@ public interface MultiVertexCatcher extends MultiBufferSource {
 
     class MeshCatcher extends MultiBufferSource.BufferSource implements MultiVertexCatcher {
         private static final boolean IS_LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
-        private static MeshCatcher meshCatcher;
+        private static final MeshCatcher meshCatcher = new MeshCatcher();
         protected final SortedMap<VertexData[], RenderType> caughtData = new Object2ObjectLinkedOpenHashMap<>();
 
-        protected MeshCatcher(BufferSource bufferSource) {
-            super(new ByteBufferBuilder(786432), Util.make(new Object2ObjectLinkedOpenHashMap<>(), map -> {
-                for (RenderType renderType : ((BufferSourceAccessor) bufferSource).getFixedBuffers().sequencedKeySet()) {
-                    map.put(renderType, new ByteBufferBuilder(renderType.bufferSize()));
-                }
-            }));
+        protected MeshCatcher() {
+            super(new ByteBufferBuilder(1536), new Object2ObjectLinkedOpenHashMap<>());
         }
 
         protected void putVertexData(RenderType renderType, MeshData meshData) {
@@ -89,6 +80,21 @@ public interface MultiVertexCatcher extends MultiBufferSource {
             endBatch();
             caughtData.forEach((vertices, renderType) -> recorder.records().add(VertexRecorder.buildVertices(renderType, vertices)));
             caughtData.clear();
+        }
+
+        @Override
+        public @NotNull VertexConsumer getBuffer(RenderType renderType) {
+            BufferBuilder bufferBuilder = startedBuilders.get(renderType);
+            if (bufferBuilder != null && !renderType.canConsolidateConsecutiveGeometry()) {
+                endBatch(renderType, bufferBuilder);
+                bufferBuilder = null;
+            }
+            if (bufferBuilder == null) {
+                ByteBufferBuilder byteBufferBuilder = fixedBuffers.computeIfAbsent(renderType, type -> new ByteBufferBuilder(type.bufferSize()));
+                bufferBuilder = new BufferBuilder(byteBufferBuilder, renderType.mode(), renderType.format());
+                startedBuilders.put(renderType, bufferBuilder);
+            }
+            return bufferBuilder;
         }
 
         @Override
