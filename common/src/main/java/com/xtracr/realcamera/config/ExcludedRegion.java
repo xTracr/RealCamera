@@ -242,6 +242,18 @@ public class ExcludedRegion {
         return neighborhoodHash;
     }
     
+    public int getVertexCount() {
+        return vertexCount;
+    }
+    
+    public float getUVArea() {
+        return uvArea;
+    }
+    
+    public float getAspectRatio() {
+        return aspectRatio;
+    }
+    
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

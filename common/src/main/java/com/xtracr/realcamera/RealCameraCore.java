@@ -33,25 +33,9 @@ public class RealCameraCore {
     private static Vec3 cameraPos = Vec3.ZERO, entityPos = Vec3.ZERO;
     private static boolean active = false, rendering = false, readyToSendMessage = true;
     
-    // Runtime cache for primitive features (rotation-invariant)
-    private static class PrimitiveCache {
-        final Vec2 uvCenter;
-        // REMOVED: normal - no longer needed for rotation-invariant matching
-        final float area;
-        final int vertexCount;
-        
-        PrimitiveCache(Vec2 uvCenter, float area, int vertexCount) {
-            this.uvCenter = uvCenter;
-            // REMOVED: normal assignment
-            this.area = area;
-            this.vertexCount = vertexCount;
-        }
-    }
-    
-    // Cache maps: textureId -> primitive index -> cached features
-    private static final Map<String, Map<Integer, PrimitiveCache>> primitiveFeatureCache = new HashMap<>();
-    private static int frameCounter = 0;
-    private static final int CACHE_CLEAR_INTERVAL = 600; // Clear cache every 10 seconds at 60 FPS
+    // Note: Avoid per-frame caches keyed by BuiltRecord; records are rebuilt each frame,
+    // so cross-frame caches won’t hit and only add overhead. Compute light-weight
+    // features inline per primitive instead (UV center, area, vertexCount).
 
     public static void setActiveRecorder(VertexRecorder recorder) {
         activeRecorder = recorder;
@@ -96,9 +80,7 @@ public class RealCameraCore {
         rendering = active && ConfigFile.config().renderModel() && !DisableHelper.RENDER_MODEL.disabled(entity);
         activeRecorder.records().clear();
         
-        // Clear cache when reinitializing
-        primitiveFeatureCache.clear();
-        frameCounter = 0;
+        // No explicit clear needed for WeakHashMap; cached entries drop with records
     }
 
     public static void readyToSendMessage() {
@@ -140,13 +122,6 @@ public class RealCameraCore {
     }
 
     public static void renderCameraEntity(Minecraft client, float deltaTick, MultiBufferSource bufferSource, Matrix4f cameraPose) {
-        // Periodically clear cache to prevent memory issues
-        frameCounter++;
-        if (frameCounter >= CACHE_CLEAR_INTERVAL) {
-            primitiveFeatureCache.clear();
-            frameCounter = 0;
-        }
-        
         Vec3 eulerAngle = bindingContext.getEulerAngle();
         Matrix4f invertedCameraPose = new Matrix4f()
                 .rotateZ((float) Math.toRadians(eulerAngle.z()))
@@ -156,26 +131,46 @@ public class RealCameraCore {
                 .invert()
                 .translate(Vec3.ZERO.subtract(bindingContext.getPosition()).toVector3f());
         PoseStack poseStack = new PoseStack();
+        // Precompute inverse of camera pose once per frame
+        Matrix4f invCameraPose = cameraPose.invert(new Matrix4f());
         if (!bindingContext.skipRendering || ConfigFile.config().rerenderModel()) {
-            poseStack.mulPose(new Matrix4f(invertedCameraPose).mulLocal(cameraPose.invert(new Matrix4f())));
+            poseStack.mulPose(new Matrix4f(invertedCameraPose).mulLocal(invCameraPose));
             activeRecorder.updateModel(client, client.getCameraEntity(), deltaTick, poseStack);
         }
-        Matrix4f positionMatrix = new Matrix4f(invertedCameraPose).mul(poseStack.last().pose().invert(new Matrix4f()));
+        // If poseStack hasn't been modified above, its last pose is identity; avoid a needless invert
+        Matrix4f lastPose = poseStack.last().pose();
+        Matrix4f positionMatrix = (lastPose.m00() == 1f && lastPose.m11() == 1f && lastPose.m22() == 1f && lastPose.m33() == 1f
+                && lastPose.m01() == 0f && lastPose.m02() == 0f && lastPose.m03() == 0f && lastPose.m10() == 0f
+                && lastPose.m12() == 0f && lastPose.m13() == 0f && lastPose.m20() == 0f && lastPose.m21() == 0f
+                && lastPose.m23() == 0f && lastPose.m30() == 0f && lastPose.m31() == 0f && lastPose.m32() == 0f)
+                ? new Matrix4f(invertedCameraPose)
+                : new Matrix4f(invertedCameraPose).mul(lastPose.invert(new Matrix4f()));
         final double m02 = positionMatrix.m02(), m12 = positionMatrix.m12(), m22 = positionMatrix.m22(), m32 = positionMatrix.m32();
-        positionMatrix.mulLocal(cameraPose.invert(new Matrix4f()));
+        positionMatrix.mulLocal(invCameraPose);
         Matrix3f normalMatrix = new Matrix3f(positionMatrix);
-        activeRecorder.records().forEach(record -> {
-            if (currentTarget().getDisabledTextureIds().stream().anyMatch(record.textureId()::contains)) return;
+        List<VertexRecorder.BuiltRecord> recs = activeRecorder.records();
+        for (int r = 0, rLen = recs.size(); r < rLen; r++) {
+            VertexRecorder.BuiltRecord record = recs.get(r);
+            // Skip entire record if its texture is disabled for the current target
+            boolean skipRecord = false;
+            for (String disabled : currentTarget().getDisabledTextureIds()) {
+                if (record.textureId().contains(disabled)) {
+                    skipRecord = true;
+                    break;
+                }
+            }
+            if (skipRecord) continue;
             VertexConsumer buffer = bufferSource.getBuffer(record.renderType());
             if (!record.renderType().canConsolidateConsecutiveGeometry()) {
                 VertexData.renderVertices(record.vertices(), buffer);
-                return;
+                continue;
             }
             final double depth = currentTarget().getDisablingDepth();
             List<ExcludedRegion> excludedRegions = currentTarget().getExcludedRegions();
             
-            for (int i = 0; i < record.primitives().length; i++) {
-                VertexData[] primitive = record.primitives()[i];
+            VertexData[][] primitives = record.primitives();
+            for (int i = 0; i < primitives.length; i++) {
+                VertexData[] primitive = primitives[i];
                 
                 // Check depth culling
                 boolean passedDepthTest = false;
@@ -188,61 +183,36 @@ public class RealCameraCore {
                 if (!passedDepthTest) continue;
                 
                 // Check if primitive should be excluded based on UV signatures
-                if (shouldExcludePrimitive(primitive, record.textureId(), excludedRegions, i, record.primitives())) {
+                if (shouldExcludePrimitive(record, primitive, excludedRegions)) {
                     continue;
                 }
                 
                 VertexData.renderVertices(primitive, buffer, positionMatrix, normalMatrix);
             }
-        });
+        }
     }
-    
-    private static boolean shouldExcludePrimitive(VertexData[] primitive, String textureId, 
-                                                  List<ExcludedRegion> excludedRegions,
-                                                  int primitiveIndex, VertexData[][] allPrimitives) {
+
+    private static boolean shouldExcludePrimitive(VertexRecorder.BuiltRecord record,
+                                                  VertexData[] primitive,
+                                                  List<ExcludedRegion> excludedRegions) {
         if (excludedRegions == null || excludedRegions.isEmpty()) {
             return false;
         }
-        
-        // Get or create cache for this texture
-        Map<Integer, PrimitiveCache> textureCache = primitiveFeatureCache.computeIfAbsent(
-            textureId, k -> new HashMap<>()
-        );
-        
-        // Get cached features or compute them
-        PrimitiveCache cache = textureCache.get(primitiveIndex);
-        if (cache == null) {
-            // Compute rotation-invariant features once and cache them
-            Vec2 uvCenter = PrimitiveUtils.getUVCenter(primitive);
-            // REMOVED: Normal calculation - no longer needed for rotation-invariant matching
-            float area = PrimitiveUtils.calculateUVArea(primitive);
-            int vertexCount = primitive.length;
-            
-            cache = new PrimitiveCache(uvCenter, area, vertexCount);
-            textureCache.put(primitiveIndex, cache);
-        }
-        
-        // Debug: Log first time we check exclusions
-        if (primitiveIndex == 0 && frameCounter % 600 == 0) {
-            System.out.println("[RealCamera] Checking exclusions: " + excludedRegions.size() + 
-                             " regions for texture: " + textureId);
-        }
-        
-        // Enhanced matching with all features for accuracy
+        // Compute lightweight, rotation-invariant features once per primitive
+        Vec2 uvCenter = PrimitiveUtils.getUVCenter(primitive);
+        float area = PrimitiveUtils.calculateUVArea(primitive);
+        int vertexCount = primitive.length;
+
+        // Perform matching using the computed features
         for (ExcludedRegion excluded : excludedRegions) {
             // Quick texture ID check
-            if (!textureId.contains(excluded.getTextureId())) {
+            if (!record.textureId().contains(excluded.getTextureId())) {
                 continue;
             }
             
             // Use cached features for matching (passing Vec3.ZERO for normal - ignored in rotation-invariant matching)
             // Hash is set to 0 since we don't calculate neighborhoods at runtime for performance
-            if (excluded.matchesUV(cache.uvCenter, Vec3.ZERO, 0, cache.vertexCount, cache.area)) {
-                // Debug: Log when exclusion matches
-                if (frameCounter % 600 == 0) {
-                    System.out.println("[RealCamera] Excluded primitive at UV(" + 
-                                     cache.uvCenter.x + ", " + cache.uvCenter.y + ")");
-                }
+            if (excluded.matchesUV(uvCenter, Vec3.ZERO, 0, vertexCount, area)) {
                 return true; // This primitive should be excluded
             }
         }

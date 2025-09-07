@@ -53,6 +53,8 @@ public class ModelViewScreen extends Screen {
     private long lastDeletionTime = 0;
     private static final long DELETION_DELAY = 20; // 20ms interval = 50 actions per second for faster response
     private int brushRadius = 10; // Default brush radius in pixels
+    private boolean batchUpdating = false; // Flag to batch UI updates during brush painting
+    private int batchAddedCount = 0; // Count of faces added in current batch
     private final CycleButton<Integer> selectingButton = createCyclingButton(Map.of(
                     0, LocUtil.MODEL_VIEW_WIDGET("forwardMode").withStyle(s -> s.withColor(ChatFormatting.GREEN)),
                     1, LocUtil.MODEL_VIEW_WIDGET("upwardMode").withStyle(s -> s.withColor(ChatFormatting.RED)),
@@ -556,13 +558,18 @@ public class ModelViewScreen extends Screen {
             return; // No faces to exclude in the brush area
         }
         
+        // Set batch updating flag to prevent UI refreshes
+        if (!batchUpdating) {
+            batchUpdating = true;
+            batchAddedCount = 0;
+        }
+        
         // Brush mode behavior: only exclude, never restore
         // This allows users to quickly paint exclusions without accidentally removing them
-        int addedCount = 0;
         for (ExcludedRegion region : regionsToExclude) {
             if (!isAlreadyExcluded(region)) {
                 selectedExclusions.add(region);
-                addedCount++;
+                batchAddedCount++;
             }
         }
         
@@ -572,10 +579,32 @@ public class ModelViewScreen extends Screen {
     
     private boolean isAlreadyExcluded(ExcludedRegion region) {
         return selectedExclusions.stream().anyMatch(existing -> 
-            existing.getTextureId().equals(region.getTextureId()) &&
-            Math.abs(existing.getCenter().x - region.getCenter().x) < 0.001f &&
-            Math.abs(existing.getCenter().y - region.getCenter().y) < 0.001f
+            matchExcludedRegions(existing, region)
         );
+    }
+    
+    private boolean matchExcludedRegions(ExcludedRegion r1, ExcludedRegion r2) {
+        // First check basic properties
+        if (!r1.getTextureId().equals(r2.getTextureId())) return false;
+        if (Math.abs(r1.getCenter().x - r2.getCenter().x) >= 0.001f) return false;
+        if (Math.abs(r1.getCenter().y - r2.getCenter().y) >= 0.001f) return false;
+        
+        // Check vertex count - must match exactly
+        if (r1.getVertexCount() > 0 && r2.getVertexCount() > 0) {
+            if (r1.getVertexCount() != r2.getVertexCount()) return false;
+        }
+        
+        // Check UV area with tight tolerance
+        if (r1.getUVArea() > 0 && r2.getUVArea() > 0) {
+            if (Math.abs(r1.getUVArea() - r2.getUVArea()) > 0.01f) return false;
+        }
+        
+        // Check neighborhood hash if available
+        if (r1.getNeighborhoodHash() > 0 && r2.getNeighborhoodHash() > 0) {
+            if (Math.abs(r1.getNeighborhoodHash() - r2.getNeighborhoodHash()) > 20) return false;
+        }
+        
+        return true;
     }
     
     private void renderBrushIndicator(GuiGraphics graphics, int mouseX, int mouseY) {
@@ -583,17 +612,44 @@ public class ModelViewScreen extends Screen {
         graphics.drawString(font, LocUtil.MODEL_VIEW_WIDGET("brushModeTitle").getString(), x + 10, y + 10, 0x00FF00);
         graphics.drawString(font, LocUtil.MODEL_VIEW_WIDGET("brushSize", brushRadius).getString(), x + 10, y + 20, 0x00FF00);
         
-        // Show available layers count if analyser is available
-        if (analyser != null) {
-            int layerCount = analyser.getAvailableLayerCount();
-            if (layerCount > 0) {
-                String layerText = LocUtil.MODEL_VIEW_WIDGET("layers", layerCount).getString();
-                graphics.drawString(font, layerText, mouseX + brushRadius + 5, mouseY - 15, 0xFFFF00);
-            }
+        // Show current batch count if actively painting
+        if (batchUpdating && batchAddedCount > 0) {
+            String batchText = "Added: " + batchAddedCount + " faces";
+            graphics.drawString(font, batchText, x + 10, y + 30, 0xFFFF00);
         }
         
         // Draw brush circle outline
         if (mouseInViewArea(mouseX, mouseY)) {
+            // Calculate potential exclusions for visual feedback
+            if (analyser != null && !batchUpdating) {
+                int viewX = x + (xSize - ySize) / 2;
+                int viewY = y;
+                int absoluteX = viewX + (mouseX - (x + (xSize - ySize) / 2));
+                int absoluteY = viewY + (mouseY - y);
+                
+                List<ExcludedRegion> potentialExclusions = analyser.collectExclusionsInBrushArea(
+                    absoluteX, absoluteY, brushRadius);
+                
+                int newExclusions = 0;
+                for (ExcludedRegion region : potentialExclusions) {
+                    if (!isAlreadyExcluded(region)) {
+                        newExclusions++;
+                    }
+                }
+                
+                // Show number of faces that will be excluded
+                if (newExclusions > 0) {
+                    String text = "+" + newExclusions + " faces";
+                    graphics.drawString(font, text, mouseX + brushRadius + 5, mouseY - 10, 0x00FF00);
+                } else {
+                    // Show if all faces in area are already excluded
+                    if (!potentialExclusions.isEmpty()) {
+                        String text = "Already excluded";
+                        graphics.drawString(font, text, mouseX + brushRadius + 5, mouseY - 10, 0xFF8800);
+                    }
+                }
+            }
+            
             // Draw the actual brush area as a circle
             drawCircleOutline(graphics, mouseX, mouseY, brushRadius, 0x80FFFFFF);
             
@@ -654,6 +710,20 @@ public class ModelViewScreen extends Screen {
             }
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+    
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        // When mouse is released after brush painting, update the UI to show the new count
+        if (batchUpdating && button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+            batchUpdating = false;
+            if (batchAddedCount > 0) {
+                // Only refresh UI if we actually added some exclusions
+                initWidgets(category, page);
+            }
+            batchAddedCount = 0;
+        }
+        return super.mouseReleased(mouseX, mouseY, button);
     }
     
     @Override

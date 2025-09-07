@@ -26,10 +26,20 @@ public class VertexRecorder {
 
     protected static Vec3 getPosition(VertexData[] primitive, float u, float v) {
         if (primitive.length < 3) return primitive[0].pos();
-        float u0 = primitive[0].u(), v0 = primitive[0].v(), u1 = primitive[1].u(), v1 = primitive[1].v(), u2 = primitive[2].u(), v2 = primitive[2].v();
-        float alpha = ((u - u1) * (v1 - v2) - (v - v1) * (u1 - u2)) / ((u0 - u1) * (v1 - v2) - (v0 - v1) * (u1 - u2)),
-                beta = ((u - u2) * (v2 - v0) - (v - v2) * (u2 - u0)) / ((u1 - u2) * (v2 - v0) - (v1 - v2) * (u2 - u0));
-        return primitive[0].pos().scale(alpha).add(primitive[1].pos().scale(beta)).add(primitive[2].pos().scale(1 - alpha - beta));
+        float u0 = primitive[0].u(), v0 = primitive[0].v();
+        float u1 = primitive[1].u(), v1 = primitive[1].v();
+        float u2 = primitive[2].u(), v2 = primitive[2].v();
+        float denom = (u0 - u1) * (v1 - v2) - (v0 - v1) * (u1 - u2);
+        if (denom == 0.0f) denom = 1.0e-12f;
+        float alpha = ((u - u1) * (v1 - v2) - (v - v1) * (u1 - u2)) / denom;
+        float denom2 = (u1 - u2) * (v2 - v0) - (v1 - v2) * (u2 - u0);
+        if (denom2 == 0.0f) denom2 = 1.0e-12f;
+        float beta = ((u - u2) * (v2 - v0) - (v - v2) * (u2 - u0)) / denom2;
+        float gamma = 1 - alpha - beta;
+        double x = primitive[0].x() * alpha + primitive[1].x() * beta + primitive[2].x() * gamma;
+        double y = primitive[0].y() * alpha + primitive[1].y() * beta + primitive[2].y() * gamma;
+        double z = primitive[0].z() * alpha + primitive[1].z() * beta + primitive[2].z() * gamma;
+        return new Vec3(x, y, z);
     }
 
     public static BuiltRecord buildVertices(RenderType renderType, VertexData[] vertices) {
@@ -42,8 +52,12 @@ public class VertexRecorder {
         final boolean startWithFirst = drawMode == VertexFormat.Mode.TRIANGLE_FAN;
         VertexData[][] primitives = new VertexData[primitiveCount][primitiveLength];
         for (int i = 0, k = 0; i < primitiveCount; i++, k += primitiveStride) {
-            primitives[i][0] = vertices[startWithFirst ? 0 : k];
-            System.arraycopy(vertices, k + 1, primitives[i], 1, primitiveLength - 1);
+            VertexData[] prim = primitives[i];
+            prim[0] = vertices[startWithFirst ? 0 : k];
+            // Inline copy to avoid System.arraycopy call overhead in hot path
+            for (int j = 1; j < primitiveLength; j++) {
+                prim[j] = vertices[k + j];
+            }
         }
         return new BuiltRecord(renderType, textureId, vertices, primitives);
     }
@@ -60,66 +74,64 @@ public class VertexRecorder {
     }
 
     public BindingContext genContext() {
-        // Collect all available contexts with their targets
-        List<BindingContext> availableContexts = new ArrayList<>();
-        
+        // Single-pass best selection to avoid building/sorting lists per frame
+        BindingContext best = BindingContext.EMPTY;
+        boolean bestHasExcluded = false;
+        int bestPriority = Integer.MIN_VALUE;
+
         for (BindingTarget target : ConfigFile.config().getTargetList()) {
+            final boolean targetHasExcluded = target.getExcludedRegions() != null && !target.getExcludedRegions().isEmpty();
+            final int targetPriority = target.getPriority();
+
             for (BuiltRecord record : records) {
                 BindingContext context = new BindingContext(target, false);
                 record.setupContext(context);
-                if (context.available()) {
-                    availableContexts.add(context);
+                if (!context.available()) continue;
+
+                // Better if it has excluded regions when current best doesn't, or higher priority when tie
+                if ((targetHasExcluded && !bestHasExcluded) ||
+                    (targetHasExcluded == bestHasExcluded && targetPriority > bestPriority)) {
+                    best = context;
+                    bestHasExcluded = targetHasExcluded;
+                    bestPriority = targetPriority;
                 }
             }
         }
-        
-        if (availableContexts.isEmpty()) {
-            return BindingContext.EMPTY;
-        }
-        
-        // Sort contexts: 
-        // 1. Prefer targets with excludedRegions (non-empty)
-        // 2. Then by priority (higher first)
-        availableContexts.sort((c1, c2) -> {
-            boolean has1 = c1.target != null && c1.target.getExcludedRegions() != null && !c1.target.getExcludedRegions().isEmpty();
-            boolean has2 = c2.target != null && c2.target.getExcludedRegions() != null && !c2.target.getExcludedRegions().isEmpty();
-            
-            // If one has excludedRegions and the other doesn't, prefer the one with excludedRegions
-            if (has1 && !has2) return -1;
-            if (!has1 && has2) return 1;
-            
-            // Otherwise, sort by priority
-            int p1 = c1.target != null ? c1.target.getPriority() : 0;
-            int p2 = c2.target != null ? c2.target.getPriority() : 0;
-            return Integer.compare(p2, p1); // Higher priority first
-        });
-        
-        // Log the selected target for debugging
-        BindingContext selectedContext = availableContexts.get(0);
-        if (selectedContext.target != null) {
-            boolean hasExclusions = selectedContext.target.getExcludedRegions() != null && 
-                                   !selectedContext.target.getExcludedRegions().isEmpty();
-            System.out.println("[RealCamera] Selected target: " + selectedContext.target.name + 
-                             " (priority=" + selectedContext.target.getPriority() + 
-                             ", excludedRegions=" + (hasExclusions ? selectedContext.target.getExcludedRegions().size() : 0) + ")");
-        }
-        
-        // Return the best matching context
-        return selectedContext;
+
+        return best;
     }
 
     public record BuiltRecord(RenderType renderType, String textureId, VertexData[] vertices, VertexData[][] primitives) {
         public Optional<VertexData[]> findPrimitive(float u, float v) {
-            final int resolution = 1000000;
             for (VertexData[] primitive : primitives) {
-                int[] us = new int[primitive.length], vs = new int[primitive.length];
-                for (int i = 0; i < primitive.length; i++) {
-                    us[i] = (int) (resolution * primitive[i].u());
-                    vs[i] = (int) (resolution * primitive[i].v());
+                if (pointInPolygon(u, v, primitive)) {
+                    return Optional.of(primitive);
                 }
-                if (new Polygon(us, vs, primitive.length).contains(resolution * u, resolution * v)) return Optional.of(primitive);
             }
             return Optional.empty();
+        }
+
+        // Ray casting point-in-polygon test in UV space (allocation-free)
+        private boolean pointInPolygon(float u, float v, VertexData[] primitive) {
+            boolean inside = false;
+            int n = primitive.length;
+            if (n == 0) return false;
+            int j = n - 1;
+            for (int i = 0; i < n; j = i++) {
+                float ui = primitive[i].u();
+                float vi = primitive[i].v();
+                float uj = primitive[j].u();
+                float vj = primitive[j].v();
+                boolean intersect = ((vi > v) != (vj > v));
+                if (intersect) {
+                    float denom = (vj - vi);
+                    if (denom == 0.0f) denom = 1.0e-12f;
+                    float t = (v - vi) / denom;
+                    float x = ui + (uj - ui) * t;
+                    if (u < x) inside = !inside;
+                }
+            }
+            return inside;
         }
 
         public void setupContext(BindingContext context) {

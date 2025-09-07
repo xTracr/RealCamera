@@ -24,10 +24,14 @@ public class MathUtil {
         return linePoint.add(lineNormal.scale(distance));
     }
 
+    private static final ThreadLocal<Vector4f> TL_VEC4 = ThreadLocal.withInitial(() -> new Vector4f());
+
     public static Vec3 projectToVec2(Vec3 vec3, Matrix4f... projectionMatrices) {
-        Vector4f vector4f = new Vector4f((float) vec3.x(), (float) vec3.y(), (float) vec3.z(), 1.0f);
-        for (Matrix4f matrix4f : projectionMatrices) vector4f.mul(matrix4f);
-        if (vector4f.w() == 0.0) return Vec3.ZERO;
-        return new Vec3(vector4f.x(), vector4f.y(), 0).scale(1 / (double) vector4f.w());
+        Vector4f v = TL_VEC4.get();
+        v.set((float) vec3.x(), (float) vec3.y(), (float) vec3.z(), 1.0f);
+        for (Matrix4f matrix4f : projectionMatrices) v.mul(matrix4f);
+        if (v.w() == 0.0f) return Vec3.ZERO;
+        double invW = 1.0 / v.w();
+        return new Vec3(v.x() * invW, v.y() * invW, 0.0);
     }
 }
