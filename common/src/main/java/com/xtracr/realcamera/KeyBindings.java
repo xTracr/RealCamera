@@ -5,6 +5,7 @@ import com.xtracr.realcamera.gui.ModelViewScreen;
 import com.xtracr.realcamera.util.LocUtil;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.HashMap;
@@ -33,13 +34,13 @@ public final class KeyBindings {
         createKeyBinding("adjustRIGHT", client -> ConfigFile.config().adjustOffsetZ(-1));
     }
 
-    private static KeyMapping createKeyBinding(String id, Consumer<Minecraft> whenPressed) {
+    private static KeyMapping createKeyBinding(String id, @Nullable Consumer<Minecraft> whenPressed) {
         return createKeyBinding(id, GLFW.GLFW_KEY_UNKNOWN, whenPressed);
     }
 
-    private static KeyMapping createKeyBinding(String id, int code, Consumer<Minecraft> whenPressed) {
+    private static KeyMapping createKeyBinding(String id, int code, @Nullable Consumer<Minecraft> whenPressed) {
         KeyMapping keyMapping = new KeyMapping("key." + RealCamera.FULL_ID + "." + id, code, LocUtil.KEY_MOD_NAME);
-        KEY_BINDINGS.put(keyMapping, whenPressed);
+        if (whenPressed != null) KEY_BINDINGS.put(keyMapping, whenPressed);
         return keyMapping;
     }
 

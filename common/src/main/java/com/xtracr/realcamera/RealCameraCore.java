@@ -16,7 +16,7 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 public class RealCameraCore {
-    private static final VertexRecorder defaultRecorder = new VertexRecorder();
+    private static final VertexRecorder defaultRecorder = new BasicVertexRecorder();
     private static VertexRecorder activeRecorder = defaultRecorder;
     private static BindResult bindResult = BindResult.EMPTY;
     private static Vec3 cameraPos = Vec3.ZERO, eulerAngle = Vec3.ZERO;
@@ -130,27 +130,28 @@ public class RealCameraCore {
         final double depth = currentTarget().disablingDepth();
         positionMatrix.mulLocal(cameraPose.invert(new Matrix4f()));
         Matrix3f normalMatrix = new Matrix3f(positionMatrix);
-        activeRecorder.records().forEach(record -> {
+        recordFor:
+        for (VertexRecorder.BuiltRecord record : activeRecorder.records()) {
             DisableConfig[] disableConfigs = currentTarget().filteredDisableConfigs(config -> record.textureId().contains(config.textureId()));
             for (DisableConfig config : disableConfigs) {
-                if (config.disableAll()) return;
+                if (config.disableAll()) continue recordFor;
             }
             VertexConsumer buffer = bufferSource.getBuffer(record.renderType());
             if (!record.renderType().canConsolidateConsecutiveGeometry()) {
                 VertexData.renderVertices(record.vertices(), buffer, positionMatrix, normalMatrix);
-                return;
+                continue;
             }
             for (VertexData[] primitive : record.primitives()) {
-                outer:
+                primitiveFor:
                 for (VertexData vertex : primitive) {
                     if (Math.fma(m02, vertex.x(), Math.fma(m12, vertex.y(), Math.fma(m22, vertex.z(), m32))) > -depth) continue;
                     for (DisableConfig config : disableConfigs) {
-                        if (config.test(vertex)) continue outer;
+                        if (config.test(vertex)) continue primitiveFor;
                     }
                     VertexData.renderVertices(primitive, buffer, positionMatrix, normalMatrix);
                     break;
                 }
             }
-        });
+        }
     }
 }

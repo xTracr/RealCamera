@@ -15,13 +15,21 @@ public record VertexData(float x, float y, float z, int argb, float u, float v, 
         for (VertexData vertex : vertices) vertex.render(buffer);
     }
 
-    public static Vec3 normal(VertexData[] polygon) {
-        return switch (polygon.length) {
+    public static Vec3 position(VertexData[] vertices, float u, float v) {
+        if (vertices.length < 3) return vertices[0].pos();
+        float u0 = vertices[0].u(), v0 = vertices[0].v(), u1 = vertices[1].u(), v1 = vertices[1].v(), u2 = vertices[2].u(), v2 = vertices[2].v();
+        float alpha = ((u - u1) * (v1 - v2) - (v - v1) * (u1 - u2)) / ((u0 - u1) * (v1 - v2) - (v0 - v1) * (u1 - u2)),
+                beta = ((u - u2) * (v2 - v0) - (v - v2) * (u2 - u0)) / ((u1 - u2) * (v2 - v0) - (v1 - v2) * (u2 - u0));
+        return vertices[0].pos().scale(alpha).add(vertices[1].pos().scale(beta)).add(vertices[2].pos().scale(1 - alpha - beta));
+    }
+
+    public static Vec3 normal(VertexData[] vertices) {
+        return switch (vertices.length) {
             case 0 -> Vec3.ZERO;
-            case 1 -> polygon[0].normal();
-            case 2 -> polygon[1].pos().subtract(polygon[0].pos()).normalize();
+            case 1 -> vertices[0].normal();
+            case 2 -> vertices[1].pos().subtract(vertices[0].pos()).normalize();
             default -> {
-                Vec3 a = polygon[0].pos(), b = polygon[1].pos(), c = polygon[2].pos();
+                Vec3 a = vertices[0].pos(), b = vertices[1].pos(), c = vertices[2].pos();
                 yield b.subtract(a).cross(c.subtract(a)).normalize();
             }
         };
@@ -44,5 +52,4 @@ public record VertexData(float x, float y, float z, int argb, float u, float v, 
     public void render(VertexConsumer buffer) {
         buffer.addVertex(x, y, z, argb, u, v, overlay, light, normalX, normalY, normalZ);
     }
-
 }

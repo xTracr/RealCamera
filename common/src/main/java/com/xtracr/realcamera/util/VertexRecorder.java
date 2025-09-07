@@ -2,38 +2,22 @@ package com.xtracr.realcamera.util;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import com.xtracr.realcamera.config.BindTarget;
-import com.xtracr.realcamera.config.ConfigFile;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix3f;
-import org.joml.Matrix4f;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class VertexRecorder {
-    protected static final Pattern textureIdPattern = Pattern.compile("texture\\[Optional\\[(.*?)]");
-    protected final List<BuiltRecord> records = new ArrayList<>();
-    protected MultiVertexCatcher catcher;
+public interface VertexRecorder {
+    Pattern textureIdPattern = Pattern.compile("texture\\[Optional\\[(.*?)]");
 
-    protected static Vec3 getPosition(VertexData[] primitive, float u, float v) {
-        if (primitive.length < 3) return primitive[0].pos();
-        float u0 = primitive[0].u(), v0 = primitive[0].v(), u1 = primitive[1].u(), v1 = primitive[1].v(), u2 = primitive[2].u(), v2 = primitive[2].v();
-        float alpha = ((u - u1) * (v1 - v2) - (v - v1) * (u1 - u2)) / ((u0 - u1) * (v1 - v2) - (v0 - v1) * (u1 - u2)),
-                beta = ((u - u2) * (v2 - v0) - (v - v2) * (u2 - u0)) / ((u1 - u2) * (v2 - v0) - (v1 - v2) * (u2 - u0));
-        return primitive[0].pos().scale(alpha).add(primitive[1].pos().scale(beta)).add(primitive[2].pos().scale(1 - alpha - beta));
-    }
-
-    public static BuiltRecord buildVertices(RenderType renderType, VertexData[] vertices) {
+    static BuiltRecord buildVertices(RenderType renderType, VertexData[] vertices) {
         String renderTypeName = renderType.toString();
         Matcher matcher = textureIdPattern.matcher(renderTypeName);
         String textureId = matcher.find() ? matcher.group(1) : renderTypeName;
@@ -49,63 +33,72 @@ public class VertexRecorder {
         return new BuiltRecord(renderType, textureId, vertices, primitives);
     }
 
-    public List<BuiltRecord> records() {
-        return records;
-    }
+    List<BuiltRecord> records();
 
-    public void setCatcher(MultiVertexCatcher catcher) {
-        this.catcher = catcher;
-    }
+    void setCatcher(MultiVertexCatcher catcher);
 
-    public void updateModel(Minecraft client, Entity entity, float deltaTick, PoseStack poseStack) {
-        if (catcher == null) setCatcher(MultiVertexCatcher.defaultImpl());
-        EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
-        dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack, catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
-        records.clear();
-        catcher.sendVertices(this);
-    }
+    void updateModel(Minecraft client, Entity entity, float deltaTick, PoseStack poseStack);
 
-    public BindResult computeBindResult() {
-        BindResult result;
-        for (BindTarget target : ConfigFile.config().getBindTargetList()) {
-            for (BuiltRecord record : records) {
-                result = new BindResult(target, false);
-                record.exportToBindResult(result);
-                if (result.available()) return result;
-            }
-        }
-        return BindResult.EMPTY;
-    }
+    BindResult computeBindResult();
 
-    public record BuiltRecord(RenderType renderType, String textureId, VertexData[] vertices, VertexData[][] primitives) {
-        public Optional<VertexData[]> findPrimitive(float u, float v) {
-            final int resolution = 1000000;
+    record BuiltRecord(RenderType renderType, String textureId, VertexData[] vertices, VertexData[][] primitives) {
+        private static final Map<RenderType, Map<UV, float[]>> FIND_PRIMITIVE_CACHE = new HashMap<>();
+
+        public @Nullable VertexData[] findPrimitiveInCache(float u, float v) {
+            Map<UV, float[]> cache = FIND_PRIMITIVE_CACHE.get(renderType);
+            if (cache == null) return null;
+            float[] cachedUVs = cache.get(new UV(u, v));
+            if (cachedUVs == null) return null;
+            int length = cachedUVs.length / 2;
+            primitiveFor:
             for (VertexData[] primitive : primitives) {
-                int length = primitive.length;
-                int[] us = new int[length], vs = new int[length];
+                if (primitive.length != length) continue;
+                for (int i = 0; i < length; i++) {
+                    if (cachedUVs[i * 2] != primitive[i].u() || cachedUVs[i * 2 + 1] != primitive[i].v()) continue primitiveFor;
+                }
+                return primitive;
+            }
+            return null;
+        }
+
+        public @Nullable VertexData[] findPrimitive(float u, float v) {
+            final int resolution = 1000000;
+            int length = 0;
+            int[] us = new int[0], vs = new int[0];
+            for (VertexData[] primitive : primitives) {
+                if (length != primitive.length) {
+                    length = primitive.length;
+                    us = new int[length];
+                    vs = new int[length];
+                }
                 for (int i = 0; i < length; i++) {
                     us[i] = (int) (resolution * primitive[i].u());
                     vs[i] = (int) (resolution * primitive[i].v());
                 }
-                if (new Polygon(us, vs, length).contains(resolution * u, resolution * v)) return Optional.of(primitive);
+                if (!new Polygon(us, vs, length).contains(resolution * u, resolution * v)) continue;
+                float[] uvs = new float[length * 2];
+                for (int i = 0; i < length; i++) {
+                    uvs[i * 2] = primitive[i].u();
+                    uvs[i * 2 + 1] = primitive[i].v();
+                }
+                FIND_PRIMITIVE_CACHE.computeIfAbsent(renderType, k -> new HashMap<>()).put(new UV(u, v), uvs);
+                return primitive;
             }
-            return Optional.empty();
+            return null;
         }
 
-        public void exportToBindResult(BindResult result) {
-            if (!textureId.contains(result.target.textureId())) return;
-            BindTarget.TargetConfig config = result.target.targetConfig();
-            findPrimitive(config.posU(), config.posV()).ifPresent(primitive -> result.setPosition(getPosition(primitive, config.posU(), config.posV())));
-            findPrimitive(config.forwardU(), config.forwardV()).ifPresent(primitive -> result.setForward(VertexData.normal(primitive)));
-            findPrimitive(config.upwardU(), config.upwardV()).ifPresent(primitive -> result.setUpward(VertexData.normal(primitive)));
-        }
+        protected record UV(float u, float v) {
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) return true;
+                if ((!(o instanceof UV(float u1, float v1)))) return false;
+                return Float.compare(u, u1) == 0 && Float.compare(v, v1) == 0;
+            }
 
-        public void exportToBindResult(BindResult result, Matrix4f positionMatrix, Matrix3f normalMatrix) {
-            if (!textureId.contains(result.target.textureId())) return;
-            BindTarget.TargetConfig config = result.target.targetConfig();
-            findPrimitive(config.posU(), config.posV()).ifPresent(primitive -> result.setPosition(new Vec3(getPosition(primitive, config.posU(), config.posV()).toVector3f().mulPosition(positionMatrix))));
-            findPrimitive(config.forwardU(), config.forwardV()).ifPresent(primitive -> result.setForward(new Vec3(VertexData.normal(primitive).toVector3f().mul(normalMatrix))));
-            findPrimitive(config.upwardU(), config.upwardV()).ifPresent(primitive -> result.setUpward(new Vec3(VertexData.normal(primitive).toVector3f().mul(normalMatrix))));
+            @Override
+            public int hashCode() {
+                return Float.hashCode(u) * 31 + Float.hashCode(v);
+            }
         }
     }
 }

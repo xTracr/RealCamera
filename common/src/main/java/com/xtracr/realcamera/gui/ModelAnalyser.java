@@ -6,10 +6,10 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.BindTarget.DisableConfig;
 import com.xtracr.realcamera.config.BindTarget.TargetConfig;
+import com.xtracr.realcamera.util.BasicVertexRecorder;
 import com.xtracr.realcamera.util.BindResult;
 import com.xtracr.realcamera.util.MultiVertexCatcher;
 import com.xtracr.realcamera.util.VertexData;
-import com.xtracr.realcamera.util.VertexRecorder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderType;
@@ -27,7 +27,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
-public class ModelAnalyser extends VertexRecorder {
+public class ModelAnalyser extends BasicVertexRecorder {
     private static final Set<RenderType> UNFOCUSABLE_RENDER_TYPES = Set.of(RenderType.armorEntityGlint(), RenderType.glintTranslucent(), RenderType.glint(), RenderType.entityGlint(), RenderType.entityGlintDirect());
     private static final int planeArgb = 0x6F3333CC, forwardArgb = 0xFF00CC00, upwardArgb = 0xFFCC0000, leftArgb = 0xFF0000CC, focusedArgb = 0x4FFFFFFF;
     private static final int z1 = 210, z2 = z1 + 10;
@@ -106,14 +106,21 @@ public class ModelAnalyser extends VertexRecorder {
     public void computeFocusedOnTexture(int mouseX, int mouseY) {
         if (focusedRecord != null && !focusedPolyhedron.isEmpty()) return;
         Matrix4f positionMatrix = texturePose.last().pose();
+        int length = 0;
+        int[] xs = new int[0], ys = new int[0];
+        VertexData vertex;
+        Vector3f position = new Vector3f();
         for (BuiltRecord record : textureRecords) {
             VertexData[][] primitives = record.primitives();
             for (VertexData[] primitive : primitives) {
-                int length = primitive.length;
-                int[] xs = new int[length], ys = new int[length];
+                if (length != primitive.length) {
+                    length = primitive.length;
+                    xs = new int[length];
+                    ys = new int[length];
+                }
                 for (int j = 0; j < length; j++) {
-                    VertexData vertex = primitive[j];
-                    Vector3f position = new Vector3f(vertex.u(), vertex.v(), 0).mulPosition(positionMatrix);
+                    vertex = primitive[j];
+                    position.set(vertex.u(), vertex.v(), 0).mulPosition(positionMatrix);
                     xs[j] = (int) position.x();
                     ys[j] = (int) position.y();
                 }
@@ -149,14 +156,17 @@ public class ModelAnalyser extends VertexRecorder {
     public void computeFocusedOnModel(int minX, int minY, int maxX, int maxY) {
         if (focusedRecord != null && !focusedPolyhedron.isEmpty()) return;
         List<Object[]> sortByZ = new ArrayList<>();
+        float maxZ;
         for (BuiltRecord record : records) {
             if (UNFOCUSABLE_RENDER_TYPES.contains(record.renderType())) continue;
             VertexData[][] primitives = record.primitives();
+            int x, y;
             outer:
             for (VertexData[] primitive : primitives) {
-                float maxZ = primitive[0].z();
+                maxZ = primitive[0].z();
                 for (VertexData vertex : primitive) {
-                    int x = (int) vertex.x(), y = (int) vertex.y();
+                    x = (int) vertex.x();
+                    y = (int) vertex.y();
                     if (x < minX || y < minY || x > maxX || y > maxY) continue outer;
                     if (vertex.z() > maxZ) maxZ = vertex.z();
                 }
@@ -178,9 +188,7 @@ public class ModelAnalyser extends VertexRecorder {
                 outer:
                 for (VertexData vertex : primitive) {
                     float x = vertex.x(), y = vertex.y();
-                    for (Polygon polygon : polygons) {
-                        if (polygon.contains(x, y)) continue outer;
-                    }
+                    for (Polygon polygon : polygons) if (polygon.contains(x, y)) continue outer;
                     return false;
                 }
                 return true;
@@ -205,10 +213,11 @@ public class ModelAnalyser extends VertexRecorder {
         List<Integer> indexes = new ArrayList<>(List.of(focusedIndex));
         final int primitiveCount = primitives.length;
         boolean added;
+        VertexData[] primitive;
         do {
             added = false;
             for (int i = 0; i < primitiveCount; i++) {
-                VertexData[] primitive = primitives[i];
+                primitive = primitives[i];
                 if (indexes.contains(i) | !haveCommonVertex(primitive, polyhedron)) continue;
                 polyhedron.add(primitive);
                 indexes.add(i);
@@ -239,9 +248,15 @@ public class ModelAnalyser extends VertexRecorder {
     public void drawBindTarget(GuiGraphics graphics) {
         if (currentRecord == null) return;
         TargetConfig config = target.targetConfig();
-        currentRecord.findPrimitive(config.posU(), config.posV()).ifPresent(primitive -> drawPrimitive(graphics, primitive, z1, planeArgb));
-        currentRecord.findPrimitive(config.forwardU(), config.forwardV()).ifPresent(primitive -> drawNormal(graphics, getPosition(primitive, config.forwardU(), config.forwardV()), VertexData.normal(primitive), -modelScale / 2, forwardArgb));
-        currentRecord.findPrimitive(config.upwardU(), config.upwardV()).ifPresent(primitive -> drawNormal(graphics, getPosition(primitive, config.upwardU(), config.upwardV()), VertexData.normal(primitive), -modelScale / 2, upwardArgb));
+        VertexData[] primitive = currentRecord.findPrimitiveInCache(config.posU(), config.posV());
+        if (primitive == null) primitive = currentRecord.findPrimitive(config.posU(), config.posV());
+        if (primitive != null) drawPrimitive(graphics, primitive, z1, planeArgb);
+        primitive = currentRecord.findPrimitiveInCache(config.forwardU(), config.forwardV());
+        if (primitive == null) primitive = currentRecord.findPrimitive(config.forwardU(), config.forwardV());
+        if (primitive != null) drawNormal(graphics, VertexData.position(primitive, config.forwardU(), config.forwardV()), VertexData.normal(primitive), -modelScale / 2, forwardArgb);
+        primitive = currentRecord.findPrimitiveInCache(config.upwardU(), config.upwardV());
+        if (primitive == null) primitive = currentRecord.findPrimitive(config.upwardU(), config.upwardV());
+        if (primitive != null) drawNormal(graphics, VertexData.position(primitive, config.upwardU(), config.upwardV()), VertexData.normal(primitive), -modelScale / 2, upwardArgb);
     }
 
     public void drawFocusedInModelArea(GuiGraphics graphics) {
@@ -255,12 +270,20 @@ public class ModelAnalyser extends VertexRecorder {
 
     public void drawFocusedInTextureArea(GuiGraphics graphics) {
         Matrix4f positionMatrix = texturePose.last().pose();
+        int length = 0;
+        VertexData[] transformed = new VertexData[0], reversed = new VertexData[0];
+        Vector3f position = new Vector3f();
+        VertexData vertex;
         for (VertexData[] primitive : focusedPolyhedron) {
-            VertexData[] transformed = new VertexData[primitive.length], reversed = new VertexData[primitive.length];
-            for (int i = 0; i < primitive.length; i++) {
-                VertexData vertex = primitive[i];
-                Vector3f position = new Vector3f(vertex.u(), vertex.v(), 0).mulPosition(positionMatrix);
-                transformed[i] = reversed[primitive.length - 1 - i] = new VertexData(position.x(), position.y(), 0, vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
+            if (length != primitive.length) {
+                length = primitive.length;
+                transformed = new VertexData[length];
+                reversed = new VertexData[length];
+            }
+            for (int i = 0; i < length; i++) {
+                vertex = primitive[i];
+                position.set(vertex.u(), vertex.v(), 0).mulPosition(positionMatrix);
+                transformed[i] = reversed[length - 1 - i] = new VertexData(position.x(), position.y(), 0, vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
             }
             drawPrimitive(graphics, transformed, 0, focusedArgb);
             drawPrimitive(graphics, reversed, 0, focusedArgb);
@@ -297,8 +320,9 @@ public class ModelAnalyser extends VertexRecorder {
         Matrix4f positionMatrix = poseStack.last().pose();
         textureRecords.forEach(record -> {
             VertexConsumer buffer = graphics.bufferSource().getBuffer(record.renderType());
+            Vector3f position = new Vector3f();
             for (VertexData vertex : record.vertices()) {
-                Vector3f position = new Vector3f(vertex.u(), vertex.v(), 0).mulPosition(positionMatrix);
+                position.set(vertex.u(), vertex.v(), 0).mulPosition(positionMatrix);
                 buffer.addVertex(position.x(), position.y(), 0, vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
             }
         });
@@ -324,7 +348,16 @@ public class ModelAnalyser extends VertexRecorder {
         target.offsets().setScale(target.offsets().getScale() * modelScale);
         for (BuiltRecord record : records) {
             BindResult result = new BindResult(target, true);
-            record.exportToBindResult(result, matrix4f, matrix3f);
+            BindTarget.TargetConfig config = result.target.targetConfig();
+            VertexData[] primitive = record.findPrimitiveInCache(config.posU(), config.posV());
+            if (primitive == null) primitive = record.findPrimitive(config.posU(), config.posV());
+            if (primitive != null) result.setPosition(new Vec3(VertexData.position(primitive, config.posU(), config.posV()).toVector3f().mulPosition(matrix4f)));
+            primitive = record.findPrimitiveInCache(config.forwardU(), config.forwardV());
+            if (primitive == null) primitive = record.findPrimitive(config.forwardU(), config.forwardV());
+            if (primitive != null) result.setForward(new Vec3(VertexData.normal(primitive).toVector3f().mul(matrix3f)));
+            primitive = record.findPrimitiveInCache(config.upwardU(), config.upwardV());
+            if (primitive == null) primitive = record.findPrimitive(config.upwardU(), config.upwardV());
+            if (primitive != null) result.setUpward(new Vec3(VertexData.normal(primitive).toVector3f().mul(matrix3f)));
             if (result.weakAvailable()) currentRecord = record;
             if (!result.available()) continue;
             bindResult = result.computeCamera();

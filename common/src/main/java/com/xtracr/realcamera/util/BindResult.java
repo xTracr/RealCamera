@@ -33,11 +33,19 @@ public class BindResult implements PoseHandler {
     }
 
     public boolean weakAvailable() {
-        return !target.isEmpty() && (!forward.equals(Vec3.ZERO) || !upward.equals(Vec3.ZERO) || position != Vec3.ZERO) && Double.isFinite(position.lengthSqr());
+        return !target.isEmpty() && (forward != Vec3.ZERO || upward != Vec3.ZERO || position != Vec3.ZERO) && Double.isFinite(position.lengthSqr());
     }
 
     public Vec3 getPosition() {
         return position;
+    }
+
+    public Vec3 getForward() {
+        return forward;
+    }
+
+    public Vec3 getUpward() {
+        return upward;
     }
 
     public Matrix3f getRotation() {

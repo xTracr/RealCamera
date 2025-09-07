@@ -39,10 +39,10 @@ public interface MultiVertexCatcher extends MultiBufferSource {
             int lightOffset = format.getOffset(VertexFormatElement.UV2);
             int normalOffset = format.getOffset(VertexFormatElement.NORMAL);
             VertexData[] vertices = new VertexData[vertexCount];
-            for (int i = 0; i < vertexCount; i++) {
-                float x = 0, y = 0, z = 0, u = 0, v = 0, normalX = 0, normalY = 0, normalZ = 0;
-                int argb = 0, overlay = 0, light = 0;
-                int vertexOffset = i * vertexSize, offset = vertexOffset + positionOffset;
+            float x = 0, y = 0, z = 0, u = 0, v = 0, normalX = 0, normalY = 0, normalZ = 0;
+            int argb = 0, overlay = 0, light = 0, vertexOffset = 0, offset;
+            for (int i = 0; i < vertexCount; i++, vertexOffset += vertexSize) {
+                offset = vertexOffset + positionOffset;
                 if (positionOffset != -1) {
                     x = vertexBuffer.getFloat(offset);
                     y = vertexBuffer.getFloat(offset + 4);
