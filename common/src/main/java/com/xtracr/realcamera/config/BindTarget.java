@@ -230,8 +230,8 @@ public record BindTarget(
         }
 
         @Override
-        public boolean test(VertexData vertexData) {
-            final float u = vertexData.u(), v = vertexData.v();
+        public boolean test(VertexData vertex) {
+            final float u = vertex.u(), v = vertex.v();
             for (UVRectangle rect : rectangles) {
                 if (rect.contains(u, v)) return true;
             }

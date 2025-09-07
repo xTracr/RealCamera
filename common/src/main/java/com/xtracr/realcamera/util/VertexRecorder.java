@@ -2,6 +2,7 @@ package com.xtracr.realcamera.util;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import com.xtracr.realcamera.util.VertexData.UV;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.entity.Entity;
@@ -44,6 +45,14 @@ public interface VertexRecorder {
     record BuiltRecord(RenderType renderType, String textureId, VertexData[] vertices, VertexData[][] primitives) {
         private static final Map<RenderType, Map<UV, float[]>> FIND_PRIMITIVE_CACHE = new HashMap<>();
 
+        public VertexData[] vertices() {
+            return vertices;
+        }
+
+        public VertexData[][] primitives() {
+            return primitives;
+        }
+
         public @Nullable VertexData[] findPrimitiveInCache(float u, float v) {
             Map<UV, float[]> cache = FIND_PRIMITIVE_CACHE.get(renderType);
             if (cache == null) return null;
@@ -85,20 +94,6 @@ public interface VertexRecorder {
                 return primitive;
             }
             return null;
-        }
-
-        protected record UV(float u, float v) {
-            @Override
-            public boolean equals(Object o) {
-                if (this == o) return true;
-                if ((!(o instanceof UV(float u1, float v1)))) return false;
-                return Float.compare(u, u1) == 0 && Float.compare(v, v1) == 0;
-            }
-
-            @Override
-            public int hashCode() {
-                return Float.hashCode(u) * 31 + Float.hashCode(v);
-            }
         }
     }
 }

@@ -69,7 +69,7 @@ public interface MultiVertexCatcher extends MultiBufferSource {
                     normalY = ((int) vertexBuffer.get(offset + 1)) / 127.0f;
                     normalZ = ((int) vertexBuffer.get(offset + 2)) / 127.0f;
                 }
-                vertices[i] = new VertexData(x, y, z, argb, u, v, overlay, light, normalX, normalY, normalZ);
+                vertices[i] = VertexData.object(x, y, z, argb, u, v, overlay, light, normalX, normalY, normalZ);
             }
             caughtData.put(vertices, renderType);
             meshData.close();

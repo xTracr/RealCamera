@@ -42,7 +42,7 @@ public class ModelAnalyser extends BasicVertexRecorder {
 
     private static boolean haveCommonVertex(VertexData[] p1, List<VertexData[]> primitives) {
         final float precision = 1.0E-05f;
-        for (VertexData[] p2 : primitives) for (VertexData v1 : p1) for (VertexData v2 : p2) if (v1.pos().distanceToSqr(v2.pos()) < precision) return true;
+        for (VertexData[] p2 : primitives) for (VertexData v1 : p1) for (VertexData v2 : p2) if (v1.position().distanceToSqr(v2.position()) < precision) return true;
         return false;
     }
 
@@ -283,7 +283,7 @@ public class ModelAnalyser extends BasicVertexRecorder {
             for (int i = 0; i < length; i++) {
                 vertex = primitive[i];
                 position.set(vertex.u(), vertex.v(), 0).mulPosition(positionMatrix);
-                transformed[i] = reversed[length - 1 - i] = new VertexData(position.x(), position.y(), 0, vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
+                transformed[i] = reversed[length - 1 - i] = VertexData.object(position.x(), position.y(), 0, vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
             }
             drawPrimitive(graphics, transformed, 0, focusedArgb);
             drawPrimitive(graphics, reversed, 0, focusedArgb);
