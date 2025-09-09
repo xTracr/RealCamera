@@ -5,9 +5,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Mth;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Predicate;
 
 public record BindTarget(
@@ -17,7 +15,6 @@ public record BindTarget(
         OffsetConfig offsets,
         DisableConfig[] disableConfigs) {
     private static final short serialVersion = 703;
-    public static final Set<String> fixedNames = new HashSet<>();
     public static final List<BindTarget> defaultTargets;
     public static final BindTarget EMPTY = blank(null, null);
 
@@ -66,10 +63,6 @@ public record BindTarget(
 
     public boolean isEmpty() {
         return name == null || textureId == null || targetConfig == null || bindConfig == null || offsets == null || disableConfigs == null;
-    }
-
-    public boolean fixed() {
-        return fixedNames.contains(name);
     }
 
     public DisableConfig[] filteredDisableConfigs(Predicate<DisableConfig> filter) {

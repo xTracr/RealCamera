@@ -7,8 +7,18 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 public interface VertexData {
-    static VertexData object(float x, float y, float z, int argb, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) {
-        return new VertexObject(x, y, z, argb, u, v, overlay, light, normalX, normalY, normalZ);
+    static VertexData immutable(float x, float y, float z, int argb, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) {
+        return new ImmutableVertex(x, y, z, argb, u, v, overlay, light, normalX, normalY, normalZ);
+    }
+
+    static MutableVertex mutable() {
+        return new MutableVertex();
+    }
+
+    static VertexData[] asImmutable(VertexData[] vertices) {
+        VertexData[] immutable = new VertexData[vertices.length];
+        for (int i = 0; i < vertices.length; i++) immutable[i] = vertices[i].asImmutable();
+        return immutable;
     }
 
     static void renderVertices(VertexData[] vertices, VertexConsumer buffer, Matrix4f positionMatrix, Matrix3f normalMatrix) {
@@ -73,6 +83,10 @@ public interface VertexData {
         return new Vec3(normalX(), normalY(), normalZ());
     }
 
+    default VertexData asImmutable() {
+        return immutable(x(), y(), z(), argb(), u(), v(), overlay(), light(), normalX(), normalY(), normalZ());
+    }
+
     default void render(VertexConsumer buffer, Matrix4f positionMatrix, Matrix3f normalMatrix) {
         Vector3f pos = new Vector3f(x(), y(), z()).mulPosition(positionMatrix);
         Vector3f normal = new Vector3f(normalX(), normalY(), normalZ()).mul(normalMatrix);
@@ -83,7 +97,72 @@ public interface VertexData {
         buffer.addVertex(x(), y(), z(), argb(), u(), v(), overlay(), light(), normalX(), normalY(), normalZ());
     }
 
-    record VertexObject(float x, float y, float z, int argb, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) implements VertexData { }
+    record ImmutableVertex(float x, float y, float z, int argb, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) implements VertexData { }
+
+    class MutableVertex implements VertexData {
+        public float x, y, z;
+        public int argb;
+        public float u, v;
+        public int overlay, light;
+        public float normalX, normalY, normalZ;
+
+        private MutableVertex() { }
+
+        @Override
+        public float x() {
+            return x;
+        }
+
+        @Override
+        public float y() {
+            return y;
+        }
+
+        @Override
+        public float z() {
+            return z;
+        }
+
+        @Override
+        public int argb() {
+            return argb;
+        }
+
+        @Override
+        public float u() {
+            return u;
+        }
+
+        @Override
+        public float v() {
+            return v;
+        }
+
+        @Override
+        public int overlay() {
+            return overlay;
+        }
+
+        @Override
+        public int light() {
+            return light;
+        }
+
+        @Override
+        public float normalX() {
+            return normalX;
+        }
+
+        @Override
+        public float normalY() {
+            return normalY;
+        }
+
+        @Override
+        public float normalZ() {
+            return normalZ;
+        }
+    }
 
     record UV(float u, float v) {
         @Override

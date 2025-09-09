@@ -1,26 +1,21 @@
 package com.xtracr.realcamera.api;
 
-import com.xtracr.realcamera.config.BindTarget;
-import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.util.BindResult;
 import net.minecraft.client.Minecraft;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Consumer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiFunction;
 
 public class RealCameraAPI {
-    private static final Map<String, Consumer<Object>> poseHandlerConsumers = new HashMap<>();
+    private static final List<BiFunction<Minecraft, Float, BindResult>> FUNCTIONS = new ArrayList<>();
 
-    public static void registerPoseHandlerConsumer(String id, Consumer<Object> consumer) {
-        poseHandlerConsumers.put(id, consumer);
+    public static void registerFunction(BiFunction<Minecraft, Float, BindResult> function) {
+        FUNCTIONS.add(function);
     }
 
     public static BindResult computeBindResult(Minecraft client, float deltaTick) {
-        for (Map.Entry<String, Consumer<Object>> entry : poseHandlerConsumers.entrySet()) {
-            BindTarget target = ConfigFile.config().getOrCreateFixedTarget(entry.getKey());
-            BindResult result = new BindResult(target, client, deltaTick, false);
-            entry.getValue().accept(result);
+        for (BiFunction<Minecraft, Float, BindResult> function : FUNCTIONS) {
+            BindResult result = function.apply(client, deltaTick);
             if (result.available()) return result;
         }
         return BindResult.EMPTY;

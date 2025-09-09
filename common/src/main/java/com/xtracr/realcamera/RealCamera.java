@@ -15,6 +15,6 @@ public interface RealCamera extends PlatformHelper {
     default void initialize() {
         ConfigFile.load();
         CompatibilityHelper.initialize(this);
-        LegacyBindingMode.registerConsumer();
+        LegacyBindingMode.register();
     }
 }

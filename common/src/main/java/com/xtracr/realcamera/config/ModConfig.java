@@ -167,10 +167,6 @@ public class ModConfig {
         return binding.renderStuckObjects;
     }
 
-    public boolean rerenderModel() {
-        return binding.rerenderModel;
-    }
-
     public boolean hideBindingFailureMessage() {
         return binding.hideFailureMessage;
     }
@@ -207,20 +203,6 @@ public class ModConfig {
         return binding.disableRenderItems;
     }
 
-    public List<BindTarget> getFixedTargetList() {
-        return binding.fixedTargetList;
-    }
-
-    public BindTarget getOrCreateFixedTarget(String name) {
-        BindTarget.fixedNames.add(name);
-        return binding.fixedTargetList.stream().filter(target -> target.name().equals(name)).findFirst()
-                .orElseGet(() -> {
-                    BindTarget target = BindTarget.blank(name, "");
-                    Binding.putBindTarget(target, binding.fixedTargetList);
-                    return target;
-                });
-    }
-
     public List<BindTarget> getBindTargetList() {
         binding.clamp();
         return binding.targetList;
@@ -228,8 +210,7 @@ public class ModConfig {
 
     public void putBindTarget(BindTarget target) {
         if (target.isEmpty()) return;
-        if (target.fixed()) Binding.putBindTarget(target, binding.fixedTargetList);
-        else Binding.putBindTarget(target, binding.targetList);
+        Binding.putBindTarget(target, binding.targetList);
     }
 
     public static class Classic {
@@ -280,7 +261,6 @@ public class ModConfig {
         public boolean adjustOffset = true;
         public boolean hideFailureMessage = false;
         public boolean renderStuckObjects = true;
-        public boolean rerenderModel = false;
         public boolean disableWhenSneaking = false;
         public boolean disableWhenSwimming = false;
         public int swimOutTick = 13;
@@ -289,7 +269,6 @@ public class ModConfig {
         public double rotationSmoothFactor = 0.4;
         public List<String> disableMainFeatureItems = List.of();
         public List<String> disableRenderItems = defaultDisableRenderItems;
-        public List<BindTarget> fixedTargetList = new ArrayList<>();
         public List<BindTarget> targetList = new ArrayList<>(BindTarget.defaultTargets);
 
         private static void putBindTarget(BindTarget target, List<BindTarget> list) {
@@ -307,11 +286,9 @@ public class ModConfig {
             rotationSmoothFactor = Mth.clamp(rotationSmoothFactor, 0.0, 1.0);
             if (disableMainFeatureItems == null) disableMainFeatureItems = List.of();
             if (disableRenderItems == null) disableRenderItems = List.of();
-            if (fixedTargetList == null) fixedTargetList = new ArrayList<>();
-            else fixedTargetList.removeIf(BindTarget::isEmpty);
             if (targetList == null) targetList = new ArrayList<>(BindTarget.defaultTargets);
             else {
-                targetList.removeIf(target -> target.fixed() || target.isEmpty());
+                targetList.removeIf(BindTarget::isEmpty);
                 if (targetList.isEmpty()) targetList = new ArrayList<>(BindTarget.defaultTargets);
             }
         }

@@ -159,11 +159,6 @@ public class ConfigScreen {
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("renderStuckObjects"))
                 .setSaveConsumer(b -> config.binding.renderStuckObjects = b)
                 .build());
-        binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("rerenderModel"), config.binding.rerenderModel)
-                .setDefaultValue(false)
-                .setTooltip(LocUtil.CONFIG_TOOLTIP("rerenderModel"))
-                .setSaveConsumer(b -> config.binding.rerenderModel = b)
-                .build());
         binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("disableWhenSneaking"), config.binding.disableWhenSneaking)
                 .setDefaultValue(false)
                 .setSaveConsumer(b -> config.binding.disableWhenSneaking = b)

@@ -367,15 +367,12 @@ public class ModelViewScreen extends Screen {
             }
         } else {
             widgetsPerPage = 8;
-            List<BindTarget> fixedTargetList = ConfigFile.config().getFixedTargetList().stream().filter(target -> target.name().equals(RealCameraCore.currentTarget().name())).toList();
             List<BindTarget> targetList = ConfigFile.config().getBindTargetList();
-            final int fixedTargetCount = fixedTargetList.size();
-            size = fixedTargetCount + targetList.size();
+            size = targetList.size();
             for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, size); i++) {
-                BindTarget target = i < fixedTargetCount ? fixedTargetList.get(i) : targetList.get(i - fixedTargetCount);
+                BindTarget target = targetList.get(i);
                 String name = target.name();
                 rows.addChild(createButton(LocUtil.literal(name), widgetWidth * 2 - 18, button -> loadBindTarget(target)), 3).setTooltip(Tooltip.create(LocUtil.literal(name)));
-                if (i < fixedTargetCount) continue;
                 rows.addChild(new TexturedButton(48, 0, button -> {
                     targetList.remove(target);
                     ConfigFile.save();
@@ -447,7 +444,6 @@ public class ModelViewScreen extends Screen {
     protected void applyAnalyser(GuiGraphics graphics, int mouseX, int mouseY) {
         String textureId = toggleCategoryButton.getValue() == 0 ? "" : disabledIdField.getValue();
         Set<String> hiddenNames = hiddenNameMap.getOrDefault(nameField.getValue(), Set.of());
-        analyser.computeBindResult();
         analyser.applyDisableConfigs(textureId, hiddenNames);
         if (toggleCategoryButton.getValue() == 1 && selectionModeButton.getValue() == 2 && inModelViewArea(mouseX, mouseY))
             analyser.computeFocusedOnModel(mouseX - selectionRadius, mouseY - selectionRadius, mouseX + selectionRadius, mouseY + selectionRadius);

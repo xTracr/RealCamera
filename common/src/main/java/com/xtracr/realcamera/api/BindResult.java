@@ -1,30 +1,23 @@
-package com.xtracr.realcamera.util;
+package com.xtracr.realcamera.api;
 
-import com.xtracr.realcamera.api.PoseHandler;
 import com.xtracr.realcamera.config.BindTarget;
-import net.minecraft.client.Minecraft;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;
 
-public class BindResult implements PoseHandler {
+public class BindResult {
     public static final BindResult EMPTY = new BindResult(BindTarget.EMPTY, false);
     public final BindTarget target;
     protected final Matrix3f rotation = new Matrix3f();
     protected final boolean mirrored;
-    private final Minecraft client;
-    private final float deltaTick;
-    public boolean skipRendering = true;
     private Vec3 position = Vec3.ZERO, forward = Vec3.ZERO, upward = Vec3.ZERO;
 
-    public BindResult(BindTarget target, boolean mirrored) {
-        this(target, Minecraft.getInstance(), 0, mirrored);
+    public BindResult(String name) {
+        this(BindTarget.blank(name, ""), false);
     }
 
-    public BindResult(BindTarget target, Minecraft client, float deltaTick, boolean mirrored) {
+    public BindResult(BindTarget target, boolean mirrored) {
         this.target = target;
-        this.client = client;
-        this.deltaTick = deltaTick;
         this.mirrored = mirrored;
     }
 
@@ -40,41 +33,28 @@ public class BindResult implements PoseHandler {
         return position;
     }
 
+    public void setPosition(Vec3 vec) {
+        position = vec;
+    }
+
     public Vec3 getForward() {
         return forward;
+    }
+
+    public void setForward(Vec3 vec) {
+        forward = vec.normalize();
     }
 
     public Vec3 getUpward() {
         return upward;
     }
 
-    public Matrix3f getRotation() {
-        return rotation;
-    }
-
-    @Override
-    public Minecraft getClient() {
-        return client;
-    }
-
-    @Override
-    public float getDeltaTick() {
-        return deltaTick;
-    }
-
-    @Override
-    public void setPosition(Vec3 vec) {
-        position = vec;
-    }
-
-    @Override
-    public void setForward(Vec3 vec) {
-        forward = vec.normalize();
-    }
-
-    @Override
     public void setUpward(Vec3 vec) {
         upward = vec.normalize();
+    }
+
+    public Matrix3f getRotation() {
+        return rotation;
     }
 
     public BindResult computeCamera() {

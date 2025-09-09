@@ -15,7 +15,7 @@ public class CompatibilityHelper {
 
     public static void initialize(PlatformHelper platformHelper) {
         CompatibilityHelper.platformHelper = platformHelper;
-        if (isModLoaded("yes_steve_model")) RealCameraCore.setActiveRecorder(YSMCompat.INSTANCE);
+        YSMCompat.register();
         if (isModLoaded("freecam")) try {
             Class<?> FC_Freecam = Class.forName("net.xolt.freecam.Freecam");
             Method FC_Freecam_isEnabled = FC_Freecam.getDeclaredMethod("isEnabled");
