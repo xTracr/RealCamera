@@ -44,8 +44,9 @@ public class ModelAnalyser {
     private int modelScale;
 
     private static boolean haveCommonVertex(VertexData[] p1, List<VertexData[]> primitives) {
-        final float precision = 1.0E-05f;
-        for (VertexData[] p2 : primitives) for (VertexData v1 : p1) for (VertexData v2 : p2) if (v1.position().distanceToSqr(v2.position()) < precision) return true;
+        final float precision = 1e-5f;
+        for (VertexData[] p2 : primitives) for (VertexData v1 : p1) for (VertexData v2 : p2)
+            if (Math.abs(v1.x() - v2.x()) < precision && Math.abs(v1.y() - v2.y()) < precision && Math.abs(v1.z() - v2.z()) < precision) return true;
         return false;
     }
 
@@ -325,9 +326,9 @@ public class ModelAnalyser {
         Lighting.setupForEntityInInventory();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         dispatcher.setRenderShadow(false);
-        MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl(this::computeBindResult);
+        MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
         dispatcher.render(entity, 0, 0, 0, 0, deltaTick, poseStack, catcher, 0xF000f0);
-        catcher.endCatching();
+        catcher.endCatching(this::computeBindResult);
         dispatcher.setRenderShadow(true);
         Lighting.setupFor3DItems();
     }
@@ -355,12 +356,14 @@ public class ModelAnalyser {
         BindTarget.TargetConfig config = target.targetConfig();
         VertexData.UV[] uvs = {new VertexData.UV(config.posU(), config.posV()), new VertexData.UV(config.forwardU(), config.forwardV()), new VertexData.UV(config.upwardU(), config.upwardV())};
         bindPrimitives = builtBuffer.findPrimitivesInCache(uvs);
-        for (int i = 0; i < bindPrimitives.length; i++) {
-            if (bindPrimitives[i] != null) uvs[i] = null;
-        }
-        VertexData[][] newPrimitives = builtBuffer.findPrimitives(uvs);
-        for (int i = 0; i < bindPrimitives.length; i++) {
-            if (newPrimitives[i] != null) bindPrimitives[i] = newPrimitives[i];
+        if (builtBuffer.anyNotCached(uvs)) {
+            for (int i = 0; i < bindPrimitives.length; i++) {
+                if (bindPrimitives[i] != null) uvs[i] = null;
+            }
+            VertexData[][] newPrimitives = builtBuffer.findPrimitives(uvs);
+            for (int i = 0; i < bindPrimitives.length; i++) {
+                if (newPrimitives[i] != null) bindPrimitives[i] = newPrimitives[i];
+            }
         }
         if (bindPrimitives[0] != null) result.setPosition(VertexData.position(bindPrimitives[0], config.posU(), config.posV()));
         if (bindPrimitives[1] != null) result.setForward(VertexData.normal(bindPrimitives[1]).scale(-1));

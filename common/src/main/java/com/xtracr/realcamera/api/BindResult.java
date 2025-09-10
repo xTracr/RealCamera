@@ -1,9 +1,12 @@
 package com.xtracr.realcamera.api;
 
 import com.xtracr.realcamera.config.BindTarget;
+import com.xtracr.realcamera.config.ConfigFile;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;
+
+import java.util.List;
 
 public class BindResult {
     public static final BindResult EMPTY = new BindResult(BindTarget.EMPTY, false);
@@ -12,13 +15,22 @@ public class BindResult {
     protected final boolean mirrored;
     private Vec3 position = Vec3.ZERO, forward = Vec3.ZERO, upward = Vec3.ZERO;
 
-    public BindResult(String name) {
-        this(BindTarget.blank(name, ""), false);
-    }
-
     public BindResult(BindTarget target, boolean mirrored) {
         this.target = target;
         this.mirrored = mirrored;
+    }
+
+    public static BindResult getOrCreate(String name) {
+        List<BindTarget> fixedTargets = ConfigFile.config().getFixedTargetList();
+        BindTarget target = fixedTargets.stream()
+                .filter(t -> t.name().equals(name))
+                .findFirst()
+                .orElseGet(() -> {
+                    BindTarget blank = BindTarget.blank(name, "");
+                    fixedTargets.add(blank);
+                    return blank;
+                });
+        return new BindResult(target, false);
     }
 
     public boolean available() {

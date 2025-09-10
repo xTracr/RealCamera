@@ -84,7 +84,7 @@ public interface VertexData {
     }
 
     default VertexData asImmutable() {
-        return immutable(x(), y(), z(), argb(), u(), v(), overlay(), light(), normalX(), normalY(), normalZ());
+        return new ImmutableVertex(x(), y(), z(), argb(), u(), v(), overlay(), light(), normalX(), normalY(), normalZ());
     }
 
     default void render(VertexConsumer buffer, Matrix4f positionMatrix, Matrix3f normalMatrix) {

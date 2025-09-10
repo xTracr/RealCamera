@@ -310,7 +310,7 @@ public class ModelViewScreen extends Screen {
         rows.addChild(toggleCategoryButton, 3);
         rows.addChild(new TexturedButton(80, 0, button -> {
             if (CompatibilityHelper.isModLoaded("cloth-config")) minecraft.setScreen(ConfigScreen.create(this));
-        })).setTooltip(createTooltip("toConfigScreen"));
+        }), smallSettings).setTooltip(createTooltip("toConfigScreen"));
         final int widgetsPerPage, size;
         if (toggleCategoryButton.getValue() == 1) {
             widgetsPerPage = 6;
@@ -367,12 +367,15 @@ public class ModelViewScreen extends Screen {
             }
         } else {
             widgetsPerPage = 8;
+            List<BindTarget> fixedTargetList = ConfigFile.config().getFixedTargetList().stream().filter(target -> target.name().equals(RealCameraCore.currentTarget().name())).toList();
             List<BindTarget> targetList = ConfigFile.config().getBindTargetList();
-            size = targetList.size();
+            final int fixedTargetCount = fixedTargetList.size();
+            size = fixedTargetCount + targetList.size();
             for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, size); i++) {
-                BindTarget target = targetList.get(i);
+                BindTarget target = i < fixedTargetCount ? fixedTargetList.get(i) : targetList.get(i - fixedTargetCount);
                 String name = target.name();
                 rows.addChild(createButton(LocUtil.literal(name), widgetWidth * 2 - 18, button -> loadBindTarget(target)), 3).setTooltip(Tooltip.create(LocUtil.literal(name)));
+                if (i < fixedTargetCount) continue;
                 rows.addChild(new TexturedButton(48, 0, button -> {
                     targetList.remove(target);
                     ConfigFile.save();

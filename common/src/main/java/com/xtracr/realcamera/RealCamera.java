@@ -1,7 +1,6 @@
 package com.xtracr.realcamera;
 
 import com.xtracr.realcamera.compat.CompatibilityHelper;
-import com.xtracr.realcamera.compat.LegacyBindingMode;
 import com.xtracr.realcamera.compat.PlatformHelper;
 import com.xtracr.realcamera.config.ConfigFile;
 import org.slf4j.Logger;
@@ -15,6 +14,5 @@ public interface RealCamera extends PlatformHelper {
     default void initialize() {
         ConfigFile.load();
         CompatibilityHelper.initialize(this);
-        LegacyBindingMode.register();
     }
 }

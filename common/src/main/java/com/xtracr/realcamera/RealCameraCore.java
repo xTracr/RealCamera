@@ -84,9 +84,9 @@ public class RealCameraCore {
         newResult = RealCameraAPI.computeBindResult(client, deltaTick);
         if (!newResult.available()) {
             EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
-            MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl(RealCameraCore::computeBindResult);
+            MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
             dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, new PoseStack(), catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
-            catcher.endCatching();
+            catcher.endCatching(RealCameraCore::computeBindResult);
         }
         entity.setInvisible(invisible);
         if (!newResult.available()) {
@@ -97,6 +97,7 @@ public class RealCameraCore {
                 player.sendSystemMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE(), KeyBindings.MODEL_VIEW_SCREEN.getTranslatedKeyMessage()));
             }
             if (!lastResult.available() || failureFrames > retentionFrames) {
+                lastResult = BindResult.EMPTY;
                 active = false;
                 return;
             }
@@ -118,11 +119,13 @@ public class RealCameraCore {
                 .translate(Vec3.ZERO.subtract(lastResult.getPosition()).toVector3f());
         PoseStack poseStack = new PoseStack();
         poseStack.mulPose(new Matrix4f(invertedCameraPose).mulLocal(cameraPose.invert(new Matrix4f())));
-        final double m02 = cameraPose.m02(), m12 = cameraPose.m12(), m22 = cameraPose.m22(), m32 = cameraPose.m32();
-        final double depth = currentTarget().disablingDepth();
         Entity entity = client.getCameraEntity();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
-        MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl(builtBuffer -> {
+        MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
+        dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack, catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
+        final float m02 = cameraPose.m02(), m12 = cameraPose.m12(), m22 = cameraPose.m22(), m32 = cameraPose.m32();
+        final float depth = currentTarget().disablingDepth();
+        catcher.endCatching(builtBuffer -> {
             DisableConfig[] disableConfigs = currentTarget().filteredDisableConfigs(config -> builtBuffer.textureId().contains(config.textureId()));
             for (DisableConfig config : disableConfigs) {
                 if (config.disableAll()) return;
@@ -144,8 +147,6 @@ public class RealCameraCore {
                 }
             });
         });
-        dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack, catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
-        catcher.endCatching();
     }
 
     private static void computeBindResult(BuiltIterableBuffer builtBuffer) {
@@ -157,13 +158,15 @@ public class RealCameraCore {
             BindTarget.TargetConfig config = result.target.targetConfig();
             VertexData.UV[] uvs = {new VertexData.UV(config.posU(), config.posV()), new VertexData.UV(config.forwardU(), config.forwardV()), new VertexData.UV(config.upwardU(), config.upwardV())};
             VertexData[][] primitives = builtBuffer.findPrimitivesInCache(uvs);
-            for (int i = 0; i < primitives.length; i++) {
-                if (primitives[i] != null) uvs[i] = null;
-            }
-            VertexData[][] newPrimitives = builtBuffer.findPrimitives(uvs);
-            for (int i = 0; i < primitives.length; i++) {
-                if (newPrimitives[i] == null && primitives[i] == null) continue targetFor;
-                else if (newPrimitives[i] != null) primitives[i] = newPrimitives[i];
+            if (builtBuffer.anyNotCached(uvs)) {
+                for (int i = 0; i < primitives.length; i++) {
+                    if (primitives[i] != null) uvs[i] = null;
+                }
+                VertexData[][] newPrimitives = builtBuffer.findPrimitives(uvs);
+                for (int i = 0; i < primitives.length; i++) {
+                    if (newPrimitives[i] == null && primitives[i] == null) continue targetFor;
+                    else if (newPrimitives[i] != null) primitives[i] = newPrimitives[i];
+                }
             }
             if (primitives[0] != null) result.setPosition(VertexData.position(primitives[0], config.posU(), config.posV()));
             if (primitives[1] != null) result.setForward(VertexData.normal(primitives[1]));

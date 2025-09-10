@@ -6,16 +6,19 @@ import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.mixin.accessor.CameraAccessor;
 import net.minecraft.client.Camera;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 public class CompatibilityHelper {
     private static PlatformHelper platformHelper;
-    private static Class<?> NEA_NEAnimationsLoader;
     private static Method NEA_playerTransformer_setDeltaTick;
+    private static Field NEA_NEAnimationsLoader_INSTANCE;
+    private static Field NEA_NEAnimationsLoader_playerTransformer;
 
     public static void initialize(PlatformHelper platformHelper) {
         CompatibilityHelper.platformHelper = platformHelper;
-        YSMCompat.register();
+        LegacyBindingMode.register();
+        if (isModLoaded("yes_steve_model")) YSMCompat.register();
         if (isModLoaded("freecam")) try {
             Class<?> FC_Freecam = Class.forName("net.xolt.freecam.Freecam");
             Method FC_Freecam_isEnabled = FC_Freecam.getDeclaredMethod("isEnabled");
@@ -30,19 +33,21 @@ public class CompatibilityHelper {
             RealCamera.LOGGER.warn("Compatibility with Freecam is outdated: [{}] {}", e.getClass().getName(), e.getMessage());
         }
         if (isModLoaded("notenoughanimations")) try {
-            NEA_NEAnimationsLoader = Class.forName("dev.tr7zw.notenoughanimations.NEAnimationsLoader");
+            Class<?> NEA_NEAnimationsLoader = Class.forName("dev.tr7zw.notenoughanimations.NEAnimationsLoader");
             Class<?> NEA_PlayerTransformer = Class.forName("dev.tr7zw.notenoughanimations.logic.PlayerTransformer");
             NEA_playerTransformer_setDeltaTick = NEA_PlayerTransformer.getDeclaredMethod("setDeltaTick", float.class);
+            NEA_NEAnimationsLoader_INSTANCE = NEA_NEAnimationsLoader.getDeclaredField("INSTANCE");
+            NEA_NEAnimationsLoader_playerTransformer = NEA_NEAnimationsLoader.getDeclaredField("playerTransformer");
         } catch (Exception e) {
             RealCamera.LOGGER.warn("Compatibility with Not Enough Animations is outdated: [{}] {}", e.getClass().getName(), e.getMessage());
         }
     }
 
     public static void NEA_setDeltaTick(float deltaTick) {
-        if (NEA_NEAnimationsLoader != null) try {
-            Object NEA_NEAnimationsLoader_INSTANCE = NEA_NEAnimationsLoader.getDeclaredField("INSTANCE").get(null);
-            Object NEA_playerTransformer = NEA_NEAnimationsLoader.getDeclaredField("playerTransformer").get(NEA_NEAnimationsLoader_INSTANCE);
-            NEA_playerTransformer_setDeltaTick.invoke(NEA_playerTransformer, deltaTick);
+        if (NEA_playerTransformer_setDeltaTick != null) try {
+            Object INSTANCE = NEA_NEAnimationsLoader_INSTANCE.get(null);
+            Object playerTransformer = NEA_NEAnimationsLoader_playerTransformer.get(INSTANCE);
+            NEA_playerTransformer_setDeltaTick.invoke(playerTransformer, deltaTick);
         } catch (Exception ignored) {
         }
     }

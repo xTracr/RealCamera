@@ -20,7 +20,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
     private static final boolean IS_LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
     public final int vertexCount;
     private final MutableVertex reusableVertex = VertexData.mutable();
-    private final VertexFormat.Mode drawMode;
+    private final IterablePrimitiveBuffer primitives;
     private final ByteBuffer buffer;
     private final int vertexSize;
     private final int positionOffset, colorOffset, uvOffset, overlayOffset, lightOffset, normalOffset;
@@ -31,7 +31,6 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         buffer = meshData.vertexBuffer();
         MeshData.DrawState drawState = meshData.drawState();
         VertexFormat format = drawState.format();
-        drawMode = drawState.mode();
         vertexCount = drawState.vertexCount();
         vertexSize = format.getVertexSize();
         positionOffset = format.getOffset(VertexFormatElement.POSITION);
@@ -47,32 +46,19 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         hasLight = lightOffset != -1;
         hasNormal = normalOffset != -1;
         fastFormat = format == DefaultVertexFormat.NEW_ENTITY;
+        primitives = new IterablePrimitiveBuffer(drawState.mode());
     }
 
-    @Override
-    public @NotNull Iterator<VertexData> iterator() {
-        return new VertexIterator();
-    }
-
-    @Override
-    public Spliterator<VertexData> spliterator() {
-        return new VertexSpliterator(0, vertexCount);
+    public Iterable<VertexData[]> primitives() {
+        return primitives;
     }
 
     public Stream<VertexData> stream() {
-        return StreamSupport.stream(new VertexSpliterator(0, vertexCount), false);
-    }
-
-    public Stream<VertexData> parallelStream() {
-        return StreamSupport.stream(new VertexSpliterator(0, vertexCount), true);
+        return StreamSupport.stream(spliterator(), false);
     }
 
     public Stream<VertexData[]> primitiveStream() {
-        return StreamSupport.stream(primitiveSpliterator(), false);
-    }
-
-    public Stream<VertexData[]> parallelPrimitiveStream() {
-        return StreamSupport.stream(primitiveSpliterator(), true);
+        return StreamSupport.stream(primitives.spliterator(), false);
     }
 
     public VertexData readVertexAt(int index) {
@@ -88,8 +74,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
             mutable.x = buffer.getFloat(vertexOffset);
             mutable.y = buffer.getFloat(vertexOffset + 4);
             mutable.z = buffer.getFloat(vertexOffset + 8);
-            int argb = buffer.getInt(vertexOffset + 12);
-            mutable.argb = IS_LITTLE_ENDIAN ? argb : Integer.reverseBytes(argb);
+            mutable.argb = IS_LITTLE_ENDIAN ? buffer.getInt(vertexOffset + 12) : Integer.reverseBytes(buffer.getInt(vertexOffset + 12));
             mutable.u = buffer.getFloat(vertexOffset + 16);
             mutable.v = buffer.getFloat(vertexOffset + 20);
             mutable.overlay = buffer.getInt(vertexOffset + 24);
@@ -106,8 +91,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
             mutable.z = buffer.getFloat(offset + 8);
         }
         if (hasColor) {
-            mutable.argb = buffer.getInt(vertexOffset + colorOffset);
-            mutable.argb = IS_LITTLE_ENDIAN ? mutable.argb : Integer.reverseBytes(mutable.argb);
+            mutable.argb = IS_LITTLE_ENDIAN ? buffer.getInt(vertexOffset + colorOffset) : Integer.reverseBytes(buffer.getInt(vertexOffset + colorOffset));
         }
         if (hasUV) {
             int offset = vertexOffset + uvOffset;
@@ -129,10 +113,14 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         return mutable;
     }
 
-    private Spliterator<VertexData[]> primitiveSpliterator() {
-        if (fastFormat && drawMode == VertexFormat.Mode.QUADS)
-            return new FastQuadSpliterator(0, vertexCount / 4);
-        return new PrimitiveSpliterator(0);
+    @Override
+    public @NotNull Iterator<VertexData> iterator() {
+        return new VertexIterator();
+    }
+
+    @Override
+    public Spliterator<VertexData> spliterator() {
+        return new VertexSpliterator(0, vertexCount);
     }
 
     private class VertexPointer implements VertexData {
@@ -281,131 +269,204 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         }
     }
 
-    private class PrimitiveSpliterator implements Spliterator<VertexData[]> {
-        private final int primitiveLength = drawMode.primitiveLength, primitiveStride = drawMode.primitiveStride;
-        private final MutableVertex[] reusablePrimitive = new MutableVertex[primitiveLength];
-        private final boolean startWithFirst = drawMode == VertexFormat.Mode.TRIANGLE_FAN;
-        private final int endIndex;
-        private int currentIndex;
+    private class IterablePrimitiveBuffer implements Iterable<VertexData[]> {
+        private final int primitiveLength, primitiveStride, primitiveCount;
+        private final boolean startWithFirst, isQuad;
 
-        public PrimitiveSpliterator(int start) {
-            currentIndex = start;
-            endIndex = (vertexCount - primitiveLength) / primitiveStride + 1;
-            for (int i = 0; i < primitiveLength; i++) {
-                reusablePrimitive[i] = VertexData.mutable();
-            }
-            readVertexAt(0, reusablePrimitive[0]);
-        }
-
-        public PrimitiveSpliterator(int start, int end) {
-            currentIndex = start;
-            endIndex = end;
-            for (int i = 0; i < primitiveLength; i++) {
-                reusablePrimitive[i] = VertexData.mutable();
-            }
-            readVertexAt(0, reusablePrimitive[0]);
+        public IterablePrimitiveBuffer(VertexFormat.Mode drawMode) {
+            primitiveLength = drawMode.primitiveLength;
+            primitiveStride = drawMode.primitiveStride;
+            primitiveCount = (vertexCount - primitiveLength) / primitiveStride + 1;
+            startWithFirst = drawMode == VertexFormat.Mode.TRIANGLE_FAN;
+            isQuad = drawMode == VertexFormat.Mode.QUADS;
         }
 
         @Override
-        public boolean tryAdvance(Consumer<? super VertexData[]> action) {
-            if (currentIndex < endIndex) {
+        public @NotNull Iterator<VertexData[]> iterator() {
+            if (fastFormat && isQuad) return new FastQuadIterator();
+            return new PrimitiveIterator();
+        }
+
+        @Override
+        public Spliterator<VertexData[]> spliterator() {
+            if (fastFormat && isQuad) return new FastQuadSpliterator(0, primitiveCount);
+            return new PrimitiveSpliterator(0, primitiveCount);
+        }
+
+        private class PrimitiveIterator implements Iterator<VertexData[]> {
+            private final MutableVertex[] reusablePrimitive = new MutableVertex[primitiveLength];
+            private int currentIndex = 0;
+
+            public PrimitiveIterator() {
+                for (int i = 0; i < primitiveLength; i++) {
+                    reusablePrimitive[i] = VertexData.mutable();
+                }
+                readVertexAt(0, reusablePrimitive[0]);
+            }
+
+            @Override
+            public boolean hasNext() {
+                return currentIndex < primitiveCount - 1;
+            }
+
+            @Override
+            public VertexData[] next() {
                 int vertexIndex = currentIndex * primitiveStride;
                 for (int i = startWithFirst ? 1 : 0; i < primitiveLength; i++) {
                     readVertexAt(vertexIndex + i, reusablePrimitive[i]);
                 }
-                action.accept(reusablePrimitive);
                 currentIndex++;
-                return true;
-            }
-            return false;
-        }
-
-        @Override
-        public Spliterator<VertexData[]> trySplit() {
-            int remaining = endIndex - currentIndex;
-            if (remaining <= 1) {
-                return null;
-            }
-            int splitPos = currentIndex + remaining / 2;
-            PrimitiveSpliterator newSpliterator = new PrimitiveSpliterator(currentIndex, splitPos);
-            currentIndex = splitPos;
-            return newSpliterator;
-        }
-
-        @Override
-        public long estimateSize() {
-            return endIndex - currentIndex;
-        }
-
-        @Override
-        public int characteristics() {
-            return ORDERED | SIZED | SUBSIZED | NONNULL;
-        }
-    }
-
-    private class FastQuadSpliterator implements Spliterator<VertexData[]> {
-        private final MutableVertex[] reusablePrimitive = new MutableVertex[4];
-        private final int endIndex;
-        private int currentIndex;
-
-        public FastQuadSpliterator(int start, int end) {
-            currentIndex = start;
-            endIndex = end;
-            for (int i = 0; i < 4; i++) {
-                reusablePrimitive[i] = VertexData.mutable();
+                return reusablePrimitive;
             }
         }
 
-        private void fastReadQuad(int quadIndex) {
-            int vertexOffset = quadIndex * 144;
-            for (int i = 0; i < 4; i++, vertexOffset += 36) {
-                MutableVertex mutable = reusablePrimitive[i];
-                mutable.x = buffer.getFloat(vertexOffset);
-                mutable.y = buffer.getFloat(vertexOffset + 4);
-                mutable.z = buffer.getFloat(vertexOffset + 8);
-                int argb = buffer.getInt(vertexOffset + 12);
-                mutable.argb = IS_LITTLE_ENDIAN ? argb : Integer.reverseBytes(argb);
-                mutable.u = buffer.getFloat(vertexOffset + 16);
-                mutable.v = buffer.getFloat(vertexOffset + 20);
-                mutable.overlay = buffer.getInt(vertexOffset + 24);
-                mutable.light = buffer.getInt(vertexOffset + 28);
-                mutable.normalX = buffer.get(vertexOffset + 32) / 127.0f;
-                mutable.normalY = buffer.get(vertexOffset + 33) / 127.0f;
-                mutable.normalZ = buffer.get(vertexOffset + 34) / 127.0f;
+        private class PrimitiveSpliterator implements Spliterator<VertexData[]> {
+            private final MutableVertex[] reusablePrimitive = new MutableVertex[primitiveLength];
+            private final int endIndex;
+            private int currentIndex;
+
+            public PrimitiveSpliterator(int start, int end) {
+                currentIndex = start;
+                endIndex = end;
+                for (int i = 0; i < primitiveLength; i++) {
+                    reusablePrimitive[i] = VertexData.mutable();
+                }
+                readVertexAt(0, reusablePrimitive[0]);
+            }
+
+            @Override
+            public boolean tryAdvance(Consumer<? super VertexData[]> action) {
+                if (currentIndex < endIndex) {
+                    int vertexIndex = currentIndex * primitiveStride;
+                    for (int i = startWithFirst ? 1 : 0; i < primitiveLength; i++) {
+                        readVertexAt(vertexIndex + i, reusablePrimitive[i]);
+                    }
+                    action.accept(reusablePrimitive);
+                    currentIndex++;
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public Spliterator<VertexData[]> trySplit() {
+                int remaining = endIndex - currentIndex;
+                if (remaining <= 1) {
+                    return null;
+                }
+                int splitPos = currentIndex + remaining / 2;
+                PrimitiveSpliterator newSpliterator = new PrimitiveSpliterator(currentIndex, splitPos);
+                currentIndex = splitPos;
+                return newSpliterator;
+            }
+
+            @Override
+            public long estimateSize() {
+                return endIndex - currentIndex;
+            }
+
+            @Override
+            public int characteristics() {
+                return ORDERED | SIZED | SUBSIZED | NONNULL;
             }
         }
 
-        @Override
-        public boolean tryAdvance(Consumer<? super VertexData[]> action) {
-            if (currentIndex < endIndex) {
-                fastReadQuad(currentIndex);
-                action.accept(reusablePrimitive);
+        private class FastQuadIterator implements Iterator<VertexData[]> {
+            private final MutableVertex[] reusableQuad = new MutableVertex[4];
+            private int currentIndex = 0;
+
+            public FastQuadIterator() {
+                for (int i = 0; i < 4; i++) {
+                    reusableQuad[i] = VertexData.mutable();
+                }
+            }
+
+            @Override
+            public boolean hasNext() {
+                return currentIndex < primitiveCount - 1;
+            }
+
+            @Override
+            public VertexData[] next() {
+                int vertexOffset = currentIndex * 144;
+                for (int i = 0; i < 4; i++, vertexOffset += 36) {
+                    MutableVertex mutable = reusableQuad[i];
+                    mutable.x = buffer.getFloat(vertexOffset);
+                    mutable.y = buffer.getFloat(vertexOffset + 4);
+                    mutable.z = buffer.getFloat(vertexOffset + 8);
+                    mutable.argb = IS_LITTLE_ENDIAN ? buffer.getInt(vertexOffset + 12) : Integer.reverseBytes(buffer.getInt(vertexOffset + 12));
+                    mutable.u = buffer.getFloat(vertexOffset + 16);
+                    mutable.v = buffer.getFloat(vertexOffset + 20);
+                    mutable.overlay = buffer.getInt(vertexOffset + 24);
+                    mutable.light = buffer.getInt(vertexOffset + 28);
+                    mutable.normalX = buffer.get(vertexOffset + 32) / 127.0f;
+                    mutable.normalY = buffer.get(vertexOffset + 33) / 127.0f;
+                    mutable.normalZ = buffer.get(vertexOffset + 34) / 127.0f;
+                }
                 currentIndex++;
-                return true;
+                return reusableQuad;
             }
-            return false;
         }
 
-        @Override
-        public Spliterator<VertexData[]> trySplit() {
-            int remaining = endIndex - currentIndex;
-            if (remaining <= 1) {
-                return null;
+        private class FastQuadSpliterator implements Spliterator<VertexData[]> {
+            private final MutableVertex[] reusableQuad = new MutableVertex[4];
+            private final int endIndex;
+            private int currentIndex;
+
+            public FastQuadSpliterator(int start, int end) {
+                currentIndex = start;
+                endIndex = end;
+                for (int i = 0; i < 4; i++) {
+                    reusableQuad[i] = VertexData.mutable();
+                }
             }
-            int splitPos = currentIndex + remaining / 2;
-            PrimitiveSpliterator newSpliterator = new PrimitiveSpliterator(currentIndex, splitPos);
-            currentIndex = splitPos;
-            return newSpliterator;
-        }
 
-        @Override
-        public long estimateSize() {
-            return endIndex - currentIndex;
-        }
+            @Override
+            public boolean tryAdvance(Consumer<? super VertexData[]> action) {
+                if (currentIndex < endIndex) {
+                    int vertexOffset = currentIndex * 144;
+                    for (int i = 0; i < 4; i++, vertexOffset += 36) {
+                        MutableVertex mutable = reusableQuad[i];
+                        mutable.x = buffer.getFloat(vertexOffset);
+                        mutable.y = buffer.getFloat(vertexOffset + 4);
+                        mutable.z = buffer.getFloat(vertexOffset + 8);
+                        mutable.argb = IS_LITTLE_ENDIAN ? buffer.getInt(vertexOffset + 12) : Integer.reverseBytes(buffer.getInt(vertexOffset + 12));
+                        mutable.u = buffer.getFloat(vertexOffset + 16);
+                        mutable.v = buffer.getFloat(vertexOffset + 20);
+                        mutable.overlay = buffer.getInt(vertexOffset + 24);
+                        mutable.light = buffer.getInt(vertexOffset + 28);
+                        mutable.normalX = buffer.get(vertexOffset + 32) / 127.0f;
+                        mutable.normalY = buffer.get(vertexOffset + 33) / 127.0f;
+                        mutable.normalZ = buffer.get(vertexOffset + 34) / 127.0f;
+                    }
+                    action.accept(reusableQuad);
+                    currentIndex++;
+                    return true;
+                }
+                return false;
+            }
 
-        @Override
-        public int characteristics() {
-            return ORDERED | SIZED | SUBSIZED | NONNULL;
+            @Override
+            public Spliterator<VertexData[]> trySplit() {
+                int remaining = endIndex - currentIndex;
+                if (remaining <= 1) {
+                    return null;
+                }
+                int splitPos = currentIndex + remaining / 2;
+                FastQuadSpliterator newSpliterator = new FastQuadSpliterator(currentIndex, splitPos);
+                currentIndex = splitPos;
+                return newSpliterator;
+            }
+
+            @Override
+            public long estimateSize() {
+                return endIndex - currentIndex;
+            }
+
+            @Override
+            public int characteristics() {
+                return ORDERED | SIZED | SUBSIZED | NONNULL;
+            }
         }
     }
 }

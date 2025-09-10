@@ -151,7 +151,6 @@ public class ConfigScreen {
                 .build());
         binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("hideBindingFailureMessage"), config.binding.hideFailureMessage)
                 .setDefaultValue(false)
-                .setTooltip(LocUtil.CONFIG_TOOLTIP("hideBindingFailureMessage"))
                 .setSaveConsumer(b -> config.binding.hideFailureMessage = b)
                 .build());
         binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("renderStuckObjects"), config.binding.renderStuckObjects)

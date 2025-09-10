@@ -203,6 +203,10 @@ public class ModConfig {
         return binding.disableRenderItems;
     }
 
+    public List<BindTarget> getFixedTargetList() {
+        return binding.fixedTargetList;
+    }
+
     public List<BindTarget> getBindTargetList() {
         binding.clamp();
         return binding.targetList;
@@ -210,7 +214,19 @@ public class ModConfig {
 
     public void putBindTarget(BindTarget target) {
         if (target.isEmpty()) return;
-        Binding.putBindTarget(target, binding.targetList);
+        List<BindTarget> fixedList = binding.fixedTargetList;
+        for (int i = 0, size = fixedList.size(); i < size; i++) {
+            if (fixedList.get(i).name().equals(target.name())) {
+                fixedList.set(i, target);
+                return;
+            }
+        }
+        List<BindTarget> list = binding.targetList;
+        IntStream.range(0, list.size())
+                .filter(i -> list.get(i).name().equals(target.name()))
+                .findAny()
+                .ifPresentOrElse(i -> list.set(i, target), () -> list.add(target));
+        list.sort(Comparator.comparingInt(t -> -t.priority()));
     }
 
     public static class Classic {
@@ -269,15 +285,8 @@ public class ModConfig {
         public double rotationSmoothFactor = 0.4;
         public List<String> disableMainFeatureItems = List.of();
         public List<String> disableRenderItems = defaultDisableRenderItems;
+        public List<BindTarget> fixedTargetList = new ArrayList<>();
         public List<BindTarget> targetList = new ArrayList<>(BindTarget.defaultTargets);
-
-        private static void putBindTarget(BindTarget target, List<BindTarget> list) {
-            IntStream.range(0, list.size())
-                    .filter(i -> list.get(i).name().equals(target.name()))
-                    .findAny()
-                    .ifPresentOrElse(i -> list.set(i, target), () -> list.add(target));
-            list.sort(Comparator.comparingInt(t -> -t.priority()));
-        }
 
         private void clamp() {
             swimOutTick = Mth.clamp(swimOutTick, 0, 40);
@@ -286,6 +295,8 @@ public class ModConfig {
             rotationSmoothFactor = Mth.clamp(rotationSmoothFactor, 0.0, 1.0);
             if (disableMainFeatureItems == null) disableMainFeatureItems = List.of();
             if (disableRenderItems == null) disableRenderItems = List.of();
+            if (fixedTargetList == null) fixedTargetList = new ArrayList<>();
+            else fixedTargetList.removeIf(BindTarget::isEmpty);
             if (targetList == null) targetList = new ArrayList<>(BindTarget.defaultTargets);
             else {
                 targetList.removeIf(BindTarget::isEmpty);
