@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.player.Player;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 public class CompatibilityHelper {
@@ -17,6 +18,8 @@ public class CompatibilityHelper {
     private static Method NEA_playerTransformer_setDeltaTick;
     private static Class<?> TACZ_IClientPlayerGunOperator;
     private static Method TACZ_IClientPlayerGunOperator_fromLocalPlayer;
+    private static Class<?> SW_ClientEventHandler;
+    private static Field SW_ClientEventHandler_zoomTime;
 
     public static void initialize(PlatformHelper platformHelper) {
         CompatibilityHelper.platformHelper = platformHelper;
@@ -48,6 +51,23 @@ public class CompatibilityHelper {
         } catch (Exception e) {
             RealCamera.LOGGER.warn("TACZ is not loaded correctly: [{}] {}", e.getClass().getName(), e.getMessage());
         }
+        if(isModLoaded("superbwarfare")) try{
+            SW_ClientEventHandler = Class.forName("com.atsuishio.superbwarfare.event.ClientEventHandler");
+            SW_ClientEventHandler_zoomTime = SW_ClientEventHandler.getDeclaredField("zoomTime");
+            DisableHelper.MAIN_FEATURE.registerOrInBinding(CompatibilityHelper::SW_gunsIsZooming);
+        } catch (Exception e) {
+            RealCamera.LOGGER.warn("SuperbWarfare is not loaded correctly: [{}] {}", e.getClass().getName(), e.getMessage());
+        }
+    }
+
+    private static boolean SW_gunsIsZooming(Player player){
+        try {
+            double zoomTimeValue = SW_ClientEventHandler_zoomTime.getDouble(null);
+            return zoomTimeValue > 0;
+        } catch (Exception e) {
+            RealCamera.LOGGER.error("Failed to access SuperbWarfare's zoomTime field", e);
+            return false;
+        }
     }
 
     private static boolean TACZ_gunsIsAiming(Player player) {
@@ -58,6 +78,7 @@ public class CompatibilityHelper {
             float aimingProgress = (float) getProgressMethod.invoke(operator, Minecraft.getInstance().getFrameTime());
             return aimingProgress > 0;
         } catch (Exception e) {
+            RealCamera.LOGGER.error("Failed to access TaCZ's getClientAimingProgress method", e);
             return false;
         }
     }
