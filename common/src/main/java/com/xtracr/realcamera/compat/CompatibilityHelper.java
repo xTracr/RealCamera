@@ -5,7 +5,6 @@ import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.mixin.accessor.CameraAccessor;
 import net.minecraft.client.Camera;
-import net.minecraft.world.entity.player.Player;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
