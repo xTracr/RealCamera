@@ -71,7 +71,7 @@ public class DisableHelper {
     public static boolean simpleWildcardMatch(String text, String pattern) {
         if (pattern.startsWith("#")) {
             String tagId = pattern.substring(1);
-            TagKey<Item> itemTag = TagKey.create(BuiltInRegistries.ITEM.key(), ResourceLocation.parse(tagId));//1.20.1为new ResourceLocation(tagId) (记得删
+            TagKey<Item> itemTag = TagKey.create(BuiltInRegistries.ITEM.key(), ResourceLocation.parse(tagId));
             return BuiltInRegistries.ITEM.getTag(itemTag)
                 .<Boolean>map(tag -> {
                     ResourceLocation itemLocation = ResourceLocation.tryParse(text);
