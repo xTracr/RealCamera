@@ -6,6 +6,14 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
+import java.util.Optional;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.Holder;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -63,6 +71,19 @@ public class DisableHelper {
     }
 
     public static boolean simpleWildcardMatch(String text, String pattern) {
+        if (pattern.startsWith("#")) {
+            String tagId = pattern.substring(1);
+            TagKey<Item> itemTag = TagKey.create(BuiltInRegistries.ITEM.key(), ResourceLocation.parse(tagId));//1.20.1为new ResourceLocation(tagId) (记得删
+            return BuiltInRegistries.ITEM.getTag(itemTag)
+                .<Boolean>map(tag -> {
+                    ResourceLocation itemLocation = ResourceLocation.tryParse(text);
+                    if (itemLocation == null) return false;
+                    ResourceKey<Item> itemKey = ResourceKey.create(BuiltInRegistries.ITEM.key(), itemLocation);
+                    Optional<Holder.Reference<Item>> itemRef = BuiltInRegistries.ITEM.getHolder(itemKey);
+                    return itemRef.map(holderRef -> tag.contains(holderRef)).orElse(false);
+                })
+                .orElse(false);
+        }
         if (pattern.isEmpty()) return text.isEmpty();
         String[] parts = pattern.split("\\*+");
         if (parts.length == 0) return true;
