@@ -5,6 +5,7 @@ import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.mixin.accessor.CameraAccessor;
 import net.minecraft.client.Camera;
+import net.minecraft.world.entity.player.Player;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -16,6 +17,7 @@ public class CompatibilityHelper {
     private static Field NEA_NEAnimationsLoader_playerTransformer;
     private static Class<?> SW_ClientEventHandler;
     private static Field SW_ClientEventHandler_zoomTime;
+    private static Class<?> SBW_VehicleEntity;
 
     public static void initialize(PlatformHelper platformHelper) {
         CompatibilityHelper.platformHelper = platformHelper;
@@ -46,7 +48,9 @@ public class CompatibilityHelper {
         if(isModLoaded("superbwarfare")) try{
             SW_ClientEventHandler = Class.forName("com.atsuishio.superbwarfare.event.ClientEventHandler");
             SW_ClientEventHandler_zoomTime = SW_ClientEventHandler.getDeclaredField("zoomTime");
+            SBW_VehicleEntity = Class.forName("com.atsuishio.superbwarfare.entity.vehicle.base.VehicleEntity");
             DisableHelper.MAIN_FEATURE.registerOrInBinding(player -> CompatibilityHelper.SW_gunsIsZooming());
+            DisableHelper.MAIN_FEATURE.registerOrInBinding(CompatibilityHelper::SBW_isDrivingVehicle);
         } catch (Exception e) {
             RealCamera.LOGGER.warn("SuperbWarfare is not loaded correctly: [{}] {}", e.getClass().getName(), e.getMessage());
         }
@@ -58,6 +62,16 @@ public class CompatibilityHelper {
             return zoomTimeValue > 0;
         } catch (Exception e) {
             RealCamera.LOGGER.error("Failed to access SuperbWarfare's zoomTime field", e);
+            return false;
+        }
+    }
+
+    private static boolean SBW_isDrivingVehicle(Player player) {
+        try{
+            if (SBW_VehicleEntity.isAssignableFrom(player.getVehicle().getClass())) return true;
+            return false;
+        } catch (Exception e) {
+            RealCamera.LOGGER.error("Failed to access SuperbWarfare's isAssignableFrom method", e);
             return false;
         }
     }
