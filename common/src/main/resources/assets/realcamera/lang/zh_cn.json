@@ -64,7 +64,7 @@
   "config.tooltip.xtracr_realcamera.bindResultRetentionFrames": "在绑定失败后的数帧内，沿用上个成功的绑定结果",
   "config.tooltip.xtracr_realcamera.displacementSmoothFactor": "相机位移平滑系数，值越大越平滑",
   "config.tooltip.xtracr_realcamera.rotationSmoothFactor": "相机旋转平滑系数，值越大越平滑",
-  "config.tooltip.xtracr_realcamera.disableRenderItems": "支持用`*`匹配任意数量字符，比如用`minecraft:*sword`匹配所有剑",
+  "config.tooltip.xtracr_realcamera.disableRenderItems": "支持三种匹配方式：\n1. 通配符`*`匹配（如`minecraft:*sword`）\n2. 标签匹配以`#`开头（如`#minecraft:tools`）\n3. 直接物品ID（如`minecraft:diamond_sword`）",
 
   "message.xtracr_realcamera.bindingFailed": "[%s]: 绑定失败，请前往%s界面手动设置（键位：%s）",
 

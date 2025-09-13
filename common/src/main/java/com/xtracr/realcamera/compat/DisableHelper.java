@@ -34,7 +34,7 @@ public class DisableHelper {
             String mainHand = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem()).toString();
             String offHand = BuiltInRegistries.ITEM.getKey(player.getOffhandItem().getItem()).toString();
             for (String item : ConfigFile.config().getDisableMainFeatureItems())
-                if (simpleWildcardMatch(mainHand, item) || simpleWildcardMatch(offHand, item))
+                if (matchesItemPattern(mainHand, item) || matchesItemPattern(offHand, item))
                     return true;
             return false;
         });
@@ -42,7 +42,7 @@ public class DisableHelper {
             String mainHand = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem()).toString();
             String offHand = BuiltInRegistries.ITEM.getKey(player.getOffhandItem().getItem()).toString();
             for (String item : ConfigFile.config().getDisableRenderItems())
-                if (simpleWildcardMatch(mainHand, item) || simpleWildcardMatch(offHand, item))
+                if (matchesItemPattern(mainHand, item) || matchesItemPattern(offHand, item))
                     return true;
             return false;
         });
@@ -68,7 +68,7 @@ public class DisableHelper {
         entries.get(name).registerOrInBinding(predicate::test);
     }
 
-    public static boolean simpleWildcardMatch(String text, String pattern) {
+    public static boolean matchesItemPattern(String text, String pattern) {
         if (pattern.startsWith("#")) {
             String tagId = pattern.substring(1);
             TagKey<Item> itemTag = TagKey.create(BuiltInRegistries.ITEM.key(), ResourceLocation.parse(tagId));
