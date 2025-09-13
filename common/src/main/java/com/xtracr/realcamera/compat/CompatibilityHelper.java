@@ -14,6 +14,8 @@ public class CompatibilityHelper {
     private static Method NEA_playerTransformer_setDeltaTick;
     private static Field NEA_NEAnimationsLoader_INSTANCE;
     private static Field NEA_NEAnimationsLoader_playerTransformer;
+    private static Class<?> SW_ClientEventHandler;
+    private static Field SW_ClientEventHandler_zoomTime;
 
     public static void initialize(PlatformHelper platformHelper) {
         CompatibilityHelper.platformHelper = platformHelper;
@@ -40,6 +42,23 @@ public class CompatibilityHelper {
             NEA_NEAnimationsLoader_playerTransformer = NEA_NEAnimationsLoader.getDeclaredField("playerTransformer");
         } catch (Exception e) {
             RealCamera.LOGGER.warn("Compatibility with Not Enough Animations is outdated: [{}] {}", e.getClass().getName(), e.getMessage());
+        }
+        if(isModLoaded("superbwarfare")) try{
+            SW_ClientEventHandler = Class.forName("com.atsuishio.superbwarfare.event.ClientEventHandler");
+            SW_ClientEventHandler_zoomTime = SW_ClientEventHandler.getDeclaredField("zoomTime");
+            DisableHelper.MAIN_FEATURE.registerOrInBinding(player -> CompatibilityHelper.SW_gunsIsZooming());
+        } catch (Exception e) {
+            RealCamera.LOGGER.warn("SuperbWarfare is not loaded correctly: [{}] {}", e.getClass().getName(), e.getMessage());
+        }
+    }
+
+    private static boolean SW_gunsIsZooming(){
+        try {
+            double zoomTimeValue = SW_ClientEventHandler_zoomTime.getDouble(null);
+            return zoomTimeValue > 0;
+        } catch (Exception e) {
+            RealCamera.LOGGER.error("Failed to access SuperbWarfare's zoomTime field", e);
+            return false;
         }
     }
 
