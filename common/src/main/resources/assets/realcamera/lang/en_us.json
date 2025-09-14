@@ -64,7 +64,7 @@
   "config.tooltip.xtracr_realcamera.bindResultRetentionFrames": "For several frames after the binding failure, continue to use the previous successful binding result",
   "config.tooltip.xtracr_realcamera.displacementSmoothFactor": "Smooth factor of camera displacement, the higher the value, the smoother the movement",
   "config.tooltip.xtracr_realcamera.rotationSmoothFactor": "Smooth factor of camera rotation, the higher the value, the smoother the movement",
-  "config.tooltip.xtracr_realcamera.disableRenderItems": "Support using `*` to match any number of characters, for example `minecraft:*sword` matches all swords",
+  "config.tooltip.xtracr_realcamera.disableRenderItems": "Three matching methods are supported:\n1. Wildcard `*` matching (e.g., `minecraft:*sword`)\n2. Tag matching (starts with `#`, e.g., `#minecraft:tools`)\n3. Direct item ID (e.g., `minecraft:diamond_sword`)",
 
   "message.xtracr_realcamera.bindingFailed": "[%s]: Binding failed, please go to the %s screen and configure manually (Key: %s)",
 

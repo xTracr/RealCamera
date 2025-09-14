@@ -23,6 +23,7 @@ public class YSMCompat {
     private static final Map<BindTarget, BindResult> resultMap = new HashMap<>();
     private static final TransformedVertexRecorder[] transformedRecorders = new TransformedVertexRecorder[4];
     private static BindResult bindResult = BindResult.EMPTY;
+    private static boolean allCached = false;
 
     static  {
         final float pitch = 1.9106332f, yaw = 2.0943951f;
@@ -33,31 +34,33 @@ public class YSMCompat {
     }
 
     public static void register() {
-        RealCameraAPI.registerFunction(YSMCompat::computeCamera);
+        RealCameraAPI.registerFunction(-100, YSMCompat::computeBindResult);
     }
 
-    private static BindResult computeCamera(Minecraft client, float deltaTick) {
+    private static BindResult computeBindResult(Minecraft client, float deltaTick) {
         resultMap.clear();
         bindResult = BindResult.EMPTY;
+        allCached = true;
         Entity entity = client.getCameraEntity();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         PoseStack poseStack = new PoseStack();
         for (TransformedVertexRecorder transformedRecorder : transformedRecorders) {
             poseStack.pushPose();
             poseStack.mulPose(transformedRecorder.matrix4f.invert(new Matrix4f()));
-            MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl(transformedRecorder::computeBindResultInCache);
+            MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
             dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack, catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
+            catcher.endCatching(transformedRecorder::computeBindResultInCache);
             poseStack.popPose();
-            catcher.endCatching();
             if (bindResult.available()) return bindResult;
         }
+        if (allCached) return BindResult.EMPTY;
         for (TransformedVertexRecorder transformedRecorder : transformedRecorders) {
             poseStack.pushPose();
             poseStack.mulPose(transformedRecorder.matrix4f.invert(new Matrix4f()));
-            MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl(transformedRecorder::computeBindResult);
+            MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
             dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack, catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
+            catcher.endCatching(transformedRecorder::computeBindResult);
             poseStack.popPose();
-            catcher.endCatching();
             if (bindResult.available()) return bindResult;
         }
         return BindResult.EMPTY;
@@ -79,9 +82,13 @@ public class YSMCompat {
                 BindResult result = resultMap.computeIfAbsent(target, k -> new BindResult(target, false));
                 if (!builtBuffer.textureId().contains(result.target.textureId())) continue;
                 BindTarget.TargetConfig config = result.target.targetConfig();
-                VertexData.UV posUV = result.getPosition() == Vec3.ZERO ? new VertexData.UV(config.posU(), config.posV()) : null;
-                VertexData.UV forwardUV = result.getForward() == Vec3.ZERO ? new VertexData.UV(config.forwardU(), config.forwardV()) : null;
-                VertexData.UV upwardUV = result.getUpward() == Vec3.ZERO ? new VertexData.UV(config.upwardU(), config.upwardV()) : null;
+                VertexData.UV posUV = new VertexData.UV(config.posU(), config.posV());
+                VertexData.UV forwardUV = new VertexData.UV(config.forwardU(), config.forwardV());
+                VertexData.UV upwardUV = new VertexData.UV(config.upwardU(), config.upwardV());
+                if (builtBuffer.anyNotCached(new VertexData.UV[]{posUV, forwardUV, upwardUV})) allCached = false;
+                if (result.getPosition() != Vec3.ZERO) posUV = null;
+                if (result.getForward() != Vec3.ZERO) forwardUV = null;
+                if (result.getUpward() != Vec3.ZERO) upwardUV = null;
                 VertexData[][] primitives = builtBuffer.findPrimitivesInCache(new VertexData.UV[]{posUV, forwardUV, upwardUV});
                 if (primitives[0] != null) result.setPosition(new Vec3(VertexData.position(primitives[0], config.posU(), config.posV()).toVector3f().mulPosition(matrix4f)));
                 if (primitives[1] != null) result.setForward(new Vec3(VertexData.normal(primitives[1]).toVector3f().mul(matrix3f)));

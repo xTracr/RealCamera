@@ -20,7 +20,7 @@ import org.joml.Vector4f;
 
 public class LegacyBindingMode {
     public static void register() {
-        RealCameraAPI.registerFunction(LegacyBindingMode::computeBindResult);
+        RealCameraAPI.registerFunction(100, LegacyBindingMode::computeBindResult);
     }
 
     private static BindResult computeBindResult(Minecraft client, float deltaTick) {
@@ -98,7 +98,7 @@ public class LegacyBindingMode {
         playerModel.head.translateAndRotate(poseStack);
 
         Vector4f offset = poseStack.last().pose().transform(new Vector4f(0, -0.125f, -0.2f, 1.0f));
-        BindResult result = new BindResult("LEGACY_MODE");
+        BindResult result = BindResult.getOrCreate("LEGACY_MODE");
         result.setPosition(new Vec3(offset.x(), offset.y(), offset.z()));
         poseStack.scale(1f, -1f, -1f);
         result.setForward(new Vec3(poseStack.last().normal().getColumn(2, new Vector3f())));

@@ -2,6 +2,7 @@ package com.xtracr.realcamera.util;
 
 
 import com.mojang.blaze3d.vertex.MeshData;
+import com.xtracr.realcamera.util.VertexData.UV;
 import net.minecraft.client.renderer.RenderType;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,18 +13,27 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public record BuiltIterableBuffer(RenderType renderType, String textureId, IterableVertexBuffer vertexBuffer) {
-    private static final Pattern textureIdPattern = Pattern.compile("texture\\[Optional\\[(.*?)]");
-    private static final Map<RenderType, Map<VertexData.UV, float[]>> FIND_PRIMITIVE_CACHE = new HashMap<>();
+    private static final Pattern TEXTURE_ID_PATTERN = Pattern.compile("texture\\[Optional\\[(.*?)]");
+    private static final Map<RenderType, Map<UV, float[]>> FIND_PRIMITIVE_CACHE = new HashMap<>();
 
     public static BuiltIterableBuffer buildFrom(RenderType renderType, MeshData meshData) {
         String renderTypeName = renderType.toString();
-        Matcher matcher = textureIdPattern.matcher(renderTypeName);
+        Matcher matcher = TEXTURE_ID_PATTERN.matcher(renderTypeName);
         String textureId = matcher.find() ? matcher.group(1) : renderTypeName;
         return new BuiltIterableBuffer(renderType, textureId, new IterableVertexBuffer(meshData));
     }
 
-    public VertexData[] @Nullable [] findPrimitivesInCache(VertexData.UV[] uvs) {
-        Map<VertexData.UV, float[]> cache = FIND_PRIMITIVE_CACHE.get(renderType);
+    public boolean anyNotCached(UV[] uvs) {
+        Map<UV, float[]> cache = FIND_PRIMITIVE_CACHE.get(renderType);
+        if (cache == null) return true;
+        for (UV uv : uvs) {
+            if (!cache.containsKey(uv)) return true;
+        }
+        return false;
+    }
+
+    public VertexData[] @Nullable [] findPrimitivesInCache(UV[] uvs) {
+        Map<UV, float[]> cache = FIND_PRIMITIVE_CACHE.get(renderType);
         int length = renderType.mode().primitiveLength, uvsLength = uvs.length;
         VertexData[][] primitives = new VertexData[uvsLength][];
         if (cache == null) return primitives;
@@ -34,7 +44,7 @@ public record BuiltIterableBuffer(RenderType renderType, String textureId, Itera
             if (uvCacheArray[i] != null) allNull = false;
         }
         if (allNull) return primitives;
-        vertexBuffer.primitiveStream().filter(primitive -> {
+        vertexBuffer.primitiveStream().anyMatch(primitive -> {
             float[] uvCache;
             boolean allFound = true;
             cacheFor:
@@ -51,25 +61,25 @@ public record BuiltIterableBuffer(RenderType renderType, String textureId, Itera
                 primitives[i] = VertexData.asImmutable(primitive);
             }
             return allFound;
-        }).findAny();
+        });
         return primitives;
     }
 
-    public VertexData[] @Nullable [] findPrimitives(VertexData.UV[] uvs) {
+    public VertexData[] @Nullable [] findPrimitives(UV[] uvs) {
         final int resolution = 1000000;
         int length = renderType.mode().primitiveLength, uvsLength = uvs.length;
         int[] us = new int[length], vs = new int[length];
         VertexData[][] primitives = new VertexData[uvsLength][];
-        vertexBuffer.primitiveStream().filter(primitive -> {
+        vertexBuffer.primitiveStream().anyMatch(primitive -> {
             for (int i = 0; i < length; i++) {
                 us[i] = (int) (resolution * primitive[i].u());
                 vs[i] = (int) (resolution * primitive[i].v());
             }
             Polygon polygon = new Polygon(us, vs, length);
             boolean allFound = true;
-            for (int i = 0; i < uvsLength; i++){
+            for (int i = 0; i < uvsLength; i++) {
                 if (primitives[i] != null) continue;
-                VertexData.UV uv = uvs[i];
+                UV uv = uvs[i];
                 if (uv == null) continue;
                 if (!polygon.contains(resolution * uv.u(), resolution * uv.v())) {
                     allFound = false;
@@ -84,7 +94,7 @@ public record BuiltIterableBuffer(RenderType renderType, String textureId, Itera
                 primitives[i] = VertexData.asImmutable(primitive);
             }
             return allFound;
-        }).findAny();
+        });
         return primitives;
     }
 }
