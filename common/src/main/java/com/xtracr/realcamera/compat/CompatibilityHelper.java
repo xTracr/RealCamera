@@ -5,6 +5,7 @@ import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.mixin.accessor.CameraAccessor;
 import net.minecraft.client.Camera;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 
 import java.lang.reflect.Field;
@@ -15,8 +16,7 @@ public class CompatibilityHelper {
     private static Method NEA_playerTransformer_setDeltaTick;
     private static Field NEA_NEAnimationsLoader_INSTANCE;
     private static Field NEA_NEAnimationsLoader_playerTransformer;
-    private static Class<?> SW_ClientEventHandler;
-    private static Field SW_ClientEventHandler_zoomTime;
+    private static Field SBW_ClientEventHandler_zoomTime;
     private static Class<?> SBW_VehicleEntity;
 
     public static void initialize(PlatformHelper platformHelper) {
@@ -29,7 +29,7 @@ public class CompatibilityHelper {
             DisableHelper.MAIN_FEATURE.registerOr(player -> {
                 try {
                     return (boolean) FC_Freecam_isEnabled.invoke(null);
-                } catch (Exception e) {
+                } catch (Exception ignored) {
                     return false;
                 }
             });
@@ -45,33 +45,30 @@ public class CompatibilityHelper {
         } catch (Exception e) {
             RealCamera.LOGGER.warn("Compatibility with Not Enough Animations is outdated: [{}] {}", e.getClass().getName(), e.getMessage());
         }
-        if(isModLoaded("superbwarfare")) try{
-            SW_ClientEventHandler = Class.forName("com.atsuishio.superbwarfare.event.ClientEventHandler");
-            SW_ClientEventHandler_zoomTime = SW_ClientEventHandler.getDeclaredField("zoomTime");
+        if (isModLoaded("superbwarfare")) try {
+            Class<?> SBW_ClientEventHandler = Class.forName("com.atsuishio.superbwarfare.event.ClientEventHandler");
+            SBW_ClientEventHandler_zoomTime = SBW_ClientEventHandler.getDeclaredField("zoomTime");
             SBW_VehicleEntity = Class.forName("com.atsuishio.superbwarfare.entity.vehicle.base.VehicleEntity");
-            DisableHelper.MAIN_FEATURE.registerOrInBinding(player -> CompatibilityHelper.SW_gunsIsZooming());
+            DisableHelper.MAIN_FEATURE.registerOrInBinding(player -> CompatibilityHelper.SBW_gunsIsZooming());
             DisableHelper.MAIN_FEATURE.registerOrInBinding(CompatibilityHelper::SBW_isDrivingVehicle);
         } catch (Exception e) {
-            RealCamera.LOGGER.warn("SuperbWarfare is not loaded correctly: [{}] {}", e.getClass().getName(), e.getMessage());
+            RealCamera.LOGGER.warn("Compatibility with SuperbWarfare is outdated: [{}] {}", e.getClass().getName(), e.getMessage());
         }
     }
 
-    private static boolean SW_gunsIsZooming(){
+    private static boolean SBW_gunsIsZooming() {
         try {
-            double zoomTimeValue = SW_ClientEventHandler_zoomTime.getDouble(null);
-            return zoomTimeValue > 0;
-        } catch (Exception e) {
-            RealCamera.LOGGER.error("Failed to access SuperbWarfare's zoomTime field", e);
+            return SBW_ClientEventHandler_zoomTime.getDouble(null) > 0;
+        } catch (Exception ignored) {
             return false;
         }
     }
 
     private static boolean SBW_isDrivingVehicle(Player player) {
-        try{
-            if (SBW_VehicleEntity.isAssignableFrom(player.getVehicle().getClass())) return true;
-            return false;
-        } catch (Exception e) {
-            RealCamera.LOGGER.error("Failed to access SuperbWarfare's isAssignableFrom method", e);
+        try {
+            Entity vehicle = player.getVehicle();
+            return vehicle != null && SBW_VehicleEntity.isAssignableFrom(vehicle.getClass());
+        } catch (Exception ignored) {
             return false;
         }
     }
@@ -92,6 +89,6 @@ public class CompatibilityHelper {
     }
 
     public static boolean isModLoaded(String modId) {
-        return platformHelper != null && platformHelper.isModLoaded(modId);
+        return platformHelper.isModLoaded(modId);
     }
 }

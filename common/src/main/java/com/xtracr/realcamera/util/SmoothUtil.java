@@ -19,7 +19,7 @@ public class SmoothUtil {
     }
 
     public static Quaterniond smoothRotation(Quaterniond rotation) {
-        lastRotation.slerp(rotation, 1 - (float) ConfigFile.config().getRotationSmoothFactor());
+        lastRotation.slerp(rotation, 1 - ConfigFile.config().getRotationSmoothFactor());
         return lastRotation;
     }
 }

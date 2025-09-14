@@ -89,21 +89,21 @@ public class RealCameraCore {
             catcher.endCatching(RealCameraCore::computeBindResult);
         }
         entity.setInvisible(invisible);
-        if (!newResult.available()) {
+        if (newResult.available()) {
+            failureFrames = 0;
+            lastResult = newResult.computeCamera();
+        } else {
             failureFrames++;
             Entity player = client.player;
             int retentionFrames = ConfigFile.config().getBindResultRetentionFrames();
             if (!ConfigFile.config().hideBindingFailureMessage() && failureFrames == retentionFrames + 1 && player != null) {
-                player.sendSystemMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE(), KeyBindings.MODEL_VIEW_SCREEN.getTranslatedKeyMessage()));
+                player.sendSystemMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE(), KeyMappings.MODEL_VIEW_SCREEN.getTranslatedKeyMessage()));
             }
             if (!lastResult.available() || failureFrames > retentionFrames) {
                 lastResult = BindResult.EMPTY;
                 active = false;
                 return;
             }
-        } else {
-            failureFrames = 0;
-            lastResult = newResult.computeCamera();
         }
         eulerAngle = MathUtil.getEulerAngleYXZ(SmoothUtil.smoothRotation(lastResult.getRotation())).scale(Math.toDegrees(1));
     }
@@ -142,7 +142,7 @@ public class RealCameraCore {
                     for (DisableConfig config : disableConfigs) {
                         if (config.test(vertex)) continue primitiveFor;
                     }
-                    VertexData.renderVertices(primitive, buffer);
+                    for (VertexData vertexData : primitive) vertexData.render(buffer);
                     break;
                 }
             });

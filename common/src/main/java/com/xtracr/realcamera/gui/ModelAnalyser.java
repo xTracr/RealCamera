@@ -9,7 +9,6 @@ import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.BindTarget.DisableConfig;
 import com.xtracr.realcamera.config.BindTarget.TargetConfig;
 import com.xtracr.realcamera.util.BuiltIterableBuffer;
-import com.xtracr.realcamera.util.IterableVertexBuffer;
 import com.xtracr.realcamera.util.MultiVertexCatcher;
 import com.xtracr.realcamera.util.VertexData;
 import net.minecraft.client.Minecraft;
@@ -36,12 +35,12 @@ public class ModelAnalyser {
     public final List<VertexData[]> focusedPolyhedron = new ArrayList<>();
     public final PoseStack modelPose = new PoseStack(), texturePose = new PoseStack();
     private final List<BuiltRecord> modelRecords = new ArrayList<>(), textureRecords = new ArrayList<>();
-    private VertexData[][] bindPrimitives = new VertexData[3][];
+    private VertexData[][] targetPrimitives = new VertexData[3][];
     private BindResult bindResult = BindResult.EMPTY;
     private BindTarget target = BindTarget.EMPTY;
     @Nullable
     private BuiltRecord focusedRecord, currentRecord;
-    private int modelScale;
+    private double modelScale;
 
     private static boolean haveCommonVertex(VertexData[] p1, List<VertexData[]> primitives) {
         final float precision = 1e-5f;
@@ -69,7 +68,7 @@ public class ModelAnalyser {
         focusedPolyhedron.clear();
         modelPose.setIdentity();
         texturePose.setIdentity();
-        bindPrimitives[0] = bindPrimitives[1] = bindPrimitives[2] = null;
+        targetPrimitives[0] = targetPrimitives[1] = targetPrimitives[2] = null;
         bindResult = BindResult.EMPTY;
         focusedRecord = currentRecord = null;
         target.offsets().setScale(target.offsets().getScale() * modelScale);
@@ -155,17 +154,14 @@ public class ModelAnalyser {
     public void computeFocusedOnModel(int minX, int minY, int maxX, int maxY) {
         if (focusedRecord != null && !focusedPolyhedron.isEmpty()) return;
         List<Object[]> sortByZ = new ArrayList<>();
-        float maxZ;
         for (BuiltRecord record : modelRecords) {
             if (UNFOCUSABLE_RENDER_TYPES.contains(record.renderType())) continue;
             VertexData[][] primitives = record.primitives();
-            int x, y;
             primitiveFor:
             for (VertexData[] primitive : primitives) {
-                maxZ = primitive[0].z();
+                float maxZ = primitive[0].z();
                 for (VertexData vertex : primitive) {
-                    x = (int) vertex.x();
-                    y = (int) vertex.y();
+                    int x = (int) vertex.x(), y = (int) vertex.y();
                     if (x < minX || y < minY || x > maxX || y > maxY) continue primitiveFor;
                     if (vertex.z() > maxZ) maxZ = vertex.z();
                 }
@@ -211,11 +207,10 @@ public class ModelAnalyser {
         List<Integer> indexes = new ArrayList<>(List.of(focusedIndex));
         final int primitiveCount = primitives.length;
         boolean added;
-        VertexData[] primitive;
         do {
             added = false;
             for (int i = 0; i < primitiveCount; i++) {
-                primitive = primitives[i];
+                VertexData[] primitive = primitives[i];
                 if (indexes.contains(i) | !haveCommonVertex(primitive, polyhedron)) continue;
                 polyhedron.add(primitive);
                 indexes.add(i);
@@ -235,21 +230,21 @@ public class ModelAnalyser {
     }
 
     public void drawCameraDirections(GuiGraphics graphics) {
-        if (bindPrimitives[0] == null || bindPrimitives[1] == null || bindPrimitives[2] == null) return;
+        if (targetPrimitives[0] == null || targetPrimitives[1] == null || targetPrimitives[2] == null) return;
         Vec3 start = bindResult.getPosition();
         Matrix3f normal = bindResult.getRotation();
         if (normal.m00() == 0 && normal.m11() == 0 && normal.m22() == 0) return;
-        drawNormal(graphics, start, new Vec3(normal.m20(), normal.m21(), normal.m22()), modelScale / 3, forwardArgb);
-        drawNormal(graphics, start, new Vec3(normal.m10(), normal.m11(), normal.m12()), modelScale / 6, upwardArgb);
-        drawNormal(graphics, start, new Vec3(normal.m00(), normal.m01(), normal.m02()), modelScale / 6, leftArgb);
+        GUIHelper.renderVector(graphics, start, new Vec3(normal.m20(), normal.m21(), normal.m22()).scale(modelScale / 3), z2, forwardArgb);
+        GUIHelper.renderVector(graphics, start, new Vec3(normal.m10(), normal.m11(), normal.m12()).scale(modelScale / 6), z2, upwardArgb);
+        GUIHelper.renderVector(graphics, start, new Vec3(normal.m00(), normal.m01(), normal.m02()).scale(modelScale / 6), z2, leftArgb);
     }
 
     public void drawBindTarget(GuiGraphics graphics) {
         if (currentRecord == null) return;
         TargetConfig config = target.targetConfig();
-        if (bindPrimitives[0] != null) drawPrimitive(graphics, bindPrimitives[0], z1, planeArgb);
-        if (bindPrimitives[1] != null) drawNormal(graphics, VertexData.position(bindPrimitives[1], config.forwardU(), config.forwardV()), VertexData.normal(bindPrimitives[1]), -modelScale / 2, forwardArgb);
-        if (bindPrimitives[2] != null) drawNormal(graphics, VertexData.position(bindPrimitives[2], config.upwardU(), config.upwardV()), VertexData.normal(bindPrimitives[2]), -modelScale / 2, upwardArgb);
+        if (targetPrimitives[0] != null) GUIHelper.renderPolygon(graphics, targetPrimitives[0], z1, planeArgb);
+        if (targetPrimitives[1] != null) GUIHelper.renderVector(graphics, VertexData.position(targetPrimitives[1], config.forwardU(), config.forwardV()), VertexData.normal(targetPrimitives[1]).scale(-modelScale / 2), z2, forwardArgb);
+        if (targetPrimitives[2] != null) GUIHelper.renderVector(graphics, VertexData.position(targetPrimitives[2], config.upwardU(), config.upwardV()), VertexData.normal(targetPrimitives[2]).scale(-modelScale / 2), z2, upwardArgb);
     }
 
     public void drawFocusedInModelArea(GuiGraphics graphics) {
@@ -257,8 +252,8 @@ public class ModelAnalyser {
         VertexData[] focused = focusedPolyhedron.getFirst();
         VertexData[] reversed = new VertexData[focused.length];
         for (int i = 0; i < focused.length; i++) reversed[i] = focused[focused.length - 1 - i];
-        drawPrimitive(graphics, reversed, z1, focusedArgb);
-        focusedPolyhedron.forEach(primitive -> drawPrimitive(graphics, primitive, z1, focusedArgb));
+        GUIHelper.renderPolygon(graphics, reversed, z1, focusedArgb);
+        focusedPolyhedron.forEach(primitive -> GUIHelper.renderPolygon(graphics, primitive, z1, focusedArgb));
     }
 
     public void drawFocusedInTextureArea(GuiGraphics graphics) {
@@ -266,7 +261,6 @@ public class ModelAnalyser {
         int length = 0;
         VertexData[] transformed = new VertexData[0], reversed = new VertexData[0];
         Vector3f position = new Vector3f();
-        VertexData vertex;
         for (VertexData[] primitive : focusedPolyhedron) {
             if (length != primitive.length) {
                 length = primitive.length;
@@ -274,12 +268,12 @@ public class ModelAnalyser {
                 reversed = new VertexData[length];
             }
             for (int i = 0; i < length; i++) {
-                vertex = primitive[i];
+                VertexData vertex = primitive[i];
                 position.set(vertex.u(), vertex.v(), 0).mulPosition(positionMatrix);
                 transformed[i] = reversed[length - 1 - i] = VertexData.immutable(position.x(), position.y(), 0, vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
             }
-            drawPrimitive(graphics, transformed, 0, focusedArgb);
-            drawPrimitive(graphics, reversed, 0, focusedArgb);
+            GUIHelper.renderPolygon(graphics, transformed, 0, focusedArgb);
+            GUIHelper.renderPolygon(graphics, reversed, 0, focusedArgb);
         }
     }
 
@@ -298,11 +292,11 @@ public class ModelAnalyser {
         modelRecords.forEach(record -> {
             VertexConsumer buffer = graphics.bufferSource().getBuffer(record.renderType());
             if (!record.renderType().canConsolidateConsecutiveGeometry()) {
-                VertexData.renderVertices(record.vertices(), buffer, positionMatrix, normalMatrix);
+                for (VertexData vertex : record.vertices()) vertex.render(buffer, positionMatrix, normalMatrix);
                 return;
             }
             for (VertexData[] primitive : record.primitives()) {
-                VertexData.renderVertices(primitive, buffer, positionMatrix, normalMatrix);
+                for (VertexData vertex : primitive) vertex.render(buffer, positionMatrix, normalMatrix);
             }
         });
         poseStack.popPose();
@@ -334,12 +328,7 @@ public class ModelAnalyser {
     }
 
     public void computeBindResult(BuiltIterableBuffer builtBuffer) {
-        IterableVertexBuffer vertexBuffer = builtBuffer.vertexBuffer();
-        int vertexCount = vertexBuffer.vertexCount;
-        VertexData[] vertices = new VertexData[vertexCount];
-        for (int i = 0; i < vertexCount; i++) {
-            vertices[i] = vertexBuffer.readVertexAt(i).asImmutable();
-        }
+        VertexData[] vertices = builtBuffer.vertexBuffer().stream().map(VertexData::asImmutable).toArray(VertexData[]::new);
         VertexFormat.Mode drawMode = builtBuffer.renderType().mode();
         final int primitiveLength = drawMode.primitiveLength, primitiveStride = drawMode.primitiveStride;
         final int primitiveCount = (vertices.length - primitiveLength) / primitiveStride + 1;
@@ -355,38 +344,23 @@ public class ModelAnalyser {
         BindResult result = new BindResult(target, true);
         BindTarget.TargetConfig config = target.targetConfig();
         VertexData.UV[] uvs = {new VertexData.UV(config.posU(), config.posV()), new VertexData.UV(config.forwardU(), config.forwardV()), new VertexData.UV(config.upwardU(), config.upwardV())};
-        bindPrimitives = builtBuffer.findPrimitivesInCache(uvs);
+        targetPrimitives = builtBuffer.findPrimitivesInCache(uvs);
         if (builtBuffer.anyNotCached(uvs)) {
-            for (int i = 0; i < bindPrimitives.length; i++) {
-                if (bindPrimitives[i] != null) uvs[i] = null;
+            for (int i = 0; i < targetPrimitives.length; i++) {
+                if (targetPrimitives[i] != null) uvs[i] = null;
             }
             VertexData[][] newPrimitives = builtBuffer.findPrimitives(uvs);
-            for (int i = 0; i < bindPrimitives.length; i++) {
-                if (newPrimitives[i] != null) bindPrimitives[i] = newPrimitives[i];
+            for (int i = 0; i < targetPrimitives.length; i++) {
+                if (newPrimitives[i] != null) targetPrimitives[i] = newPrimitives[i];
             }
         }
-        if (bindPrimitives[0] != null) result.setPosition(VertexData.position(bindPrimitives[0], config.posU(), config.posV()));
-        if (bindPrimitives[1] != null) result.setForward(VertexData.normal(bindPrimitives[1]).scale(-1));
-        if (bindPrimitives[2] != null) result.setUpward(VertexData.normal(bindPrimitives[2]).scale(-1));
+        if (targetPrimitives[0] != null) result.setPosition(VertexData.position(targetPrimitives[0], config.posU(), config.posV()));
+        if (targetPrimitives[1] != null) result.setForward(VertexData.normal(targetPrimitives[1]).scale(-1));
+        if (targetPrimitives[2] != null) result.setUpward(VertexData.normal(targetPrimitives[2]).scale(-1));
         if (result.weakAvailable()) {
             currentRecord = record;
             bindResult = result.computeCamera();
         }
-    }
-
-    private void drawPrimitive(GuiGraphics graphics, VertexData[] primitive, int z, int argb) {
-        VertexConsumer buffer = graphics.bufferSource().getBuffer(RenderType.gui());
-        for (VertexData vertex : primitive) buffer.addVertex(vertex.x(), vertex.y(), z).setColor(argb);
-        if (primitive.length == 3) buffer.addVertex(primitive[2].x(), primitive[2].y(), z).setColor(argb);
-        graphics.flush();
-    }
-
-    private void drawNormal(GuiGraphics graphics, Vec3 start, Vec3 normal, int length, int argb) {
-        Vec3 end = normal.scale(length).add(start);
-        VertexConsumer buffer = graphics.bufferSource().getBuffer(RenderType.lines());
-        buffer.addVertex((float) start.x(), (float) start.y(), z2).setColor(argb).setNormal((float) normal.x(), (float) normal.y(), (float) normal.z());
-        buffer.addVertex((float) end.x(), (float) end.y(), z2).setColor(argb).setNormal((float) normal.x(), (float) normal.y(), (float) normal.z());
-        graphics.flush();
     }
 
     private record BuiltRecord(RenderType renderType, String textureId, VertexData[] vertices, VertexData[][] primitives) { }

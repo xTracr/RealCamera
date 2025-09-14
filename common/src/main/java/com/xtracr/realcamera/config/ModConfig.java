@@ -1,5 +1,6 @@
 package com.xtracr.realcamera.config;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.xtracr.realcamera.RealCameraCore;
 import net.minecraft.util.Mth;
 
@@ -159,6 +160,10 @@ public class ModConfig {
     }
 
     // binding
+    public InputConstants.Key getScreenModifierKey() {
+        return InputConstants.getKey(binding.screenModifierKey);
+    }
+
     public boolean legacyBindingMode() {
         return binding.legacyBindingMode;
     }
@@ -273,6 +278,7 @@ public class ModConfig {
 
     public static class Binding {
         protected static final List<String> defaultDisableRenderItems = List.of("minecraft:filled_map");
+        public String screenModifierKey = InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_LALT).getName();
         public boolean legacyBindingMode = false;
         public boolean adjustOffset = true;
         public boolean hideFailureMessage = false;
@@ -289,8 +295,13 @@ public class ModConfig {
         public List<BindTarget> targetList = new ArrayList<>(BindTarget.defaultTargets);
 
         private void clamp() {
+            try {
+                InputConstants.getKey(screenModifierKey);
+            } catch (Exception e) {
+                screenModifierKey = InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_LALT).getName();
+            }
             swimOutTick = Mth.clamp(swimOutTick, 0, 40);
-            bindResultRetentionFrames = Mth.clamp(bindResultRetentionFrames, 0, 100);
+            bindResultRetentionFrames = Math.max(bindResultRetentionFrames, 0);
             displacementSmoothFactor = Mth.clamp(displacementSmoothFactor, 0.0, 1.0);
             rotationSmoothFactor = Mth.clamp(rotationSmoothFactor, 0.0, 1.0);
             if (disableMainFeatureItems == null) disableMainFeatureItems = List.of();

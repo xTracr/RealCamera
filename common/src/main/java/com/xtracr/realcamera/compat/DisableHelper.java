@@ -31,18 +31,18 @@ public class DisableHelper {
         MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().getBindingSwimOutTick()));
         MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().getClassicSwimOutTick()));
         MAIN_FEATURE.registerOrInBinding(player -> {
-            String mainHand = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem()).toString();
-            String offHand = BuiltInRegistries.ITEM.getKey(player.getOffhandItem().getItem()).toString();
-            for (String item : ConfigFile.config().getDisableMainFeatureItems())
-                if (matchesItemPattern(mainHand, item) || matchesItemPattern(offHand, item))
+            Item mainHand = player.getMainHandItem().getItem();
+            Item offHand = player.getMainHandItem().getItem();
+            for (String pattern : ConfigFile.config().getDisableMainFeatureItems())
+                if (matchesItemPattern(mainHand, pattern) || matchesItemPattern(offHand, pattern))
                     return true;
             return false;
         });
         RENDER_MODEL.registerOrInBinding(player -> {
-            String mainHand = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem()).toString();
-            String offHand = BuiltInRegistries.ITEM.getKey(player.getOffhandItem().getItem()).toString();
-            for (String item : ConfigFile.config().getDisableRenderItems())
-                if (matchesItemPattern(mainHand, item) || matchesItemPattern(offHand, item))
+            Item mainHand = player.getMainHandItem().getItem();
+            Item offHand = player.getMainHandItem().getItem();
+            for (String pattern : ConfigFile.config().getDisableMainFeatureItems())
+                if (matchesItemPattern(mainHand, pattern) || matchesItemPattern(offHand, pattern))
                     return true;
             return false;
         });
@@ -68,20 +68,25 @@ public class DisableHelper {
         entries.get(name).registerOrInBinding(predicate::test);
     }
 
-    public static boolean matchesItemPattern(String text, String pattern) {
+    public static boolean matchesItemPattern(Item item, String pattern) {
         if (pattern.startsWith("#")) {
             String tagId = pattern.substring(1);
             TagKey<Item> itemTag = TagKey.create(BuiltInRegistries.ITEM.key(), ResourceLocation.parse(tagId));
             return BuiltInRegistries.ITEM.getTag(itemTag)
                 .<Boolean>map(tag -> {
-                    ResourceLocation itemLocation = ResourceLocation.tryParse(text);
-                    if (itemLocation == null) return false;
+                    ResourceLocation itemLocation = BuiltInRegistries.ITEM.getKey(item);
                     ResourceKey<Item> itemKey = ResourceKey.create(BuiltInRegistries.ITEM.key(), itemLocation);
                     Optional<Holder.Reference<Item>> itemRef = BuiltInRegistries.ITEM.getHolder(itemKey);
-                    return itemRef.map(holderRef -> tag.contains(holderRef)).orElse(false);
+                    return itemRef.map(tag::contains).orElse(false);
                 })
                 .orElse(false);
         }
+        String itemId = BuiltInRegistries.ITEM.getKey(item).toString();
+        if (pattern.equals(itemId)) return true;
+        return simpleWildcardMatch(itemId, pattern);
+    }
+
+    public static boolean simpleWildcardMatch(String text, String pattern) {
         if (pattern.isEmpty()) return text.isEmpty();
         String[] parts = pattern.split("\\*+");
         if (parts.length == 0) return true;

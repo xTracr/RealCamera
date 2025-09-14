@@ -21,14 +21,6 @@ public interface VertexData {
         return immutable;
     }
 
-    static void renderVertices(VertexData[] vertices, VertexConsumer buffer, Matrix4f positionMatrix, Matrix3f normalMatrix) {
-        for (VertexData vertex : vertices) vertex.render(buffer, positionMatrix, normalMatrix);
-    }
-
-    static void renderVertices(VertexData[] vertices, VertexConsumer buffer) {
-        for (VertexData vertex : vertices) vertex.render(buffer);
-    }
-
     static Vec3 position(VertexData[] vertices, float u, float v) {
         if (vertices.length < 3) return vertices[0].position();
         float u0 = vertices[0].u(), v0 = vertices[0].v(), u1 = vertices[1].u(), v1 = vertices[1].v(), u2 = vertices[2].u(), v2 = vertices[2].v();
@@ -97,6 +89,20 @@ public interface VertexData {
         buffer.addVertex(x(), y(), z(), argb(), u(), v(), overlay(), light(), normalX(), normalY(), normalZ());
     }
 
+    record UV(float u, float v) {
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if ((!(o instanceof UV(float u1, float v1)))) return false;
+            return Float.compare(u, u1) == 0 && Float.compare(v, v1) == 0;
+        }
+
+        @Override
+        public int hashCode() {
+            return Float.hashCode(u) * 31 + Float.hashCode(v);
+        }
+    }
+
     record ImmutableVertex(float x, float y, float z, int argb, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) implements VertexData { }
 
     class MutableVertex implements VertexData {
@@ -161,20 +167,6 @@ public interface VertexData {
         @Override
         public float normalZ() {
             return normalZ;
-        }
-    }
-
-    record UV(float u, float v) {
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if ((!(o instanceof UV(float u1, float v1)))) return false;
-            return Float.compare(u, u1) == 0 && Float.compare(v, v1) == 0;
-        }
-
-        @Override
-        public int hashCode() {
-            return Float.hashCode(u) * 31 + Float.hashCode(v);
         }
     }
 }
