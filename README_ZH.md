@@ -82,7 +82,6 @@
   * [TaCZ]永恒枪械工坊：零 1.0.3版本及以下
   * Yes Steve Model（是，史蒂夫模型）（不能稳定兼容）
 
-
 * 模型模组与`Real Camera`兼容的必要条件（基于官方映射）：
 * 渲染时序兼容
   * `Real Camera`通过调用`EntityRenderDispatcher.render`公共方法进行`Minecraft.getCameraEntity`的渲染

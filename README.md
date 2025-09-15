@@ -15,7 +15,6 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 * Use F6 to toggle the feature on or off and other hotkeys to adjust the camera.
 * Configure these features in the Config Screen (Cloth Config required) and the Model View Screen (0.6+).
 
-
 ### Configuration (0.6+)
 
 * Theoretically, most mod models are supported, but need to be configured manually:
@@ -84,7 +83,6 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
   * Timeless and Classics Zero,version 1.0.3-
   * Yes Steve Model (Not stably compatible)
 
-
 * Model Mod Compatibility Requirements with `Real Camera` (Based on Official Mappings)：
 * Render Timing Compatibility
   * `Real Camera` renders `Minecraft.getCameraEntity` through the public method `EntityRenderDispatcher.render`
@@ -93,6 +91,6 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 * Vertex Data Acquisition
   * `Real Camera` obtains vertex data by overriding the `MultiBufferSource multiBufferSource` parameter in the `EntityRenderDispatcher.render` method
   * *Therefore*, mod implementations need to:
-    - Use only the **provided** `multiBufferSource` parameter when rendering `Minecraft.getCameraEntity`
-    - Avoid alternative approaches for obtaining or creating `MultiBufferSource` instances
-    - Ensure all vertex data ultimately passes through `VertexConsumer` objects acquired via `MultiBufferSource.getBuffer`
+    * Use only the **provided** `multiBufferSource` parameter when rendering `Minecraft.getCameraEntity`
+    * Avoid alternative approaches for obtaining or creating `MultiBufferSource` instances
+    * Ensure all vertex data ultimately passes through `VertexConsumer` objects acquired via `MultiBufferSource.getBuffer`

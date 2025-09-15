@@ -1,101 +1,96 @@
 package com.xtracr.realcamera.util;
 
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.ByteBufferBuilder;
+import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectSortedMaps;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
+import java.util.SequencedMap;
+import java.util.function.Consumer;
+
 public interface MultiVertexCatcher extends MultiBufferSource {
-    void sendVertices(VertexRecorder recorder);
+    static MultiVertexCatcher defaultImpl() {
+        return MeshCatcher.INSTANCE;
+    }
 
-    abstract class VertexCatcher implements VertexConsumer {
-        protected final RenderType renderType;
-        private float x, y, z, u, v, normalX, normalY, normalZ;
-        private int argb, overlay, light;
-        private boolean active;
+    void endCatching(Consumer<BuiltIterableBuffer> consumer);
 
-        protected VertexCatcher(RenderType renderType) {
-            this.renderType = renderType;
-        }
+    class MeshCatcher extends MultiBufferSource.BufferSource implements MultiVertexCatcher {
+        private static final MeshCatcher INSTANCE = new MeshCatcher();
+        private final SequencedMap<RenderType, ByteBufferBuilderPool> bufferPools = new Object2ObjectLinkedOpenHashMap<>();
+        private final SequencedMap<MeshData, RenderType> caughtMeshes = new Object2ObjectLinkedOpenHashMap<>();
 
-        protected void endVertex() {
-            if (!active) return;
-            addVertexInternal(x, y, z, argb, u, v, overlay, light, normalX, normalY, normalZ);
-            x = y = z = normalX = normalY = normalZ = 0;
-            u = v = overlay = light = argb = 0;
-            active = false;
-        }
-
-        protected abstract void addVertexInternal(float x, float y, float z, int argb, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ);
-
-        public RenderType renderType() {
-            return renderType;
+        protected MeshCatcher() {
+            super(new ByteBufferBuilder(0), Object2ObjectSortedMaps.emptyMap());
         }
 
         @Override
-        public @NotNull VertexConsumer addVertex(float x, float y, float z) {
-            endVertex();
-            active = true;
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            return this;
+        public @NotNull VertexConsumer getBuffer(RenderType renderType) {
+            BufferBuilder bufferBuilder = startedBuilders.get(renderType);
+            if (bufferBuilder != null) {
+                endBatch(renderType, bufferBuilder);
+            }
+            ByteBufferBuilderPool bufferPool = bufferPools.computeIfAbsent(renderType, type -> new ByteBufferBuilderPool(type.bufferSize()));
+            bufferBuilder = new BufferBuilder(bufferPool.getBuffer(), renderType.mode(), renderType.format());
+            startedBuilders.put(renderType, bufferBuilder);
+            return bufferBuilder;
         }
 
         @Override
-        public @NotNull VertexConsumer setColor(int red, int green, int blue, int alpha) {
-            argb = alpha << 24 | red << 16 | green << 8 | blue;
-            return this;
+        public void endCatching(Consumer<BuiltIterableBuffer> consumer) {
+            endBatch();
+            caughtMeshes.forEach((meshData, renderType) -> {
+                consumer.accept(BuiltIterableBuffer.buildFrom(renderType, meshData));
+                meshData.close();
+            });
+            caughtMeshes.clear();
+            bufferPools.values().forEach(ByteBufferBuilderPool::release);
         }
 
         @Override
-        public @NotNull VertexConsumer setUv(float u, float v) {
-            this.u = u;
-            this.v = v;
-            return this;
+        public void endBatch() {
+            for(RenderType renderType : bufferPools.keySet()) {
+                endBatch(renderType);
+            }
         }
 
         @Override
-        public @NotNull VertexConsumer setUv1(int u, int v) {
-            overlay = (short) u | (short) v << 16;
-            return this;
+        protected void endBatch(RenderType renderType, BufferBuilder bufferBuilder) {
+            MeshData meshData = bufferBuilder.build();
+            if (meshData != null) {
+                caughtMeshes.put(meshData, renderType);
+            }
         }
 
-        @Override
-        public @NotNull VertexConsumer setUv2(int u, int v) {
-            light = (short) u | (short) v << 16;
-            return this;
-        }
+        private static class ByteBufferBuilderPool {
+            private final int bufferSize;
+            private ByteBufferBuilder[] pool = new ByteBufferBuilder[0];
+            private int next = 0;
 
-        @Override
-        public @NotNull VertexConsumer setNormal(float x, float y, float z) {
-            normalX = x;
-            normalY = y;
-            normalZ = z;
-            return this;
-        }
+            public ByteBufferBuilderPool(int bufferSize) {
+                this.bufferSize = bufferSize;
+            }
 
-        @Override
-        public void addVertex(float x, float y, float z, int argb, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) {
-            addVertexInternal(x, y, z, argb, u, v, overlay, light, normalX, normalY, normalZ);
-        }
+            public ByteBufferBuilder getBuffer() {
+                ByteBufferBuilder byteBufferBuilder;
+                if (next < pool.length) {
+                    byteBufferBuilder = pool[next++];
+                } else {
+                    pool = Arrays.copyOf(pool, pool.length + 1);
+                    pool[next++] = byteBufferBuilder = new ByteBufferBuilder(bufferSize);
+                }
+                return byteBufferBuilder;
+            }
 
-        @Override
-        public @NotNull VertexConsumer setColor(int argb) {
-            this.argb = argb;
-            return this;
-        }
-
-        @Override
-        public @NotNull VertexConsumer setOverlay(int overlay) {
-            this.overlay = overlay;
-            return this;
-        }
-
-        @Override
-        public @NotNull VertexConsumer setLight(int light) {
-            this.light = light;
-            return this;
+            public void release() {
+                next = 0;
+            }
         }
     }
 }

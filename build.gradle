@@ -12,6 +12,7 @@ subprojects {
 
     loom {
         silentMojangMappingsLicense()
+        accessWidenerPath = project(":common").file("src/main/resources/realcamera.accesswidener")
     }
 
     dependencies {

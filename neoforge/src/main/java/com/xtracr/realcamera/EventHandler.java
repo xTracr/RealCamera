@@ -8,7 +8,7 @@ import net.neoforged.neoforge.client.event.FrameGraphSetupEvent;
 
 public class EventHandler {
     public static void onClientTick(ClientTickEvent.Post event) {
-        KeyBindings.handle(Minecraft.getInstance());
+        KeyMappings.handle(Minecraft.getInstance());
     }
 
     public static void onFrameGraphSetup(FrameGraphSetupEvent event) {

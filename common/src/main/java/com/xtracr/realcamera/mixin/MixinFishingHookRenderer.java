@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(FishingHookRenderer.class)
 public abstract class MixinFishingHookRenderer {
     @Redirect(method = "getPlayerHandPos", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/CameraType;isFirstPerson()Z"))
-    private boolean realcamera$atGetPlayerHandPos(CameraType cameraType, Player player) {
+    private boolean realcamera$redirectIsFirstPerson(CameraType cameraType, Player player) {
         if (DisableHelper.RENDER_HANDS.disabled(player)) return false;
         return cameraType.isFirstPerson();
     }

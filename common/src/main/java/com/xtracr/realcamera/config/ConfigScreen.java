@@ -1,5 +1,6 @@
 package com.xtracr.realcamera.config;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.xtracr.realcamera.util.LocUtil;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
@@ -41,7 +42,7 @@ public class ConfigScreen {
         general.addEntry(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("adjustStep"), config.adjustStep)
                 .setDefaultValue(0.01)
                 .setMin(0.0)
-                .setMax(ModConfig.MAX_DOUBLE)
+                .setMax(ModConfig.MAX_OFFSET_D)
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("adjustStep"))
                 .setSaveConsumer(d -> config.adjustStep = d)
                 .build());
@@ -77,40 +78,40 @@ public class ConfigScreen {
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("classicOffset"), LocUtil.CONFIG_TOOLTIP("classicOffset_n"));
         classicCameraOffset.add(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("cameraOffset", "X"), config.classic.cameraX)
                 .setDefaultValue(-0.5)
-                .setMin(ModConfig.MIN_DOUBLE)
-                .setMax(ModConfig.MAX_DOUBLE)
+                .setMin(ModConfig.MIN_OFFSET_D)
+                .setMax(ModConfig.MAX_OFFSET_D)
                 .setSaveConsumer(d -> config.classic.cameraX = d)
                 .build());
         classicCameraOffset.add(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("cameraOffset", "Y"), config.classic.cameraY)
                 .setDefaultValue(0.04)
-                .setMin(ModConfig.MIN_DOUBLE)
-                .setMax(ModConfig.MAX_DOUBLE)
+                .setMin(ModConfig.MIN_OFFSET_D)
+                .setMax(ModConfig.MAX_OFFSET_D)
                 .setSaveConsumer(d -> config.classic.cameraY = d)
                 .build());
         classicCameraOffset.add(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("cameraOffset", "Z"), config.classic.cameraZ)
                 .setDefaultValue(-0.15)
-                .setMin(ModConfig.MIN_DOUBLE)
-                .setMax(ModConfig.MAX_DOUBLE)
+                .setMin(ModConfig.MIN_OFFSET_D)
+                .setMax(ModConfig.MAX_OFFSET_D)
                 .setSaveConsumer(d -> config.classic.cameraZ = d)
                 .build());
         classic.addEntry(classicCameraOffset.build());
         SubCategoryBuilder classicCenterOffset = entryBuilder.startSubCategory(LocUtil.CONFIG_CATEGORY("centerOffset")).setTooltip(LocUtil.CONFIG_TOOLTIP("centerOffset"));
         classicCenterOffset.add(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("centerOffset", "X"), config.classic.centerX)
                 .setDefaultValue(0.0)
-                .setMin(ModConfig.MIN_DOUBLE)
-                .setMax(ModConfig.MAX_DOUBLE)
+                .setMin(ModConfig.MIN_OFFSET_D)
+                .setMax(ModConfig.MAX_OFFSET_D)
                 .setSaveConsumer(d -> config.classic.centerX = d)
                 .build());
         classicCenterOffset.add(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("centerOffset", "Y"), config.classic.centerY)
                 .setDefaultValue(0.0)
-                .setMin(ModConfig.MIN_DOUBLE)
-                .setMax(ModConfig.MAX_DOUBLE)
+                .setMin(ModConfig.MIN_OFFSET_D)
+                .setMax(ModConfig.MAX_OFFSET_D)
                 .setSaveConsumer(d -> config.classic.centerY = d)
                 .build());
         classicCenterOffset.add(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("centerOffset", "Z"), config.classic.centerZ)
                 .setDefaultValue(0.0)
-                .setMin(ModConfig.MIN_DOUBLE)
-                .setMax(ModConfig.MAX_DOUBLE)
+                .setMin(ModConfig.MIN_OFFSET_D)
+                .setMax(ModConfig.MAX_OFFSET_D)
                 .setSaveConsumer(d -> config.classic.centerZ = d)
                 .build());
         classic.addEntry(classicCenterOffset.build());
@@ -139,6 +140,12 @@ public class ConfigScreen {
         binding.addEntry(entryBuilder.startTextDescription(LocUtil.CONFIG_OPTION("toModelViewScreen",
                         LocUtil.MODEL_VIEW_TITLE().withStyle(ChatFormatting.BLUE)))
                 .build());
+        binding.addEntry(entryBuilder.startKeyCodeField(LocUtil.CONFIG_OPTION("screenModifierKey", LocUtil.MODEL_VIEW_TITLE()), config.getScreenModifierKey())
+                .setDefaultValue(InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_LALT))
+                .setAllowMouse(false)
+                .setAllowModifiers(false)
+                .setKeySaveConsumer(k -> config.binding.screenModifierKey = k.getName())
+                .build());
         binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("legacyBindingMode"), config.binding.legacyBindingMode)
                 .setDefaultValue(false)
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("legacyBindingMode", LocUtil.MODEL_VIEW_TITLE()))
@@ -149,15 +156,14 @@ public class ConfigScreen {
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("adjustOffset"))
                 .setSaveConsumer(b -> config.binding.adjustOffset = b)
                 .build());
+        binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("hideBindingFailureMessage"), config.binding.hideFailureMessage)
+                .setDefaultValue(false)
+                .setSaveConsumer(b -> config.binding.hideFailureMessage = b)
+                .build());
         binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("renderStuckObjects"), config.binding.renderStuckObjects)
                 .setDefaultValue(true)
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("renderStuckObjects"))
                 .setSaveConsumer(b -> config.binding.renderStuckObjects = b)
-                .build());
-        binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("rerenderModel"), config.binding.rerenderModel)
-                .setDefaultValue(false)
-                .setTooltip(LocUtil.CONFIG_TOOLTIP("rerenderModel"))
-                .setSaveConsumer(b -> config.binding.rerenderModel = b)
                 .build());
         binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("disableWhenSneaking"), config.binding.disableWhenSneaking)
                 .setDefaultValue(false)
@@ -173,6 +179,26 @@ public class ConfigScreen {
                 .setMax(40)
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("swimOutTick"))
                 .setSaveConsumer(i -> config.binding.swimOutTick = i)
+                .build());
+        binding.addEntry(entryBuilder.startIntField(LocUtil.CONFIG_OPTION("bindResultRetentionFrames"), config.binding.bindResultRetentionFrames)
+                .setDefaultValue(2)
+                .setMin(0)
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("bindResultRetentionFrames"))
+                .setSaveConsumer(i -> config.binding.bindResultRetentionFrames = i)
+                .build());
+        binding.addEntry(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("displacementSmoothFactor"), config.binding.displacementSmoothFactor)
+                .setDefaultValue(0.4)
+                .setMin(0.0)
+                .setMax(1.0)
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("displacementSmoothFactor"))
+                .setSaveConsumer(d -> config.binding.displacementSmoothFactor = d)
+                .build());
+        binding.addEntry(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("rotationSmoothFactor"), config.binding.rotationSmoothFactor)
+                .setDefaultValue(0.4)
+                .setMin(0.0)
+                .setMax(1.0)
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("rotationSmoothFactor"))
+                .setSaveConsumer(d -> config.binding.rotationSmoothFactor = d)
                 .build());
         binding.addEntry(entryBuilder.startStrList(LocUtil.CONFIG_OPTION("disableMainFeatureItems"), config.binding.disableMainFeatureItems)
                 .setDefaultValue(List.of())

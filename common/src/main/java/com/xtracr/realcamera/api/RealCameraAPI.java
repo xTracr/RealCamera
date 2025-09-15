@@ -1,28 +1,32 @@
 package com.xtracr.realcamera.api;
 
-import com.xtracr.realcamera.config.BindingTarget;
-import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.util.BindingContext;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.client.Minecraft;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.function.BiFunction;
 
 public class RealCameraAPI {
-    private static final Map<String, Consumer<Object>> poseHandlerConsumers = new HashMap<>();
+    private static final List<BiFunction<Minecraft, Float, BindResult>> FUNCTIONS = new ArrayList<>();
+    private static final Map<BiFunction<Minecraft, Float, BindResult>, Integer> PRIORITIES = new Object2IntOpenHashMap<>();
 
-    public static void registerPoseHandlerConsumer(String id, Consumer<Object> consumer) {
-        poseHandlerConsumers.put(id, consumer);
+    public static void registerFunction(BiFunction<Minecraft, Float, BindResult> function) {
+        registerFunction(0, function);
     }
 
-    public static BindingContext genBindingContext(Minecraft client, float deltaTick) {
-        for (Map.Entry<String, Consumer<Object>> entry : poseHandlerConsumers.entrySet()) {
-            BindingTarget target = ConfigFile.config().getOrCreateFixedTarget(entry.getKey());
-            BindingContext context = new BindingContext(target, client, deltaTick, false);
-            entry.getValue().accept(context);
-            if (context.available()) return context;
+    public static void registerFunction(int priority, BiFunction<Minecraft, Float, BindResult> function) {
+        FUNCTIONS.add(function);
+        PRIORITIES.put(function, priority);
+        FUNCTIONS.sort((a, b) -> PRIORITIES.get(b) - PRIORITIES.get(a));
+    }
+
+    public static BindResult computeBindResult(Minecraft client, float deltaTick) {
+        for (BiFunction<Minecraft, Float, BindResult> function : FUNCTIONS) {
+            BindResult result = function.apply(client, deltaTick);
+            if (result.available()) return result;
         }
-        return BindingContext.EMPTY;
+        return BindResult.EMPTY;
     }
 }

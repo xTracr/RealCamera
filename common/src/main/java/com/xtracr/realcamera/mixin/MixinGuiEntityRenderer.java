@@ -21,7 +21,10 @@ public abstract class MixinGuiEntityRenderer extends PictureInPictureRenderer<Gu
     @Inject(method = "renderToTexture(Lnet/minecraft/client/gui/render/state/pip/GuiEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/EntityRenderDispatcher;setRenderShadow(Z)V", ordinal = 0), cancellable = true)
     private void realcamera$beforeSetRenderShadow(GuiEntityRenderState renderState, PoseStack poseStack, CallbackInfo ci) {
         if (Minecraft.getInstance().screen instanceof ModelViewScreen screen) {
-            if (renderState.overrideCameraAngle() != null) screen.analyser.drawModel(bufferSource, poseStack);
+            if (renderState.overrideCameraAngle() != null) {
+                poseStack.translate(0, -renderState.renderState().boundingBoxHeight / 2.0f, 0);
+                screen.analyser.drawModel(bufferSource, poseStack);
+            }
             else screen.analyser.drawTexture(bufferSource, poseStack);
             ci.cancel();
         }

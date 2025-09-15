@@ -6,6 +6,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.navigation.CommonInputs;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSequence;
@@ -38,7 +39,7 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
     public T getNumber() {
         try {
             return getNumberInternal();
-        } catch (Exception exception) {
+        } catch (Exception e) {
             return defaultValue;
         }
     }
@@ -77,8 +78,8 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
             T value = getNumberInternal();
             if (value.compareTo(minimum) < 0) throw new Exception("< " + minimum);
             if (value.compareTo(maximum) > 0) throw new Exception("> " + maximum);
-        } catch (Exception exception) {
-            super.setTooltip(Tooltip.create(LocUtil.literal("Invalid number: " + exception.getMessage()).withStyle(s -> s.withColor(ChatFormatting.RED))));
+        } catch (Exception e) {
+            super.setTooltip(Tooltip.create(LocUtil.literal("Invalid number: " + e.getMessage()).withStyle(s -> s.withColor(ChatFormatting.RED))));
             setFormatter((string, firstCharacterIndex) -> FormattedCharSequence.forward(string, Style.EMPTY.withColor(ChatFormatting.RED)));
         }
     }
@@ -87,6 +88,15 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
     public void setTooltip(Tooltip tooltip) {
         this.tooltip = tooltip;
         super.setTooltip(tooltip);
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (CommonInputs.selected(keyCode)) {
+            setFocused(false);
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override

@@ -39,7 +39,7 @@ public abstract class MixinLevelRenderer {
     }
 
     @Inject(method = "renderEntities", at = @At(value = "RETURN"))
-    private void realcamera$renderLocalPlayer(PoseStack poseStack, MultiBufferSource.BufferSource bufferSource, Camera camera, DeltaTracker deltaTracker, List<Entity> list, CallbackInfo ci) {
+    private void realcamera$renderCameraEntity(PoseStack poseStack, MultiBufferSource.BufferSource bufferSource, Camera camera, DeltaTracker deltaTracker, List<Entity> list, CallbackInfo ci) {
         if (!RealCameraCore.isRendering()) return;
         Entity entity = camera.getEntity();
         TickRateManager tickManager = minecraft.level.tickRateManager();
@@ -52,5 +52,5 @@ public abstract class MixinLevelRenderer {
     }
 
     @Shadow
-    protected abstract void renderEntity(Entity entity, double cameraX, double cameraY, double cameraZ, float deltaTick, PoseStack matrices, MultiBufferSource vertexConsumers);
+    protected abstract void renderEntity(Entity entity, double cameraX, double cameraY, double cameraZ, float deltaTick, PoseStack poseStack, MultiBufferSource bufferSource);
 }

@@ -26,8 +26,6 @@ public abstract class MixinCamera {
     @Shadow
     private BlockGetter level;
     @Shadow
-    private Entity entity;
-    @Shadow
     private Vec3 position;
     @Shadow
     private float xRot;
@@ -35,13 +33,13 @@ public abstract class MixinCamera {
     private float yRot;
 
     @Inject(method = "setup", at = @At("RETURN"))
-    private void realcamera$setupCamera(BlockGetter area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float deltaTick, CallbackInfo ci) {
+    private void realcamera$setupCamera(BlockGetter area, Entity entity, boolean thirdPerson, boolean inverseView, float deltaTick, CallbackInfo ci) {
         if (!RealCameraCore.isActive()) return;
         ModConfig config = ConfigFile.config();
         Vec3 startVec = position;
-        AABB box = focusedEntity.getBoundingBox();
+        AABB box = entity.getBoundingBox();
         if (config.isClassic()) {
-            double scale = focusedEntity instanceof LivingEntity livingEntity ? livingEntity.getScale() : 1;
+            double scale = entity instanceof LivingEntity livingEntity ? livingEntity.getScale() : 1;
             Vec3 offset = new Vec3(config.getClassicX(), config.getClassicY(), -config.getClassicZ()).scale(scale);
             Vec3 center = new Vec3(config.getCenterX(), config.getCenterY(), -config.getCenterZ()).scale(scale);
             float newPitch = xRot + config.getClassicPitch();
@@ -51,18 +49,19 @@ public abstract class MixinCamera {
             setRotation(newYaw, newPitch);
             move((float) offset.x(), (float) offset.y(), (float) offset.z());
         } else {
-            Vec3 rawPos = RealCameraCore.getRawPos(position);
+            Vec3 entityPos = entity.position().add(entity.position().subtract(entity.xOld, entity.yOld, entity.zOld).scale(entity.tickCount == 0 ? 0 : deltaTick - 1));
+            Vec3 rawPos = RealCameraCore.getRawPos(position, entityPos);
             double restrictedY = Mth.clamp(rawPos.y(), box.minY + 0.1D, box.maxY - 0.1D);
             startVec = new Vec3(position.x(), restrictedY, position.z());
             setPosition(rawPos);
             setRotation(RealCameraCore.getYaw(yRot), RealCameraCore.getPitch(xRot));
         }
-        realcamera$clipToSpace(startVec, deltaTick);
+        realcamera$clipToSpace(startVec, entity, deltaTick);
         RealCameraCore.setCameraPos(position);
     }
 
     @Unique
-    private void realcamera$clipToSpace(Vec3 startVec, float deltaTick) {
+    private void realcamera$clipToSpace(Vec3 startVec, Entity entity, float deltaTick) {
         Vec3 offset = position.subtract(startVec);
         final float fov = ((GameRendererAccessor) Minecraft.getInstance().gameRenderer).invokeGetFov((Camera)(Object) this, deltaTick, true);
         final float depth = 0.05f + fov * (0.0001f + 0.000005f * fov);
