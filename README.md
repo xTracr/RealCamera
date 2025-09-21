@@ -82,6 +82,7 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
   * Player Animation Lib
   * Timeless and Classics Zero,version 1.0.3-
   * Yes Steve Model (Not stably compatible)
+  * Superb Warfare
 
 * Model Mod Compatibility Requirements with `Real Camera` (Based on Official Mappings)：
 * Render Timing Compatibility
