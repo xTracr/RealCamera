@@ -37,6 +37,7 @@
   "config.option.xtracr_realcamera.yaw": "ヨー角",
   "config.option.xtracr_realcamera.roll": "ロール角",
   "config.option.xtracr_realcamera.toModelViewScreen": "詳細設定は%s画面で行ってください（開くにはホットキーを設定する必要があります）",
+  "config.option.xtracr_realcamera.screenModifierKey": "%s画面修飾キー",
   "config.option.xtracr_realcamera.legacyBindingMode": "旧バインディングモード",
   "config.option.xtracr_realcamera.adjustOffset": "カメラオフセットを調整",
   "config.option.xtracr_realcamera.renderStuckObjects": "体に刺さったオブジェクトをレンダリング",
