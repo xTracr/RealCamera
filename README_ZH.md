@@ -3,7 +3,7 @@
 ### [English](README.md)
 
 使第一人称视角下的摄像头更加真实。  
-支持的版本: 1.18.2 - 1.20.4 Forge，1.18.2 - 1.21.4 Fabric，1.21 - 1.21.4 NeoForge
+支持的版本: 1.18.2 - 1.20.4 Forge，1.18.2 - 1.21.8 Fabric，1.21 - 1.21.8 NeoForge
 从[Releases](https://github.com/xTracr/RealCamera/releases)、[Modrinth](https://modrinth.com/mod/real-camera)或[CurseForge](https://curseforge.com/minecraft/mc-mods/real-camera)下载  
 快照版在[这里](https://github.com/xTracr/RealCamera/actions/workflows/build.yml)
 
@@ -81,6 +81,7 @@
   * ParCool！
   * [TaCZ]永恒枪械工坊：零 1.0.3版本及以下
   * Yes Steve Model（是，史蒂夫模型）（不能稳定兼容）
+  * Superb Warfare（卓越前线）
 
 * 模型模组与`Real Camera`兼容的必要条件（基于官方映射）：
 * 渲染时序兼容
