@@ -2,6 +2,7 @@ package com.xtracr.realcamera;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.xtracr.realcamera.api.BindResult;
 import com.xtracr.realcamera.api.RealCameraAPI;
 import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.BindTarget;
@@ -10,15 +11,15 @@ import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.util.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 public class RealCameraCore {
-    private static final VertexRecorder defaultRecorder = new VertexRecorder();
-    private static VertexRecorder activeRecorder = defaultRecorder;
-    private static BindResult bindResult = BindResult.EMPTY;
+    private static BindResult lastResult = BindResult.EMPTY, newResult = BindResult.EMPTY;
     private static Vec3 cameraPos = Vec3.ZERO, eulerAngle = Vec3.ZERO;
     private static boolean active = false, rendering = false;
     private static int failureFrames = 0;
@@ -31,19 +32,14 @@ public class RealCameraCore {
         return isActive() && rendering;
     }
 
-    public static void setActiveRecorder(VertexRecorder recorder) {
-        activeRecorder = recorder;
-    }
-
     public static BindTarget currentTarget() {
-        return bindResult.target;
+        return lastResult.target;
     }
 
     public static void initialize(Minecraft client) {
         Entity entity = client.getCameraEntity();
         active = ConfigFile.config().enabled() && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.MAIN_FEATURE.disabled(entity);
         rendering = ConfigFile.config().renderModel() && !DisableHelper.RENDER_MODEL.disabled(entity);
-        activeRecorder.records().clear();
     }
 
     public static void reset() {
@@ -68,7 +64,7 @@ public class RealCameraCore {
     }
 
     public static Vec3 getRawPos(Vec3 cameraPos, Vec3 entityPos) {
-        Vec3 rawPos = SmoothUtil.smoothPosition(bindResult.getPosition()).add(entityPos);
+        Vec3 rawPos = SmoothUtil.smoothPosition(lastResult.getPosition()).add(entityPos);
         BindTarget.BindConfig bindConfig = currentTarget().bindConfig();
         return new Vec3(bindConfig.bindX() ? rawPos.x() : cameraPos.x(), bindConfig.bindY() ? rawPos.y() : cameraPos.y(), bindConfig.bindZ() ? rawPos.z() : cameraPos.z());
     }
@@ -86,72 +82,99 @@ public class RealCameraCore {
         Entity entity = client.getCameraEntity();
         boolean invisible = entity.isInvisible();
         entity.setInvisible(false);
-        BindResult newResult = RealCameraAPI.computeBindResult(client, deltaTick);
+        newResult = RealCameraAPI.computeBindResult(client, deltaTick);
         if (!newResult.available()) {
-            activeRecorder.updateModel(client, entity, deltaTick, new PoseStack());
-            newResult = activeRecorder.computeBindResult();
+            EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
+            MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
+            dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, new PoseStack(), catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
+            catcher.endCatching(RealCameraCore::computeBindResult);
         }
         entity.setInvisible(invisible);
-        if (activeRecorder.records().isEmpty() || invisible) newResult.skipRendering = false;
-        if (!newResult.available()) {
+        if (newResult.available()) {
+            failureFrames = 0;
+            lastResult = newResult.computeCamera();
+        } else {
             failureFrames++;
             Entity player = client.player;
             int retentionFrames = ConfigFile.config().getBindResultRetentionFrames();
             if (!ConfigFile.config().hideBindingFailureMessage() && failureFrames == retentionFrames + 1 && player != null) {
-                player.sendSystemMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE(), KeyBindings.MODEL_VIEW_SCREEN.getTranslatedKeyMessage()));
+                player.sendSystemMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE(), KeyMappings.MODEL_VIEW_SCREEN.getTranslatedKeyMessage()));
             }
-            if (!bindResult.available() || failureFrames > retentionFrames) {
+            if (!lastResult.available() || failureFrames > retentionFrames) {
+                lastResult = BindResult.EMPTY;
                 active = false;
                 return;
             }
-        } else {
-            failureFrames = 0;
-            bindResult = newResult.init();
         }
-        eulerAngle = MathUtil.getEulerAngleYXZ(SmoothUtil.smoothRotation(bindResult.getRotation())).scale(Math.toDegrees(1));
+        eulerAngle = MathUtil.getEulerAngleYXZ(SmoothUtil.smoothRotation(lastResult.getRotation())).scale(Math.toDegrees(1));
     }
 
     public static void renderCameraEntity(Minecraft client, float deltaTick, MultiBufferSource bufferSource) {
-        Vec3 targetEulerAngle = MathUtil.getEulerAngleYXZ(bindResult.getRotation());
+        Vec3 targetEulerAngle = MathUtil.getEulerAngleYXZ(lastResult.getRotation());
         Matrix4f invertedCameraPose = new Matrix4f()
                 .rotateZ((float) targetEulerAngle.z())
                 .rotateX((float) targetEulerAngle.x())
                 .rotateY((float) (Math.PI - targetEulerAngle.y()))
                 .transpose()
                 .invert()
-                .translate(Vec3.ZERO.subtract(bindResult.getPosition()).toVector3f());
+                .translate(Vec3.ZERO.subtract(lastResult.getPosition()).toVector3f());
         PoseStack poseStack = new PoseStack();
-        if (!bindResult.skipRendering || ConfigFile.config().rerenderModel()) {
-            poseStack.mulPoseMatrix(new Matrix4f(invertedCameraPose));
-            activeRecorder.updateModel(client, client.getCameraEntity(), deltaTick, poseStack);
-        }
-        Matrix4f positionMatrix = new Matrix4f(invertedCameraPose).mul(poseStack.last().pose().invert(new Matrix4f()));
-        Matrix3f normalMatrix = new Matrix3f(positionMatrix);
-        activeRecorder.records().forEach(record -> {
-            DisableConfig[] disableConfigs = currentTarget().filteredDisableConfigs(config -> record.textureId().contains(config.textureId()));
+        poseStack.last().pose().mul(invertedCameraPose);
+        poseStack.last().normal().mul(new Matrix3f(invertedCameraPose));
+        Entity entity = client.getCameraEntity();
+        EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
+        MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
+        dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack, catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
+        final float depth = currentTarget().disablingDepth();
+        catcher.endCatching(builtBuffer -> {
+            DisableConfig[] disableConfigs = currentTarget().filteredDisableConfigs(config -> builtBuffer.textureId().contains(config.textureId()));
             for (DisableConfig config : disableConfigs) {
                 if (config.disableAll()) return;
             }
-            VertexConsumer buffer = bufferSource.getBuffer(record.renderType());
-            if (!record.renderType().canConsolidateConsecutiveGeometry()) {
-                VertexData.renderVertices(record.vertices(), buffer, positionMatrix, normalMatrix);
+            VertexConsumer buffer = bufferSource.getBuffer(builtBuffer.renderType());
+            if (!builtBuffer.renderType().canConsolidateConsecutiveGeometry()) {
+                for (VertexData vertex : builtBuffer.vertexBuffer()) vertex.render(buffer);
                 return;
             }
-            final double depth = currentTarget().disablingDepth();
-            final int primitiveLength = record.renderType().mode().primitiveLength;
-            for (VertexData[] primitive : record.primitives()) {
-                VertexData[] newPrimitive = new VertexData[primitiveLength];
-                for (int j = 0; j < primitiveLength ; j++) newPrimitive[j] = primitive[j].transform(positionMatrix, normalMatrix);
-                outer:
-                for (VertexData vertex : newPrimitive) {
+            builtBuffer.vertexBuffer().primitiveStream().forEach(primitive -> {
+                primitiveFor:
+                for (VertexData vertex : primitive) {
                     if (vertex.z() > -depth) continue;
                     for (DisableConfig config : disableConfigs) {
-                        if (config.test(vertex)) continue outer;
+                        if (config.test(vertex)) continue primitiveFor;
                     }
-                    VertexData.renderVertices(newPrimitive, buffer);
+                    for (VertexData vertexData : primitive) vertexData.render(buffer);
                     break;
                 }
-            }
+            });
         });
+    }
+
+    private static void computeBindResult(BuiltIterableBuffer builtBuffer) {
+        if (newResult.available()) return;
+        targetFor:
+        for (BindTarget target : ConfigFile.config().getBindTargetList()) {
+            BindResult result = new BindResult(target, false);
+            if (!builtBuffer.textureId().contains(result.target.textureId())) continue;
+            BindTarget.TargetConfig config = result.target.targetConfig();
+            VertexData.UV[] uvs = {new VertexData.UV(config.posU(), config.posV()), new VertexData.UV(config.forwardU(), config.forwardV()), new VertexData.UV(config.upwardU(), config.upwardV())};
+            VertexData[][] primitives = builtBuffer.findPrimitivesInCache(uvs);
+            if (builtBuffer.anyNotCached(uvs)) {
+                for (int i = 0; i < primitives.length; i++) {
+                    if (primitives[i] != null) uvs[i] = null;
+                }
+                VertexData[][] newPrimitives = builtBuffer.findPrimitives(uvs);
+                for (int i = 0; i < primitives.length; i++) {
+                    if (newPrimitives[i] == null && primitives[i] == null) continue targetFor;
+                    else if (newPrimitives[i] != null) primitives[i] = newPrimitives[i];
+                }
+            }
+            if (primitives[0] != null) result.setPosition(VertexData.position(primitives[0], config.posU(), config.posV()));
+            if (primitives[1] != null) result.setForward(VertexData.normal(primitives[1]));
+            if (primitives[2] != null) result.setUpward(VertexData.normal(primitives[2]));
+            if (!result.available()) continue;
+            newResult = result;
+            return;
+        }
     }
 }

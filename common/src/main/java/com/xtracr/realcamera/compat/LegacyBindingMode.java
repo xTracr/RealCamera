@@ -1,7 +1,7 @@
 package com.xtracr.realcamera.compat;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.xtracr.realcamera.api.PoseHandler;
+import com.xtracr.realcamera.api.BindResult;
 import com.xtracr.realcamera.api.RealCameraAPI;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.mixin.accessor.PlayerRendererAccessor;
@@ -19,14 +19,12 @@ import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 public class LegacyBindingMode {
-    public static void registerConsumer() {
-        RealCameraAPI.registerPoseHandlerConsumer("LEGACY_MODE", LegacyBindingMode::setupPose);
+    public static void register() {
+        RealCameraAPI.registerFunction(100, LegacyBindingMode::computeBindResult);
     }
 
-    private static void setupPose(Object obj) {
-        if (!ConfigFile.config().legacyBindingMode() || !(obj instanceof PoseHandler poseHandler)) return;
-        Minecraft client = poseHandler.getClient();
-        float deltaTick = poseHandler.getDeltaTick();
+    private static BindResult computeBindResult(Minecraft client, float deltaTick) {
+        if (!ConfigFile.config().legacyBindingMode()) return BindResult.EMPTY;
         PoseStack poseStack = new PoseStack();
         AbstractClientPlayer player = client.player;
         // WorldRenderer.render
@@ -100,9 +98,11 @@ public class LegacyBindingMode {
         playerModel.head.translateAndRotate(poseStack);
 
         Vector4f offset = poseStack.last().pose().transform(new Vector4f(0, -0.125f, -0.2f, 1.0f));
-        poseHandler.setPosition(new Vec3(offset.x(), offset.y(), offset.z()));
+        BindResult result = BindResult.getOrCreate("LEGACY_MODE");
+        result.setPosition(new Vec3(offset.x(), offset.y(), offset.z()));
         poseStack.scale(1f, -1f, -1f);
-        poseHandler.setForward(new Vec3(poseStack.last().normal().getColumn(2, new Vector3f())));
-        poseHandler.setUpward(new Vec3(poseStack.last().normal().getColumn(1, new Vector3f())));
+        result.setForward(new Vec3(poseStack.last().normal().getColumn(2, new Vector3f())));
+        result.setUpward(new Vec3(poseStack.last().normal().getColumn(1, new Vector3f())));
+        return result;
     }
 }

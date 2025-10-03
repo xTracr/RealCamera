@@ -2,13 +2,19 @@ package com.xtracr.realcamera.compat;
 
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 public class DisableHelper {
@@ -25,18 +31,18 @@ public class DisableHelper {
         MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().getBindingSwimOutTick()));
         MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().getClassicSwimOutTick()));
         MAIN_FEATURE.registerOrInBinding(player -> {
-            String mainHand = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem()).toString();
-            String offHand = BuiltInRegistries.ITEM.getKey(player.getOffhandItem().getItem()).toString();
-            for (String item : ConfigFile.config().getDisableMainFeatureItems())
-                if (simpleWildcardMatch(mainHand, item) || simpleWildcardMatch(offHand, item))
+            Item mainHand = player.getMainHandItem().getItem();
+            Item offHand = player.getOffhandItem().getItem();
+            for (String pattern : ConfigFile.config().getDisableMainFeatureItems())
+                if (matchesItemPattern(mainHand, pattern) || matchesItemPattern(offHand, pattern))
                     return true;
             return false;
         });
         RENDER_MODEL.registerOrInBinding(player -> {
-            String mainHand = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem()).toString();
-            String offHand = BuiltInRegistries.ITEM.getKey(player.getOffhandItem().getItem()).toString();
-            for (String item : ConfigFile.config().getDisableRenderItems())
-                if (simpleWildcardMatch(mainHand, item) || simpleWildcardMatch(offHand, item))
+            Item mainHand = player.getMainHandItem().getItem();
+            Item offHand = player.getOffhandItem().getItem();
+            for (String pattern : ConfigFile.config().getDisableMainFeatureItems())
+                if (matchesItemPattern(mainHand, pattern) || matchesItemPattern(offHand, pattern))
                     return true;
             return false;
         });
@@ -62,8 +68,25 @@ public class DisableHelper {
         entries.get(name).registerOrInBinding(predicate::test);
     }
 
+    public static boolean matchesItemPattern(Item item, String pattern) {
+        if (pattern.startsWith("#")) {
+            String tagId = pattern.substring(1);
+            TagKey<Item> itemTag = TagKey.create(BuiltInRegistries.ITEM.key(), ResourceLocation.tryParse(tagId));
+            return BuiltInRegistries.ITEM.getTag(itemTag)
+                .map(tag -> {
+                    ResourceLocation itemLocation = BuiltInRegistries.ITEM.getKey(item);
+                    ResourceKey<Item> itemKey = ResourceKey.create(BuiltInRegistries.ITEM.key(), itemLocation);
+                    Optional<Holder.Reference<Item>> itemRef = BuiltInRegistries.ITEM.getHolder(itemKey);
+                    return itemRef.map(tag::contains).orElse(false);
+                })
+                .orElse(false);
+        }
+        return simpleWildcardMatch(BuiltInRegistries.ITEM.getKey(item).toString(), pattern);
+    }
+
     public static boolean simpleWildcardMatch(String text, String pattern) {
         if (pattern.isEmpty()) return text.isEmpty();
+        if (pattern.equals(text)) return true;
         String[] parts = pattern.split("\\*+");
         if (parts.length == 0) return true;
         int currentIndex = 0;

@@ -9,7 +9,7 @@ import net.minecraftforge.event.TickEvent;
 
 public class EventHandler {
     public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.END) KeyBindings.handle(Minecraft.getInstance());
+        if (event.phase == TickEvent.Phase.END) KeyMappings.handle(Minecraft.getInstance());
     }
 
     public static void onCameraSetup(ViewportEvent.ComputeCameraAngles event) {

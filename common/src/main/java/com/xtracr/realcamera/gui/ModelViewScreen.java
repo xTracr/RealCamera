@@ -1,5 +1,6 @@
 package com.xtracr.realcamera.gui;
 
+import com.google.common.collect.ImmutableSortedMap;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.compat.CompatibilityHelper;
@@ -11,7 +12,9 @@ import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.util.LocUtil;
 import com.xtracr.realcamera.util.MathUtil;
 import com.xtracr.realcamera.util.VertexData;
+import io.netty.buffer.Unpooled;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.OptionInstance;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.components.events.GuiEventListener;
@@ -22,6 +25,7 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.navigation.CommonInputs;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
@@ -31,17 +35,22 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import org.lwjgl.glfw.GLFW;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.*;
+import java.util.zip.Deflater;
+import java.util.zip.DeflaterOutputStream;
+import java.util.zip.InflaterInputStream;
 
 public class ModelViewScreen extends Screen {
     public final ModelAnalyser analyser = new ModelAnalyser();
     protected int xSize = 450, ySize = 206, middleWidth = xSize - 200, widgetWidth = (xSize - middleWidth) / 4 - 8, widgetHeight = 18;
-    protected int x, y;
+    protected int x, y, page = 0;
+    protected InputConstants.Key modifierKey = ConfigFile.config().getScreenModifierKey();
     private boolean initialized;
-    private int page = 0, modelScale = 80, textureScale = 80, clickedX = -1, clickedY = -1, layers = 0, selectionRadius = 10;
-    private double modelX, modelY, textureX, textureY;
+    private int  modelScale = 80, textureScale = 80, layers = 0, selectionRadius = 10;
+    private double modelX, modelY, textureX, textureY, clickedX = -1, clickedY = -1;
     private float xRot, yRot;
     private String focusedTextureId;
     private ScreenRectangle modelViewArea;
@@ -60,8 +69,7 @@ public class ModelViewScreen extends Screen {
     private final List<DisableConfig> disableConfigs = new ArrayList<>();
     private final List<UVRectangleWidget> rectWidgets = new ArrayList<>();
     private final Map<String, Set<String>> hiddenNameMap = new HashMap<>();
-    private final Map<Integer, String> toggleConfigMap = Map.of(0, "disable", 1, "configs");
-    private final Map<Integer, String> togglePreviewMap = Map.of(0, "preview", 1, "settings");
+    private final Map<Integer, String> toggleConfigMap = Map.of(0, "disable", 1, "preview", 2, "configs");
     private final CyclingTexturedButton showTextureButton = new CyclingTexturedButton(48, 16, 0, 2).setOnValueChange(i -> initWidgets(page));
     private final CyclingTexturedButton pauseButton = new CyclingTexturedButton(0, 16, 0, 2);
     private final CyclingTexturedButton bindXButton = new CyclingTexturedButton(16, 16, 1, 2);
@@ -70,30 +78,30 @@ public class ModelViewScreen extends Screen {
     private final CyclingTexturedButton bindRotButton = new CyclingTexturedButton(16, 16, 1, 2);
     private final DoubleSlider entityPitchSlider = createSlider("pitch", widgetWidth * 2 + 4, -90.0, 90.0);
     private final DoubleSlider entityYawSlider = createSlider("yaw", widgetWidth * 2 + 4, -60.0, 60.0);
-    private final DoubleSlider offsetXSlider = createSlider("offsetX", widgetWidth * 2 - 18, ModConfig.MIN_OFFSET, ModConfig.MAX_OFFSET);
-    private final DoubleSlider offsetYSlider = createSlider("offsetY", widgetWidth * 2 - 18, ModConfig.MIN_OFFSET, ModConfig.MAX_OFFSET);
-    private final DoubleSlider offsetZSlider = createSlider("offsetZ", widgetWidth * 2 - 18, ModConfig.MIN_OFFSET, ModConfig.MAX_OFFSET);
+    private final DoubleSlider offsetXSlider = createSlider("offsetX", widgetWidth * 2 - 18, ModConfig.MIN_OFFSET_D, ModConfig.MAX_OFFSET_D);
+    private final DoubleSlider offsetYSlider = createSlider("offsetY", widgetWidth * 2 - 18, ModConfig.MIN_OFFSET_D, ModConfig.MAX_OFFSET_D);
+    private final DoubleSlider offsetZSlider = createSlider("offsetZ", widgetWidth * 2 - 18, ModConfig.MIN_OFFSET_D, ModConfig.MAX_OFFSET_D);
     private final DoubleSlider offsetPitchSlider = createSlider("pitch", widgetWidth * 2 - 18, -180.0, 180.0);
     private final DoubleSlider offsetYawSlider = createSlider("yaw", widgetWidth * 2 - 18, -180.0, 180.0);
     private final DoubleSlider offsetRollSlider = createSlider("roll", widgetWidth * 2 - 18, -180.0, 180.0);
-    private final CycleButton<Integer> selectingButton = createCyclingButton(Map.of(
+    private final CycleButton<Integer> selectingButton = createCyclingButton(ImmutableSortedMap.of(
                     0, LocUtil.MODEL_VIEW_WIDGET("forwardVector").withStyle(ChatFormatting.GREEN),
                     1, LocUtil.MODEL_VIEW_WIDGET("upwardVector").withStyle(ChatFormatting.RED),
                     2, LocUtil.MODEL_VIEW_WIDGET("position").withStyle(ChatFormatting.BLUE)),
-            widgetWidth * 2 + 4, LocUtil.MODEL_VIEW_WIDGET("selecting"));
-    private final CycleButton<Integer> disableModeButton = createCyclingButton(Map.of(
+            widgetWidth * 2 + 4, LocUtil.MODEL_VIEW_WIDGET("selecting"), i -> createTooltip("selecting", modifierKey.getDisplayName(), modifierKey.getDisplayName()));
+    private final CycleButton<Integer> disableModeButton = createCyclingButton(ImmutableSortedMap.of(
                     0, LocUtil.MODEL_VIEW_WIDGET("all").withStyle(ChatFormatting.GREEN),
                     1, LocUtil.MODEL_VIEW_WIDGET("part").withStyle(ChatFormatting.BLUE)),
-            widgetWidth * 2 + 4, LocUtil.MODEL_VIEW_WIDGET("disableMode"));
-    private final CycleButton<Integer> selectionModeButton = createCyclingButton(Map.of(
+            widgetWidth * 2 + 4, LocUtil.MODEL_VIEW_WIDGET("disableMode"), i -> createTooltip("disableMode", modifierKey.getDisplayName()));
+    private final CycleButton<Integer> selectionModeButton = createCyclingButton(ImmutableSortedMap.of(
                     0, LocUtil.MODEL_VIEW_WIDGET("single"),
                     1, LocUtil.MODEL_VIEW_WIDGET("multiple"),
                     2, LocUtil.MODEL_VIEW_WIDGET("range").withStyle(ChatFormatting.BLUE)),
-            widgetWidth * 2 + 4, LocUtil.MODEL_VIEW_WIDGET("selectionMode"));
-    private final CycleButton<Integer> toggleSliderButton = createCyclingButton(Map.of(
+            widgetWidth * 2 + 4, LocUtil.MODEL_VIEW_WIDGET("selectionMode"), i -> createTooltip("selectionMode", modifierKey.getDisplayName(), modifierKey.getDisplayName()));
+    private final CycleButton<Integer> toggleSliderButton = createCyclingButton(ImmutableSortedMap.of(
                     0, LocUtil.MODEL_VIEW_WIDGET("toggleSliderToField"),
                     1, LocUtil.MODEL_VIEW_WIDGET("toggleFieldToSlider")),
-            widgetWidth * 2 + 4, (button, i) -> {
+            widgetWidth * 2 + 4, i -> null, (button, i) -> {
                 if (i == 1) {
                     offsetXField.setNumber((float) offsetXSlider.getValue());
                     offsetYField.setNumber((float) offsetYSlider.getValue());
@@ -111,21 +119,14 @@ public class ModelViewScreen extends Screen {
                 }
                 initWidgets(page);
             });
-    private final CycleButton<Integer> toggleConfigButton = createCyclingButton(Map.of(
+    private final CycleButton<Integer> toggleCategoryButton = createCyclingButton(ImmutableSortedMap.of(
                     0, LocUtil.MODEL_VIEW_WIDGET(toggleConfigMap.get(0)),
-                    1, LocUtil.MODEL_VIEW_WIDGET(toggleConfigMap.get(1))),
-            widgetWidth, (button, i) -> initWidgets(0));
-    private final CycleButton<Integer> togglePreviewButton = createCyclingButton(Map.of(
-                    0, LocUtil.MODEL_VIEW_WIDGET(togglePreviewMap.get(0)),
-                    1, LocUtil.MODEL_VIEW_WIDGET(togglePreviewMap.get(1))),
-            widgetWidth, (button, i) -> initWidgets(0));
+                    1, LocUtil.MODEL_VIEW_WIDGET(toggleConfigMap.get(1)),
+                    2, LocUtil.MODEL_VIEW_WIDGET(toggleConfigMap.get(2))),
+            widgetWidth * 2 - 18, i -> createTooltip(toggleConfigMap.get(i)), (button, i) -> initWidgets(0));
 
     public ModelViewScreen() {
         super(LocUtil.MODEL_VIEW_TITLE());
-    }
-
-    public static void enableScissor(GuiGraphics graphics, ScreenRectangle rectangle) {
-        graphics.enableScissor(rectangle.left(), rectangle.top(), rectangle.right(), rectangle.bottom());
     }
 
     @Override
@@ -133,6 +134,7 @@ public class ModelViewScreen extends Screen {
         super.init();
         x = (width - xSize) / 2;
         y = (height - ySize) / 2;
+        modifierKey = ConfigFile.config().getScreenModifierKey();
         initWidgets(page);
         if (!initialized) loadBindTarget(RealCameraCore.currentTarget());
         initialized = true;
@@ -140,7 +142,7 @@ public class ModelViewScreen extends Screen {
 
     private void initWidgets(int page) {
         this.page = page;
-        if (toggleConfigButton.getValue() == 1 && togglePreviewButton.getValue() == 0 && showTextureButton.getValue() == 0) {
+        if (toggleCategoryButton.getValue() == 1 && showTextureButton.getValue() == 0) {
             modelViewArea = new ScreenRectangle(x + xSize / 2, y, middleWidth / 2, ySize);
             textureViewArea = new ScreenRectangle(x + (xSize - middleWidth) / 2, y, middleWidth / 2, ySize);
         } else {
@@ -152,7 +154,7 @@ public class ModelViewScreen extends Screen {
         clearWidgets();
         initLeftWidgets();
         if (textureViewArea != null) rectWidgets.forEach(this::addRenderableWidget);
-        if (toggleConfigButton.getValue() == 1) addRenderableWidget(showTextureButton).setPosition(x + (xSize - middleWidth) / 2 + 4, y + 4);
+        if (toggleCategoryButton.getValue() == 1) addRenderableWidget(showTextureButton).setPosition(x + (xSize - middleWidth) / 2 + 4, y + 4);
         addRenderableWidget(pauseButton).setPosition(x + (xSize + middleWidth) / 2 - 38, y + 4);
         addRenderableWidget(new TexturedButton(x + (xSize + middleWidth) / 2 - 20, y + 4, 16, 16, 0, 0, button -> {
             modelScale = textureScale = 80;
@@ -180,9 +182,9 @@ public class ModelViewScreen extends Screen {
         uMaxField = createFloatField(widgetWidth * 2 - 24, 0, uMaxField).setMin(-1f).setMax(2f);
         vMinField = createFloatField(widgetWidth * 2 - 24, 0, vMinField).setMin(-1f).setMax(2f);
         vMaxField = createFloatField(widgetWidth * 2 - 24, 0, vMaxField).setMin(-1f).setMax(2f);
-        offsetXField = createFloatField(widgetWidth * 2 - 20, 0, offsetXField).setMin((float) ModConfig.MIN_OFFSET).setMax((float) ModConfig.MAX_OFFSET);
-        offsetYField = createFloatField(widgetWidth * 2 - 20, 0, offsetYField).setMin((float) ModConfig.MIN_OFFSET).setMax((float) ModConfig.MAX_OFFSET);
-        offsetZField = createFloatField(widgetWidth * 2 - 20, 0, offsetZField).setMin((float) ModConfig.MIN_OFFSET).setMax((float) ModConfig.MAX_OFFSET);
+        offsetXField = createFloatField(widgetWidth * 2 - 20, 0, offsetXField).setMin(ModConfig.MIN_OFFSET_F).setMax(ModConfig.MAX_OFFSET_F);
+        offsetYField = createFloatField(widgetWidth * 2 - 20, 0, offsetYField).setMin(ModConfig.MIN_OFFSET_F).setMax(ModConfig.MAX_OFFSET_F);
+        offsetZField = createFloatField(widgetWidth * 2 - 20, 0, offsetZField).setMin(ModConfig.MIN_OFFSET_F).setMax(ModConfig.MAX_OFFSET_F);
         offsetPitchField = createFloatField(widgetWidth * 2 - 20, 0, offsetPitchField).setMin(-180.0f).setMax(180.0f);
         offsetYawField = createFloatField(widgetWidth * 2 - 20, 0, offsetYawField).setMin(-180.0f).setMax(180.0f);
         offsetRollField = createFloatField(widgetWidth * 2 - 20, 0, offsetRollField).setMin(-180.0f).setMax(180.0f);
@@ -192,57 +194,54 @@ public class ModelViewScreen extends Screen {
         grid.defaultCellSetting().padding(4, 2, 0, 0);
         LayoutSettings smallSettings = grid.newCellSettings().padding(5, 3, 1, 1);
         GridLayout.RowHelper rows = grid.createRowHelper(2);
-        if (togglePreviewButton.getValue() == 0) {
-            if (toggleConfigButton.getValue() == 0) {
-                rows.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("toConfigScreen"), widgetWidth * 2 + 4, button -> {
-                    if (CompatibilityHelper.isModLoaded("cloth-config")) minecraft.setScreen(ConfigScreen.create(this));
-                }), 2).setTooltip(createTooltip("toConfigScreen"));
-                rows.addChild(entityPitchSlider, 2);
-                rows.addChild(entityYawSlider, 2);
-                rows.addChild(selectingButton, 2).setTooltip(createTooltip("selectMode"));
-                rows.addChild(forwardUField, smallSettings);
-                rows.addChild(forwardVField, smallSettings);
-                rows.addChild(upwardUField, smallSettings);
-                rows.addChild(upwardVField, smallSettings);
-                rows.addChild(posUField, smallSettings);
-                rows.addChild(posVField, smallSettings);
-                rows.addChild(textureIdField, 2, smallSettings).setTooltip(createTooltip("textureId"));
-            } else {
-                LayoutSettings offsetXSettings = grid.newCellSettings().padding(-13, 3, 1, 1);
-                rows.addChild(disableModeButton, 2).setTooltip(createTooltip("disableMode"));
-                rows.addChild(disabledIdField, 2, smallSettings).setTooltip(createTooltip("textureId"));
-                rows.addChild(selectionModeButton, 2).setTooltip(createTooltip("selectionMode"));
-                rows.addChild(focusedRectWidgetNumberField, smallSettings).setOnValueChange(index -> {
-                    if (index == 0) focusedRectWidget = null;
-                    else if (index > 0 && index <= rectWidgets.size()) {
-                        focusedRectWidget = rectWidgets.get(index - 1);
-                        uMinField.setNumber(focusedRectWidget.uMin);
-                        vMinField.setNumber(focusedRectWidget.vMin);
-                        uMaxField.setNumber(focusedRectWidget.uMax);
-                        vMaxField.setNumber(focusedRectWidget.vMax);
-                    }
-                }).setTooltip(createTooltip("focusedRectangleNumber"));
-                addRenderableWidget(new StringWidget(x + 4 + widgetWidth + 3, y + 4 + (widgetHeight + 2) * 3, 6, widgetHeight, LocUtil.literal("/"), font));
-                addRenderableWidget(rectWidgetsSizeWidget);
-                rows.addChild(new TexturedButton(48, 0, button -> deleteFocusedRectWidget()), grid.newCellSettings().padding(5 + widgetWidth - 18, 3, 1, 1))
-                        .setTooltip(createTooltip("deleteSelectedRectangle"));
-                rows.addChild(new StringWidget(26, widgetHeight, LocUtil.literal("uMin:"), font));
-                rows.addChild(uMinField, offsetXSettings).setOnValueChange(f -> {
-                    if (focusedRectWidget != null) focusedRectWidget.uMin = f;
-                });
-                rows.addChild(new StringWidget(26, widgetHeight, LocUtil.literal("vMin:"), font));
-                rows.addChild(vMinField, offsetXSettings).setOnValueChange(f -> {
-                    if (focusedRectWidget != null) focusedRectWidget.vMin = f;
-                });
-                rows.addChild(new StringWidget(26, widgetHeight, LocUtil.literal("uMax:"), font));
-                rows.addChild(uMaxField, offsetXSettings).setOnValueChange(f -> {
-                    if (focusedRectWidget != null) focusedRectWidget.uMax = f;
-                });
-                rows.addChild(new StringWidget(26, widgetHeight, LocUtil.literal("vMax:"), font));
-                rows.addChild(vMaxField, offsetXSettings).setOnValueChange(f -> {
-                    if (focusedRectWidget != null) focusedRectWidget.vMax = f;
-                });
-            }
+        if (toggleCategoryButton.getValue() == 0) {
+            rows.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("import"), widgetWidth, this::importBindTarget)).setTooltip(createTooltip("import"));
+            rows.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("export"), widgetWidth, this::exportBindTarget)).setTooltip(createTooltip("export"));
+            rows.addChild(entityPitchSlider, 2);
+            rows.addChild(entityYawSlider, 2);
+            rows.addChild(selectingButton, 2);
+            rows.addChild(forwardUField, smallSettings);
+            rows.addChild(forwardVField, smallSettings);
+            rows.addChild(upwardUField, smallSettings);
+            rows.addChild(upwardVField, smallSettings);
+            rows.addChild(posUField, smallSettings);
+            rows.addChild(posVField, smallSettings);
+            rows.addChild(textureIdField, 2, smallSettings).setTooltip(createTooltip("textureId"));
+        } else if (toggleCategoryButton.getValue() == 1) {
+            LayoutSettings offsetXSettings = grid.newCellSettings().padding(-13, 3, 1, 1);
+            rows.addChild(disableModeButton, 2);
+            rows.addChild(disabledIdField, 2, smallSettings).setTooltip(createTooltip("textureId"));
+            rows.addChild(selectionModeButton, 2);
+            rows.addChild(focusedRectWidgetNumberField, smallSettings).setOnValueChange(index -> {
+                if (index == 0) focusedRectWidget = null;
+                else if (index > 0 && index <= rectWidgets.size()) {
+                    focusedRectWidget = rectWidgets.get(index - 1);
+                    uMinField.setNumber(focusedRectWidget.uMin);
+                    vMinField.setNumber(focusedRectWidget.vMin);
+                    uMaxField.setNumber(focusedRectWidget.uMax);
+                    vMaxField.setNumber(focusedRectWidget.vMax);
+                }
+            }).setTooltip(createTooltip("focusedRectangleNumber"));
+            addRenderableWidget(new StringWidget(x + 4 + widgetWidth + 3, y + 4 + (widgetHeight + 2) * 3, 6, widgetHeight, LocUtil.literal("/"), font));
+            addRenderableWidget(rectWidgetsSizeWidget);
+            rows.addChild(new TexturedButton(48, 0, button -> deleteFocusedRectWidget()), grid.newCellSettings().padding(5 + widgetWidth - 18, 3, 1, 1))
+                    .setTooltip(createTooltip("deleteSelectedRectangle"));
+            rows.addChild(new StringWidget(26, widgetHeight, LocUtil.literal("uMin:"), font));
+            rows.addChild(uMinField, offsetXSettings).setOnValueChange(f -> {
+                if (focusedRectWidget != null) focusedRectWidget.uMin = f;
+            });
+            rows.addChild(new StringWidget(26, widgetHeight, LocUtil.literal("vMin:"), font));
+            rows.addChild(vMinField, offsetXSettings).setOnValueChange(f -> {
+                if (focusedRectWidget != null) focusedRectWidget.vMin = f;
+            });
+            rows.addChild(new StringWidget(26, widgetHeight, LocUtil.literal("uMax:"), font));
+            rows.addChild(uMaxField, offsetXSettings).setOnValueChange(f -> {
+                if (focusedRectWidget != null) focusedRectWidget.uMax = f;
+            });
+            rows.addChild(new StringWidget(26, widgetHeight, LocUtil.literal("vMax:"), font));
+            rows.addChild(vMaxField, offsetXSettings).setOnValueChange(f -> {
+                if (focusedRectWidget != null) focusedRectWidget.vMax = f;
+            });
         } else {
             boolean useSliderOffset = toggleSliderButton.getValue() == 0;
             rows.addChild(toggleSliderButton, 2);
@@ -306,27 +305,12 @@ public class ModelViewScreen extends Screen {
         grid.defaultCellSetting().padding(4, 2, 0, 0);
         LayoutSettings smallSettings = grid.newCellSettings().padding(5, 3, 1, 1);
         GridLayout.RowHelper rows = grid.createRowHelper(4);
-        rows.addChild(toggleConfigButton, 2).setTooltip(createTooltip(toggleConfigMap.get(toggleConfigButton.getValue())));
-        rows.addChild(togglePreviewButton, 2);
+        rows.addChild(toggleCategoryButton, 3);
+        rows.addChild(new TexturedButton(80, 0, button -> {
+            if (CompatibilityHelper.isModLoaded("cloth-config")) minecraft.setScreen(ConfigScreen.create(this));
+        }), smallSettings).setTooltip(createTooltip("toConfigScreen"));
         final int widgetsPerPage, size;
-        if (toggleConfigButton.getValue() == 0) {
-            widgetsPerPage = 8;
-            List<BindTarget> fixedTargetList = ConfigFile.config().getFixedTargetList().stream().filter(target -> target.name().equals(RealCameraCore.currentTarget().name())).toList();
-            List<BindTarget> targetList = ConfigFile.config().getBindTargetList();
-            final int fixedTargetCount = fixedTargetList.size();
-            size = fixedTargetCount + targetList.size();
-            for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, size); i++) {
-                BindTarget target = i < fixedTargetCount ? fixedTargetList.get(i) : targetList.get(i - fixedTargetCount);
-                String name = target.name();
-                rows.addChild(createButton(LocUtil.literal(name), widgetWidth * 2 - 18, button -> loadBindTarget(target)), 3).setTooltip(Tooltip.create(LocUtil.literal(name)));
-                if (i < fixedTargetCount) continue;
-                rows.addChild(new TexturedButton(48, 0, button -> {
-                    targetList.remove(target);
-                    ConfigFile.save();
-                    initWidgets(page * widgetsPerPage > size - 2 && size > 1 ? page - 1 : page);
-                }), smallSettings);
-            }
-        } else {
+        if (toggleCategoryButton.getValue() == 1) {
             widgetsPerPage = 6;
             size = disableConfigs.size();
             rows.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("copy"), widgetWidth, button -> configsInClipBoard = List.copyOf(disableConfigs)), 2).setTooltip(createTooltip("copy"));
@@ -379,6 +363,23 @@ public class ModelViewScreen extends Screen {
                     initWidgets(page * widgetsPerPage > size - 2 && size > 1 ? page - 1 : page);
                 }), smallSettings);
             }
+        } else {
+            widgetsPerPage = 8;
+            List<BindTarget> fixedTargetList = ConfigFile.config().getFixedTargetList().stream().filter(target -> target.name().equals(RealCameraCore.currentTarget().name())).toList();
+            List<BindTarget> targetList = ConfigFile.config().getBindTargetList();
+            final int fixedTargetCount = fixedTargetList.size();
+            size = fixedTargetCount + targetList.size();
+            for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, size); i++) {
+                BindTarget target = i < fixedTargetCount ? fixedTargetList.get(i) : targetList.get(i - fixedTargetCount);
+                String name = target.name();
+                rows.addChild(createButton(LocUtil.literal(name), widgetWidth * 2 - 18, button -> loadBindTarget(target)), 3).setTooltip(Tooltip.create(LocUtil.literal(name)));
+                if (i < fixedTargetCount) continue;
+                rows.addChild(new TexturedButton(48, 0, button -> {
+                    targetList.remove(target);
+                    ConfigFile.save();
+                    initWidgets(page * widgetsPerPage > size - 2 && size > 1 ? page - 1 : page);
+                }), smallSettings);
+            }
         }
         grid.arrangeElements();
         FrameLayout.alignInRectangle(grid, x + (xSize + middleWidth) / 2 + 4, y + 2, x + xSize, y + ySize, 0, 0);
@@ -413,21 +414,21 @@ public class ModelViewScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float deltaTick) {
-        renderBackground(graphics); // 1.20.1 only
-        analyser.setup(genBindTarget(), modelScale);
+        renderBackground(graphics);
+        analyser.initialize(genBindTarget(), modelScale);
         renderModelViewArea(graphics, minecraft.player);
         renderTextureViewArea(graphics);
         applyAnalyser(graphics, mouseX, mouseY);
         super.render(graphics, mouseX, mouseY, deltaTick);
-        if (selectionModeButton.getValue() == 2 && inModelViewArea(mouseX, mouseY)) {
-            enableScissor(graphics, modelViewArea);
+        if (toggleCategoryButton.getValue() == 1 && selectionModeButton.getValue() == 2 && inModelViewArea(mouseX, mouseY)) {
+            GUIHelper.enableScissor(graphics, modelViewArea);
             graphics.fill(mouseX - selectionRadius, mouseY - selectionRadius, mouseX + selectionRadius, mouseY + selectionRadius, 400, 0x4F3333CC);
             graphics.disableScissor();
         }
         if (textureViewArea != null) {
-            enableScissor(graphics, textureViewArea);
+            GUIHelper.enableScissor(graphics, textureViewArea);
             if (clickedX >= 0 && clickedY >= 0)
-                graphics.fill(Math.min(clickedX, mouseX), Math.min(clickedY, mouseY), Math.max(clickedX, mouseX), Math.max(clickedY, mouseY), 0x4F3333CC);
+                graphics.fill(Math.min((int) clickedX, mouseX), Math.min((int) clickedY, mouseY), Math.max((int) clickedX, mouseX), Math.max((int) clickedY, mouseY), 0x4F3333CC);
             if (disableModeButton.getValue() == 0)
                 new UVRectangleWidget(0f, 0f, 1f, 1f).renderWidget(graphics, mouseX, mouseY, deltaTick);
             graphics.disableScissor();
@@ -443,25 +444,24 @@ public class ModelViewScreen extends Screen {
     }
 
     protected void applyAnalyser(GuiGraphics graphics, int mouseX, int mouseY) {
-        String textureId = toggleConfigButton.getValue() == 0 ? "" : disabledIdField.getValue();
+        String textureId = toggleCategoryButton.getValue() == 0 ? "" : disabledIdField.getValue();
         Set<String> hiddenNames = hiddenNameMap.getOrDefault(nameField.getValue(), Set.of());
-        analyser.computeBindResult();
         analyser.applyDisableConfigs(textureId, hiddenNames);
-        if (toggleConfigButton.getValue() == 1 && selectionModeButton.getValue() == 2 && inModelViewArea(mouseX, mouseY))
+        if (toggleCategoryButton.getValue() == 1 && selectionModeButton.getValue() == 2 && inModelViewArea(mouseX, mouseY))
             analyser.computeFocusedOnModel(mouseX - selectionRadius, mouseY - selectionRadius, mouseX + selectionRadius, mouseY + selectionRadius);
         if (inTextureViewArea(mouseX, mouseY)) analyser.computeFocusedOnTexture(mouseX, mouseY);
         if (inModelViewArea(mouseX, mouseY)) analyser.computeFocusedOnModel(mouseX, mouseY, layers);
-        if (toggleConfigButton.getValue() == 0 || selectionModeButton.getValue() == 1) analyser.computeFocusedPolyhedron();
+        if (toggleCategoryButton.getValue() == 0 || selectionModeButton.getValue() == 1) analyser.computeFocusedPolyhedron();
         focusedPolyhedron = analyser.focusedPolyhedron.toArray(new VertexData[0][]);
         focusedTextureId = analyser.getFocusedTextureId();
-        enableScissor(graphics, modelViewArea);
+        GUIHelper.enableScissor(graphics, modelViewArea);
         analyser.drawModel(graphics, analyser.modelPose);
-        if (togglePreviewButton.getValue() == 0) analyser.drawFocusedInModelArea(graphics);
-        if (toggleConfigButton.getValue() == 0 && togglePreviewButton.getValue() == 0) analyser.drawBindTarget(graphics);
+        if (toggleCategoryButton.getValue() != 2) analyser.drawFocusedInModelArea(graphics);
+        if (toggleCategoryButton.getValue() == 0) analyser.drawBindTarget(graphics);
         else analyser.drawCameraDirections(graphics);
         graphics.disableScissor();
         if (textureViewArea != null) {
-            enableScissor(graphics, textureViewArea);
+            GUIHelper.enableScissor(graphics, textureViewArea);
             analyser.drawTexture(graphics, analyser.texturePose);
             analyser.drawFocusedInTextureArea(graphics);
             graphics.disableScissor();
@@ -512,23 +512,52 @@ public class ModelViewScreen extends Screen {
         analyser.texturePose.translate(offset.x(), offset.y(), offset.z());
     }
 
-    protected BindTarget genBindTarget() {
-        TargetConfig targetConfig = new TargetConfig( forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber());
-        BindConfig bindConfig = new BindConfig( bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);
-        OffsetConfig offsets = new OffsetConfig()
-                .setScale(scaleField.getNumber())
-                .setX(toggleSliderButton.getValue() == 0 ? offsetXSlider.getValue() : offsetXField.getNumber())
-                .setY(toggleSliderButton.getValue() == 0 ? offsetYSlider.getValue() : offsetYField.getNumber())
-                .setZ(toggleSliderButton.getValue() == 0 ? offsetZSlider.getValue() : offsetZField.getNumber())
-                .setPitch(toggleSliderButton.getValue() == 0 ? (float) offsetPitchSlider.getValue() : offsetPitchField.getNumber())
-                .setYaw(toggleSliderButton.getValue() == 0 ? (float) offsetYawSlider.getValue() : offsetYawField.getNumber())
-                .setRoll(toggleSliderButton.getValue() == 0 ? (float) offsetRollSlider.getValue() : offsetRollField.getNumber());
-        DisableConfig currentDisableConfig = new DisableConfig(disabledNameField.getValue(), disabledIdField.getValue(), disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toArray(UVRectangle[]::new));
-        DisableConfig[] disableConfigArray = disableConfigs.toArray(new DisableConfig[0]);
-        for (int i = 0; i < disableConfigArray.length; i++) {
-            if (disableConfigArray[i].name().equals(currentDisableConfig.name())) disableConfigArray[i] = currentDisableConfig;
+    protected void importBindTarget(Button button) {
+        FriendlyByteBuf byteBuf = null;
+        try {
+            String base64 = minecraft.keyboardHandler.getClipboard();
+            byte[] compressed = Base64.getDecoder().decode(base64);
+            InflaterInputStream inflaterStream = new InflaterInputStream(new ByteArrayInputStream(compressed));
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int length;
+            while ((length = inflaterStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
+            }
+            byte[] bytes = outputStream.toByteArray();
+            byteBuf = new FriendlyByteBuf(Unpooled.wrappedBuffer(bytes));
+            BindTarget target = BindTarget.read(byteBuf);
+            if (target.isEmpty()) throw new IllegalArgumentException("Invalid config format");
+            loadBindTarget(target);
+            button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("importSucceeded", LocUtil.literal("'" + target.name() + "'").withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GREEN)));
+        } catch (Exception e) {
+            String message = e.getClass().getSimpleName();
+            if (e instanceof IllegalArgumentException) message += ": " + e.getMessage();
+            button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("importFailed", message).withStyle(ChatFormatting.RED)));
+        } finally {
+            if (byteBuf != null) byteBuf.release();
         }
-        return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, disableConfigArray);
+    }
+
+    protected void exportBindTarget(Button button) {
+        FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
+        try {
+            genBindTarget().write(byteBuf);
+            byte[] bytes = new byte[byteBuf.readableBytes()];
+            byteBuf.getBytes(byteBuf.readerIndex(), bytes);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            try (DeflaterOutputStream deflaterStream = new DeflaterOutputStream(outputStream, new Deflater(Deflater.BEST_COMPRESSION))) {
+                deflaterStream.write(bytes);
+            }
+            String base64 = Base64.getEncoder().encodeToString(outputStream.toByteArray());
+            minecraft.keyboardHandler.setClipboard(base64);
+            button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("exportSucceeded").withStyle(ChatFormatting.GREEN)));
+        } catch (Exception e) {
+            String message = e.getClass().getSimpleName() + ": " + e.getMessage();
+            button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("exportFailed", message).withStyle(ChatFormatting.RED)));
+        } finally {
+            byteBuf.release();
+        }
     }
 
     protected void loadBindTarget(BindTarget target) {
@@ -547,13 +576,13 @@ public class ModelViewScreen extends Screen {
         bindYButton.setValue(target.bindConfig().bindY() ? 0 : 1);
         bindZButton.setValue(target.bindConfig().bindZ() ? 0 : 1);
         bindRotButton.setValue(target.bindConfig().bindRotation() ? 0 : 1);
-        scaleField.setNumber((float) target.offsets().getScale());
+        scaleField.setNumber(target.offsets().getScale());
         offsetXSlider.setValue(target.offsets().getX());
-        offsetXField.setNumber((float) target.offsets().getX());
+        offsetXField.setNumber(target.offsets().getX());
         offsetYSlider.setValue(target.offsets().getY());
-        offsetYField.setNumber((float) target.offsets().getY());
+        offsetYField.setNumber(target.offsets().getY());
         offsetZSlider.setValue(target.offsets().getZ());
-        offsetZField.setNumber((float) target.offsets().getZ());
+        offsetZField.setNumber(target.offsets().getZ());
         offsetPitchSlider.setValue(target.offsets().getPitch());
         offsetPitchField.setNumber(target.offsets().getPitch());
         offsetYawSlider.setValue(target.offsets().getYaw());
@@ -562,6 +591,25 @@ public class ModelViewScreen extends Screen {
         offsetRollField.setNumber(target.offsets().getRoll());
         disableConfigs.clear();
         disableConfigs.addAll(List.of(target.disableConfigs()));
+    }
+
+    protected BindTarget genBindTarget() {
+        TargetConfig targetConfig = new TargetConfig( forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber());
+        BindConfig bindConfig = new BindConfig( bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);
+        OffsetConfig offsets = new OffsetConfig()
+                .setScale(scaleField.getNumber())
+                .setX(toggleSliderButton.getValue() == 0 ? (float) offsetXSlider.getValue() : offsetXField.getNumber())
+                .setY(toggleSliderButton.getValue() == 0 ? (float) offsetYSlider.getValue() : offsetYField.getNumber())
+                .setZ(toggleSliderButton.getValue() == 0 ? (float) offsetZSlider.getValue() : offsetZField.getNumber())
+                .setPitch(toggleSliderButton.getValue() == 0 ? (float) offsetPitchSlider.getValue() : offsetPitchField.getNumber())
+                .setYaw(toggleSliderButton.getValue() == 0 ? (float) offsetYawSlider.getValue() : offsetYawField.getNumber())
+                .setRoll(toggleSliderButton.getValue() == 0 ? (float) offsetRollSlider.getValue() : offsetRollField.getNumber());
+        DisableConfig currentDisableConfig = new DisableConfig(disabledNameField.getValue(), disabledIdField.getValue(), disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toArray(UVRectangle[]::new));
+        DisableConfig[] disableConfigArray = disableConfigs.toArray(new DisableConfig[0]);
+        for (int i = 0; i < disableConfigArray.length; i++) {
+            if (disableConfigArray[i].name().equals(currentDisableConfig.name())) disableConfigArray[i] = currentDisableConfig;
+        }
+        return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, disableConfigArray);
     }
 
     protected Tooltip createTooltip(String key, Object... args) {
@@ -576,12 +624,12 @@ public class ModelViewScreen extends Screen {
         return Button.builder(message, onPress).size(width, widgetHeight).build();
     }
 
-    protected CycleButton<Integer> createCyclingButton(Map<Integer, Component> messages, int width, Component optionText) {
-        return new CycleButton.Builder<Integer>(messages::get).withValues(messages.keySet()).withInitialValue(0).create(0, 0, width, widgetHeight, optionText);
+    protected CycleButton<Integer> createCyclingButton(SortedMap<Integer, Component> messages, int width, Component optionText, OptionInstance.TooltipSupplier<Integer> tooltipSupplier) {
+        return new CycleButton.Builder<Integer>(messages::get).withValues(messages.keySet()).withInitialValue(0).withTooltip(tooltipSupplier).create(0, 0, width, widgetHeight, optionText);
     }
 
-    protected CycleButton<Integer> createCyclingButton(Map<Integer, Component> messages, int width, CycleButton.OnValueChange<Integer> onValueChange) {
-        return new CycleButton.Builder<Integer>(messages::get).withValues(messages.keySet()).withInitialValue(0).displayOnlyValue().create(0, 0, width, widgetHeight, Component.empty(), onValueChange);
+    protected CycleButton<Integer> createCyclingButton(SortedMap<Integer, Component> messages, int width, OptionInstance.TooltipSupplier<Integer> tooltipSupplier, CycleButton.OnValueChange<Integer> onValueChange) {
+        return new CycleButton.Builder<Integer>(messages::get).withValues(messages.keySet()).withInitialValue(0).withTooltip(tooltipSupplier).displayOnlyValue().create(0, 0, width, widgetHeight, Component.empty(), onValueChange);
     }
 
     protected DoubleSlider createSlider(String key, int width, double min, double max) {
@@ -607,9 +655,9 @@ public class ModelViewScreen extends Screen {
         return textureViewArea != null && x >= textureViewArea.left() && y >= textureViewArea.top() && x <= textureViewArea.right() && y <= textureViewArea.bottom();
     }
 
-    public boolean leftClickedWithLeftALT(double mouseX, double mouseY) {
+    public boolean leftClickedWithModifier(double mouseX, double mouseY) {
         if (focusedPolyhedron.length == 0) return false;
-        if (inModelViewArea(mouseX, mouseY) && toggleConfigButton.getValue() == 0) {
+        if (inModelViewArea(mouseX, mouseY) && toggleCategoryButton.getValue() == 0) {
             float u = 0, v = 0;
             for (VertexData vertex : focusedPolyhedron[0]) {
                 u += vertex.u();
@@ -629,7 +677,7 @@ public class ModelViewScreen extends Screen {
             }
             textureIdField.setValue(focusedTextureId);
             return true;
-        } else if ((inModelViewArea(mouseX, mouseY) || inTextureViewArea(mouseX, mouseY)) && toggleConfigButton.getValue() == 1) {
+        } else if ((inModelViewArea(mouseX, mouseY) || inTextureViewArea(mouseX, mouseY)) && toggleCategoryButton.getValue() == 1) {
             String disabledId = disabledIdField.getValue();
             if (disabledId.isBlank() || !focusedTextureId.contains(disabledId)) {
                 disabledIdField.setValue(focusedTextureId);
@@ -682,15 +730,15 @@ public class ModelViewScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        int storedX = clickedX, storedY = clickedY;
+        double storedX = clickedX, storedY = clickedY;
         clickedX = clickedY = -1;
-        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && togglePreviewButton.getValue() == 0) {
-            if (InputConstants.isKeyDown(minecraft.getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_ALT)) {
-                if (leftClickedWithLeftALT(mouseX, mouseY)) return true;
+        if (button == InputConstants.MOUSE_BUTTON_LEFT && toggleCategoryButton.getValue() != 2) {
+            if (InputConstants.isKeyDown(minecraft.getWindow().getWindow(), modifierKey.getValue())) {
+                if (leftClickedWithModifier(mouseX, mouseY)) return true;
             } else if (inTextureViewArea(mouseX, mouseY)) {
                 if (super.mouseClicked(mouseX, mouseY, button)) return true;
                 if (storedX >= 0 && storedY >= 0) {
-                    int xMin = Math.min(storedX, (int) mouseX), yMin = Math.min(storedY, (int) mouseY), xMax = Math.max(storedX, (int) mouseX), yMax = Math.max(storedY, (int) mouseY);
+                    float xMin = (float) Math.min(storedX, mouseX), yMin = (float) Math.min(storedY,  mouseY), xMax = (float) Math.max(storedX, mouseX), yMax = (float) Math.max(storedY, mouseY);
                     setFocused(addRectWidget(new UVRectangleWidget(xMin, yMin, xMax, yMax, textureViewArea)));
                     return true;
                 }
@@ -704,13 +752,13 @@ public class ModelViewScreen extends Screen {
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT && !InputConstants.isKeyDown(minecraft.getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_ALT)) {
+        if (button == InputConstants.MOUSE_BUTTON_LEFT && !InputConstants.isKeyDown(minecraft.getWindow().getWindow(), modifierKey.getValue())) {
             if (inModelViewArea(mouseX, mouseY)) {
                 xRot += (float) (Math.PI * deltaY / ySize);
                 yRot -= (float) (Math.PI * deltaX / middleWidth);
                 return true;
             }
-        } else if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+        } else if (button == InputConstants.MOUSE_BUTTON_RIGHT) {
             if (inModelViewArea(mouseX, mouseY)) {
                 modelX += deltaX / modelScale;
                 modelY += deltaY / modelScale;
@@ -728,8 +776,8 @@ public class ModelViewScreen extends Screen {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
         if (inModelViewArea(mouseX, mouseY)) {
-            if (InputConstants.isKeyDown(minecraft.getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_ALT)) {
-                if (toggleConfigButton.getValue() == 1 && selectionModeButton.getValue() == 2)
+            if (InputConstants.isKeyDown(minecraft.getWindow().getWindow(), modifierKey.getValue())) {
+                if (toggleCategoryButton.getValue() == 1 && selectionModeButton.getValue() == 2)
                     selectionRadius = Mth.clamp(selectionRadius + (int) amount * 2, 2, 48);
                 else layers = Math.max(0, layers + (int) amount);
             } else {
@@ -767,8 +815,8 @@ public class ModelViewScreen extends Screen {
             this.vMax = vMax;
         }
 
-        public UVRectangleWidget(int xMin, int yMin, int xMax, int yMax, @NotNull ScreenRectangle screenArea) {
-            super(xMin, yMin, xMax - xMin, yMax - yMin, Component.empty());
+        public UVRectangleWidget(float xMin, float yMin, float xMax, float yMax, @NotNull ScreenRectangle screenArea) {
+            super((int) xMin, (int) yMin, (int) (xMax - xMin), (int) (yMax - yMin), Component.empty());
             Vec2 minUV = translateXYToUV(xMin, yMin, screenArea), maxUV = translateXYToUV(xMax, yMax, screenArea);
             this.uMin = minUV.x;
             this.vMin = minUV.y;
@@ -798,14 +846,6 @@ public class ModelViewScreen extends Screen {
             return false;
         }
 
-        private void update(@NotNull ScreenRectangle screenArea) {
-            Vec2 minXY = translateUVToXY(uMin, vMin, screenArea), sub = minXY.scale(-1).add(translateUVToXY(uMax, vMax, screenArea));
-            this.setX((int) minXY.x);
-            this.setY((int) minXY.y);
-            this.setWidth((int) sub.x);
-            this.height = (int) sub.y;
-        }
-
         private Vec2 translateUVToXY(float u, float v, ScreenRectangle screenArea) {
             int x1 = screenArea.left(), y1 = screenArea.top(), x2 = screenArea.right(), y2 = screenArea.bottom();
             Vector3f vector3f = new Vector3f(u, v, 0)
@@ -826,18 +866,23 @@ public class ModelViewScreen extends Screen {
 
         @Override
         protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float deltaTick) {
-            update(textureViewArea);
-            enableScissor(graphics, textureViewArea);
-            graphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0x4F3333CC);
-            if (isHoveredOrFocused()) graphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0x2F3333CC);
-            if (isFocused() || this == focusedRectWidget) graphics.renderOutline(getX(), getY(), getWidth(), getHeight(), 0xAAFFFFFF);
+            Vec2 minXY = translateUVToXY(uMin, vMin, textureViewArea), maxXY = translateUVToXY(uMax, vMax, textureViewArea);
+            float x1 = minXY.x, y1 = minXY.y, x2 = maxXY.x, y2 = maxXY.y, width = x2 - x1, height = y2 - y1;
+            setX((int) x1);
+            setY((int) y1);
+            setWidth((int) width);
+            this.height = (int) height;
+            GUIHelper.enableScissor(graphics, textureViewArea);
+            GUIHelper.fill(graphics, x1, y1, x2, y2, 0x4F3333CC);
+            if (isHoveredOrFocused()) GUIHelper.fill(graphics, x1, y1, x2, y2, 0x2F3333CC);
+            if (isFocused() || this == focusedRectWidget) GUIHelper.renderOutline(graphics, x1, y1, width, height, 0xAAFFFFFF);
             graphics.disableScissor();
         }
 
         @Override
         public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
             if (textureViewArea == null) return false;
-            if (keyCode == GLFW.GLFW_KEY_DELETE && deleteFocusedRectWidget()) return true;
+            if (keyCode == InputConstants.KEY_DELETE && deleteFocusedRectWidget()) return true;
             if (CommonInputs.selected(keyCode) && uMin < uMax && vMin < vMax) {
                 textureX = 0.5 * (1 - uMin - uMax);
                 textureY = 0.5 * (1 - vMin - vMax);

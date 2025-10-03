@@ -82,15 +82,17 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
   * Player Animation Lib
   * Timeless and Classics Zero,version 1.0.3-
   * Yes Steve Model (Not stably compatible)
+  * Superb Warfare
 
 * Model Mod Compatibility Requirements with `Real Camera` (Based on Official Mappings)：
-* Render Timing Compatibility
-  * `Real Camera` renders `Minecraft.getCameraEntity` through the public method `EntityRenderDispatcher.render`
-  * The invocation timing has been moved to occur before the `Camera.setup` phase within the `GameRenderer.renderLevel` workflow
-  * *Therefore*, mod implementations should ensure that the overall rendering behavior remains unaffected by this timing adjustment
 * Vertex Data Acquisition
-  * `Real Camera` obtains vertex data by overriding the `MultiBufferSource multiBufferSource` parameter in the `EntityRenderDispatcher.render` method
-  * *Therefore*, mod implementations need to:
-    * Use only the **provided** `multiBufferSource` parameter when rendering `Minecraft.getCameraEntity`
-    * Avoid alternative approaches for obtaining or creating `MultiBufferSource` instances
-    * Ensure all vertex data ultimately passes through `VertexConsumer` objects acquired via `MultiBufferSource.getBuffer`
+  * `Real Camera` obtains vertex data by overriding the `MultiBufferSource multiBufferSource` parameter of the public method `EntityRenderDispatcher.render`
+  * The call timing is before the `Camera.setup` phase in the `GameRenderer.renderLevel` method
+  * *Therefore*, the mod needs to meet the following technical conditions:
+    * Use only the **provided** `multiBufferSource` parameter when rendering `Minecraft.getCameraEntity`, and avoid alternative approaches for obtaining or creating `MultiBufferSource` instances
+    * The overall rendering behavior remains unaffected when rendering the player model at the adjusted timing
+    * Ensure all vertex data ultimately passes through `VertexConsumer` gotten by `MultiBufferSource.getBuffer`
+* Render Times Compatibility
+  * `Real Camera` renders `Minecraft.getCameraEntity` by calling the public method `EntityRenderDispatcher.render`
+  * This is the second call to the `EntityRenderDispatcher.render` method in a frame (the first call is to solve the camera parameters).
+  * *Therefore*, the mod needs to meet the condition that the overall rendering behavior remains unaffected when rendering the player model **multiple times** in the same frame

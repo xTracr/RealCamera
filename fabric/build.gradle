@@ -28,6 +28,9 @@ dependencies {
         exclude(group: "net.fabricmc.fabric-api")
     }
 
+//    modImplementation "org.antlr:antlr4-runtime:4.13.1"
+//    modImplementation "io.github.douira:glsl-transformer:2.0.1"
+//    modImplementation "org.anarres:jcpp:1.4.14"
 //    modImplementation "maven.modrinth:iris:1.8.8+1.21.1-fabric"
 //    modImplementation "maven.modrinth:sodium:mc1.21.1-0.6.13-fabric"
 

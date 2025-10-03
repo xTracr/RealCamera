@@ -39,7 +39,7 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
     public T getNumber() {
         try {
             return getNumberInternal();
-        } catch (Exception exception) {
+        } catch (Exception e) {
             return defaultValue;
         }
     }
@@ -78,8 +78,8 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
             T value = getNumberInternal();
             if (value.compareTo(minimum) < 0) throw new Exception("< " + minimum);
             if (value.compareTo(maximum) > 0) throw new Exception("> " + maximum);
-        } catch (Exception exception) {
-            super.setTooltip(Tooltip.create(LocUtil.literal("Invalid number: " + exception.getMessage()).withStyle(s -> s.withColor(ChatFormatting.RED))));
+        } catch (Exception e) {
+            super.setTooltip(Tooltip.create(LocUtil.literal("Invalid number: " + e.getMessage()).withStyle(s -> s.withColor(ChatFormatting.RED))));
             setFormatter((string, firstCharacterIndex) -> FormattedCharSequence.forward(string, Style.EMPTY.withColor(ChatFormatting.RED)));
         }
     }
