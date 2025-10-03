@@ -32,7 +32,7 @@ public class DisableHelper {
         MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().getClassicSwimOutTick()));
         MAIN_FEATURE.registerOrInBinding(player -> {
             Item mainHand = player.getMainHandItem().getItem();
-            Item offHand = player.getMainHandItem().getItem();
+            Item offHand = player.getOffhandItem().getItem();
             for (String pattern : ConfigFile.config().getDisableMainFeatureItems())
                 if (matchesItemPattern(mainHand, pattern) || matchesItemPattern(offHand, pattern))
                     return true;
@@ -40,7 +40,7 @@ public class DisableHelper {
         });
         RENDER_MODEL.registerOrInBinding(player -> {
             Item mainHand = player.getMainHandItem().getItem();
-            Item offHand = player.getMainHandItem().getItem();
+            Item offHand = player.getOffhandItem().getItem();
             for (String pattern : ConfigFile.config().getDisableMainFeatureItems())
                 if (matchesItemPattern(mainHand, pattern) || matchesItemPattern(offHand, pattern))
                     return true;
@@ -81,13 +81,12 @@ public class DisableHelper {
                 })
                 .orElse(false);
         }
-        String itemId = BuiltInRegistries.ITEM.getKey(item).toString();
-        if (pattern.equals(itemId)) return true;
-        return simpleWildcardMatch(itemId, pattern);
+        return simpleWildcardMatch(BuiltInRegistries.ITEM.getKey(item).toString(), pattern);
     }
 
     public static boolean simpleWildcardMatch(String text, String pattern) {
         if (pattern.isEmpty()) return text.isEmpty();
+        if (pattern.equals(text)) return true;
         String[] parts = pattern.split("\\*+");
         if (parts.length == 0) return true;
         int currentIndex = 0;

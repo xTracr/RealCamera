@@ -93,7 +93,7 @@ public interface VertexData {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if ((!(o instanceof UV(float u1, float v1)))) return false;
+            if (!(o instanceof UV(float u1, float v1))) return false;
             return Float.compare(u, u1) == 0 && Float.compare(v, v1) == 0;
         }
 

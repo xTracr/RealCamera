@@ -45,14 +45,17 @@ public record ColoredFloatLineRenderState(
     @Override
     public void buildVertices(VertexConsumer vertexConsumer, float depth) {
         Vector2f vec = pose.transformPosition(vectorX, vectorY, new Vector2f());
-//        vertexConsumer.addVertexWith2DPose(pose, x, y, z + depth).setColor(argb).setNormal(vec.x(), vec.y(), vectorZ);
-//        vertexConsumer.addVertexWith2DPose(pose, x + vectorX, y + vectorY, z + vectorZ + depth).setColor(argb).setNormal(vec.x(), vec.y(), vectorZ);
-        Vector2f start = pose.transformPosition(x, y, new Vector2f());
-        Vector2f end = start.add(vec, new Vector2f());
-        Vector2f normal = vec.normalize(new Vector2f()).mul(0.5f);
-        vertexConsumer.addVertex(start.x() - normal.y(), start.y() + normal.x(), z + depth).setColor(argb);
-        vertexConsumer.addVertex(end.x() - normal.y(), end.y() + normal.x(), z + vectorZ + depth).setColor(argb);
-        vertexConsumer.addVertex(end.x() + normal.y(), end.y() - normal.x(), z + vectorZ + depth).setColor(argb);
-        vertexConsumer.addVertex(start.x() + normal.y(), start.y() - normal.x(), z + depth).setColor(argb);
+        if (pipeline.getVertexFormatMode().primitiveLength == 2) {
+            vertexConsumer.addVertexWith2DPose(pose, x, y, z + depth).setColor(argb).setNormal(vec.x(), vec.y(), vectorZ);
+            vertexConsumer.addVertexWith2DPose(pose, x + vectorX, y + vectorY, z + vectorZ + depth).setColor(argb).setNormal(vec.x(), vec.y(), vectorZ);
+        } else {
+            Vector2f start = pose.transformPosition(x, y, new Vector2f());
+            Vector2f end = start.add(vec, new Vector2f());
+            Vector2f normal = vec.normalize(new Vector2f()).mul(0.5f);
+            vertexConsumer.addVertex(start.x() - normal.y(), start.y() + normal.x(), z + depth).setColor(argb);
+            vertexConsumer.addVertex(end.x() - normal.y(), end.y() + normal.x(), z + vectorZ + depth).setColor(argb);
+            vertexConsumer.addVertex(end.x() + normal.y(), end.y() - normal.x(), z + vectorZ + depth).setColor(argb);
+            vertexConsumer.addVertex(start.x() + normal.y(), start.y() - normal.x(), z + depth).setColor(argb);
+        }
     }
 }
