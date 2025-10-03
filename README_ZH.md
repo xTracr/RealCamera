@@ -84,13 +84,14 @@
   * Superb Warfare（卓越前线）
 
 * 模型模组与`Real Camera`兼容的必要条件（基于官方映射）：
-* 渲染时序兼容
-  * `Real Camera`通过调用`EntityRenderDispatcher.render`公共方法进行`Minecraft.getCameraEntity`的渲染
-  * 调用时机调整至`GameRenderer.renderLevel`流程中的`Camera.setup`阶段之前
-  * *因此*，模组需确保在此时序调整后，玩家模型渲染的整体表现不受影响
 * 顶点数据获取
   * `Real Camera`通过替换公共方法`EntityRenderDispatcher.render`的`MultiBufferSource multiBufferSource`参数实现顶点数据获取
+  * 调用时机为`GameRenderer.renderLevel`流程中的`Camera.setup`阶段之前
   * *因此*，模组需要满足以下技术条件：
-    * 渲染`Minecraft.getCameraEntity`时严格使用**传入的**`multiBufferSource`参数
-    * 没有通过其他途径获取或创建`MultiBufferSource`实例
+    * 渲染`Minecraft.getCameraEntity`时严格使用**传入的**`multiBufferSource`参数，没有通过其他途径获取或创建`MultiBufferSource`实例
+    * 在调整后的时机渲染玩家模型，其整体表现不受影响
     * 所有顶点数据最终通过`MultiBufferSource.getBuffer`方法获取的`VertexConsumer`发送给GPU
+* 渲染次数兼容
+  * `Real Camera`通过调用`EntityRenderDispatcher.render`公共方法进行`Minecraft.getCameraEntity`的渲染
+  * 这是在一帧中第二次调用`EntityRenderDispatcher.render`方法（第一次是为了解算摄像机参数）
+  * *因此*，模组需要满足：同一帧内**多次**渲染玩家模型，其整体表现不受影响

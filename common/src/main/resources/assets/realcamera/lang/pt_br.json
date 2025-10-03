@@ -58,7 +58,7 @@
   "config.tooltip.xtracr_realcamera.classicAdjustMode": "Determina o que ajustar ao pressionar a tecla de ajuste",
   "config.tooltip.xtracr_realcamera.scale": "Controla o tamanho dos deslocamentos",
   "config.tooltip.xtracr_realcamera.legacyBindingMode": "Usando o modo de vinculação da versão legada (v0.5), apenas modelos vanilla e ações baseadas em modelos vanilla são suportados\nSuas propriedades podem ser definidas em 'LEGACY_MODE' da tela %s quando ativado",
-  "config.tooltip.xtracr_realcamera.adjustedOffset": "Ao pressionar a tecla de ajuste, ajusta o deslocamento ou rotação da câmera",
+  "config.tooltip.xtracr_realcamera.adjustOffset": "Ao pressionar a tecla de ajuste, ajusta o deslocamento ou rotação da câmera",
   "config.tooltip.xtracr_realcamera.renderStuckObjects": "Flechas, ferrões de abelha e outros objetos que podem ficar presos no corpo do jogador",
   "config.tooltip.xtracr_realcamera.rerenderModel": "Renderizar o modelo novamente no momento original de renderização para evitar alguns problemas visuais causados pela renderização antecipada",
   "config.tooltip.xtracr_realcamera.swimOutTick": "O tempo antes de habilitar o recurso principal após sair do estado de natação (1 tick = 0.05s)",

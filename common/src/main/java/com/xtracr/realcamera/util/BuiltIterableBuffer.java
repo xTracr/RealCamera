@@ -14,12 +14,15 @@ import java.util.regex.Pattern;
 
 public record BuiltIterableBuffer(RenderType renderType, String textureId, IterableVertexBuffer vertexBuffer) {
     private static final Pattern TEXTURE_ID_PATTERN = Pattern.compile("texture\\[Optional\\[(.*?)]");
+    private static final Map<RenderType, String> TEXTURE_ID_CACHE = new HashMap<>();
     private static final Map<RenderType, Map<UV, float[]>> FIND_PRIMITIVE_CACHE = new HashMap<>();
 
     public static BuiltIterableBuffer buildFrom(RenderType renderType, MeshData meshData) {
-        String renderTypeName = renderType.toString();
-        Matcher matcher = TEXTURE_ID_PATTERN.matcher(renderTypeName);
-        String textureId = matcher.find() ? matcher.group(1) : renderTypeName;
+        String textureId = TEXTURE_ID_CACHE.computeIfAbsent(renderType, rt -> {
+            String renderTypeName = rt.toString();
+            Matcher matcher = TEXTURE_ID_PATTERN.matcher(renderTypeName);
+            return matcher.find() ? matcher.group(1) : renderTypeName;
+        });
         return new BuiltIterableBuffer(renderType, textureId, new IterableVertexBuffer(meshData));
     }
 
