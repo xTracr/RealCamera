@@ -337,7 +337,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
                 for (int i = 0; i < primitiveLength; i++) {
                     reusablePrimitive[i] = VertexData.mutable();
                 }
-                readVertexAt(0, reusablePrimitive[0]);
+                if (0 < vertexCount) readVertexAt(0, reusablePrimitive[0]);
             }
 
             @Override
@@ -364,7 +364,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
                 for (int i = 0; i < primitiveLength; i++) {
                     reusablePrimitive[i] = VertexData.mutable();
                 }
-                readVertexAt(0, reusablePrimitive[0]);
+                if (0 < vertexCount) readVertexAt(0, reusablePrimitive[0]);
             }
 
             @Override
