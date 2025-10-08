@@ -114,7 +114,7 @@ public class ModelAnalyser {
         Matrix4f positionMatrix = texturePose.last().pose();
         Vector3f position = new Vector3f();
         for (BuiltRecord record : textureRecords) {
-            int length = record.primitives()[0].length;
+            int length = record.renderType().mode().primitiveLength;
             int[] xs = new int[length], ys = new int[length];
             for (VertexData[] primitive : record.primitives()) {
                 for (int j = 0; j < length; j++) {

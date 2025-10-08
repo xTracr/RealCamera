@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
 import com.xtracr.realcamera.util.VertexData.MutableVertex;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,10 +20,10 @@ import java.util.stream.StreamSupport;
 
 public class IterableVertexBuffer implements Iterable<VertexData> {
     private static final boolean IS_LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
+    public final int vertexCount, vertexSize;
     private final MutableVertex reusableVertex = VertexData.mutable();
     private final Iterable<VertexData[]> primitives;
     private final ByteBuffer buffer;
-    private final int vertexCount, vertexSize;
     private final int positionOffset, colorOffset, uvOffset, overlayOffset, lightOffset, normalOffset;
     private final boolean hasPosition, hasColor, hasUV, hasOverlay, hasLight, hasNormal, fastFormat;
 
@@ -72,7 +73,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
             mutable.x = buffer.getFloat(vertexOffset);
             mutable.y = buffer.getFloat(vertexOffset + 4);
             mutable.z = buffer.getFloat(vertexOffset + 8);
-            mutable.argb = IS_LITTLE_ENDIAN ? buffer.getInt(vertexOffset + 12) : Integer.reverseBytes(buffer.getInt(vertexOffset + 12));
+            mutable.argb = readColor(vertexOffset + 12);
             mutable.u = buffer.getFloat(vertexOffset + 16);
             mutable.v = buffer.getFloat(vertexOffset + 20);
             mutable.overlay = buffer.getInt(vertexOffset + 24);
@@ -89,7 +90,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
             mutable.z = buffer.getFloat(offset + 8);
         }
         if (hasColor) {
-            mutable.argb = IS_LITTLE_ENDIAN ? buffer.getInt(vertexOffset + colorOffset) : Integer.reverseBytes(buffer.getInt(vertexOffset + colorOffset));
+            mutable.argb = readColor(vertexOffset + colorOffset);
         }
         if (hasUV) {
             int offset = vertexOffset + uvOffset;
@@ -121,6 +122,10 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         return new VertexSpliterator(0, vertexCount);
     }
 
+    private int readColor(int offset) {
+        return ARGB.fromABGR(IS_LITTLE_ENDIAN ? buffer.getInt(offset) : Integer.reverseBytes(buffer.getInt(offset)));
+    }
+
     private class VertexPointer implements VertexData {
         protected int bytePointer = 0;
 
@@ -150,7 +155,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
 
         @Override
         public int argb() {
-            if (hasColor) return IS_LITTLE_ENDIAN ? buffer.getInt(bytePointer + colorOffset) : Integer.reverseBytes(buffer.getInt(bytePointer + colorOffset));
+            if (hasColor) return readColor(bytePointer + colorOffset);
             return 0;
         }
 
@@ -214,7 +219,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
                 return new ImmutableVertex(buffer.getFloat(bytePointer),
                         buffer.getFloat(bytePointer + 4),
                         buffer.getFloat(bytePointer + 8),
-                        IS_LITTLE_ENDIAN ? buffer.getInt(bytePointer + 12) : Integer.reverseBytes(buffer.getInt(bytePointer + 12)),
+                        readColor(bytePointer + 12),
                         buffer.getFloat(bytePointer + 16),
                         buffer.getFloat(bytePointer + 20),
                         buffer.getInt(bytePointer + 24),
@@ -321,7 +326,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
                 for (int i = 0; i < primitiveLength; i++) {
                     reusablePrimitive[i] = VertexData.mutable();
                 }
-                readVertexAt(0, reusablePrimitive[0]);
+                if (0 < vertexCount) readVertexAt(0, reusablePrimitive[0]);
             }
 
             @Override
@@ -348,7 +353,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
                 for (int i = 0; i < primitiveLength; i++) {
                     reusablePrimitive[i] = VertexData.mutable();
                 }
-                readVertexAt(0, reusablePrimitive[0]);
+                if (0 < vertexCount) readVertexAt(0, reusablePrimitive[0]);
             }
 
             @Override
@@ -407,7 +412,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
                 mutable.x = buffer.getFloat(vertexOffset);
                 mutable.y = buffer.getFloat(vertexOffset + 4);
                 mutable.z = buffer.getFloat(vertexOffset + 8);
-                mutable.argb = IS_LITTLE_ENDIAN ? buffer.getInt(vertexOffset + 12) : Integer.reverseBytes(buffer.getInt(vertexOffset + 12));
+                mutable.argb = readColor(vertexOffset + 12);
                 mutable.u = buffer.getFloat(vertexOffset + 16);
                 mutable.v = buffer.getFloat(vertexOffset + 20);
                 mutable.overlay = buffer.getInt(vertexOffset + 24);

@@ -2,9 +2,7 @@ package com.xtracr.realcamera.compat;
 
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
-import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
@@ -14,7 +12,6 @@ import net.minecraft.world.item.Item;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Predicate;
 
 public class DisableHelper {
@@ -41,7 +38,7 @@ public class DisableHelper {
         RENDER_MODEL.registerOrInBinding(player -> {
             Item mainHand = player.getMainHandItem().getItem();
             Item offHand = player.getOffhandItem().getItem();
-            for (String pattern : ConfigFile.config().getDisableMainFeatureItems())
+            for (String pattern : ConfigFile.config().getDisableRenderItems())
                 if (matchesItemPattern(mainHand, pattern) || matchesItemPattern(offHand, pattern))
                     return true;
             return false;
@@ -73,12 +70,7 @@ public class DisableHelper {
             String tagId = pattern.substring(1);
             TagKey<Item> itemTag = TagKey.create(BuiltInRegistries.ITEM.key(), ResourceLocation.parse(tagId));
             return BuiltInRegistries.ITEM.get(itemTag)
-                .map(tag -> {
-                    ResourceLocation itemLocation = BuiltInRegistries.ITEM.getKey(item);
-                    ResourceKey<Item> itemKey = ResourceKey.create(BuiltInRegistries.ITEM.key(), itemLocation);
-                    Optional<Holder.Reference<Item>> itemRef = BuiltInRegistries.ITEM.get(itemKey);
-                    return itemRef.map(tag::contains).orElse(false);
-                })
+                .map(tag -> tag.contains(BuiltInRegistries.ITEM.wrapAsHolder(item)))
                 .orElse(false);
         }
         return simpleWildcardMatch(BuiltInRegistries.ITEM.getKey(item).toString(), pattern);
