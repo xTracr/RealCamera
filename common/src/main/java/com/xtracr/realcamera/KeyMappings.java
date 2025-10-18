@@ -31,6 +31,9 @@ public final class KeyMappings {
         createKeyMapping("adjustDOWN", client -> ConfigFile.config().adjustOffsetY(-1));
         createKeyMapping("adjustLEFT", client -> ConfigFile.config().adjustOffsetZ(1));
         createKeyMapping("adjustRIGHT", client -> ConfigFile.config().adjustOffsetZ(-1));
+        createKeyMapping("activeConfigIndexUP", client -> ConfigFile.config().setActiveConfigIndex(1));
+        createKeyMapping("activeConfigIndexDOWN", client -> ConfigFile.config().setActiveConfigIndex(-1));
+        createKeyMapping("activeConfigIndexRESET", client -> ConfigFile.config().setActiveConfigIndex(-2));
     }
 
     private static KeyMapping createKeyMapping(String id, Consumer<Minecraft> whenPressed) {

@@ -110,6 +110,10 @@ public class ModConfig {
         }
     }
 
+    public void setActiveConfigIndex(int value) {
+        binding.activeConfigIndex = value <= -2 ? -1 : Mth.clamp(binding.activeConfigIndex += value, -1, Integer.MAX_VALUE);
+    }
+
     // classic
     public boolean classicDisableWhenSneaking() {
         return classic.disableWhenSneaking;
@@ -198,6 +202,10 @@ public class ModConfig {
 
     public double getRotationSmoothFactor() {
         return binding.rotationSmoothFactor;
+    }
+
+    public int getActiveConfigIndex() {
+        return binding.activeConfigIndex;
     }
 
     public List<String> getDisableMainFeatureItems() {
@@ -289,6 +297,7 @@ public class ModConfig {
         public int bindResultRetentionFrames = 2;
         public double displacementSmoothFactor = 0.4;
         public double rotationSmoothFactor = 0.4;
+        public int activeConfigIndex = -1;
         public List<String> disableMainFeatureItems = List.of();
         public List<String> disableRenderItems = defaultDisableRenderItems;
         public List<BindTarget> fixedTargetList = new ArrayList<>();
