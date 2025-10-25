@@ -151,14 +151,13 @@ public class RealCameraCore {
 
     private static void computeBindResult(BuiltIterableBuffer builtBuffer) {
         if (newResult.available()) return;
-        int a = 0;
+        int T = 1 , activeConfigIndex = ConfigFile.config().getActiveConfigIndex();
         targetFor:
         for (BindTarget target : ConfigFile.config().getBindTargetList()) {
             BindResult result = new BindResult(target, false);
-            int activeConfigIndex = ConfigFile.config().getActiveConfigIndex();
             if (!builtBuffer.textureId().contains(result.target.textureId())) continue;
-            if (!(a == activeConfigIndex || activeConfigIndex == -1)) {
-                a++;
+            if (!(T == activeConfigIndex || activeConfigIndex == 0)) {
+                T++;
                 continue;
             }
             BindTarget.TargetConfig config = result.target.targetConfig();

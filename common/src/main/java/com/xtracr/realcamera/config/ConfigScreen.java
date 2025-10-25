@@ -201,8 +201,8 @@ public class ConfigScreen {
                 .setSaveConsumer(d -> config.binding.rotationSmoothFactor = d)
                 .build());
         binding.addEntry(entryBuilder.startIntField(LocUtil.CONFIG_OPTION("activeConfigIndex"), config.binding.activeConfigIndex)
-                .setDefaultValue(-1)
-                .setMin(-1)
+                .setDefaultValue(0)
+                .setMin(0)
                 .setMax(Integer.MAX_VALUE)
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("activeConfigIndex"))
                 .setSaveConsumer(i -> config.binding.activeConfigIndex = i)
