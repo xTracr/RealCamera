@@ -204,10 +204,6 @@ public class ModConfig {
         return binding.rotationSmoothFactor;
     }
 
-    public int getActiveConfigIndex() {
-        return binding.activeConfigIndex;
-    }
-
     public List<String> getDisableMainFeatureItems() {
         return binding.disableMainFeatureItems;
     }
@@ -223,6 +219,21 @@ public class ModConfig {
     public List<BindTarget> getBindTargetList() {
         binding.clamp();
         return binding.targetList;
+    }
+
+    public List<BindTarget> getTargetList(String textureId) {
+        binding.clamp();
+        int T = 1 , activeConfigIndex = binding.activeConfigIndex;
+        List<BindTarget> filteredList = new ArrayList<>();
+        for (BindTarget target : binding.targetList) {
+            if (!target.textureId().equals(textureId)) continue;
+            if (!(activeConfigIndex == 0 || T == activeConfigIndex)) {
+                T++;
+                continue;
+            }
+            filteredList.add(target);
+        }
+        return filteredList;
     }
 
     public void putBindTarget(BindTarget target) {
