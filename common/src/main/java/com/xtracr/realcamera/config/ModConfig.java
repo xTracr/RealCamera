@@ -7,6 +7,7 @@ import net.minecraft.util.Mth;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class ModConfig {
@@ -223,17 +224,11 @@ public class ModConfig {
 
     public List<BindTarget> getTargetList(String textureId) {
         binding.clamp();
-        int T = 1 , activeConfigIndex = binding.activeConfigIndex;
-        List<BindTarget> filteredList = new ArrayList<>();
-        for (BindTarget target : binding.targetList) {
-            if (!target.textureId().equals(textureId)) continue;
-            if (!(activeConfigIndex == 0 || T == activeConfigIndex)) {
-                T++;
-                continue;
-            }
-            filteredList.add(target);
-        }
-        return filteredList;
+        int activeConfigIndex = binding.activeConfigIndex;
+        List<BindTarget> matchedTargets = binding.targetList.stream().filter(target -> textureId.contains(target.textureId())).toList();
+        if (activeConfigIndex == 0) return matchedTargets;
+        int index = Math.min(activeConfigIndex - 1, matchedTargets.size() - 1);
+        return index >= 0 ? List.of(matchedTargets.get(index)) : List.of();
     }
 
     public void putBindTarget(BindTarget target) {
