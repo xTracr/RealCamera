@@ -152,10 +152,9 @@ public class RealCameraCore {
     private static void computeBindResult(BuiltIterableBuffer builtBuffer) {
         if (newResult.available()) return;
         targetFor:
-        for (BindTarget target : ConfigFile.config().getBindTargetList()) {
+        for (BindTarget target : ConfigFile.config().getTargetList(builtBuffer.textureId())) {
             BindResult result = new BindResult(target, false);
-            if (!builtBuffer.textureId().contains(result.target.textureId())) continue;
-            BindTarget.TargetConfig config = result.target.targetConfig();
+            BindTarget.TargetConfig config = target.targetConfig();
             VertexData.UV[] uvs = {new VertexData.UV(config.posU(), config.posV()), new VertexData.UV(config.forwardU(), config.forwardV()), new VertexData.UV(config.upwardU(), config.upwardV())};
             VertexData[][] primitives = builtBuffer.findPrimitivesInCache(uvs);
             if (builtBuffer.anyNotCached(uvs)) {

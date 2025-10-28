@@ -200,6 +200,13 @@ public class ConfigScreen {
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("rotationSmoothFactor"))
                 .setSaveConsumer(d -> config.binding.rotationSmoothFactor = d)
                 .build());
+        binding.addEntry(entryBuilder.startIntField(LocUtil.CONFIG_OPTION("activeConfigIndex"), config.binding.activeConfigIndex)
+                .setDefaultValue(0)
+                .setMin(0)
+                .setMax(Integer.MAX_VALUE)
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("activeConfigIndex"))
+                .setSaveConsumer(i -> config.binding.activeConfigIndex = i)
+                .build());
         binding.addEntry(entryBuilder.startStrList(LocUtil.CONFIG_OPTION("disableMainFeatureItems"), config.binding.disableMainFeatureItems)
                 .setDefaultValue(List.of())
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("disableRenderItems"))
