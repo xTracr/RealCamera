@@ -186,6 +186,12 @@ public class ConfigScreen {
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("bindResultRetentionFrames"))
                 .setSaveConsumer(i -> config.binding.bindResultRetentionFrames = i)
                 .build());
+        binding.addEntry(entryBuilder.startIntField(LocUtil.CONFIG_OPTION("activeConfigIndex"), config.binding.activeConfigIndex)
+                .setDefaultValue(0)
+                .setMin(0)
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("activeConfigIndex"))
+                .setSaveConsumer(i -> config.binding.activeConfigIndex = i)
+                .build());
         binding.addEntry(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("displacementSmoothFactor"), config.binding.displacementSmoothFactor)
                 .setDefaultValue(0.4)
                 .setMin(0.0)
@@ -199,13 +205,6 @@ public class ConfigScreen {
                 .setMax(1.0)
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("rotationSmoothFactor"))
                 .setSaveConsumer(d -> config.binding.rotationSmoothFactor = d)
-                .build());
-        binding.addEntry(entryBuilder.startIntField(LocUtil.CONFIG_OPTION("activeConfigIndex"), config.binding.activeConfigIndex)
-                .setDefaultValue(0)
-                .setMin(0)
-                .setMax(Integer.MAX_VALUE)
-                .setTooltip(LocUtil.CONFIG_TOOLTIP("activeConfigIndex"))
-                .setSaveConsumer(i -> config.binding.activeConfigIndex = i)
                 .build());
         binding.addEntry(entryBuilder.startStrList(LocUtil.CONFIG_OPTION("disableMainFeatureItems"), config.binding.disableMainFeatureItems)
                 .setDefaultValue(List.of())
