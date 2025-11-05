@@ -217,6 +217,14 @@ public class ModConfig {
         return binding.targetList;
     }
 
+    public List<BindTarget> getBindTargetList(String textureId) {
+        binding.clamp();
+        int activeConfigIndex = binding.activeConfigIndex;
+        List<BindTarget> matchedTargets = binding.targetList.stream().filter(target -> textureId.contains(target.textureId())).toList();
+        if (activeConfigIndex == 0 || matchedTargets.isEmpty()) return matchedTargets;
+        return List.of(matchedTargets.get(Mth.clamp(activeConfigIndex - 1, 0, matchedTargets.size() - 1)));
+    }
+
     public void putBindTarget(BindTarget target) {
         if (target.isEmpty()) return;
         List<BindTarget> fixedList = binding.fixedTargetList;
@@ -287,6 +295,7 @@ public class ModConfig {
         public boolean disableWhenSwimming = false;
         public int swimOutTick = 13;
         public int bindResultRetentionFrames = 2;
+        public int activeConfigIndex = 0;
         public double displacementSmoothFactor = 0.4;
         public double rotationSmoothFactor = 0.4;
         public List<String> disableMainFeatureItems = List.of();
