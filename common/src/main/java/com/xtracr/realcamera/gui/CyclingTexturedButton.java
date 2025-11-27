@@ -4,7 +4,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,7 +26,7 @@ public class CyclingTexturedButton extends AbstractButton {
     }
 
     public CyclingTexturedButton(int x, int y, int width, int height, int u, int v, int vOffset, int value, int size, ResourceLocation texture, int textureWidth, int textureHeight) {
-        super(x, y, width, height, Component.empty());
+        super(x, y, width, height, CommonComponents.EMPTY);
         this.u = u;
         this.v = v;
         this.vOffset = vOffset;

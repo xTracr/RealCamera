@@ -7,7 +7,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.navigation.CommonInputs;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSequence;
 import org.jetbrains.annotations.Nullable;
@@ -20,7 +20,7 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
     private Tooltip tooltip;
 
     NumberField(Font font, int width, int height, T defaultValue, T maximum, T minimum, @Nullable NumberField<T> copyFrom) {
-        super(font, 0, 0, width, height, Component.empty());
+        super(font, 0, 0, width, height, CommonComponents.EMPTY);
         this.defaultValue = defaultValue;
         this.maximum = maximum;
         this.minimum = minimum;

@@ -140,7 +140,7 @@ public class RealCameraCore {
                 for (VertexData vertex : primitive) {
                     if (Math.fma(m02, vertex.x(), Math.fma(m12, vertex.y(), Math.fma(m22, vertex.z(), m32))) > -depth) continue;
                     for (DisableConfig config : disableConfigs) {
-                        if (config.test(vertex)) continue primitiveFor;
+                        if (config.disable(vertex)) continue primitiveFor;
                     }
                     for (VertexData vertexData : primitive) vertexData.render(buffer);
                     break;

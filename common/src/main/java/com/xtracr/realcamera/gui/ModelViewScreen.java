@@ -26,6 +26,7 @@ import net.minecraft.client.gui.navigation.CommonInputs;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
@@ -108,7 +109,7 @@ public class ModelViewScreen extends Screen {
             .withInitialValue(0)
             .withTooltip(i -> createTooltip("toggleSlider"))
             .displayOnlyValue()
-            .create(0, 0, widgetWidth * 2 + 4, widgetHeight, LocUtil.MODEL_VIEW_WIDGET("toggleSlider"), (button, i) -> {
+            .create(0, 0, widgetWidth * 2 + 4, widgetHeight, CommonComponents.EMPTY, (button, i) -> {
                 if (i == 1) {
                     offsetXField.setNumber((float) offsetXSlider.getValue());
                     offsetYField.setNumber((float) offsetYSlider.getValue());
@@ -133,7 +134,7 @@ public class ModelViewScreen extends Screen {
             .withInitialValue(Category.CONFIGS)
             .withTooltip(category -> createTooltip(category.next().id))
             .displayOnlyValue()
-            .create(0, 0, widgetWidth * 2 - 18, widgetHeight, LocUtil.MODEL_VIEW_WIDGET("toggleCategory"), (button, i) -> initWidgets(0));
+            .create(0, 0, widgetWidth * 2 - 18, widgetHeight, CommonComponents.EMPTY, (button, i) -> initWidgets(0));
 
     public ModelViewScreen() {
         super(LocUtil.MODEL_VIEW_TITLE());
@@ -651,7 +652,7 @@ public class ModelViewScreen extends Screen {
     }
 
     protected EditBox createTextField(int width, int maxLength, @Nullable EditBox copyFrom) {
-        EditBox editBox = new EditBox(font, 0, 0, width - 2, widgetHeight - 2, Component.empty());
+        EditBox editBox = new EditBox(font, 0, 0, width - 2, widgetHeight - 2, CommonComponents.EMPTY);
         editBox.setMaxLength(maxLength);
         if (copyFrom != null) editBox.setValue(copyFrom.getValue());
         return editBox;
@@ -818,7 +819,7 @@ public class ModelViewScreen extends Screen {
         protected float uMin, vMin, uMax, vMax;
 
         public UVRectangleWidget(float uMin, float vMin, float uMax, float vMax) {
-            super(0, 0, 16, 16, Component.empty());
+            super(0, 0, 16, 16, CommonComponents.EMPTY);
             this.uMin = uMin;
             this.vMin = vMin;
             this.uMax = uMax;
@@ -826,7 +827,7 @@ public class ModelViewScreen extends Screen {
         }
 
         public UVRectangleWidget(float xMin, float yMin, float xMax, float yMax, @NotNull ScreenRectangle screenArea) {
-            super((int) xMin, (int) yMin, (int) (xMax - xMin), (int) (yMax - yMin), Component.empty());
+            super((int) xMin, (int) yMin, (int) (xMax - xMin), (int) (yMax - yMin), CommonComponents.EMPTY);
             Vec2 minUV = translateXYToUV(xMin, yMin, screenArea), maxUV = translateXYToUV(xMax, yMax, screenArea);
             this.uMin = minUV.x;
             this.vMin = minUV.y;

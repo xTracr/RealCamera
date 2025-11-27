@@ -1,9 +1,17 @@
 package com.xtracr.realcamera.config;
 
+import com.google.gson.TypeAdapter;
+import com.google.gson.annotations.JsonAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import com.xtracr.realcamera.util.VertexData;
+import it.unimi.dsi.fastutil.floats.Float2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.floats.FloatOpenHashSet;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Mth;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
@@ -14,9 +22,9 @@ public record BindTarget(
         BindConfig bindConfig,
         OffsetConfig offsets,
         DisableConfig[] disableConfigs) {
-    private static final short serialVersion = 703;
     public static final List<BindTarget> defaultTargets;
     public static final BindTarget EMPTY = blank(null, null);
+    private static final short serialVersion = 703;
 
     static {
         defaultTargets = List.of(
@@ -200,7 +208,22 @@ public record BindTarget(
         }
     }
 
-    public record DisableConfig(String name, String textureId, boolean disableAll, UVRectangle[] rectangles) implements Predicate<VertexData> {
+    @JsonAdapter(DisableConfig.Adapter.class)
+    public static class DisableConfig {
+        private final Float2ObjectOpenHashMap<FloatOpenHashSet> disableCacheMap = new Float2ObjectOpenHashMap<>();
+        private final String name;
+        private final String textureId;
+        private final boolean disableAll;
+        private final UVRectangle[] rectangles;
+
+        public DisableConfig(String name, String textureId, boolean disableAll, UVRectangle[] rectangles) {
+            this.name = name;
+            this.textureId = textureId;
+            this.disableAll = disableAll;
+            this.rectangles = rectangles;
+            disableCacheMap.defaultReturnValue(FloatOpenHashSet.of());
+        }
+
         public static DisableConfig read(FriendlyByteBuf byteBuf) {
             String name = byteBuf.readUtf();
             String textureId = byteBuf.readUtf();
@@ -210,6 +233,22 @@ public record BindTarget(
                 rectangles[i] = UVRectangle.read(byteBuf);
             }
             return new DisableConfig(name, textureId, disableAll, rectangles);
+        }
+
+        public String name() {
+            return name;
+        }
+
+        public String textureId() {
+            return textureId;
+        }
+
+        public boolean disableAll() {
+            return disableAll;
+        }
+
+        public UVRectangle[] rectangles() {
+            return rectangles;
         }
 
         public void write(FriendlyByteBuf byteBuf) {
@@ -222,13 +261,72 @@ public record BindTarget(
             }
         }
 
-        @Override
-        public boolean test(VertexData vertex) {
+        public boolean disable(VertexData vertex) {
             final float u = vertex.u(), v = vertex.v();
-            for (UVRectangle rect : rectangles) {
-                if (rect.contains(u, v)) return true;
+            final FloatOpenHashSet cachedVs = disableCacheMap.get(u);
+            if (!cachedVs.isEmpty()) {
+                if (cachedVs.contains(v)) return true;
+                if (cachedVs.contains(-v)) return false;
             }
+            for (UVRectangle rect : rectangles) {
+                if (!rect.contains(u, v)) continue;
+                disableCacheMap.computeIfAbsent(u, k -> new FloatOpenHashSet()).add(v);
+                return true;
+            }
+            disableCacheMap.computeIfAbsent(u, k -> new FloatOpenHashSet()).add(-v);
             return false;
+        }
+
+        public static class Adapter extends TypeAdapter<DisableConfig> {
+            @Override
+            public void write(JsonWriter out, DisableConfig value) throws IOException {
+                out.beginObject();
+                out.name("name").value(value.name());
+                out.name("textureId").value(value.textureId());
+                out.name("disableAll").value(value.disableAll());
+                out.name("rectangles");
+                out.beginArray();
+                for (UVRectangle rect : value.rectangles()) {
+                    out.beginObject();
+                    out.name("uMin").value(rect.uMin());
+                    out.name("vMin").value(rect.vMin());
+                    out.name("uMax").value(rect.uMax());
+                    out.name("vMax").value(rect.vMax());
+                    out.endObject();
+                }
+                out.endArray();
+                out.endObject();
+            }
+
+            @Override
+            public DisableConfig read(JsonReader in) throws IOException {
+                in.beginObject();
+                in.nextName();
+                String name = in.nextString();
+                in.nextName();
+                String textureId = in.nextString();
+                in.nextName();
+                boolean disableAll = in.nextBoolean();
+                in.nextName();
+                in.beginArray();
+                ArrayList<UVRectangle> rectangles = new ArrayList<>();
+                while (in.hasNext()) {
+                    in.beginObject();
+                    in.nextName();
+                    float uMin = (float) in.nextDouble();
+                    in.nextName();
+                    float vMin = (float) in.nextDouble();
+                    in.nextName();
+                    float uMax = (float) in.nextDouble();
+                    in.nextName();
+                    float vMax = (float) in.nextDouble();
+                    in.endObject();
+                    rectangles.add(new UVRectangle(uMin, vMin, uMax, vMax));
+                }
+                in.endArray();
+                in.endObject();
+                return new DisableConfig(name, textureId, disableAll, rectangles.toArray(UVRectangle[]::new));
+            }
         }
     }
 

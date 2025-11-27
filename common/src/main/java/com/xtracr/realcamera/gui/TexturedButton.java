@@ -4,7 +4,7 @@ import com.xtracr.realcamera.RealCamera;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.function.Consumer;
@@ -24,7 +24,7 @@ public class TexturedButton extends AbstractButton {
     }
 
     public TexturedButton(int x, int y, int width, int height, int u, int v, ResourceLocation texture, int textureWidth, int textureHeight, Consumer<TexturedButton> onPress) {
-        super(x, y, width, height, Component.empty());
+        super(x, y, width, height, CommonComponents.EMPTY);
         this.textureWidth = textureWidth;
         this.textureHeight = textureHeight;
         this.onPress = onPress;
