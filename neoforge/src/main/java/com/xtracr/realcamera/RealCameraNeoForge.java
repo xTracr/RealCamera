@@ -21,6 +21,7 @@ public class RealCameraNeoForge implements RealCamera {
         this.modContainer = modContainer;
         modEventBus.addListener(this::clientSetup);
         modEventBus.addListener(this::onKeyRegister);
+        modEventBus.addListener(RealCameraNeoForgeShaders::onRegisterShaders);
     }
 
     public void clientSetup(FMLClientSetupEvent event) {

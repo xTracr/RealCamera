@@ -8,6 +8,8 @@ import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.BindTarget.DisableConfig;
 import com.xtracr.realcamera.config.ConfigFile;
+import com.xtracr.realcamera.render.RealCameraRenderTypes;
+import com.xtracr.realcamera.render.RealCameraShaders;
 import com.xtracr.realcamera.util.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -129,6 +131,13 @@ public class RealCameraCore {
             DisableConfig[] disableConfigs = currentTarget().filteredDisableConfigs(config -> builtBuffer.textureId().contains(config.textureId()));
             for (DisableConfig config : disableConfigs) {
                 if (config.disableAll()) return;
+            }
+            RealCameraRenderTypes.MaskedRenderType masked = RealCameraRenderTypes.getMaskedRenderType(builtBuffer.renderType(), builtBuffer.textureId(), disableConfigs);
+            if (masked != null) {
+                RealCameraShaders.setDisableDepth(masked.shader(), depth);
+                VertexConsumer buffer = bufferSource.getBuffer(masked.renderType());
+                for (VertexData vertex : builtBuffer.vertexBuffer()) vertex.render(buffer);
+                return;
             }
             VertexConsumer buffer = bufferSource.getBuffer(builtBuffer.renderType());
             if (!builtBuffer.renderType().canConsolidateConsecutiveGeometry()) {
