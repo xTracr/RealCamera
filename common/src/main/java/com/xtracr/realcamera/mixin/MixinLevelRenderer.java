@@ -1,16 +1,23 @@
 package com.xtracr.realcamera.mixin;
 
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
+import com.xtracr.realcamera.util.CrosshairUtil;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderBuffers;
 import net.minecraft.world.TickRateManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
+import org.joml.Vector4f;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -21,9 +28,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(LevelRenderer.class)
 public abstract class MixinLevelRenderer {
     @Shadow
-    @Final private Minecraft minecraft;
+    @Final
+    private Minecraft minecraft;
     @Shadow
-    @Final private RenderBuffers renderBuffers;
+    @Final
+    private RenderBuffers renderBuffers;
+
+    @Inject(method = "renderLevel", at = @At("HEAD"))
+    private void realcamera$atRenderLevelHead(GraphicsResourceAllocator resourceAllocator, DeltaTracker deltaTracker, boolean renderOutline, Camera camera, Matrix4f modelViewMatrix, Matrix4f projectionMatrix, Matrix4f projectionMatrixForCulling, GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky, CallbackInfo ci) {
+        if (ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
+            CrosshairUtil.update(Minecraft.getInstance(), camera, modelViewMatrix, projectionMatrix);
+        }
+    }
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;endLastBatch()V", ordinal = 0))
     private void realcamera$renderCameraEntity(DeltaTracker deltaTracker, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f modelView, Matrix4f projection, CallbackInfo ci) {
@@ -32,7 +48,8 @@ public abstract class MixinLevelRenderer {
         Entity entity = camera.getEntity();
         TickRateManager tickManager = minecraft.level.tickRateManager();
         float deltaTick = deltaTracker.getGameTimeDeltaPartialTick(!tickManager.isEntityFrozen(entity));
-        if (!ConfigFile.config().isClassic()) RealCameraCore.renderCameraEntity(minecraft, deltaTick, bufferSource, modelView);
+        if (!ConfigFile.config().isClassic())
+            RealCameraCore.renderCameraEntity(minecraft, deltaTick, bufferSource, modelView);
         else {
             Vec3 cameraPos = camera.getPosition();
             renderEntity(entity, cameraPos.x(), cameraPos.y(), cameraPos.z(), deltaTick, new PoseStack(), bufferSource);

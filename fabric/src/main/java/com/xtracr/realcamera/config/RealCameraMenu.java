@@ -6,6 +6,6 @@ import com.terraformersmc.modmenu.api.ModMenuApi;
 public class RealCameraMenu implements ModMenuApi {
     @Override
     public ConfigScreenFactory<?> getModConfigScreenFactory() {
-        return ConfigScreen::create;
+        return null; // TODO: ConfigScreen::create
     }
 }
