@@ -109,7 +109,7 @@ public class RealCameraCore {
         eulerAngle = MathUtil.getEulerAngleYXZ(SmoothUtil.smoothRotation(lastResult.getRotation())).scale(Math.toDegrees(1));
     }
 
-    public static void renderCameraEntity(Minecraft client, float deltaTick, MultiBufferSource bufferSource, Matrix4f modelView) {
+    public static void renderCameraEntity(Minecraft client, float deltaTick, MultiBufferSource bufferSource) {
         Vec3 targetEulerAngle = MathUtil.getEulerAngleYXZ(lastResult.getRotation());
         Matrix4f invertedCameraPose = new Matrix4f()
                 .rotateZ((float) targetEulerAngle.z())
@@ -119,15 +119,12 @@ public class RealCameraCore {
                 .invert()
                 .translate(Vec3.ZERO.subtract(lastResult.getPosition()).toVector3f());
         PoseStack poseStack = new PoseStack();
-        Matrix4f inverseModelView = modelView.invert(new Matrix4f());
-        Matrix4f pose = new Matrix4f(invertedCameraPose).mulLocal(inverseModelView);
-        poseStack.last().pose().mul(pose);
-        poseStack.last().normal().mul(new Matrix3f(pose));
+        poseStack.last().pose().mul(invertedCameraPose);
+        poseStack.last().normal().mul(new Matrix3f(invertedCameraPose));
         Entity entity = client.getCameraEntity();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
         dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack, catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
-        final float m02 = modelView.m02(), m12 = modelView.m12(), m22 = modelView.m22(), m32 = modelView.m32();
         final float depth = currentTarget().disablingDepth();
         catcher.endCatching(builtBuffer -> {
             DisableConfig[] disableConfigs = currentTarget().filteredDisableConfigs(config -> builtBuffer.textureId().contains(config.textureId()));
@@ -142,7 +139,7 @@ public class RealCameraCore {
             builtBuffer.vertexBuffer().primitiveStream().forEach(primitive -> {
                 primitiveFor:
                 for (VertexData vertex : primitive) {
-                    if (Math.fma(m02, vertex.x(), Math.fma(m12, vertex.y(), Math.fma(m22, vertex.z(), m32))) > -depth) continue;
+                    if (vertex.z() > -depth) continue;
                     for (DisableConfig config : disableConfigs) {
                         if (config.disable(vertex)) continue primitiveFor;
                     }

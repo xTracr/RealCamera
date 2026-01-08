@@ -28,10 +28,8 @@ public abstract class MixinLevelRenderer {
         if (!RealCameraCore.isRendering()) return;
         MultiBufferSource.BufferSource bufferSource = renderBuffers.bufferSource();
         if (!ConfigFile.config().isClassic()) {
-            Matrix4f modelView = new Matrix4f(poseStack.last().pose());
-            RealCameraCore.renderCameraEntity(minecraft, deltaTick, bufferSource, modelView);
-        }
-        else {
+            RealCameraCore.renderCameraEntity(minecraft, deltaTick, bufferSource);
+        } else {
             Vec3 cameraPos = camera.getPosition();
             renderEntity(camera.getEntity(), cameraPos.x(), cameraPos.y(), cameraPos.z(), deltaTick, poseStack, bufferSource);
         }
