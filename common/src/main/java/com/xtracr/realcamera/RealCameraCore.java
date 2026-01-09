@@ -141,7 +141,7 @@ public class RealCameraCore {
                 for (VertexData vertex : primitive) {
                     if (vertex.z() > -depth) continue;
                     for (DisableConfig config : disableConfigs) {
-                        if (config.test(vertex)) continue primitiveFor;
+                        if (config.disable(vertex)) continue primitiveFor;
                     }
                     for (VertexData vertexData : primitive) vertexData.render(buffer);
                     break;
