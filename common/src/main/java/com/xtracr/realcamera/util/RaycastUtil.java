@@ -27,8 +27,8 @@ public class RaycastUtil {
     public static void update(Entity entity, double sqDistance, float deltaTick) {
         Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
         Vec3 eyePos = entity.getEyePosition(deltaTick);
-        startVec = camera.getPosition();
-        Vec3 direction = Vec3.directionFromRotation(camera.getXRot(), camera.getYRot());
+        startVec = camera.position();
+        Vec3 direction = Vec3.directionFromRotation(camera.xRot(), camera.yRot());
         Vec3 offset = startVec.subtract(eyePos);
         Vec3 footPoint = MathUtil.getIntersectionPoint(Vec3.ZERO, direction, offset, direction);
         if (footPoint.lengthSqr() > sqDistance) {

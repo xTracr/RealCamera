@@ -31,6 +31,7 @@ public class RealCameraNeoForge implements RealCamera {
     }
 
     public void onKeyRegister(RegisterKeyMappingsEvent event) {
+        event.registerCategory(KeyMappings.GENERAL);
         KeyMappings.register(event::register);
     }
 

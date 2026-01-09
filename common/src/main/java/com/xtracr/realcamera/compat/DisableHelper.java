@@ -3,7 +3,7 @@ package com.xtracr.realcamera.compat;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -15,11 +15,11 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 public class DisableHelper {
-    private static final Predicate<Player> FALSE = player -> false;
+    private static final Predicate<Player> FALSE = _ -> false;
     private static final Map<String, Entry> entries = new HashMap<>();
     public static final Entry MAIN_FEATURE = new Entry("mainFeature", player -> player.isSleeping() || player.isSpectator());
     public static final Entry RENDER_MODEL = new Entry("renderModel", FALSE, Player::isScoping);
-    public static final Entry RENDER_HANDS = new Entry("renderHands", player -> RealCameraCore.isRendering());
+    public static final Entry RENDER_HANDS = new Entry("renderHands", _ -> RealCameraCore.isRendering());
     public static int exitTick = 0;
 
     static {
@@ -68,8 +68,8 @@ public class DisableHelper {
     public static boolean matchesItemPattern(Item item, String pattern) {
         if (pattern.startsWith("#")) {
             String tagId = pattern.substring(1);
-            TagKey<Item> itemTag = TagKey.create(BuiltInRegistries.ITEM.key(), ResourceLocation.parse(tagId));
-            return BuiltInRegistries.ITEM.getTag(itemTag)
+            TagKey<Item> itemTag = TagKey.create(BuiltInRegistries.ITEM.key(), Identifier.parse(tagId));
+            return BuiltInRegistries.ITEM.get(itemTag)
                 .map(tag -> tag.contains(BuiltInRegistries.ITEM.wrapAsHolder(item)))
                 .orElse(false);
         }

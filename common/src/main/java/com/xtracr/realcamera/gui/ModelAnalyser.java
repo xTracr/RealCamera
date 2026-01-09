@@ -13,8 +13,10 @@ import com.xtracr.realcamera.util.MultiVertexCatcher;
 import com.xtracr.realcamera.util.VertexData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +31,7 @@ import java.util.List;
 import java.util.Set;
 
 public class ModelAnalyser {
-    private static final Set<RenderType> UNFOCUSABLE_RENDER_TYPES = Set.of(RenderType.armorEntityGlint(), RenderType.glintTranslucent(), RenderType.glint(), RenderType.entityGlint(), RenderType.entityGlintDirect());
+    private static final Set<RenderType> UNFOCUSABLE_RENDER_TYPES = Set.of(RenderTypes.armorEntityGlint(), RenderTypes.glintTranslucent(), RenderTypes.glint(), RenderTypes.entityGlint());
     private static final int planeArgb = 0x6F3333CC, forwardArgb = 0xFF00CC00, upwardArgb = 0xFFCC0000, leftArgb = 0xFF0000CC, focusedArgb = 0x4FFFFFFF;
     private static final int z1 = 210, z2 = z1 + 10;
     public final List<VertexData[]> focusedPolyhedron = new ArrayList<>();
@@ -277,7 +279,7 @@ public class ModelAnalyser {
         }
     }
 
-    public void drawModel(GuiGraphics graphics, PoseStack poseStack) {
+    public void drawModel(MultiBufferSource bufferSource, PoseStack poseStack) {
         poseStack.pushPose();
         poseStack.mulPose(modelPose.last().pose().invert(new Matrix4f()));
         float minEntityZ = 0f, maxEntityZ = 200f;
@@ -290,7 +292,7 @@ public class ModelAnalyser {
         Matrix4f positionMatrix = new Matrix4f().mul(poseStack.last().pose()).scale(1, 1, 200 / (maxEntityZ - minEntityZ)).translate(0, 0, -minEntityZ);
         Matrix3f normalMatrix = new Matrix3f(positionMatrix);
         modelRecords.forEach(record -> {
-            VertexConsumer buffer = graphics.bufferSource().getBuffer(record.renderType());
+            VertexConsumer buffer = bufferSource.getBuffer(record.renderType());
             if (!record.renderType().canConsolidateConsecutiveGeometry()) {
                 for (VertexData vertex : record.vertices()) vertex.render(buffer, positionMatrix, normalMatrix);
                 return;
@@ -300,31 +302,28 @@ public class ModelAnalyser {
             }
         });
         poseStack.popPose();
-        graphics.flush();
     }
 
-    public void drawTexture(GuiGraphics graphics, PoseStack poseStack) {
+    public void drawTexture(MultiBufferSource bufferSource, PoseStack poseStack) {
         Matrix4f positionMatrix = poseStack.last().pose();
         textureRecords.forEach(record -> {
-            VertexConsumer buffer = graphics.bufferSource().getBuffer(record.renderType());
+            VertexConsumer buffer = bufferSource.getBuffer(record.renderType());
             Vector3f position = new Vector3f();
             for (VertexData vertex : record.vertices()) {
                 position.set(vertex.u(), vertex.v(), 0).mulPosition(positionMatrix);
                 buffer.addVertex(position.x(), position.y(), 0, vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
             }
         });
-        graphics.flush();
     }
 
     public void updateModel(Minecraft client, Entity entity, float deltaTick, PoseStack poseStack) {
-        Lighting.setupForEntityInInventory();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
+        client.gameRenderer.getLighting().setupFor(Lighting.Entry.ENTITY_IN_UI);
         dispatcher.setRenderShadow(false);
         MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-        dispatcher.render(entity, 0, 0, 0, 0, deltaTick, poseStack, catcher, 0xF000f0);
+        dispatcher.render(entity, 0, 0, 0, deltaTick, poseStack, catcher, 0xF000f0);
         catcher.endCatching(this::computeBindResult);
         dispatcher.setRenderShadow(true);
-        Lighting.setupFor3DItems();
     }
 
     public void computeBindResult(BuiltIterableBuffer builtBuffer) {

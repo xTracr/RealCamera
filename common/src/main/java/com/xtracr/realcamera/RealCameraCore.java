@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
@@ -57,7 +58,6 @@ public class RealCameraCore {
     }
 
     public static float getRoll(float f) {
-        if (ConfigFile.config().isClassic()) return f + ConfigFile.config().getClassicRoll();
         if (currentTarget().bindConfig().bindRotation()) return (float) eulerAngle.z();
         return f;
     }
@@ -94,10 +94,10 @@ public class RealCameraCore {
             lastResult = newResult.computeCamera();
         } else {
             failureFrames++;
-            Entity player = client.player;
+            Player player = client.player;
             int retentionFrames = ConfigFile.config().getBindResultRetentionFrames();
             if (!ConfigFile.config().hideBindingFailureMessage() && failureFrames == retentionFrames + 1 && player != null) {
-                player.sendSystemMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE(), KeyMappings.MODEL_VIEW_SCREEN.getTranslatedKeyMessage()));
+                player.displayClientMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE(), KeyMappings.MODEL_VIEW_SCREEN.getTranslatedKeyMessage()), false);
             }
             if (!lastResult.available() || failureFrames > retentionFrames) {
                 lastResult = BindResult.EMPTY;

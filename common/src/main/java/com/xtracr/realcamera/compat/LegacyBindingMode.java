@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.xtracr.realcamera.api.BindResult;
 import com.xtracr.realcamera.api.RealCameraAPI;
 import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.mixin.accessor.PlayerRendererAccessor;
+import com.xtracr.realcamera.mixin.accessor.AvatarRendererAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -33,7 +33,7 @@ public class LegacyBindingMode {
         Vec3 renderOffset = playerRenderer.getRenderOffset(player, deltaTick);
         poseStack.translate(renderOffset.x(), renderOffset.y(), renderOffset.z());
         // PlayerEntityRenderer.render
-        ((PlayerRendererAccessor) playerRenderer).invokeSetModelProperties(player);
+        ((AvatarRendererAccessor) playerRenderer).invokeSetModelProperties(player);
         // LivingEntityRenderer.render
         PlayerModel<AbstractClientPlayer> playerModel = playerRenderer.getModel();
         playerModel.attackTime = player.getAttackAnim(deltaTick);
@@ -74,9 +74,9 @@ public class LegacyBindingMode {
         float lx = player.getScale();
         poseStack.scale(lx, lx, lx);
         float n = player.tickCount + deltaTick;
-        ((PlayerRendererAccessor) playerRenderer).invokeSetupRotations(player, poseStack, n, h, deltaTick, lx);
+        ((AvatarRendererAccessor) playerRenderer).invokeSetupRotations(player, poseStack, n, h, deltaTick, lx);
         poseStack.scale(-1.0F, -1.0F, 1.0F);
-        ((PlayerRendererAccessor) playerRenderer).invokeScale(player, poseStack, deltaTick);
+        ((AvatarRendererAccessor) playerRenderer).invokeScale(player, poseStack, deltaTick);
         poseStack.translate(0.0F, -1.501F, 0.0F);
         float o = 0.0F;
         float p = 0.0F;

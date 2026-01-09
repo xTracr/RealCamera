@@ -3,9 +3,10 @@ plugins {
     id("maven-publish")
 }
 
-val minecraftVersion = project.property("minecraft_version") as String
 val modId = project.property("mod_id") as String
 val javaVersion = project.property("java_version") as String
+val minecraftVersion = project.property("minecraft_version") as String
+val fabricLoaderVersion = project.property("fabric_loader_version") as String
 
 val clothConfigVersion = project.property("cloth_config_version") as String
 
@@ -27,6 +28,10 @@ tasks.withType<JavaCompile> {
 
 dependencies {
     minecraft("com.mojang:minecraft:$minecraftVersion")
+
+    // We depend on Fabric Loader here to use the Fabric @Environment annotations,
+    implementation("net.fabricmc:fabric-loader:$fabricLoaderVersion")
+
     // Cloth Config
 //    compileOnly("me.shedaniel.cloth:cloth-config:$clothConfigVersion") {
 //        exclude(group = "net.fabricmc.fabric-api")

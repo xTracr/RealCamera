@@ -10,6 +10,23 @@ public class MathUtil {
         return Math.round(d * Math.pow(10, digits)) / Math.pow(10, digits);
     }
 
+    public static double floor(double... ds) {
+        double d = ds[0];
+        for (int i = 1; i < ds.length; i++) {
+            d = Math.min(d, ds[i]);
+        }
+        return Math.floor(d);
+    }
+
+    public static double ceil(double... ds) {
+        double d = ds[0];
+        for (int i = 1; i < ds.length; i++) {
+            d = Math.max(d, ds[i]);
+        }
+        return Math.ceil(d);
+    }
+
+
     public static Vec3 getEulerAngleYXZ(Matrix3f normal) {
         if (normal.m21 <= -1.0) return new Vec3(Math.PI / 2, Math.atan2(normal.m10, normal.m00), 0.0);
         else if (normal.m21 >= 1.0) return new Vec3(-Math.PI / 2, -Math.atan2(normal.m10, normal.m00), 0.0);

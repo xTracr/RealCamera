@@ -4,14 +4,15 @@ import com.xtracr.realcamera.RealCamera;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.network.chat.CommonComponents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 
 import java.util.function.Consumer;
 
 public class TexturedButton extends AbstractButton {
-    public static final ResourceLocation ICON_TEXTURE = ResourceLocation.fromNamespaceAndPath(RealCamera.MODID, "textures/gui/icon.png");
-    protected final ResourceLocation texture;
+    public static final Identifier ICON_TEXTURE = Identifier.fromNamespaceAndPath(RealCamera.MODID, "textures/gui/icon.png");
+    protected final Identifier texture;
     protected final int textureWidth, textureHeight, u, v;
     private final Consumer<TexturedButton> onPress;
 
@@ -23,8 +24,8 @@ public class TexturedButton extends AbstractButton {
         this(x, y, width, height, u, v, ICON_TEXTURE, 256, 256, onPress);
     }
 
-    public TexturedButton(int x, int y, int width, int height, int u, int v, ResourceLocation texture, int textureWidth, int textureHeight, Consumer<TexturedButton> onPress) {
-        super(x, y, width, height, CommonComponents.EMPTY);
+    public TexturedButton(int x, int y, int width, int height, int u, int v, Identifier texture, int textureWidth, int textureHeight, Consumer<TexturedButton> onPress) {
+        super(x, y, width, height, Component.empty());
         this.textureWidth = textureWidth;
         this.textureHeight = textureHeight;
         this.onPress = onPress;
@@ -41,7 +42,7 @@ public class TexturedButton extends AbstractButton {
     @Override
     public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float deltaTick) {
         graphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0xFF646464);
-        graphics.blit(texture, getX(), getY(), u, v, width, height, textureWidth, textureHeight);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, texture, getX(), getY(), u, v, width, height, textureWidth, textureHeight);
         if (isHoveredOrFocused()) graphics.renderOutline(getX(), getY(), getWidth(), getHeight(), 0xFFFFFFFF);
     }
 

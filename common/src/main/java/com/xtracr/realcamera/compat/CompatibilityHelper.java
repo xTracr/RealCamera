@@ -84,7 +84,7 @@ public class CompatibilityHelper {
 
     public static void forceSetCameraPos(Camera camera) {
         if (RealCameraCore.isActive() && !ConfigFile.config().isClassic()) {
-            ((CameraAccessor) camera).invokeSetPosition(RealCameraCore.getCameraPos(camera.getPosition()));
+            ((CameraAccessor) camera).invokeSetPosition(RealCameraCore.getCameraPos(camera.position()));
         }
     }
 

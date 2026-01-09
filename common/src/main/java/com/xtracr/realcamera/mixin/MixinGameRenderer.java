@@ -28,12 +28,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(GameRenderer.class)
 public abstract class MixinGameRenderer {
     @Shadow
-    @Final Minecraft minecraft;
+    @Final private Minecraft minecraft;
     @Shadow
     @Final private Camera mainCamera;
 
-    @ModifyVariable(method = "pick(Lnet/minecraft/world/entity/Entity;DDF)Lnet/minecraft/world/phys/HitResult;", at = @At("STORE"), ordinal = 0)
-    private EntityHitResult realcamera$modifyEntityHitResult(EntityHitResult entityHitResult) {
+    @ModifyVariable(method = "pick", at = @At("STORE"), name = "entityHitResult")
+    private EntityHitResult realcamera$modifyEntityHitResult(EntityHitResult entityHitResult, float a) {
         CrosshairUtil.capturedEntityHitResult = entityHitResult;
         if (!ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
             Vec3 startVec = RaycastUtil.getStartVec();
@@ -41,29 +41,26 @@ public abstract class MixinGameRenderer {
             double sqDistance = (minecraft.hitResult != null ? minecraft.hitResult.getLocation().distanceToSqr(startVec) : endVec.distanceToSqr(startVec));
             Entity cameraEntity = minecraft.getCameraEntity();
             double interactionRange = Math.max(minecraft.player.blockInteractionRange(), minecraft.player.entityInteractionRange());
-            AABB box = cameraEntity.getBoundingBox().expandTowards(cameraEntity.getViewVector(minecraft.getTimer().getGameTimeDeltaPartialTick(true)).scale(interactionRange)).inflate(1.0, 1.0, 1.0);
+            AABB box = cameraEntity.getBoundingBox().expandTowards(cameraEntity.getViewVector(a).scale(interactionRange)).inflate(1.0, 1.0, 1.0);
             CrosshairUtil.capturedEntityHitResult = ProjectileUtil.getEntityHitResult(cameraEntity, startVec, endVec, box, entity -> !entity.isSpectator() && entity.isPickable(), sqDistance);
         }
         return CrosshairUtil.capturedEntityHitResult;
     }
 
-    @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setup(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/world/entity/Entity;ZZF)V"))
+    @Inject(method = "updateCamera", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setup(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/Entity;ZZF)V"))
     private void realcamera$atCameraSetup(DeltaTracker deltaTracker, CallbackInfo ci) {
         final float deltaTick = deltaTracker.getGameTimeDeltaPartialTick(true);
         CompatibilityHelper.NEA_setDeltaTick(deltaTick);
         RealCameraCore.initialize(minecraft);
         if (RealCameraCore.isActive() && !ConfigFile.config().isClassic()) {
             EntityRenderDispatcher dispatcher = minecraft.getEntityRenderDispatcher();
-            dispatcher.prepare(minecraft.level, mainCamera,  minecraft.crosshairPickEntity);
+            dispatcher.prepare(mainCamera,  minecraft.crosshairPickEntity);
             RealCameraCore.computeCamera(minecraft, deltaTick);
         }
     }
 
-    @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;prepareCullFrustum(Lnet/minecraft/world/phys/Vec3;Lorg/joml/Matrix4f;Lorg/joml/Matrix4f;)V"))
-    private void realcamera$atPrepareCullFrustum(DeltaTracker deltaTracker, CallbackInfo ci, @Local(ordinal = 1) Matrix4f modelView) {
-        if (RealCameraCore.isActive()) {
-            modelView.rotateLocalZ(RealCameraCore.getRoll(0) * (float) (Math.PI / 180.0));
-        }
+    @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/fog/FogRenderer;setupFog(Lnet/minecraft/client/Camera;ILnet/minecraft/client/DeltaTracker;FLnet/minecraft/client/multiplayer/ClientLevel;)Lorg/joml/Vector4f;"))
+    private void realcamera$atSetupFog(DeltaTracker deltaTracker, CallbackInfo ci, @Local(ordinal = 1) Matrix4f modelView) {
         CompatibilityHelper.forceSetCameraPos(mainCamera);
     }
 }

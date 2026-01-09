@@ -12,6 +12,7 @@ public class RealCameraFabric implements ClientModInitializer, RealCamera {
     @Override
     public void onInitializeClient() {
         initialize();
+        // TODO: register category
         KeyMappings.register(KeyMappingHelper::registerKeyMapping);
 
         ClientTickEvents.END_CLIENT_TICK.register(KeyMappings::handle);

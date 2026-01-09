@@ -5,7 +5,7 @@ import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
 import com.xtracr.realcamera.util.VertexData.MutableVertex;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
@@ -124,7 +124,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
 
     private int readColor(int offset) {
         // ABGR2ARGB is the same as ARGB2ABGR
-        return FastColor.ABGR32.fromArgb32(IS_LITTLE_ENDIAN ? buffer.getInt(offset) : Integer.reverseBytes(buffer.getInt(offset)));
+        return ARGB.fromABGR(IS_LITTLE_ENDIAN ? buffer.getInt(offset) : Integer.reverseBytes(buffer.getInt(offset)));
     }
 
     private class VertexPointer implements VertexData {

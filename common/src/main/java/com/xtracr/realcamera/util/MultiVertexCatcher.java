@@ -7,8 +7,9 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectSortedMaps;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Arrays;
 import java.util.SequencedMap;
@@ -31,7 +32,7 @@ public interface MultiVertexCatcher extends MultiBufferSource {
         }
 
         @Override
-        public @NotNull VertexConsumer getBuffer(RenderType renderType) {
+        public @NotNull VertexConsumer getBuffer(@NonNull RenderType renderType) {
             BufferBuilder bufferBuilder = startedBuilders.get(renderType);
             if (bufferBuilder != null) {
                 endBatch(renderType, bufferBuilder);
@@ -61,7 +62,7 @@ public interface MultiVertexCatcher extends MultiBufferSource {
         }
 
         @Override
-        protected void endBatch(RenderType renderType, BufferBuilder bufferBuilder) {
+        protected void endBatch(@NonNull RenderType renderType, BufferBuilder bufferBuilder) {
             MeshData meshData = bufferBuilder.build();
             if (meshData != null) {
                 caughtMeshes.put(meshData, renderType);

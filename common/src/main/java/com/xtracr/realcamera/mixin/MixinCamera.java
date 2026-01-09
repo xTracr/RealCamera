@@ -11,9 +11,13 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -23,17 +27,31 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Camera.class)
 public abstract class MixinCamera {
+    @Unique
+    private static final Vector3f realcamera$FORWARDS = new Vector3f(0.0F, 0.0F, -1.0F);
+    @Unique
+    private static final Vector3f realcamera$UP = new Vector3f(0.0F, 1.0F, 0.0F);
+    @Unique
+    private static final Vector3f realcamera$LEFT = new Vector3f(-1.0F, 0.0F, 0.0F);
     @Shadow
     private BlockGetter level;
     @Shadow
     private Vec3 position;
     @Shadow
+    @Final private  Vector3f forwards;
+    @Shadow
+    @Final private Vector3f up;
+    @Shadow
+    @Final private Vector3f left;
+    @Shadow
     private float xRot;
     @Shadow
     private float yRot;
+    @Shadow
+    @Final private Quaternionf rotation;
 
     @Inject(method = "setup", at = @At("RETURN"))
-    private void realcamera$setupCamera(BlockGetter area, Entity entity, boolean thirdPerson, boolean inverseView, float deltaTick, CallbackInfo ci) {
+    private void realcamera$setupCamera(Level level, Entity entity, boolean detached, boolean mirror, float a, CallbackInfo ci) {
         if (!RealCameraCore.isActive()) return;
         ModConfig config = ConfigFile.config();
         Vec3 startVec = position;
@@ -48,16 +66,27 @@ public abstract class MixinCamera {
             move((float) center.x(), (float) center.y(), (float) center.z());
             setRotation(newYaw, newPitch);
             move((float) offset.x(), (float) offset.y(), (float) offset.z());
+            realcamera$setRotation(newYaw, newPitch, ConfigFile.config().getClassicRoll());
         } else {
-            Vec3 entityPos = entity.position().add(entity.position().subtract(entity.xOld, entity.yOld, entity.zOld).scale(entity.tickCount == 0 ? 0 : deltaTick - 1));
+            Vec3 entityPos = entity.position().add(entity.position().subtract(entity.xOld, entity.yOld, entity.zOld).scale(entity.tickCount == 0 ? 0 : a - 1));
             Vec3 rawPos = RealCameraCore.getRawPos(position, entityPos);
             double restrictedY = Mth.clamp(rawPos.y(), box.minY + 0.1D, box.maxY - 0.1D);
             startVec = new Vec3(position.x(), restrictedY, position.z());
             setPosition(rawPos);
-            setRotation(RealCameraCore.getYaw(yRot), RealCameraCore.getPitch(xRot));
+            realcamera$setRotation(RealCameraCore.getYaw(yRot), RealCameraCore.getPitch(xRot), RealCameraCore.getRoll(0));
         }
-        realcamera$clipToSpace(startVec, entity, realcamera$getFov(deltaTick));
+        realcamera$clipToSpace(startVec, entity, realcamera$getFov(a));
         RealCameraCore.setCameraPos(position);
+    }
+
+    @Unique
+    private void realcamera$setRotation(float yRot, float xRot, float roll) {
+        this.xRot = xRot;
+        this.yRot = yRot;
+        rotation.rotationYXZ((float) (Math.PI - Math.toRadians(yRot)), (float) -Math.toRadians(xRot), (float) -Math.toRadians(roll));
+        realcamera$FORWARDS.rotate(rotation, forwards);
+        realcamera$UP.rotate(rotation, up);
+        realcamera$LEFT.rotate(rotation, left);
     }
 
     @Unique

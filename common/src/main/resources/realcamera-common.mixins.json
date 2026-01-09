@@ -14,11 +14,11 @@
     "MixinItemInHandRenderer",
     "MixinLevelRenderer",
     "MixinLocalPlayer",
-    "MixinPlayerRenderer",
     "MixinStuckInBodyLayer",
+    "accessor.AvatarRendererAccessor",
     "accessor.CameraAccessor",
     "accessor.GameRendererAccessor",
-    "accessor.PlayerRendererAccessor"
+    "accessor.GuiGraphicsAccessor"
   ],
   "server": [
   ],

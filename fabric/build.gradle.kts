@@ -3,11 +3,11 @@ plugins {
     id("maven-publish")
 }
 
+val modId = project.property("mod_id") as String
+val javaVersion = project.property("java_version") as String
 val minecraftVersion = project.property("minecraft_version") as String
 val fabricLoaderVersion = project.property("fabric_loader_version") as String
 val fabricApiVersion = project.property("fabric_api_version") as String
-val modId = project.property("mod_id") as String
-val javaVersion = project.property("java_version") as String
 
 val clothConfigVersion = project.property("cloth_config_version") as String
 val modMenuVersion = project.property("modmenu_version") as String
