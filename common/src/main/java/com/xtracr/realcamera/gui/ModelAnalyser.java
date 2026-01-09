@@ -141,7 +141,7 @@ public class ModelAnalyser {
                 if (!getPolygon(primitive).contains(mouseX, mouseY)) continue;
                 VertexData vertex = primitive[0];
                 float deltaZ = vertex.normalZ() == 0 ? 0 : (vertex.normalX() * (mouseX - vertex.x()) + vertex.normalY() * (mouseY - vertex.y())) / vertex.normalZ();
-                sortByZ.add(new Object[]{record, primitive, vertex.z() - deltaZ});
+                sortByZ.add(new Object[]{record, primitive, vertex.z() + deltaZ});
             }
         }
         if (sortByZ.isEmpty()) return;
