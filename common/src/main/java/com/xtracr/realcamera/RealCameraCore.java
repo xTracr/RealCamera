@@ -80,15 +80,15 @@ public class RealCameraCore {
         cameraPos = vec;
     }
 
-    public static void computeCamera(Minecraft client, float deltaTick) {
+    public static void computeCamera(Minecraft client, float partialTicks) {
         Entity entity = client.getCameraEntity();
         boolean invisible = entity.isInvisible();
         entity.setInvisible(false);
-        newResult = RealCameraAPI.computeBindResult(client, deltaTick);
+        newResult = RealCameraAPI.computeBindResult(client, partialTicks);
         if (!newResult.available()) {
             EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
             MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-            dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, new PoseStack(), catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
+            dispatcher.render(entity, 0, 0, 0, Mth.lerp(partialTicks, entity.yRotO, entity.getYRot()), partialTicks, new PoseStack(), catcher, dispatcher.getPackedLightCoords(entity, partialTicks));
             catcher.endCatching(RealCameraCore::computeBindResult);
         }
         entity.setInvisible(invisible);
@@ -111,7 +111,7 @@ public class RealCameraCore {
         eulerAngle = MathUtil.getEulerAngleYXZ(SmoothUtil.smoothRotation(lastResult.getRotation())).scale(Math.toDegrees(1));
     }
 
-    public static void renderCameraEntity(Minecraft client, float deltaTick, MultiBufferSource bufferSource, Matrix4f modelView) {
+    public static void renderCameraEntity(Minecraft client, float partialTicks, MultiBufferSource bufferSource, Matrix4f modelView) {
         Vec3 targetEulerAngle = MathUtil.getEulerAngleYXZ(lastResult.getRotation());
         Matrix4f invertedCameraPose = new Matrix4f()
                 .rotateZ((float) targetEulerAngle.z())
@@ -125,7 +125,7 @@ public class RealCameraCore {
         Entity entity = client.getCameraEntity();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-        dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack, catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
+        dispatcher.render(entity, 0, 0, 0, Mth.lerp(partialTicks, entity.yRotO, entity.getYRot()), partialTicks, poseStack, catcher, dispatcher.getPackedLightCoords(entity, partialTicks));
         final float m02 = modelView.m02(), m12 = modelView.m12(), m22 = modelView.m22(), m32 = modelView.m32();
         final float depth = currentTarget().disablingDepth();
         catcher.endCatching(builtBuffer -> {

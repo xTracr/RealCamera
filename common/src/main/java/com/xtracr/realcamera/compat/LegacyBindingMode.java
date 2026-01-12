@@ -21,14 +21,14 @@ public class LegacyBindingMode {
     }
 
     @SuppressWarnings("unchecked")
-    private static BindResult computeBindResult(Minecraft client, float deltaTick) {
+    private static BindResult computeBindResult(Minecraft client, float partialTicks) {
         if (!ConfigFile.config().legacyBindingMode()) return BindResult.EMPTY;
         PoseStack poseStack = new PoseStack();
         AbstractClientPlayer player = client.player;
         // WorldRenderer.render
         // EntityRenderDispatcher.render
         AvatarRenderer<AbstractClientPlayer> playerRenderer = (AvatarRenderer<AbstractClientPlayer>) client.getEntityRenderDispatcher().getRenderer(player);
-        AvatarRenderState renderState = playerRenderer.createRenderState(player, deltaTick);
+        AvatarRenderState renderState = playerRenderer.createRenderState(player, partialTicks);
         Vec3 renderOffset = playerRenderer.getRenderOffset(renderState);
         poseStack.translate(renderOffset.x(), renderOffset.y(), renderOffset.z());
         // LivingEntityRenderer.render

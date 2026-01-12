@@ -316,12 +316,12 @@ public class ModelAnalyser {
         });
     }
 
-    public void updateModel(Minecraft client, Entity entity, float deltaTick, PoseStack poseStack) {
+    public void updateModel(Minecraft client, Entity entity, float partialTicks, PoseStack poseStack) {
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         client.gameRenderer.getLighting().setupFor(Lighting.Entry.ENTITY_IN_UI);
         dispatcher.setRenderShadow(false);
         MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-        dispatcher.render(entity, 0, 0, 0, deltaTick, poseStack, catcher, 0xF000f0);
+        dispatcher.render(entity, 0, 0, 0, partialTicks, poseStack, catcher, 0xF000f0);
         catcher.endCatching(this::computeBindResult);
         dispatcher.setRenderShadow(true);
     }

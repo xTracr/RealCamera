@@ -107,9 +107,9 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
     }
 
     @Override
-    public void renderWidget(@NonNull GuiGraphics graphics, int mouseX, int mouseY, float a) {
+    public void renderWidget(@NonNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         checkText();
-        super.renderWidget(graphics, mouseX, mouseY, a);
+        super.renderWidget(graphics, mouseX, mouseY, partialTicks);
     }
 
     private static class FloatField extends NumberField<Float> {

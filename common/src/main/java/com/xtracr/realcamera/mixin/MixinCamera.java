@@ -51,7 +51,7 @@ public abstract class MixinCamera {
     @Final private Quaternionf rotation;
 
     @Inject(method = "setup", at = @At("RETURN"))
-    private void realcamera$setupCamera(Level level, Entity entity, boolean detached, boolean mirror, float a, CallbackInfo ci) {
+    private void realcamera$setupCamera(Level level, Entity entity, boolean detached, boolean mirror, float partialTicks, CallbackInfo ci) {
         if (!RealCameraCore.isActive()) return;
         ModConfig config = ConfigFile.config();
         Vec3 startVec = position;
@@ -68,14 +68,14 @@ public abstract class MixinCamera {
             move((float) offset.x(), (float) offset.y(), (float) offset.z());
             realcamera$setRotation(newYaw, newPitch, ConfigFile.config().getClassicRoll());
         } else {
-            Vec3 entityPos = entity.position().add(entity.position().subtract(entity.xOld, entity.yOld, entity.zOld).scale(entity.tickCount == 0 ? 0 : a - 1));
+            Vec3 entityPos = entity.position().add(entity.position().subtract(entity.xOld, entity.yOld, entity.zOld).scale(entity.tickCount == 0 ? 0 : partialTicks - 1));
             Vec3 rawPos = RealCameraCore.getRawPos(position, entityPos);
             double restrictedY = Mth.clamp(rawPos.y(), box.minY + 0.1D, box.maxY - 0.1D);
             startVec = new Vec3(position.x(), restrictedY, position.z());
             setPosition(rawPos);
             realcamera$setRotation(RealCameraCore.getYaw(yRot), RealCameraCore.getPitch(xRot), RealCameraCore.getRoll(0));
         }
-        realcamera$clipToSpace(startVec, entity, realcamera$getFov(a));
+        realcamera$clipToSpace(startVec, entity, realcamera$getFov(partialTicks));
         RealCameraCore.setCameraPos(position);
     }
 
@@ -108,9 +108,9 @@ public abstract class MixinCamera {
     }
 
     @Unique
-    private static float realcamera$getFov(float deltaTick) {
+    private static float realcamera$getFov(float partialTicks) {
         Minecraft client = Minecraft.getInstance();
-        float fovModifier = Mth.lerp(deltaTick, ((GameRendererAccessor) client.gameRenderer).getOldFovModifier(), ((GameRendererAccessor) client.gameRenderer).getFovModifier());
+        float fovModifier = Mth.lerp(partialTicks, ((GameRendererAccessor) client.gameRenderer).getOldFovModifier(), ((GameRendererAccessor) client.gameRenderer).getFovModifier());
         return client.options.fov().get() * fovModifier;
     }
 

@@ -44,14 +44,14 @@ public abstract class MixinLevelRenderer {
         if (!RealCameraCore.isRendering()) return;
         Entity entity = camera.entity();
         TickRateManager tickManager = minecraft.level.tickRateManager();
-        float deltaTick = deltaTracker.getGameTimeDeltaPartialTick(!tickManager.isEntityFrozen(entity));
-        if (!ConfigFile.config().isClassic()) RealCameraCore.renderCameraEntity(minecraft, deltaTick, bufferSource, realcamera$modelViewMatrix);
+        float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(!tickManager.isEntityFrozen(entity));
+        if (!ConfigFile.config().isClassic()) RealCameraCore.renderCameraEntity(minecraft, partialTicks, bufferSource, realcamera$modelViewMatrix);
         else {
             Vec3 cameraPos = camera.position();
-            renderEntity(entity, cameraPos.x(), cameraPos.y(), cameraPos.z(), deltaTick, new PoseStack(), bufferSource);
+            renderEntity(entity, cameraPos.x(), cameraPos.y(), cameraPos.z(), partialTicks, new PoseStack(), bufferSource);
         }
     }
 
     @Shadow
-    protected abstract void renderEntity(Entity entity, double cameraX, double cameraY, double cameraZ, float deltaTick, PoseStack poseStack, MultiBufferSource bufferSource);
+    protected abstract void renderEntity(Entity entity, double cameraX, double cameraY, double cameraZ, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource);
 }

@@ -24,17 +24,17 @@ public abstract class MixinLocalPlayer extends AbstractClientPlayer {
     }
 
     @Inject(method = "getRopeHoldPosition", at = @At("HEAD"), cancellable = true)
-    private void realcamera$atGetRopePosHEAD(float deltaTick, CallbackInfoReturnable<Vec3> cir) {
-        if (DisableHelper.RENDER_HANDS.disabled(this)) cir.setReturnValue(super.getRopeHoldPosition(deltaTick));
+    private void realcamera$atGetRopePosHEAD(float partialTicks, CallbackInfoReturnable<Vec3> cir) {
+        if (DisableHelper.RENDER_HANDS.disabled(this)) cir.setReturnValue(super.getRopeHoldPosition(partialTicks));
     }
 
     @Override
-    public @NotNull HitResult pick(double maxDistance, float deltaTick, boolean includeFluids) {
+    public @NotNull HitResult pick(double maxDistance, float partialTicks, boolean includeFluids) {
         if (!ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
-            RaycastUtil.update(this, maxDistance * maxDistance, deltaTick);
+            RaycastUtil.update(this, maxDistance * maxDistance, partialTicks);
             return level().clip(RaycastUtil.getClipContext(ClipContext.Block.OUTLINE,
                     includeFluids ? ClipContext.Fluid.ANY : ClipContext.Fluid.NONE, this));
         }
-        return super.pick(maxDistance, deltaTick, includeFluids);
+        return super.pick(maxDistance, partialTicks, includeFluids);
     }
 }

@@ -22,9 +22,9 @@ public class RealCameraAPI {
         FUNCTIONS.sort((a, b) -> PRIORITIES.get(b) - PRIORITIES.get(a));
     }
 
-    public static BindResult computeBindResult(Minecraft client, float deltaTick) {
+    public static BindResult computeBindResult(Minecraft client, float partialTicks) {
         for (BiFunction<Minecraft, Float, BindResult> function : FUNCTIONS) {
-            BindResult result = function.apply(client, deltaTick);
+            BindResult result = function.apply(client, partialTicks);
             if (result.available()) return result;
         }
         return BindResult.EMPTY;
