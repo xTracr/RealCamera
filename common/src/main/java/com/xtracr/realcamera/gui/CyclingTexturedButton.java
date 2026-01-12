@@ -3,12 +3,12 @@ package com.xtracr.realcamera.gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.function.IntConsumer;
 
@@ -53,21 +53,21 @@ public class CyclingTexturedButton extends AbstractButton {
     }
 
     @Override
-    public void onPress() {
-        if (Screen.hasShiftDown()) setValue(value - 1);
+    public void onPress(@NonNull InputWithModifiers input) {
+        if (input.hasShiftDown()) setValue(value - 1);
         else setValue(value + 1);
         if (onValueChange != null) onValueChange.accept(value);
     }
 
     @Override
-    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float deltaTick) {
+    public void renderContents(GuiGraphics graphics, int mouseX, int mouseY, float a) {
         graphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0xFF646464);
         graphics.blit(RenderPipelines.GUI_TEXTURED, texture, getX(), getY(), u, v + value * vOffset, width, height, textureWidth, textureHeight);
         if (isHoveredOrFocused()) graphics.renderOutline(getX(), getY(), getWidth(), getHeight(), 0xFFFFFFFF);
     }
 
     @Override
-    protected void updateWidgetNarration(NarrationElementOutput builder) {
+    protected void updateWidgetNarration(@NonNull NarrationElementOutput builder) {
         defaultButtonNarrationText(builder);
     }
 }

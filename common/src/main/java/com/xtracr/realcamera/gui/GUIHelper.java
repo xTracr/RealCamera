@@ -1,7 +1,7 @@
 package com.xtracr.realcamera.gui;
 
 import com.xtracr.realcamera.mixin.accessor.GuiGraphicsAccessor;
-import com.xtracr.realcamera.util.VertexData;
+import com.xtracr.realcamera.renderer.VertexData;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.TextureSetup;

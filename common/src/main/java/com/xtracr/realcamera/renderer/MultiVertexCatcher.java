@@ -1,4 +1,4 @@
-package com.xtracr.realcamera.util;
+package com.xtracr.realcamera.renderer;
 
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;

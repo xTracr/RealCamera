@@ -1,8 +1,8 @@
-package com.xtracr.realcamera.util;
+package com.xtracr.realcamera.renderer;
 
 
 import com.mojang.blaze3d.vertex.MeshData;
-import com.xtracr.realcamera.util.VertexData.UV;
+import com.xtracr.realcamera.renderer.VertexData.UV;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import org.jetbrains.annotations.Nullable;
 

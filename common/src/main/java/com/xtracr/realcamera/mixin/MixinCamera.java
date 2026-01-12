@@ -38,7 +38,7 @@ public abstract class MixinCamera {
     @Shadow
     private Vec3 position;
     @Shadow
-    @Final private  Vector3f forwards;
+    @Final private Vector3f forwards;
     @Shadow
     @Final private Vector3f up;
     @Shadow
@@ -110,7 +110,7 @@ public abstract class MixinCamera {
     @Unique
     private static float realcamera$getFov(float deltaTick) {
         Minecraft client = Minecraft.getInstance();
-        float fovModifier = Mth.lerp(deltaTick, ((GameRendererAccessor) client.gameRenderer).getOldFov(), ((GameRendererAccessor) client.gameRenderer).getFov());
+        float fovModifier = Mth.lerp(deltaTick, ((GameRendererAccessor) client.gameRenderer).getOldFovModifier(), ((GameRendererAccessor) client.gameRenderer).getFovModifier());
         return client.options.fov().get() * fovModifier;
     }
 

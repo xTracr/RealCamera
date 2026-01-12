@@ -4,9 +4,11 @@ import com.xtracr.realcamera.RealCamera;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import org.jspecify.annotations.NonNull;
 
 import java.util.function.Consumer;
 
@@ -35,19 +37,19 @@ public class TexturedButton extends AbstractButton {
     }
 
     @Override
-    public void onPress() {
+    public void onPress(@NonNull InputWithModifiers input) {
         onPress.accept(this);
     }
 
     @Override
-    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float deltaTick) {
+    public void renderContents(GuiGraphics graphics, int mouseX, int mouseY, float a) {
         graphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0xFF646464);
         graphics.blit(RenderPipelines.GUI_TEXTURED, texture, getX(), getY(), u, v, width, height, textureWidth, textureHeight);
         if (isHoveredOrFocused()) graphics.renderOutline(getX(), getY(), getWidth(), getHeight(), 0xFFFFFFFF);
     }
 
     @Override
-    protected void updateWidgetNarration(NarrationElementOutput builder) {
+    protected void updateWidgetNarration(@NonNull NarrationElementOutput builder) {
         this.defaultButtonNarrationText(builder);
     }
 }

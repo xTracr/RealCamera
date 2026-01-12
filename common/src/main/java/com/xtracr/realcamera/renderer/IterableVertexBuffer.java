@@ -1,10 +1,10 @@
-package com.xtracr.realcamera.util;
+package com.xtracr.realcamera.renderer;
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
-import com.xtracr.realcamera.util.VertexData.MutableVertex;
+import com.xtracr.realcamera.renderer.VertexData.MutableVertex;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
