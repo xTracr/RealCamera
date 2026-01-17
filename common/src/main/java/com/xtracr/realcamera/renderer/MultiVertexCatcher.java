@@ -9,20 +9,23 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectSortedMaps;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 import java.util.Arrays;
 import java.util.SequencedMap;
 import java.util.function.Consumer;
 
-public interface MultiVertexCatcher extends MultiBufferSource {
-    static MultiVertexCatcher defaultImpl() {
+public abstract class MultiVertexCatcher extends MultiBufferSource.BufferSource {
+    protected MultiVertexCatcher(ByteBufferBuilder sharedBuffer, SequencedMap<RenderType, ByteBufferBuilder> fixedBuffers) {
+        super(sharedBuffer, fixedBuffers);
+    }
+
+    public static MultiVertexCatcher defaultImpl() {
         return MeshCatcher.INSTANCE;
     }
 
-    void endCatching(Consumer<BuiltIterableBuffer> consumer);
+    public abstract void endCatching(Consumer<BuiltIterableBuffer> consumer);
 
-    class MeshCatcher extends MultiBufferSource.BufferSource implements MultiVertexCatcher {
+    static class MeshCatcher extends MultiVertexCatcher {
         private static final MeshCatcher INSTANCE = new MeshCatcher();
         private final SequencedMap<RenderType, ByteBufferBuilderPool> bufferPools = new Object2ObjectLinkedOpenHashMap<>();
         private final SequencedMap<MeshData, RenderType> caughtMeshes = new Object2ObjectLinkedOpenHashMap<>();
@@ -32,7 +35,7 @@ public interface MultiVertexCatcher extends MultiBufferSource {
         }
 
         @Override
-        public @NotNull VertexConsumer getBuffer(@NonNull RenderType renderType) {
+        public @NotNull VertexConsumer getBuffer(@NotNull RenderType renderType) {
             BufferBuilder bufferBuilder = startedBuilders.get(renderType);
             if (bufferBuilder != null) {
                 endBatch(renderType, bufferBuilder);
@@ -62,7 +65,7 @@ public interface MultiVertexCatcher extends MultiBufferSource {
         }
 
         @Override
-        protected void endBatch(@NonNull RenderType renderType, BufferBuilder bufferBuilder) {
+        protected void endBatch(@NotNull RenderType renderType, BufferBuilder bufferBuilder) {
             MeshData meshData = bufferBuilder.build();
             if (meshData != null) {
                 caughtMeshes.put(meshData, renderType);

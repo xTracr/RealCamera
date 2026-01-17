@@ -28,11 +28,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Camera.class)
 public abstract class MixinCamera {
     @Unique
-    private static final Vector3f realcamera$FORWARDS = new Vector3f(0.0F, 0.0F, -1.0F);
+    private static final Vector3f FORWARDS = new Vector3f(0.0F, 0.0F, -1.0F);
     @Unique
-    private static final Vector3f realcamera$UP = new Vector3f(0.0F, 1.0F, 0.0F);
+    private static final Vector3f UP = new Vector3f(0.0F, 1.0F, 0.0F);
     @Unique
-    private static final Vector3f realcamera$LEFT = new Vector3f(-1.0F, 0.0F, 0.0F);
+    private static final Vector3f LEFT = new Vector3f(-1.0F, 0.0F, 0.0F);
     @Shadow
     private BlockGetter level;
     @Shadow
@@ -84,9 +84,9 @@ public abstract class MixinCamera {
         this.xRot = xRot;
         this.yRot = yRot;
         rotation.rotationYXZ((float) (Math.PI - Math.toRadians(yRot)), (float) -Math.toRadians(xRot), (float) -Math.toRadians(roll));
-        realcamera$FORWARDS.rotate(rotation, forwards);
-        realcamera$UP.rotate(rotation, up);
-        realcamera$LEFT.rotate(rotation, left);
+        FORWARDS.rotate(rotation, forwards);
+        UP.rotate(rotation, up);
+        LEFT.rotate(rotation, left);
     }
 
     @Unique
@@ -94,15 +94,17 @@ public abstract class MixinCamera {
         Vec3 offset = position.subtract(startVec);
         final float depth = 0.05f + (float) (fov * (0.0001 + 0.000005 * fov));
         for (int i = 0; i < 8; ++i) {
-            float f = depth * ((i & 1) * 2 - 1);
-            float g = depth * ((i >> 1 & 1) * 2 - 1);
-            float h = depth * ((i >> 2 & 1) * 2 - 1);
-            Vec3 start = startVec.add(f, g, h);
-            Vec3 end = startVec.add(offset).add(f, g, h);
+            float offsetX = depth * ((i & 1) * 2 - 1);
+            float offsetY = depth * ((i >> 1 & 1) * 2 - 1);
+            float offsetZ = depth * ((i >> 2 & 1) * 2 - 1);
+            Vec3 start = startVec.add(offsetX, offsetY, offsetZ);
+            Vec3 end = startVec.add(offset).add(offsetX, offsetY, offsetZ);
             HitResult hitResult = level.clip(new ClipContext(start, end, ClipContext.Block.VISUAL, ClipContext.Fluid.NONE, entity));
-            double l = hitResult.getLocation().distanceTo(start);
-            if (hitResult.getType() == HitResult.Type.MISS || l >= offset.length()) continue;
-            offset = offset.scale(l / offset.length());
+            if (hitResult.getType() == HitResult.Type.MISS) continue;
+            double sqDistance = hitResult.getLocation().distanceToSqr(start);
+            double sqOffsetL = offset.lengthSqr();
+            if (sqDistance >= sqOffsetL) continue;
+            offset = offset.scale(Math.sqrt(sqDistance / sqOffsetL));
         }
         setPosition(startVec.add(offset));
     }

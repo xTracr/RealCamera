@@ -14,17 +14,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Gui.class)
 public abstract class MixinGui {
     @Inject(method = "renderCrosshair", at = @At("HEAD"))
-    private void realcamera$atRenderCrosshairHEAD(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+    private void realcamera$atRenderCrosshairHEAD(GuiGraphics graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         if (ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
-            guiGraphics.pose().pushMatrix();
-            CrosshairUtil.translateMatrices(guiGraphics.pose());
+            graphics.pose().pushMatrix();
+            CrosshairUtil.translateMatrices(graphics.pose());
         }
     }
 
     @Inject(method = "renderCrosshair", at = @At("RETURN"))
-    private void realcamera$atRenderCrosshairRETURN(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+    private void realcamera$atRenderCrosshairRETURN(GuiGraphics graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         if (ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
-            guiGraphics.pose().popMatrix();
+            graphics.pose().popMatrix();
         }
     }
 }

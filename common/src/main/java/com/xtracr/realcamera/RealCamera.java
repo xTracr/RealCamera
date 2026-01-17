@@ -3,7 +3,6 @@ package com.xtracr.realcamera;
 import com.xtracr.realcamera.compat.CompatibilityHelper;
 import com.xtracr.realcamera.compat.PlatformHelper;
 import com.xtracr.realcamera.config.ConfigFile;
-import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

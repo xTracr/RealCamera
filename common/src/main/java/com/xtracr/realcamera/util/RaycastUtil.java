@@ -24,6 +24,11 @@ public class RaycastUtil {
         return new ClipContext(startVec, endVec, shapeType, fluidHandling, entity);
     }
 
+    /**
+     * Updates raycast start and end points ensuring:
+     * <li> End point is on camera's viewing direction
+     * <li> Square distance from entity's eye to end point ≤ sqDistance
+     */
     public static void update(Entity entity, double sqDistance, float partialTicks) {
         Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
         Vec3 eyePos = entity.getEyePosition(partialTicks);

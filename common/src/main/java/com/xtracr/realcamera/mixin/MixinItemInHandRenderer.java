@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.xtracr.realcamera.compat.DisableHelper;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.ItemInHandRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

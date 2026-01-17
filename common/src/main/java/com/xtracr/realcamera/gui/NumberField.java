@@ -9,8 +9,8 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.CommonComponents;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 
 import java.util.function.Consumer;
 
@@ -91,7 +91,7 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
     }
 
     @Override
-    public boolean keyPressed(@NonNull KeyEvent event) {
+    public boolean keyPressed(@NotNull KeyEvent event) {
         if (event.isSelection()) {
             setFocused(false);
             return true;
@@ -107,7 +107,7 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
     }
 
     @Override
-    public void renderWidget(@NonNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+    public void renderWidget(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         checkText();
         super.renderWidget(graphics, mouseX, mouseY, partialTicks);
     }

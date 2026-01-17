@@ -7,8 +7,8 @@ import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.resources.Identifier;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 
 import java.util.function.IntConsumer;
 
@@ -53,7 +53,7 @@ public class CyclingTexturedButton extends AbstractButton {
     }
 
     @Override
-    public void onPress(@NonNull InputWithModifiers input) {
+    public void onPress(@NotNull InputWithModifiers input) {
         if (input.hasShiftDown()) setValue(value - 1);
         else setValue(value + 1);
         if (onValueChange != null) onValueChange.accept(value);
@@ -67,7 +67,7 @@ public class CyclingTexturedButton extends AbstractButton {
     }
 
     @Override
-    protected void updateWidgetNarration(@NonNull NarrationElementOutput builder) {
+    protected void updateWidgetNarration(@NotNull NarrationElementOutput builder) {
         defaultButtonNarrationText(builder);
     }
 }

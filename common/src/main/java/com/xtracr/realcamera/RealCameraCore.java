@@ -11,7 +11,9 @@ import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.renderer.BuiltIterableBuffer;
 import com.xtracr.realcamera.renderer.MultiVertexCatcher;
 import com.xtracr.realcamera.renderer.VertexData;
-import com.xtracr.realcamera.util.*;
+import com.xtracr.realcamera.util.LocUtil;
+import com.xtracr.realcamera.util.MathUtil;
+import com.xtracr.realcamera.util.SmoothUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
@@ -88,7 +90,7 @@ public class RealCameraCore {
         if (!newResult.available()) {
             EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
             MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-            dispatcher.render(entity, 0, 0, 0, Mth.lerp(partialTicks, entity.yRotO, entity.getYRot()), partialTicks, new PoseStack(), catcher, dispatcher.getPackedLightCoords(entity, partialTicks));
+            dispatcher.render(entity, 0, 0, 0, partialTicks, new PoseStack(), catcher, dispatcher.getPackedLightCoords(entity, partialTicks));
             catcher.endCatching(RealCameraCore::computeBindResult);
         }
         entity.setInvisible(invisible);

@@ -24,7 +24,7 @@ public record BindTarget(
         DisableConfig[] disableConfigs) {
     public static final List<BindTarget> defaultTargets;
     public static final BindTarget EMPTY = blank(null, null);
-    private static final short serialVersion = 703;
+    private static final short serialVersion = 703; // 0.7.3
 
     static {
         defaultTargets = List.of(
@@ -270,10 +270,10 @@ public record BindTarget(
             }
             for (UVRectangle rect : rectangles) {
                 if (!rect.contains(u, v)) continue;
-                disableCacheMap.computeIfAbsent(u, k -> new FloatOpenHashSet()).add(v);
+                disableCacheMap.computeIfAbsent(u, _ -> new FloatOpenHashSet()).add(v);
                 return true;
             }
-            disableCacheMap.computeIfAbsent(u, k -> new FloatOpenHashSet()).add(-v);
+            disableCacheMap.computeIfAbsent(u, _ -> new FloatOpenHashSet()).add(-v);
             return false;
         }
 

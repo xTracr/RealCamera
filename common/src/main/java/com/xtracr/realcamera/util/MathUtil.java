@@ -26,7 +26,6 @@ public class MathUtil {
         return Math.ceil(d);
     }
 
-
     public static Vec3 getEulerAngleYXZ(Matrix3f normal) {
         if (normal.m21 <= -1.0) return new Vec3(Math.PI / 2, Math.atan2(normal.m10, normal.m00), 0.0);
         else if (normal.m21 >= 1.0) return new Vec3(-Math.PI / 2, -Math.atan2(normal.m10, normal.m00), 0.0);

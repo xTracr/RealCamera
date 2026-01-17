@@ -9,9 +9,9 @@ import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.BindTarget.*;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
+import com.xtracr.realcamera.renderer.VertexData;
 import com.xtracr.realcamera.util.LocUtil;
 import com.xtracr.realcamera.util.MathUtil;
-import com.xtracr.realcamera.renderer.VertexData;
 import io.netty.buffer.Unpooled;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
@@ -36,7 +36,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import org.jspecify.annotations.NonNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -426,7 +425,7 @@ public class ModelViewScreen extends Screen {
     }
 
     @Override
-    public void render(@NonNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+    public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         super.render(graphics, mouseX, mouseY, partialTicks);
         if (toggleCategoryButton.getValue() == Category.DISABLE && selectionModeButton.getValue() == 2 && inModelViewArea(mouseX, mouseY)) {
             GUIHelper.enableScissor(graphics, modelViewArea);
@@ -444,7 +443,7 @@ public class ModelViewScreen extends Screen {
     }
 
     @Override
-    public void renderBackground(@NonNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+    public void renderBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         super.renderBackground(graphics, mouseX, mouseY, partialTicks);
         graphics.fill(x, y, x + (xSize - middleWidth) / 2 - 4, y + ySize, 0xFF444444);
         graphics.fill(x + (xSize - middleWidth) / 2, y, x + (xSize + middleWidth) / 2, y + ySize, 0xFF222222);
@@ -741,7 +740,7 @@ public class ModelViewScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(@NonNull MouseButtonEvent event, boolean doubleClick) {
+    public boolean mouseClicked(@NotNull MouseButtonEvent event, boolean doubleClick) {
         double storedX = clickedX, storedY = clickedY;
         clickedX = clickedY = -1;
         if (event.input() == InputConstants.MOUSE_BUTTON_LEFT && toggleCategoryButton.getValue() != Category.PREVIEW) {
@@ -763,7 +762,7 @@ public class ModelViewScreen extends Screen {
     }
 
     @Override
-    public boolean mouseDragged(@NonNull MouseButtonEvent event, double dx, double dy) {
+    public boolean mouseDragged(@NotNull MouseButtonEvent event, double dx, double dy) {
         if (event.input() == InputConstants.MOUSE_BUTTON_LEFT && !InputConstants.isKeyDown(minecraft.getWindow(), modifierKey.getValue())) {
             if (inModelViewArea(event.x(), event.y())) {
                 xRot += (float) (Math.PI * dy / ySize);
@@ -803,7 +802,7 @@ public class ModelViewScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(@NonNull KeyEvent event) {
+    public boolean keyPressed(@NotNull KeyEvent event) {
         if (event.isSelection()) {
             GuiEventListener focused = getFocused();
             if (focused != null && !focused.isFocused()) setFocused(focusedRectWidget);
@@ -877,7 +876,7 @@ public class ModelViewScreen extends Screen {
         }
 
         @Override
-        protected void renderWidget(@NonNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        protected void renderWidget(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
             Vec2 minXY = translateUVToXY(uMin, vMin, textureViewArea), maxXY = translateUVToXY(uMax, vMax, textureViewArea);
             float x1 = minXY.x, y1 = minXY.y, x2 = maxXY.x, y2 = maxXY.y, width = x2 - x1, height = y2 - y1;
             setX((int) x1);
@@ -892,7 +891,7 @@ public class ModelViewScreen extends Screen {
         }
 
         @Override
-        public boolean keyPressed(@NonNull KeyEvent event) {
+        public boolean keyPressed(@NotNull KeyEvent event) {
             if (textureViewArea == null) return false;
             if (event.input() == InputConstants.KEY_DELETE && deleteFocusedRectWidget()) return true;
             if (event.isSelection() && uMin < uMax && vMin < vMax) {
@@ -918,7 +917,7 @@ public class ModelViewScreen extends Screen {
         }
 
         @Override
-        protected void updateWidgetNarration(@NonNull NarrationElementOutput narrationElementOutput) { }
+        protected void updateWidgetNarration(@NotNull NarrationElementOutput narrationElementOutput) { }
     }
 
     private enum Category {
