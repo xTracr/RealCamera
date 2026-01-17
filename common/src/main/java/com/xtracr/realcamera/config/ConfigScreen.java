@@ -8,8 +8,11 @@ import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import me.shedaniel.clothconfig2.impl.builders.SubCategoryBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 public class ConfigScreen {
     public static Screen create(Screen parent) {
@@ -206,17 +209,35 @@ public class ConfigScreen {
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("rotationSmoothFactor"))
                 .setSaveConsumer(d -> config.binding.rotationSmoothFactor = d)
                 .build());
-        binding.addEntry(entryBuilder.startStrList(LocUtil.CONFIG_OPTION("disableMainFeatureItems"), config.binding.disableMainFeatureItems)
-                .setDefaultValue(List.of())
-                .setTooltip(LocUtil.CONFIG_TOOLTIP("disableRenderItems"))
-                .setSaveConsumer(l -> config.binding.disableMainFeatureItems = l)
-                .build());
-        binding.addEntry(entryBuilder.startStrList(LocUtil.CONFIG_OPTION("disableRenderItems"), config.binding.disableRenderItems)
-                .setDefaultValue(ModConfig.Binding.defaultDisableRenderItems)
-                .setTooltip(LocUtil.CONFIG_TOOLTIP("disableRenderItems"))
-                .setSaveConsumer(l -> config.binding.disableRenderItems = l)
-                .build());
+        List<String> itemSelections = ItemSelectorListEntry.itemSelections();
+        binding.addEntry(itemSelectorListEntry(entryBuilder,
+                LocUtil.CONFIG_OPTION("disableMainFeatureItems"),
+                config.binding.disableMainFeatureItems,
+                List.of(),
+                LocUtil.CONFIG_TOOLTIP("disableRenderItems"),
+                l -> config.binding.disableMainFeatureItems = l,
+                itemSelections));
+        binding.addEntry(itemSelectorListEntry(entryBuilder,
+                LocUtil.CONFIG_OPTION("disableRenderItems"),
+                config.binding.disableRenderItems,
+                ModConfig.Binding.defaultDisableRenderItems,
+                LocUtil.CONFIG_TOOLTIP("disableRenderItems"),
+                l -> config.binding.disableRenderItems = l,
+                itemSelections));
 
         return builder.build();
+    }
+
+    private static ItemSelectorListEntry itemSelectorListEntry(ConfigEntryBuilder entryBuilder,
+                                                              Component option,
+                                                              List<String> value,
+                                                              List<String> defaultValue,
+                                                              Component tooltip,
+                                                              Consumer<List<String>> saveConsumer,
+                                                              List<String> selections) {
+        ItemSelectorListEntry entry = new ItemSelectorListEntry(option, value, false, null, saveConsumer, () -> defaultValue,
+                entryBuilder.getResetButtonKey(), false, true, true, selections);
+        entry.setTooltipSupplier(() -> Optional.of(new Component[]{tooltip}));
+        return entry;
     }
 }
