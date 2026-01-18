@@ -2,6 +2,7 @@ package com.xtracr.realcamera.config;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.xtracr.realcamera.util.LocUtil;
+import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
@@ -11,7 +12,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 public class ConfigScreen {
@@ -209,7 +209,7 @@ public class ConfigScreen {
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("rotationSmoothFactor"))
                 .setSaveConsumer(d -> config.binding.rotationSmoothFactor = d)
                 .build());
-        List<String> itemSelections = ItemSelectorListEntry.itemSelections();
+        List<String> itemSelections = ItemSelectorEntries.itemSelections();
         binding.addEntry(itemSelectorListEntry(entryBuilder,
                 LocUtil.CONFIG_OPTION("disableMainFeatureItems"),
                 config.binding.disableMainFeatureItems,
@@ -228,16 +228,14 @@ public class ConfigScreen {
         return builder.build();
     }
 
-    private static ItemSelectorListEntry itemSelectorListEntry(ConfigEntryBuilder entryBuilder,
-                                                              Component option,
-                                                              List<String> value,
-                                                              List<String> defaultValue,
-                                                              Component tooltip,
-                                                              Consumer<List<String>> saveConsumer,
-                                                              List<String> selections) {
-        ItemSelectorListEntry entry = new ItemSelectorListEntry(option, value, false, null, saveConsumer, () -> defaultValue,
-                entryBuilder.getResetButtonKey(), false, true, true, selections);
-        entry.setTooltipSupplier(() -> Optional.of(new Component[]{tooltip}));
-        return entry;
+    private static AbstractConfigListEntry<?> itemSelectorListEntry(ConfigEntryBuilder entryBuilder,
+                                                                    Component option,
+                                                                    List<String> value,
+                                                                    List<String> defaultValue,
+                                                                    Component tooltip,
+                                                                    Consumer<List<String>> saveConsumer,
+                                                                    List<String> selections) {
+        return ItemSelectorEntries.createEntry(option, value, defaultValue, tooltip, saveConsumer, selections,
+                entryBuilder.getResetButtonKey());
     }
 }

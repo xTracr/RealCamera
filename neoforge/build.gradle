@@ -31,6 +31,7 @@ dependencies {
     neoForge "net.neoforged:neoforge:${rootProject.neoforge_version}"
 
     // Cloth Config
+    modCompileOnly "me.shedaniel.cloth:cloth-config-neoforge:${rootProject.cloth_config_version}"
     modRuntimeOnly "me.shedaniel.cloth:cloth-config-neoforge:${rootProject.cloth_config_version}"
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }

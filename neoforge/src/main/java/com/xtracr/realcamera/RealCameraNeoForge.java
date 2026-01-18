@@ -1,6 +1,7 @@
 package com.xtracr.realcamera;
 
 import com.xtracr.realcamera.config.ConfigScreen;
+import com.xtracr.realcamera.config.ItemSelectorEntriesNeoForge;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
@@ -25,6 +26,7 @@ public class RealCameraNeoForge implements RealCamera {
 
     public void clientSetup(FMLClientSetupEvent event) {
         initialize();
+        ItemSelectorEntriesNeoForge.register();
 
         NeoForge.EVENT_BUS.addListener(EventHandler::onClientTick);
         NeoForge.EVENT_BUS.addListener(EventHandler::onRenderLevelStage);

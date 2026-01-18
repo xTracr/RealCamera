@@ -7,12 +7,14 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import com.xtracr.realcamera.config.ItemSelectorEntriesFabric;
 
 @Environment(EnvType.CLIENT)
 public class RealCameraFabric implements ClientModInitializer, RealCamera {
     @Override
     public void onInitializeClient() {
         initialize();
+        ItemSelectorEntriesFabric.register();
         KeyMappings.register(KeyBindingHelper::registerKeyBinding);
 
         ClientTickEvents.END_CLIENT_TICK.register(KeyMappings::handle);

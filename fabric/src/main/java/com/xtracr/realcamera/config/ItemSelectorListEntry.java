@@ -24,18 +24,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class ItemSelectorListEntry extends AbstractListListEntry<String, ItemSelectorListEntry.ItemSelectorCell, ItemSelectorListEntry> {
-    private static List<String> cachedSelections;
-
-    public static List<String> itemSelections() {
-        if (cachedSelections == null) {
-            cachedSelections = BuiltInRegistries.ITEM.keySet().stream()
-                    .map(ResourceLocation::toString)
-                    .sorted()
-                    .toList();
-        }
-        return cachedSelections;
-    }
-
     public ItemSelectorListEntry(Component fieldName, List<String> value, boolean defaultExpanded,
                                  Supplier<Optional<Component[]>> tooltipSupplier,
                                  Consumer<List<String>> saveConsumer,
