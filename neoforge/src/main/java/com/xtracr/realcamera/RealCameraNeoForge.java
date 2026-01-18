@@ -26,12 +26,12 @@ public class RealCameraNeoForge implements RealCamera {
 
     public void clientSetup(FMLClientSetupEvent event) {
         initialize();
-        ItemSelectorEntriesNeoForge.register();
 
         NeoForge.EVENT_BUS.addListener(EventHandler::onClientTick);
         NeoForge.EVENT_BUS.addListener(EventHandler::onRenderLevelStage);
 
         if (isModLoaded("cloth-config")) {
+            ItemSelectorEntriesNeoForge.register();
             modContainer.registerExtensionPoint(IConfigScreenFactory.class, (container, modListScreen) -> ConfigScreen.create(modListScreen));
         }
     }
