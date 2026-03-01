@@ -7,7 +7,6 @@
   ],
   "client": [
     "MixinCamera",
-    "MixinFeatureRenderDispatcher",
     "MixinFishingHookRenderer",
     "MixinGameRenderer",
     "MixinGui",
@@ -17,9 +16,10 @@
     "MixinLocalPlayer",
     "MixinStuckInBodyLayer",
     "accessor.AvatarRendererAccessor",
-    "accessor.CameraAccessor",
-    "accessor.GameRendererAccessor",
-    "accessor.GuiGraphicsAccessor"
+    "accessor.FeatureRenderDispatcherAccessor",
+    "accessor.GuiGraphicsAccessor",
+    "accessor.ModelFeatureRenderer$StorageAccessor",
+    "accessor.ModelPartFeatureRenderer$StorageAccessor"
   ],
   "server": [
   ],

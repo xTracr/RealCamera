@@ -1,10 +1,6 @@
 package com.xtracr.realcamera.compat;
 
 import com.xtracr.realcamera.RealCamera;
-import com.xtracr.realcamera.RealCameraCore;
-import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.mixin.accessor.CameraAccessor;
-import net.minecraft.client.Camera;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 
@@ -79,12 +75,6 @@ public class CompatibilityHelper {
             Object playerTransformer = NEA_NEAnimationsLoader_playerTransformer.get(INSTANCE);
             NEA_playerTransformer_setDeltaTick.invoke(playerTransformer, partialTicks);
         } catch (Exception ignored) {
-        }
-    }
-
-    public static void forceSetCameraPos(Camera camera) {
-        if (RealCameraCore.isActive() && !ConfigFile.config().isClassic()) {
-            ((CameraAccessor) camera).invokeSetPosition(RealCameraCore.getCameraPos(camera.position()));
         }
     }
 

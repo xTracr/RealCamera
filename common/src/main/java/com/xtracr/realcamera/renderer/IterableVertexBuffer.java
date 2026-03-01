@@ -45,7 +45,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         hasOverlay = overlayOffset != -1;
         hasLight = lightOffset != -1;
         hasNormal = normalOffset != -1;
-        fastFormat = format == DefaultVertexFormat.NEW_ENTITY;
+        fastFormat = format == DefaultVertexFormat.ENTITY;
         boolean isQuad = drawState.mode() == VertexFormat.Mode.QUADS;
         primitives = fastFormat && isQuad ? new FastQuadReader() : new PrimitiveReader(drawState.mode());
     }

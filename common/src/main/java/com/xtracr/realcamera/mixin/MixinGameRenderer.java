@@ -2,7 +2,6 @@ package com.xtracr.realcamera.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.llamalad7.mixinextras.sugar.Local;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.compat.CompatibilityHelper;
 import com.xtracr.realcamera.config.ConfigFile;
@@ -45,18 +44,14 @@ public abstract class MixinGameRenderer {
         return original.call(instance, partialTicks, cameraEntity);
     }
 
-    @Inject(method = "updateCamera", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setup(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/Entity;ZZF)V"))
-    private void realcamera$atCameraSetup(DeltaTracker deltaTracker, CallbackInfo ci, @Local(name = "cameraDeltaPartialTicks") float cameraDeltaPartialTicks) {
-        CompatibilityHelper.NEA_setDeltaTick(cameraDeltaPartialTicks);
-        RealCameraCore.initialize(minecraft);
+    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;update(Lnet/minecraft/client/DeltaTracker;)V"))
+    private void realcamera$atCameraUpdate(DeltaTracker deltaTracker, boolean renderLevel, CallbackInfo ci) {
+        float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(true);
+        CompatibilityHelper.NEA_setDeltaTick(partialTicks);
+        RealCameraCore.initialize(minecraft, renderLevel);
         if (RealCameraCore.isActive() && !ConfigFile.config().isClassic()) {
-            minecraft.getEntityRenderDispatcher().prepare(mainCamera,  minecraft.crosshairPickEntity);
-            RealCameraCore.computeCamera(minecraft, cameraDeltaPartialTicks);
+            minecraft.getEntityRenderDispatcher().prepare(mainCamera, minecraft.crosshairPickEntity);
+            RealCameraCore.computeCamera(minecraft, partialTicks);
         }
-    }
-
-    @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;extractCamera(F)V"))
-    private void realcamera$atExtractCamera(DeltaTracker deltaTracker, CallbackInfo ci) {
-        CompatibilityHelper.forceSetCameraPos(mainCamera);
     }
 }

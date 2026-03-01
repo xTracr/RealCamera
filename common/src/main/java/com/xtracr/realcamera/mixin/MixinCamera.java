@@ -3,15 +3,12 @@ package com.xtracr.realcamera.mixin;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
-import com.xtracr.realcamera.mixin.accessor.GameRendererAccessor;
 import net.minecraft.client.Camera;
-import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -36,6 +33,8 @@ public abstract class MixinCamera {
     @Shadow
     private BlockGetter level;
     @Shadow
+    private Entity entity;
+    @Shadow
     private Vec3 position;
     @Shadow
     @Final private Vector3f forwards;
@@ -50,12 +49,11 @@ public abstract class MixinCamera {
     @Shadow
     @Final private Quaternionf rotation;
 
-    @Inject(method = "setup", at = @At("RETURN"))
-    private void realcamera$setupCamera(Level level, Entity entity, boolean detached, boolean mirror, float partialTicks, CallbackInfo ci) {
+    @Inject(method = "alignWithEntity", at = @At("RETURN"))
+    private void realcamera$setupCamera(float partialTicks, CallbackInfo ci) {
         if (!RealCameraCore.isActive()) return;
         ModConfig config = ConfigFile.config();
         Vec3 startVec = position;
-        AABB box = entity.getBoundingBox();
         if (config.isClassic()) {
             double scale = entity instanceof LivingEntity livingEntity ? livingEntity.getScale() : 1;
             Vec3 offset = new Vec3(config.getClassicX(), config.getClassicY(), -config.getClassicZ()).scale(scale);
@@ -70,13 +68,14 @@ public abstract class MixinCamera {
         } else {
             Vec3 entityPos = entity.position().add(entity.position().subtract(entity.xOld, entity.yOld, entity.zOld).scale(entity.tickCount == 0 ? 0 : partialTicks - 1));
             Vec3 rawPos = RealCameraCore.getRawPos(position, entityPos);
+            AABB box = entity.getBoundingBox();
             double restrictedY = Mth.clamp(rawPos.y(), box.minY + 0.1D, box.maxY - 0.1D);
             startVec = new Vec3(position.x(), restrictedY, position.z());
             setPosition(rawPos);
-            realcamera$setRotation(RealCameraCore.getYaw(yRot), RealCameraCore.getPitch(xRot), RealCameraCore.getRoll(0));
+            Vec3 eulerAngle = RealCameraCore.getEulerAngle(xRot, yRot, 0);
+            realcamera$setRotation((float) eulerAngle.y(), (float) eulerAngle.x(), (float) eulerAngle.z());
         }
-        realcamera$clipToSpace(startVec, entity, realcamera$getFov(partialTicks));
-        RealCameraCore.setCameraPos(position);
+        realcamera$clipToSpace(startVec, entity, calculateFov(partialTicks));
     }
 
     @Unique
@@ -109,12 +108,8 @@ public abstract class MixinCamera {
         setPosition(startVec.add(offset));
     }
 
-    @Unique
-    private static float realcamera$getFov(float partialTicks) {
-        Minecraft client = Minecraft.getInstance();
-        float fovModifier = Mth.lerp(partialTicks, ((GameRendererAccessor) client.gameRenderer).getOldFovModifier(), ((GameRendererAccessor) client.gameRenderer).getFovModifier());
-        return client.options.fov().get() * fovModifier;
-    }
+    @Shadow
+    protected abstract float calculateFov(float partialTicks);
 
     @Shadow
     protected abstract void move(float x, float y, float z);

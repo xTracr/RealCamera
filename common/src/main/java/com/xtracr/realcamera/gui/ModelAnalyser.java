@@ -15,8 +15,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -319,11 +321,11 @@ public class ModelAnalyser {
     public void updateModel(Minecraft client, Entity entity, float partialTicks, PoseStack poseStack) {
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         client.gameRenderer.getLighting().setupFor(Lighting.Entry.ENTITY_IN_UI);
-        dispatcher.setRenderShadow(false);
         MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-        dispatcher.render(entity, 0, 0, 0, partialTicks, poseStack, catcher, 0xF000f0);
+        FeatureRenderDispatcher featureRenderDispatcher = client.gameRenderer.getFeatureRenderDispatcher();
+        dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, featureRenderDispatcher.getSubmitNodeStorage());
+        catcher.renderTranslucentFeatures(featureRenderDispatcher);
         catcher.endCatching(this::computeBindResult);
-        dispatcher.setRenderShadow(true);
     }
 
     public void computeBindResult(BuiltIterableBuffer builtBuffer) {
@@ -340,7 +342,7 @@ public class ModelAnalyser {
         BuiltRecord record = new BuiltRecord(builtBuffer.renderType(), builtBuffer.textureId(), vertices, primitives);
         modelRecords.add(record);
         if (!builtBuffer.textureId().contains(target.textureId()) || currentRecord != null) return;
-        BindResult result = new BindResult(target, true);
+        BindResult result = new BindResult(target);
         BindTarget.TargetConfig config = target.targetConfig();
         VertexData.UV[] uvs = {new VertexData.UV(config.posU(), config.posV()), new VertexData.UV(config.forwardU(), config.forwardV()), new VertexData.UV(config.upwardU(), config.upwardV())};
         targetPrimitives = builtBuffer.findPrimitivesInCache(uvs);
@@ -358,7 +360,7 @@ public class ModelAnalyser {
         if (targetPrimitives[2] != null) result.setUpward(VertexData.normal(targetPrimitives[2]).scale(-1));
         if (result.weakAvailable()) {
             currentRecord = record;
-            bindResult = result.computeCamera();
+            bindResult = result.computeCamera(true);
         }
     }
 

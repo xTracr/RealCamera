@@ -319,7 +319,7 @@ public class ModelViewScreen extends Screen {
         GridLayout.RowHelper rows = grid.createRowHelper(4);
         rows.addChild(toggleCategoryButton, 3);
         rows.addChild(new TexturedButton(80, 0, _ -> {
-            if (CompatibilityHelper.isModLoaded("cloth-config")) minecraft.setScreen(ConfigScreen.create(this));
+            // if (CompatibilityHelper.isModLoaded("cloth-config")) minecraft.setScreen(ConfigScreen.create(this)); TODO
         }), smallSettings).setTooltip(createTooltip("toConfigScreen"));
         final int widgetsPerPage, size;
         if (toggleCategoryButton.getValue() == Category.DISABLE) {
@@ -507,7 +507,6 @@ public class ModelViewScreen extends Screen {
         analyser.modelPose.translate(0, -entity.getBbHeight() / 2.0f, 0);
         analyser.updateModel(minecraft, entity, 1.0f, analyser.modelPose);
         EntityRenderState entityRenderState = minecraft.getEntityRenderDispatcher().getRenderer(entity).createRenderState(entity, 1.0F);
-        entityRenderState.hitboxesRenderState = null;
         graphics.submitEntityRenderState(entityRenderState, scale, offset, quaternionf, new Quaternionf(), x1, y1, x2, y2);
     }
 
@@ -523,7 +522,6 @@ public class ModelViewScreen extends Screen {
         analyser.texturePose.scale(scale, scale, -scale);
         analyser.texturePose.translate(offset.x(), offset.y(), offset.z());
         EntityRenderState entityRenderState = minecraft.getEntityRenderDispatcher().getRenderer(entity).createRenderState(entity, 1.0F);
-        entityRenderState.hitboxesRenderState = null;
         graphics.submitEntityRenderState(entityRenderState, scale, offset, new Quaternionf(), null, x1, y1, x2, y2);
     }
 

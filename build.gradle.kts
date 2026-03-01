@@ -1,7 +1,7 @@
 plugins {
     id("java-library")
-    id("net.fabricmc.fabric-loom") version "1.14-SNAPSHOT" apply false
-    id("net.neoforged.moddev") version "2.0.137" apply false
+    id("net.fabricmc.fabric-loom") version "1.15-SNAPSHOT" apply false
+    id("net.neoforged.moddev") version "2.0.140" apply false
     id("maven-publish")
 }
 
