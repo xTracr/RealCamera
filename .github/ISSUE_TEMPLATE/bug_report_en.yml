@@ -25,11 +25,11 @@ body:
           required: true
 
   - type: input
-    id: minecraft-version
+    id: minecraft-version-loader
     attributes:
-      label: Minecraft Version
+      label: Minecraft Version and Loader
       description: |
-        The Minecraft version you are using.
+        Please specify the game version and your mod loader.
 
         You can find them at the corner of main menu or in the log while startup.
     validations:

@@ -388,7 +388,10 @@ public class ModelViewScreen extends Screen {
             for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, size); i++) {
                 BindTarget target = i < fixedTargetCount ? fixedTargetList.get(i) : targetList.get(i - fixedTargetCount);
                 String name = target.name();
-                rows.addChild(createButton(LocUtil.literal(name), widgetWidth * 2 - 18, button -> loadBindTarget(target)), 3).setTooltip(Tooltip.create(LocUtil.literal(name)));
+                Button configButton = createButton(LocUtil.literal(name), widgetWidth * 2 - 18, button -> loadBindTarget(target));
+                if (name.equals(RealCameraCore.currentTarget().name())) configButton.setTooltip(Tooltip.create(LocUtil.literal(name + "\n").append(LocUtil.MODEL_VIEW_WIDGET("currentConfig"))));
+                else configButton.setTooltip(Tooltip.create(LocUtil.literal(name)));
+                rows.addChild(configButton, 3);
                 if (i < fixedTargetCount) continue;
                 rows.addChild(new TexturedButton(48, 0, button -> {
                     targetList.remove(target);
