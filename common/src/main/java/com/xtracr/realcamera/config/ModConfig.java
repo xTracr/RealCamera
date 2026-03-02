@@ -176,6 +176,10 @@ public class ModConfig {
         return binding.hideFailureMessage;
     }
 
+    public boolean bindingDisableWhenCrawling() {
+        return  binding.disableWhenCrawling;
+    }
+
     public boolean bindingDisableWhenSneaking() {
         return binding.disableWhenSneaking;
     }
@@ -291,6 +295,7 @@ public class ModConfig {
         public boolean adjustOffset = true;
         public boolean hideFailureMessage = false;
         public boolean renderStuckObjects = true;
+        public boolean disableWhenCrawling = false;
         public boolean disableWhenSneaking = false;
         public boolean disableWhenSwimming = false;
         public int swimOutTick = 13;

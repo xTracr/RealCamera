@@ -25,11 +25,11 @@ body:
           required: true
 
   - type: input
-    id: minecraft-version
+    id: minecraft-version-loader
     attributes:
-      label: Minecraft版本
+      label: Minecraft版本和加载器
       description: |
-        你所使用的Minecraft的版本.
+        请填写游戏版本与所使用的加载器.
 
         你可以在游戏主界面作下角或者游戏启动时的日志开头等地方找到.
     validations:
