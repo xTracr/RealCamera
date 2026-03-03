@@ -188,7 +188,7 @@ public class ModConfig {
         return binding.disableWhenSwimming;
     }
 
-    public int getBindinOutTick() {
+    public int getBindingOutTick() {
         return binding.outTick;
     }
 
