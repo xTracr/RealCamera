@@ -5,8 +5,7 @@ import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import com.xtracr.realcamera.util.VertexData;
-import it.unimi.dsi.fastutil.floats.Float2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.floats.FloatOpenHashSet;
+import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Mth;
 
@@ -74,7 +73,18 @@ public record BindTarget(
     }
 
     public DisableConfig[] filteredDisableConfigs(Predicate<DisableConfig> filter) {
-        return Arrays.stream(disableConfigs).filter(filter).toArray(DisableConfig[]::new);
+        int count = 0;
+        for (DisableConfig disableConfig : disableConfigs) {
+            if (filter.test(disableConfig)) count++;
+        }
+        if (count == 0) return new DisableConfig[0];
+        if (count == disableConfigs.length) return disableConfigs;
+        DisableConfig[] filtered = new DisableConfig[count];
+        for (int i = 0, j = 0; i < disableConfigs.length; i++) {
+            DisableConfig disableConfig = disableConfigs[i];
+            if (filter.test(disableConfig)) filtered[j++] = disableConfig;
+        }
+        return filtered;
     }
 
     public void write(FriendlyByteBuf byteBuf) {
@@ -210,18 +220,23 @@ public record BindTarget(
 
     @JsonAdapter(DisableConfig.Adapter.class)
     public static class DisableConfig {
-        private final Float2ObjectOpenHashMap<FloatOpenHashSet> disableCacheMap = new Float2ObjectOpenHashMap<>();
+        private static final byte UNKNOWN = 0, DISABLED = 1, ENABLED = 2;
+        private static final int RECENT_CACHE_MASK = 15;
+        private final Long2ByteOpenHashMap disableCacheMap;
         private final String name;
         private final String textureId;
         private final boolean disableAll;
         private final UVRectangle[] rectangles;
+        private final long[] recentUvKeys = new long[RECENT_CACHE_MASK + 1];
+        private final byte[] recentStates = new byte[RECENT_CACHE_MASK + 1];
 
         public DisableConfig(String name, String textureId, boolean disableAll, UVRectangle[] rectangles) {
             this.name = name;
             this.textureId = textureId;
             this.disableAll = disableAll;
             this.rectangles = rectangles;
-            disableCacheMap.defaultReturnValue(FloatOpenHashSet.of());
+            disableCacheMap = new Long2ByteOpenHashMap(Math.max(256, rectangles.length * 8), 0.5f);
+            disableCacheMap.defaultReturnValue(UNKNOWN);
         }
 
         public static DisableConfig read(FriendlyByteBuf byteBuf) {
@@ -263,18 +278,39 @@ public record BindTarget(
 
         public boolean disable(VertexData vertex) {
             final float u = vertex.u(), v = vertex.v();
-            final FloatOpenHashSet cachedVs = disableCacheMap.get(u);
-            if (!cachedVs.isEmpty()) {
-                if (cachedVs.contains(v)) return true;
-                if (cachedVs.contains(-v)) return false;
+            final long uv = uvKey(u, v);
+            final int slot = recentSlot(uv);
+            final byte recentState = recentStates[slot];
+            if (recentState != UNKNOWN && recentUvKeys[slot] == uv) return recentState == DISABLED;
+            final byte cached = disableCacheMap.get(uv);
+            if (cached != UNKNOWN) {
+                rememberRecent(uv, cached);
+                return cached == DISABLED;
             }
             for (UVRectangle rect : rectangles) {
                 if (!rect.contains(u, v)) continue;
-                disableCacheMap.computeIfAbsent(u, k -> new FloatOpenHashSet()).add(v);
+                disableCacheMap.put(uv, DISABLED);
+                rememberRecent(uv, DISABLED);
                 return true;
             }
-            disableCacheMap.computeIfAbsent(u, k -> new FloatOpenHashSet()).add(-v);
+            disableCacheMap.put(uv, ENABLED);
+            rememberRecent(uv, ENABLED);
             return false;
+        }
+
+        private static long uvKey(float u, float v) {
+            return (long) Float.floatToRawIntBits(u) << 32 | (Float.floatToRawIntBits(v) & 0xffffffffL);
+        }
+
+        private static int recentSlot(long uv) {
+            long mixed = uv ^ (uv >>> 33) ^ (uv >>> 17);
+            return (int) mixed & RECENT_CACHE_MASK;
+        }
+
+        private void rememberRecent(long uv, byte state) {
+            int slot = recentSlot(uv);
+            recentUvKeys[slot] = uv;
+            recentStates[slot] = state;
         }
 
         public static class Adapter extends TypeAdapter<DisableConfig> {

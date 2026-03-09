@@ -21,11 +21,12 @@ import java.util.stream.StreamSupport;
 public class IterableVertexBuffer implements Iterable<VertexData> {
     private static final boolean IS_LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
     public final int vertexCount, vertexSize;
+    private final int primitiveLength, primitiveStride, primitiveCount;
     private final MutableVertex reusableVertex = VertexData.mutable();
     private final Iterable<VertexData[]> primitives;
     private final ByteBuffer buffer;
     private final int positionOffset, colorOffset, uvOffset, overlayOffset, lightOffset, normalOffset;
-    private final boolean hasPosition, hasColor, hasUV, hasOverlay, hasLight, hasNormal, fastFormat;
+    private final boolean hasPosition, hasColor, hasUV, hasOverlay, hasLight, hasNormal, fastFormat, startWithFirst;
 
     public IterableVertexBuffer(MeshData meshData) {
         buffer = meshData.vertexBuffer();
@@ -46,8 +47,13 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         hasLight = lightOffset != -1;
         hasNormal = normalOffset != -1;
         fastFormat = format == DefaultVertexFormat.NEW_ENTITY;
-        boolean isQuad = drawState.mode() == VertexFormat.Mode.QUADS;
-        primitives = fastFormat && isQuad ? new FastQuadReader() : new PrimitiveReader(drawState.mode());
+        VertexFormat.Mode drawMode = drawState.mode();
+        primitiveLength = drawMode.primitiveLength;
+        primitiveStride = drawMode.primitiveStride;
+        primitiveCount = vertexCount < primitiveLength ? 0 : (vertexCount - primitiveLength) / primitiveStride + 1;
+        startWithFirst = drawMode == VertexFormat.Mode.TRIANGLE_FAN;
+        boolean isQuad = drawMode == VertexFormat.Mode.QUADS;
+        primitives = fastFormat && isQuad ? new FastQuadReader() : new PrimitiveReader(drawMode);
     }
 
     public Iterable<VertexData[]> primitives() {
@@ -60,6 +66,36 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
 
     public Stream<VertexData[]> primitiveStream() {
         return StreamSupport.stream(primitives.spliterator(), false);
+    }
+
+    public void forEachPrimitive(Consumer<VertexData[]> action) {
+        if (primitives instanceof FastQuadReader fastQuadReader) {
+            fastQuadReader.forEachPrimitive(action);
+            return;
+        }
+        ((PrimitiveReader) primitives).forEachPrimitive(action);
+    }
+
+    public boolean isFastQuadFormat() {
+        return primitives instanceof FastQuadReader;
+    }
+
+    public MutableVertex[] newMutablePrimitive() {
+        MutableVertex[] primitive = new MutableVertex[primitiveLength];
+        for (int i = 0; i < primitiveLength; i++) {
+            primitive[i] = VertexData.mutable();
+        }
+        return primitive;
+    }
+
+    public void readFastQuadPositionUVAt(int index, MutableVertex[] quad) {
+        if (!(primitives instanceof FastQuadReader fastQuadReader)) throw new IllegalStateException("Fast quad format required");
+        fastQuadReader.fastReadQuadPositionUVAt(index, quad);
+    }
+
+    public void readFastQuadAt(int index, MutableVertex[] quad) {
+        if (!(primitives instanceof FastQuadReader fastQuadReader)) throw new IllegalStateException("Fast quad format required");
+        fastQuadReader.fastReadQuadAt(index, quad);
     }
 
     public VertexData readVertexAt(int index) {
@@ -110,6 +146,69 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
             mutable.normalZ = buffer.get(offset + 2) / 127.0f;
         }
         return mutable;
+    }
+
+    public int primitiveCount() {
+        return primitiveCount;
+    }
+
+    public void readPrimitiveUVs(int index, float[] uvs) {
+        Objects.checkIndex(index, primitiveCount);
+        Objects.checkFromIndexSize(0, primitiveLength * 2, uvs.length);
+        int vertexIndex = index * primitiveStride;
+        if (startWithFirst) {
+            readVertexUVAt(0, uvs, 0);
+        }
+        for (int i = startWithFirst ? 1 : 0; i < primitiveLength; i++) {
+            readVertexUVAt(vertexIndex + i, uvs, i * 2);
+        }
+    }
+
+    public boolean primitiveMatchesUVs(int index, float[] uvs) {
+        Objects.checkIndex(index, primitiveCount);
+        Objects.checkFromIndexSize(0, primitiveLength * 2, uvs.length);
+        int vertexIndex = index * primitiveStride;
+        if (startWithFirst && !vertexMatchesUVAt(0, uvs, 0)) {
+            return false;
+        }
+        for (int i = startWithFirst ? 1 : 0; i < primitiveLength; i++) {
+            if (!vertexMatchesUVAt(vertexIndex + i, uvs, i * 2)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public VertexData[] readPrimitiveAt(int index) {
+        Objects.checkIndex(index, primitiveCount);
+        VertexData[] primitive = new VertexData[primitiveLength];
+        int vertexIndex = index * primitiveStride;
+        if (startWithFirst) {
+            primitive[0] = readVertexAt(0).asImmutable();
+        }
+        for (int i = startWithFirst ? 1 : 0; i < primitiveLength; i++) {
+            primitive[i] = readVertexAt(vertexIndex + i).asImmutable();
+        }
+        return primitive;
+    }
+
+    private void readVertexUVAt(int index, float[] uvs, int uvIndex) {
+        if (!hasUV) {
+            uvs[uvIndex] = 0;
+            uvs[uvIndex + 1] = 0;
+            return;
+        }
+        int vertexOffset = index * vertexSize + uvOffset;
+        uvs[uvIndex] = buffer.getFloat(vertexOffset);
+        uvs[uvIndex + 1] = buffer.getFloat(vertexOffset + 4);
+    }
+
+    private boolean vertexMatchesUVAt(int index, float[] uvs, int uvIndex) {
+        if (!hasUV) {
+            return uvs[uvIndex] == 0 && uvs[uvIndex + 1] == 0;
+        }
+        int vertexOffset = index * vertexSize + uvOffset;
+        return buffer.getFloat(vertexOffset) == uvs[uvIndex] && buffer.getFloat(vertexOffset + 4) == uvs[uvIndex + 1];
     }
 
     @Override
@@ -302,6 +401,20 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
             startWithFirst = drawMode == VertexFormat.Mode.TRIANGLE_FAN;
         }
 
+        public void forEachPrimitive(Consumer<VertexData[]> action) {
+            MutableVertex[] reusablePrimitive = new MutableVertex[primitiveLength];
+            for (int i = 0; i < primitiveLength; i++) {
+                reusablePrimitive[i] = VertexData.mutable();
+            }
+            if (startWithFirst && 0 < vertexCount) {
+                readVertexAt(0, reusablePrimitive[0]);
+            }
+            for (int primitiveIndex = 0; primitiveIndex < primitiveCount; primitiveIndex++) {
+                readPrimitiveAt(primitiveIndex, reusablePrimitive);
+                action.accept(reusablePrimitive);
+            }
+        }
+
         @Override
         public @NotNull Iterator<VertexData[]> iterator() {
             return new PrimitiveIterator();
@@ -396,6 +509,17 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
     private class FastQuadReader implements Iterable<VertexData[]> {
         private final int quadCount = vertexCount / 4;
 
+        public void forEachPrimitive(Consumer<VertexData[]> action) {
+            MutableVertex[] reusableQuad = new MutableVertex[4];
+            for (int i = 0; i < 4; i++) {
+                reusableQuad[i] = VertexData.mutable();
+            }
+            for (int quadIndex = 0; quadIndex < quadCount; quadIndex++) {
+                fastReadQuadAt(quadIndex, reusableQuad);
+                action.accept(reusableQuad);
+            }
+        }
+
         @Override
         public @NotNull Iterator<VertexData[]> iterator() {
             return new FastQuadIterator();
@@ -404,6 +528,18 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         @Override
         public Spliterator<VertexData[]> spliterator() {
             return new FastQuadSpliterator(0, quadCount);
+        }
+
+        private void fastReadQuadPositionUVAt(int index, MutableVertex[] quad) {
+            int vertexOffset = index * 144;
+            for (int i = 0; i < 4; i++, vertexOffset += 36) {
+                MutableVertex mutable = quad[i];
+                mutable.x = buffer.getFloat(vertexOffset);
+                mutable.y = buffer.getFloat(vertexOffset + 4);
+                mutable.z = buffer.getFloat(vertexOffset + 8);
+                mutable.u = buffer.getFloat(vertexOffset + 16);
+                mutable.v = buffer.getFloat(vertexOffset + 20);
+            }
         }
 
         private void fastReadQuadAt(int index, MutableVertex[] quad) {
@@ -495,3 +631,4 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         }
     }
 }
+

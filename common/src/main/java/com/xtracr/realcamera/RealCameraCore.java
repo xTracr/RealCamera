@@ -22,6 +22,7 @@ public class RealCameraCore {
     private static Vec3 cameraPos = Vec3.ZERO, eulerAngle = Vec3.ZERO;
     private static boolean active = false, rendering = false;
     private static int failureFrames = 0;
+    private static final java.util.Map<BindTarget, java.util.Map<String, DisableConfig[]>> DISABLE_CONFIG_CACHE = new java.util.HashMap<>();
 
     public static boolean isActive() {
         return active;
@@ -108,6 +109,11 @@ public class RealCameraCore {
         eulerAngle = MathUtil.getEulerAngleYXZ(SmoothUtil.smoothRotation(lastResult.getRotation())).scale(Math.toDegrees(1));
     }
 
+    private static DisableConfig[] disableConfigsFor(BindTarget target, String textureId) {
+        return DISABLE_CONFIG_CACHE.computeIfAbsent(target, unused -> new java.util.HashMap<>())
+                .computeIfAbsent(textureId, key -> target.filteredDisableConfigs(config -> key.contains(config.textureId())));
+    }
+
     public static void renderCameraEntity(Minecraft client, float deltaTick, MultiBufferSource bufferSource, Matrix4f modelView) {
         Vec3 targetEulerAngle = MathUtil.getEulerAngleYXZ(lastResult.getRotation());
         Matrix4f invertedCameraPose = new Matrix4f()
@@ -126,7 +132,7 @@ public class RealCameraCore {
         final float m02 = modelView.m02(), m12 = modelView.m12(), m22 = modelView.m22(), m32 = modelView.m32();
         final float depth = currentTarget().disablingDepth();
         catcher.endCatching(builtBuffer -> {
-            DisableConfig[] disableConfigs = currentTarget().filteredDisableConfigs(config -> builtBuffer.textureId().contains(config.textureId()));
+            DisableConfig[] disableConfigs = disableConfigsFor(currentTarget(), builtBuffer.textureId());
             for (DisableConfig config : disableConfigs) {
                 if (config.disableAll()) return;
             }
@@ -135,7 +141,7 @@ public class RealCameraCore {
                 for (VertexData vertex : builtBuffer.vertexBuffer()) vertex.render(buffer);
                 return;
             }
-            builtBuffer.vertexBuffer().primitiveStream().forEach(primitive -> {
+            builtBuffer.vertexBuffer().forEachPrimitive(primitive -> {
                 primitiveFor:
                 for (VertexData vertex : primitive) {
                     if (Math.fma(m02, vertex.x(), Math.fma(m12, vertex.y(), Math.fma(m22, vertex.z(), m32))) > -depth) continue;
@@ -156,16 +162,13 @@ public class RealCameraCore {
             BindResult result = new BindResult(target, false);
             BindTarget.TargetConfig config = target.targetConfig();
             VertexData.UV[] uvs = {new VertexData.UV(config.posU(), config.posV()), new VertexData.UV(config.forwardU(), config.forwardV()), new VertexData.UV(config.upwardU(), config.upwardV())};
-            VertexData[][] primitives = builtBuffer.findPrimitivesInCache(uvs);
-            if (builtBuffer.anyNotCached(uvs)) {
+            VertexData[][] primitives = new VertexData[uvs.length][];
+            int unresolved = builtBuffer.findPrimitivesInCache(uvs, primitives);
+            if (unresolved != 0) {
                 for (int i = 0; i < primitives.length; i++) {
                     if (primitives[i] != null) uvs[i] = null;
                 }
-                VertexData[][] newPrimitives = builtBuffer.findPrimitives(uvs);
-                for (int i = 0; i < primitives.length; i++) {
-                    if (newPrimitives[i] == null && primitives[i] == null) continue targetFor;
-                    else if (newPrimitives[i] != null) primitives[i] = newPrimitives[i];
-                }
+                if (builtBuffer.findPrimitives(uvs, primitives, unresolved) != 0) continue;
             }
             if (primitives[0] != null) result.setPosition(VertexData.position(primitives[0], config.posU(), config.posV()));
             if (primitives[1] != null) result.setForward(VertexData.normal(primitives[1]));
