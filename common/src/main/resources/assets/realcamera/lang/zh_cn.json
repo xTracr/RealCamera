@@ -70,7 +70,7 @@
   "config.tooltip.xtracr_realcamera.bindResultRetentionFrames": "在绑定失败后的数帧内，沿用上个成功的绑定结果",
   "config.tooltip.xtracr_realcamera.displacementSmoothFactor": "相机位移平滑系数，值越大越平滑",
   "config.tooltip.xtracr_realcamera.rotationSmoothFactor": "相机旋转平滑系数，值越大越平滑",
-  "config.tooltip.xtracr_realcamera.activeConfigIndex": "当前绑定的配置索引，0表示允许绑定任何有效配置", 
+  "config.tooltip.xtracr_realcamera.activeConfigIndex": "当前绑定的配置索引，0表示允许绑定任何有效配置",
   "config.tooltip.xtracr_realcamera.outTick": "玩家停止某些状态（如游泳、爬行）后重启主要功能的时间（1 tick = 0.05s）",
   "config.tooltip.xtracr_realcamera.disableRenderItems": "支持三种匹配方式：\n1. 通配符`*`匹配（如`minecraft:*sword`）\n2. 标签匹配以`#`开头（如`#minecraft:swords`）\n3. 直接物品ID（如`minecraft:diamond_sword`）",
 
