@@ -37,17 +37,21 @@ public abstract class MixinCamera {
     @Shadow
     private Vec3 position;
     @Shadow
-    @Final private Vector3f forwards;
+    @Final
+    private Vector3f forwards;
     @Shadow
-    @Final private Vector3f up;
+    @Final
+    private Vector3f up;
     @Shadow
-    @Final private Vector3f left;
+    @Final
+    private Vector3f left;
     @Shadow
     private float xRot;
     @Shadow
     private float yRot;
     @Shadow
-    @Final private Quaternionf rotation;
+    @Final
+    private Quaternionf rotation;
 
     @Inject(method = "alignWithEntity", at = @At("RETURN"))
     private void realcamera$setupCamera(float partialTicks, CallbackInfo ci) {

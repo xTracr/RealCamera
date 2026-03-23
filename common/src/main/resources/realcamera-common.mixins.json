@@ -16,8 +16,8 @@
     "MixinLocalPlayer",
     "MixinStuckInBodyLayer",
     "accessor.AvatarRendererAccessor",
-    "accessor.FeatureRenderDispatcherAccessor",
-    "accessor.GuiGraphicsAccessor",
+    "accessor.CustomFeatureRenderer$StorageAccessor",
+    "accessor.GuiGraphicsExtractorAccessor",
     "accessor.ModelFeatureRenderer$StorageAccessor",
     "accessor.ModelPartFeatureRenderer$StorageAccessor"
   ],

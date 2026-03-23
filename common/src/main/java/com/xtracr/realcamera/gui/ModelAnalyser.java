@@ -12,13 +12,13 @@ import com.xtracr.realcamera.renderer.BuiltIterableBuffer;
 import com.xtracr.realcamera.renderer.MultiVertexCatcher;
 import com.xtracr.realcamera.renderer.VertexData;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
-import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -48,8 +48,11 @@ public class ModelAnalyser {
 
     private static boolean haveCommonVertex(VertexData[] p1, List<VertexData[]> primitives) {
         final float precision = 1e-5f;
-        for (VertexData[] p2 : primitives) for (VertexData v1 : p1) for (VertexData v2 : p2)
-            if (Math.abs(v1.x() - v2.x()) < precision && Math.abs(v1.y() - v2.y()) < precision && Math.abs(v1.z() - v2.z()) < precision) return true;
+        for (VertexData[] p2 : primitives)
+            for (VertexData v1 : p1)
+                for (VertexData v2 : p2)
+                    if (Math.abs(v1.x() - v2.x()) < precision && Math.abs(v1.y() - v2.y()) < precision && Math.abs(v1.z() - v2.z()) < precision)
+                        return true;
         return false;
     }
 
@@ -186,7 +189,8 @@ public class ModelAnalyser {
                 VertexData[] primitive = (VertexData[]) array[1];
                 primitiveFor:
                 for (VertexData vertex : primitive) {
-                    for (Polygon polygon : polygons) if (polygon.contains(vertex.x(), vertex.y())) continue primitiveFor;
+                    for (Polygon polygon : polygons)
+                        if (polygon.contains(vertex.x(), vertex.y())) continue primitiveFor;
                     return false;
                 }
                 return true;
@@ -233,7 +237,7 @@ public class ModelAnalyser {
         resultIndexes.forEach(i -> focusedPolyhedron.add(primitives[i]));
     }
 
-    public void drawCameraDirections(GuiGraphics graphics) {
+    public void drawCameraDirections(GuiGraphicsExtractor graphics) {
         if (targetPrimitives[0] == null || targetPrimitives[1] == null || targetPrimitives[2] == null) return;
         Vec3 start = bindResult.getPosition();
         Matrix3f normal = bindResult.getRotation();
@@ -243,7 +247,7 @@ public class ModelAnalyser {
         GUIHelper.renderVector(graphics, start, new Vec3(normal.m00(), normal.m01(), normal.m02()).scale(modelScale / 6), z2, leftArgb);
     }
 
-    public void drawBindTarget(GuiGraphics graphics) {
+    public void drawBindTarget(GuiGraphicsExtractor graphics) {
         if (currentRecord == null) return;
         TargetConfig config = target.targetConfig();
         if (targetPrimitives[0] != null) GUIHelper.renderPolygon(graphics, targetPrimitives[0], z1, planeArgb);
@@ -251,7 +255,7 @@ public class ModelAnalyser {
         if (targetPrimitives[2] != null) GUIHelper.renderVector(graphics, VertexData.position(targetPrimitives[2], config.upwardU(), config.upwardV()), VertexData.normal(targetPrimitives[2]).scale(-modelScale / 2), z2, upwardArgb);
     }
 
-    public void drawFocusedInModelArea(GuiGraphics graphics) {
+    public void drawFocusedInModelArea(GuiGraphicsExtractor graphics) {
         if (focusedPolyhedron.isEmpty() || focusedRecord == null) return;
         VertexData[] focused = focusedPolyhedron.getFirst();
         VertexData[] reversed = new VertexData[focused.length];
@@ -260,7 +264,7 @@ public class ModelAnalyser {
         focusedPolyhedron.forEach(primitive -> GUIHelper.renderPolygon(graphics, primitive, z1, focusedArgb));
     }
 
-    public void drawFocusedInTextureArea(GuiGraphics graphics) {
+    public void drawFocusedInTextureArea(GuiGraphicsExtractor graphics) {
         Matrix4f positionMatrix = texturePose.last().pose();
         int length = 0;
         VertexData[] transformed = new VertexData[0], reversed = new VertexData[0];
@@ -322,9 +326,10 @@ public class ModelAnalyser {
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         client.gameRenderer.getLighting().setupFor(Lighting.Entry.ENTITY_IN_UI);
         MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-        FeatureRenderDispatcher featureRenderDispatcher = client.gameRenderer.getFeatureRenderDispatcher();
-        dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, featureRenderDispatcher.getSubmitNodeStorage());
-        catcher.renderTranslucentFeatures(featureRenderDispatcher);
+        SubmitNodeStorage storage = new SubmitNodeStorage();
+        dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, storage);
+        catcher.renderTranslucentFeatures(storage);
+        storage.clear();
         catcher.endCatching(this::computeBindResult);
     }
 

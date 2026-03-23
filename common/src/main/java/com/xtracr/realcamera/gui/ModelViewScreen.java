@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.xtracr.realcamera.RealCameraCore;
-import com.xtracr.realcamera.compat.CompatibilityHelper;
 import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.BindTarget.*;
 import com.xtracr.realcamera.config.ConfigFile;
@@ -14,7 +13,7 @@ import com.xtracr.realcamera.util.LocUtil;
 import com.xtracr.realcamera.util.MathUtil;
 import io.netty.buffer.Unpooled;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.layouts.FrameLayout;
@@ -425,8 +424,8 @@ public class ModelViewScreen extends Screen {
     }
 
     @Override
-    public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-        super.render(graphics, mouseX, mouseY, partialTicks);
+    public void extractRenderState(@NotNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
+        super.extractRenderState(graphics, mouseX, mouseY, partialTicks);
         if (toggleCategoryButton.getValue() == Category.DISABLE && selectionModeButton.getValue() == 2 && inModelViewArea(mouseX, mouseY)) {
             GUIHelper.enableScissor(graphics, modelViewArea);
             GUIHelper.fill(graphics, mouseX - selectionRadius, mouseY - selectionRadius, mouseX + selectionRadius, mouseY + selectionRadius, 400, 0x4F3333CC);
@@ -437,14 +436,14 @@ public class ModelViewScreen extends Screen {
             if (clickedX >= 0 && clickedY >= 0)
                 graphics.fill(Math.min((int) clickedX, mouseX), Math.min((int) clickedY, mouseY), Math.max((int) clickedX, mouseX), Math.max((int) clickedY, mouseY), 0x4F3333CC);
             if (disableModeButton.getValue() == 0)
-                new UVRectangleWidget(0f, 0f, 1f, 1f).renderWidget(graphics, mouseX, mouseY, partialTicks);
+                new UVRectangleWidget(0f, 0f, 1f, 1f).extractWidgetRenderState(graphics, mouseX, mouseY, partialTicks);
             graphics.disableScissor();
         }
     }
 
     @Override
-    public void renderBackground(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-        super.renderBackground(graphics, mouseX, mouseY, partialTicks);
+    public void extractBackground(@NotNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTicks);
         graphics.fill(x, y, x + (xSize - middleWidth) / 2 - 4, y + ySize, 0xFF444444);
         graphics.fill(x + (xSize - middleWidth) / 2, y, x + (xSize + middleWidth) / 2, y + ySize, 0xFF222222);
         graphics.fill(x + (xSize + middleWidth) / 2 + 4, y, x + xSize, y + ySize, 0xFF444444);
@@ -454,7 +453,7 @@ public class ModelViewScreen extends Screen {
         applyAnalyser(graphics, mouseX, mouseY);
     }
 
-    protected void applyAnalyser(GuiGraphics graphics, int mouseX, int mouseY) {
+    protected void applyAnalyser(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         String textureId = toggleCategoryButton.getValue() == Category.DISABLE ? disabledIdField.getValue() : "";
         Set<String> hiddenNames = hiddenNameMap.getOrDefault(nameField.getValue(), Set.of());
         analyser.applyDisableConfigs(textureId, hiddenNames);
@@ -477,7 +476,7 @@ public class ModelViewScreen extends Screen {
         }
     }
 
-    protected void renderModelViewArea(GuiGraphics graphics, LivingEntity entity) {
+    protected void renderModelViewArea(GuiGraphicsExtractor graphics, LivingEntity entity) {
         int x1 = modelViewArea.left(), y1 = modelViewArea.top(), x2 = modelViewArea.right(), y2 = modelViewArea.bottom();
         Quaternionf quaternionf = new Quaternionf().rotateX((float) Math.PI / 6 + xRot).rotateY((float) Math.PI / 6 + yRot).rotateZ((float) Math.PI);
         float entityBodyYaw = entity.yBodyRot;
@@ -499,7 +498,7 @@ public class ModelViewScreen extends Screen {
         entity.yHeadRot = entityHeadYaw;
     }
 
-    protected void renderEntityWithAnalyser(GuiGraphics graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset, Quaternionf quaternionf, LivingEntity entity) {
+    protected void renderEntityWithAnalyser(GuiGraphicsExtractor graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset, Quaternionf quaternionf, LivingEntity entity) {
         analyser.modelPose.translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
         analyser.modelPose.scale(scale, scale, -scale);
         analyser.modelPose.translate(offset.x(), offset.y(), offset.z());
@@ -507,22 +506,22 @@ public class ModelViewScreen extends Screen {
         analyser.modelPose.translate(0, -entity.getBbHeight() / 2.0f, 0);
         analyser.updateModel(minecraft, entity, 1.0f, analyser.modelPose);
         EntityRenderState entityRenderState = minecraft.getEntityRenderDispatcher().getRenderer(entity).createRenderState(entity, 1.0F);
-        graphics.submitEntityRenderState(entityRenderState, scale, offset, quaternionf, new Quaternionf(), x1, y1, x2, y2);
+        graphics.entity(entityRenderState, scale, offset, quaternionf, new Quaternionf(), x1, y1, x2, y2);
     }
 
-    protected void renderTextureViewArea(GuiGraphics graphics, LivingEntity entity) {
+    protected void renderTextureViewArea(GuiGraphicsExtractor graphics, LivingEntity entity) {
         if (textureViewArea == null) return;
         int x1 = textureViewArea.left(), y1 = textureViewArea.top(), x2 = textureViewArea.right(), y2 = textureViewArea.bottom();
         Vector3f offset = new Vector3f((float) textureX - 0.5f, (float) textureY - 0.5f, 0);
         renderTextureWithAnalyser(graphics, x1, y1, x2, y2, (float) (textureScale * textureViewArea.width()) / 80, offset, entity);
     }
 
-    protected void renderTextureWithAnalyser(GuiGraphics graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset, LivingEntity entity) {
+    protected void renderTextureWithAnalyser(GuiGraphicsExtractor graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset, LivingEntity entity) {
         analyser.texturePose.translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
         analyser.texturePose.scale(scale, scale, -scale);
         analyser.texturePose.translate(offset.x(), offset.y(), offset.z());
         EntityRenderState entityRenderState = minecraft.getEntityRenderDispatcher().getRenderer(entity).createRenderState(entity, 1.0F);
-        graphics.submitEntityRenderState(entityRenderState, scale, offset, new Quaternionf(), null, x1, y1, x2, y2);
+        graphics.entity(entityRenderState, scale, offset, new Quaternionf(), null, x1, y1, x2, y2);
     }
 
     protected void importBindTarget(Button button) {
@@ -607,8 +606,8 @@ public class ModelViewScreen extends Screen {
     }
 
     protected BindTarget genBindTarget() {
-        TargetConfig targetConfig = new TargetConfig( forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber());
-        BindConfig bindConfig = new BindConfig( bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);
+        TargetConfig targetConfig = new TargetConfig(forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber());
+        BindConfig bindConfig = new BindConfig(bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);
         OffsetConfig offsets = new OffsetConfig()
                 .setScale(scaleField.getNumber())
                 .setX(toggleSliderButton.getValue() == 0 ? (float) offsetXSlider.getValue() : offsetXField.getNumber())
@@ -620,7 +619,8 @@ public class ModelViewScreen extends Screen {
         DisableConfig currentDisableConfig = new DisableConfig(disabledNameField.getValue(), disabledIdField.getValue(), disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toArray(UVRectangle[]::new));
         DisableConfig[] disableConfigArray = disableConfigs.toArray(new DisableConfig[0]);
         for (int i = 0; i < disableConfigArray.length; i++) {
-            if (disableConfigArray[i].name().equals(currentDisableConfig.name())) disableConfigArray[i] = currentDisableConfig;
+            if (disableConfigArray[i].name().equals(currentDisableConfig.name()))
+                disableConfigArray[i] = currentDisableConfig;
         }
         return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, disableConfigArray);
     }
@@ -747,7 +747,7 @@ public class ModelViewScreen extends Screen {
             } else if (inTextureViewArea(event.x(), event.y())) {
                 if (super.mouseClicked(event, doubleClick)) return true;
                 if (storedX >= 0 && storedY >= 0) {
-                    float xMin = (float) Math.min(storedX, event.x()), yMin = (float) Math.min(storedY,  event.y()), xMax = (float) Math.max(storedX, event.x()), yMax = (float) Math.max(storedY, event.y());
+                    float xMin = (float) Math.min(storedX, event.x()), yMin = (float) Math.min(storedY, event.y()), xMax = (float) Math.max(storedX, event.x()), yMax = (float) Math.max(storedY, event.y());
                     setFocused(addRectWidget(new UVRectangleWidget(xMin, yMin, xMax, yMax, textureViewArea)));
                     return true;
                 }
@@ -813,6 +813,18 @@ public class ModelViewScreen extends Screen {
         return pauseButton.getValue() == 1;
     }
 
+    private enum Category {
+        CONFIGS,
+        PREVIEW,
+        DISABLE;
+
+        public final String id = name().toLowerCase();
+
+        public Category next() {
+            return values()[(ordinal() + 1) % values().length];
+        }
+    }
+
     public class UVRectangleWidget extends AbstractWidget {
         protected float uMin, vMin, uMax, vMax;
 
@@ -867,14 +879,14 @@ public class ModelViewScreen extends Screen {
         private Vec2 translateXYToUV(float x, float y, ScreenRectangle screenArea) {
             int x1 = screenArea.left(), y1 = screenArea.top(), x2 = screenArea.right(), y2 = screenArea.bottom();
             Vector3f vector3f = new Vector3f(x, y, 0)
-                    .add(- (float) (x1 + x2) / 2.0f, - (float) (y1 + y2) / 2.0f, 0)
+                    .add(-(float) (x1 + x2) / 2.0f, -(float) (y1 + y2) / 2.0f, 0)
                     .mul((float) 80 / (textureScale * screenArea.width()))
                     .add((float) -textureX + 0.5f, (float) -textureY + 0.5f, 0);
             return new Vec2(vector3f.x(), vector3f.y());
         }
 
         @Override
-        protected void renderWidget(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        protected void extractWidgetRenderState(@NotNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
             Vec2 minXY = translateUVToXY(uMin, vMin, textureViewArea), maxXY = translateUVToXY(uMax, vMax, textureViewArea);
             float x1 = minXY.x, y1 = minXY.y, x2 = maxXY.x, y2 = maxXY.y, width = x2 - x1, height = y2 - y1;
             setX((int) x1);
@@ -884,7 +896,8 @@ public class ModelViewScreen extends Screen {
             GUIHelper.enableScissor(graphics, textureViewArea);
             GUIHelper.fill(graphics, x1, y1, x2, y2, 0x4F3333CC);
             if (isHoveredOrFocused()) GUIHelper.fill(graphics, x1, y1, x2, y2, 0x2F3333CC);
-            if (isFocused() || this == focusedRectWidget) GUIHelper.renderOutline(graphics, x1, y1, width, height, 0xAAFFFFFF);
+            if (isFocused() || this == focusedRectWidget)
+                GUIHelper.renderOutline(graphics, x1, y1, width, height, 0xAAFFFFFF);
             graphics.disableScissor();
         }
 
@@ -918,15 +931,11 @@ public class ModelViewScreen extends Screen {
         protected void updateWidgetNarration(@NotNull NarrationElementOutput narrationElementOutput) { }
     }
 
-    private enum Category {
-        CONFIGS,
-        PREVIEW,
-        DISABLE;
 
-        public final String id = name().toLowerCase();
 
-        public Category next() {
-            return values()[(ordinal() + 1) % values().length];
-        }
-    }
+
+
+
+
+
 }

@@ -10,6 +10,11 @@ pluginManagement {
         }
         gradlePluginPortal()
     }
+
+    plugins {
+        id("net.fabricmc.fabric-loom") version providers.gradleProperty("loom_version")
+        id("net.neoforged.moddev") version providers.gradleProperty("moddev_version")
+    }
 }
 
 rootProject.name = "RealCamera"

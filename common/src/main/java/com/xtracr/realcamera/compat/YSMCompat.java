@@ -9,8 +9,9 @@ import com.xtracr.realcamera.renderer.BuiltIterableBuffer;
 import com.xtracr.realcamera.renderer.MultiVertexCatcher;
 import com.xtracr.realcamera.renderer.VertexData;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.util.Mth;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
@@ -25,7 +26,7 @@ public class YSMCompat {
     private static BindResult bindResult = BindResult.EMPTY;
     private static boolean allCached = false;
 
-    static  {
+    static {
         final float pitch = 1.9106332f, yaw = 2.0943951f;
         transformedRecorders[0] = new TransformedVertexRecorder();
         transformedRecorders[1] = new TransformedVertexRecorder().setRotation(pitch, 0);
@@ -48,7 +49,10 @@ public class YSMCompat {
             poseStack.pushPose();
             poseStack.mulPose(transformedRecorder.matrix4f.invert(new Matrix4f()));
             MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-            dispatcher.render(entity, 0, 0, 0, Mth.lerp(partialTicks, entity.yRotO, entity.getYRot()), partialTicks, poseStack, catcher, dispatcher.getPackedLightCoords(entity, partialTicks));
+            SubmitNodeStorage storage = new SubmitNodeStorage();
+            dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, storage);
+            catcher.renderTranslucentFeatures(storage);
+            storage.clear();
             catcher.endCatching(transformedRecorder::computeBindResultInCache);
             poseStack.popPose();
             if (bindResult.available()) return bindResult;
@@ -58,7 +62,10 @@ public class YSMCompat {
             poseStack.pushPose();
             poseStack.mulPose(transformedRecorder.matrix4f.invert(new Matrix4f()));
             MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-            dispatcher.render(entity, 0, 0, 0, Mth.lerp(partialTicks, entity.yRotO, entity.getYRot()), partialTicks, poseStack, catcher, dispatcher.getPackedLightCoords(entity, partialTicks));
+            SubmitNodeStorage storage = new SubmitNodeStorage();
+            dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, storage);
+            catcher.renderTranslucentFeatures(storage);
+            storage.clear();
             catcher.endCatching(transformedRecorder::computeBindResult);
             poseStack.popPose();
             if (bindResult.available()) return bindResult;

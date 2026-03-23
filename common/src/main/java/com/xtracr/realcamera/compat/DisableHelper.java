@@ -70,8 +70,8 @@ public class DisableHelper {
             String tagId = pattern.substring(1);
             TagKey<Item> itemTag = TagKey.create(BuiltInRegistries.ITEM.key(), Identifier.parse(tagId));
             return BuiltInRegistries.ITEM.get(itemTag)
-                .map(tag -> tag.contains(BuiltInRegistries.ITEM.wrapAsHolder(item)))
-                .orElse(false);
+                    .map(tag -> tag.contains(BuiltInRegistries.ITEM.wrapAsHolder(item)))
+                    .orElse(false);
         }
         return simpleWildcardMatch(BuiltInRegistries.ITEM.getKey(item).toString(), pattern);
     }

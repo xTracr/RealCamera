@@ -36,7 +36,7 @@ public class LegacyBindingMode {
             Direction direction = renderState.bedOrientation;
             if (direction != null) {
                 float f = renderState.eyeHeight - 0.1f;
-                poseStack.translate((float)(-direction.getStepX()) * f, 0.0f, (float)(-direction.getStepZ()) * f);
+                poseStack.translate((float) (-direction.getStepX()) * f, 0.0f, (float) (-direction.getStepZ()) * f);
             }
         }
         float g = renderState.scale;

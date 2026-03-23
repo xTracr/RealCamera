@@ -1,7 +1,6 @@
 package com.xtracr.realcamera;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.xtracr.realcamera.api.BindResult;
 import com.xtracr.realcamera.api.RealCameraAPI;
 import com.xtracr.realcamera.compat.DisableHelper;
@@ -15,10 +14,10 @@ import com.xtracr.realcamera.util.CameraTransform;
 import com.xtracr.realcamera.util.LocUtil;
 import com.xtracr.realcamera.util.MathUtil;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
-import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
@@ -74,11 +73,11 @@ public class RealCameraCore {
         if (!newResult.available()) {
             EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
             MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-            FeatureRenderDispatcher featureRenderDispatcher = client.gameRenderer.getFeatureRenderDispatcher();
-            dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, new PoseStack(), featureRenderDispatcher.getSubmitNodeStorage());
-            catcher.renderTranslucentFeatures(featureRenderDispatcher);
+            SubmitNodeStorage storage = new SubmitNodeStorage();
+            dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, new PoseStack(), storage);
+            catcher.renderTranslucentFeatures(storage);
+            storage.clear();
             catcher.endCatching(RealCameraCore::computeBindResult);
-            featureRenderDispatcher.clearSubmitNodes();
         }
         entity.setInvisible(invisible);
         if (newResult.available()) {
@@ -101,7 +100,7 @@ public class RealCameraCore {
         smoothedCamera.slerpRotation(lastResult.getRotation(), 1 - ConfigFile.config().getRotationSmoothFactor());
     }
 
-    public static void renderCameraEntity(Minecraft client, float partialTicks, MultiBufferSource bufferSource, Matrix4f modelView) {
+    public static void renderCameraEntity(Minecraft client, float partialTicks, SubmitNodeCollector submitNodeCollector, Matrix4f modelView) {
         Vec3 targetEulerAngle = MathUtil.getEulerAngleYXZ(lastResult.getRotation());
         Matrix4f invertedCameraPose = new Matrix4f()
                 .rotateZ((float) targetEulerAngle.z())
@@ -115,31 +114,32 @@ public class RealCameraCore {
         Entity entity = client.getCameraEntity();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-        FeatureRenderDispatcher featureRenderDispatcher = client.gameRenderer.getFeatureRenderDispatcher();
-        dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, new PoseStack(), featureRenderDispatcher.getSubmitNodeStorage());
-        catcher.renderTranslucentFeatures(featureRenderDispatcher);
+        SubmitNodeStorage storage = new SubmitNodeStorage();
+        dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, storage);
+        catcher.renderTranslucentFeatures(storage);
+        storage.clear();
         final float m02 = modelView.m02(), m12 = modelView.m12(), m22 = modelView.m22(), m32 = modelView.m32();
         final float depth = currentTarget().disablingDepth();
+        dispatcher.preventBuilding();
         catcher.endCatching(builtBuffer -> {
             DisableConfig[] disableConfigs = currentTarget().filteredDisableConfigs(config -> builtBuffer.textureId().contains(config.textureId()));
-            for (DisableConfig config : disableConfigs) {
-                if (config.disableAll()) return;
-            }
-            VertexConsumer buffer = bufferSource.getBuffer(builtBuffer.renderType());
-            if (!builtBuffer.renderType().canConsolidateConsecutiveGeometry()) {
-                for (VertexData vertex : builtBuffer.vertexBuffer()) vertex.render(buffer);
-                return;
-            }
-            builtBuffer.vertexBuffer().primitiveStream().forEach(primitive -> {
-                primitiveFor:
-                for (VertexData vertex : primitive) {
-                    if (Math.fma(m02, vertex.x(), Math.fma(m12, vertex.y(), Math.fma(m22, vertex.z(), m32))) > -depth) continue;
-                    for (DisableConfig config : disableConfigs) {
-                        if (config.disable(vertex)) continue primitiveFor;
-                    }
-                    for (VertexData vertexData : primitive) vertexData.render(buffer);
-                    break;
+            for (DisableConfig config : disableConfigs) if (config.disableAll()) return;
+            submitNodeCollector.submitCustomGeometry(poseStack, builtBuffer.renderType(), (_, buffer) -> {
+                if (!builtBuffer.renderType().canConsolidateConsecutiveGeometry()) {
+                    for (VertexData vertex : builtBuffer.vertexBuffer()) vertex.render(buffer);
+                    return;
                 }
+                builtBuffer.vertexBuffer().primitiveStream().forEach(primitive -> {
+                    primitiveFor:
+                    for (VertexData vertex : primitive) {
+                        if (Math.fma(m02, vertex.x(), Math.fma(m12, vertex.y(), Math.fma(m22, vertex.z(), m32))) > -depth) continue;
+                        for (DisableConfig config : disableConfigs) {
+                            if (config.disable(vertex)) continue primitiveFor;
+                        }
+                        for (VertexData vertexData : primitive) vertexData.render(buffer);
+                        break;
+                    }
+                });
             });
         });
     }
