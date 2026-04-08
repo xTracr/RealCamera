@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(AvatarRenderer.class)
 public interface AvatarRendererAccessor {
     @Invoker
-    void invokeSetupRotations(AvatarRenderState renderState, PoseStack poseStack, float f, float partialTicks);
+    void invokeSetupRotations(AvatarRenderState renderState, PoseStack poseStack, float bodyRot, float entityScale);
 
     @Invoker
     void invokeScale(AvatarRenderState renderState, PoseStack poseStack);

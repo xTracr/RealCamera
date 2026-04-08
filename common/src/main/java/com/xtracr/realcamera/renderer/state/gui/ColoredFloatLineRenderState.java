@@ -1,7 +1,8 @@
-package com.xtracr.realcamera.gui;
+package com.xtracr.realcamera.renderer.state.gui;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.xtracr.realcamera.gui.GUIHelper;
 import com.xtracr.realcamera.util.MathUtil;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.TextureSetup;

@@ -41,7 +41,7 @@ dependencies {
     implementation("net.fabricmc:fabric-loader:$fabricLoaderVersion")
     implementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
     // Cloth Config
-    // runtimeOnly("me.shedaniel.cloth:cloth-config-fabric:$clothConfigVersion")
+    runtimeOnly("me.shedaniel.cloth:cloth-config-fabric:$clothConfigVersion")
     // Modmenu
     implementation("com.terraformersmc:modmenu:$modMenuVersion") {
         exclude(group = "net.fabricmc.fabric-api")
@@ -54,23 +54,6 @@ dependencies {
 
 loom {
     accessWidenerPath.set(project(":common").file("src/main/resources/realcamera.accesswidener"))
-
-    runs {
-        register("fabricClient") {
-            client()
-            configName = "Fabric Client"
-            ideConfigGenerated(true)
-            runDir("run/client")
-            vmArgs("-Dfabric.log.level=info")
-        }
-        register("fabricServer") {
-            server()
-            configName = "Fabric Server"
-            ideConfigGenerated(true)
-            runDir("run/server")
-            vmArgs("-Dfabric.log.level=info")
-        }
-    }
 
     mods {
         create(modId) {

@@ -1,4 +1,4 @@
-package com.xtracr.realcamera.gui;
+package com.xtracr.realcamera.gui.components;
 
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.network.chat.Component;

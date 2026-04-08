@@ -1,4 +1,4 @@
-package com.xtracr.realcamera.gui;
+package com.xtracr.realcamera.gui.components;
 
 import com.xtracr.realcamera.util.LocUtil;
 import net.minecraft.ChatFormatting;

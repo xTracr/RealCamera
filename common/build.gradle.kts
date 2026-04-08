@@ -29,15 +29,13 @@ tasks.withType<JavaCompile> {
 dependencies {
     minecraft("com.mojang:minecraft:$minecraftVersion")
 
-    // We depend on Fabric Loader here to use the Fabric @Environment annotations,
+    // We depend on Fabric Loader here to use mixin and the Fabric @Environment annotations,
     implementation("net.fabricmc:fabric-loader:$fabricLoaderVersion")
 
     // Cloth Config
-//    compileOnly("me.shedaniel.cloth:cloth-config:$clothConfigVersion") {
-//        exclude(group = "net.fabricmc.fabric-api")
-//    }
-
-    implementation("org.spongepowered:mixin:0.8.5")
+    compileOnly("me.shedaniel.cloth:cloth-config:$clothConfigVersion") {
+        exclude(group = "net.fabricmc.fabric-api")
+    }
 }
 
 loom {

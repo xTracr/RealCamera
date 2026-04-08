@@ -37,7 +37,7 @@ tasks.withType<JavaCompile> {
 
 dependencies {
     // Cloth Config
-    // runtimeOnly("me.shedaniel.cloth:cloth-config-neoforge:$clothConfigVersion")
+    runtimeOnly("me.shedaniel.cloth:cloth-config-neoforge:$clothConfigVersion")
 
     dependencyProjects.forEach {
         implementation(it)

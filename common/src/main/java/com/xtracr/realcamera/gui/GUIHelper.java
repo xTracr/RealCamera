@@ -2,6 +2,9 @@ package com.xtracr.realcamera.gui;
 
 import com.xtracr.realcamera.mixin.accessor.GuiGraphicsExtractorAccessor;
 import com.xtracr.realcamera.renderer.VertexData;
+import com.xtracr.realcamera.renderer.state.gui.ColoredFloatLineRenderState;
+import com.xtracr.realcamera.renderer.state.gui.ColoredFloatQuadRenderState;
+import com.xtracr.realcamera.renderer.state.gui.ColoredFloatRectangleRenderState;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.TextureSetup;
