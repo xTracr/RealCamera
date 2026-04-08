@@ -7,10 +7,10 @@ import com.xtracr.realcamera.util.MathUtil;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.TextureSetup;
 import net.minecraft.client.renderer.state.gui.GuiElementRenderState;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3x2f;
 import org.joml.Vector2f;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 public record ColoredFloatLineRenderState(
         RenderPipeline pipeline,
@@ -45,7 +45,7 @@ public record ColoredFloatLineRenderState(
     }
 
     @Override
-    public void buildVertices(@NotNull VertexConsumer vertexConsumer) {
+    public void buildVertices(@NonNull VertexConsumer vertexConsumer) {
         Vector2f vec = pose.transformPosition(vectorX, vectorY, new Vector2f());
         if (pipeline.getVertexFormatMode().primitiveLength == 2) {
             vertexConsumer.addVertexWith2DPose(pose, x, y).setColor(argb).setNormal(vec.x(), vec.y(), vectorZ);

@@ -8,7 +8,7 @@ import org.joml.Quaterniondc;
 
 public class CameraTransform {
     protected final Matrix3f rotation = new Matrix3f();
-    protected Vec3 position;
+    protected Vec3 position = Vec3.ZERO;
 
     public final Vec3 getPosition() {
         return position;

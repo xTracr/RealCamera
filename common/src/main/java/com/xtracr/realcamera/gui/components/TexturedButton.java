@@ -8,7 +8,7 @@ import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.resources.Identifier;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.function.Consumer;
 
@@ -37,7 +37,7 @@ public class TexturedButton extends AbstractButton {
     }
 
     @Override
-    public void onPress(@NotNull InputWithModifiers input) {
+    public void onPress(@NonNull InputWithModifiers input) {
         onPress.accept(this);
     }
 
@@ -49,7 +49,7 @@ public class TexturedButton extends AbstractButton {
     }
 
     @Override
-    protected void updateWidgetNarration(@NotNull NarrationElementOutput builder) {
+    protected void updateWidgetNarration(@NonNull NarrationElementOutput builder) {
         this.defaultButtonNarrationText(builder);
     }
 }

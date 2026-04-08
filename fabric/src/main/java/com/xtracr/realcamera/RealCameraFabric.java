@@ -1,7 +1,7 @@
 package com.xtracr.realcamera;
 
-import com.xtracr.realcamera.renderer.gui.GuiCulledModelRenderer;
-import com.xtracr.realcamera.renderer.gui.GuiTextureRenderer;
+import com.xtracr.realcamera.renderer.gui.GuiCulledModelsRenderer;
+import com.xtracr.realcamera.renderer.gui.GuiFlattenedModelsRenderer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -25,8 +25,8 @@ public class RealCameraFabric implements ClientModInitializer, RealCamera {
     }
 
     private void registerPictureInPictureRenderers() {
-        PictureInPictureRendererRegistry.register(ctx -> new GuiCulledModelRenderer(ctx.bufferSource()));
-        PictureInPictureRendererRegistry.register(ctx -> new GuiTextureRenderer(ctx.bufferSource()));
+        PictureInPictureRendererRegistry.register(ctx -> new GuiCulledModelsRenderer(ctx.bufferSource()));
+        PictureInPictureRendererRegistry.register(ctx -> new GuiFlattenedModelsRenderer(ctx.bufferSource()));
     }
 
     @Override

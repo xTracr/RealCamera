@@ -3,6 +3,7 @@ package com.xtracr.realcamera.gui;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.compat.CompatibilityHelper;
 import com.xtracr.realcamera.config.BindTarget;
@@ -14,7 +15,7 @@ import com.xtracr.realcamera.gui.components.CyclingTexturedButton;
 import com.xtracr.realcamera.gui.components.DoubleSlider;
 import com.xtracr.realcamera.gui.components.NumberField;
 import com.xtracr.realcamera.gui.components.TexturedButton;
-import com.xtracr.realcamera.renderer.VertexData;
+import com.xtracr.realcamera.renderer.state.VertexData;
 import com.xtracr.realcamera.util.LocUtil;
 import com.xtracr.realcamera.util.MathUtil;
 import io.netty.buffer.Unpooled;
@@ -30,17 +31,17 @@ import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec2;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -407,7 +408,7 @@ public class ModelViewScreen extends Screen {
         addRenderableWidget(new TexturedButton(x + xSize - 21, y + ySize - 20, 16, 16, 32, 0, _ -> initWidgets((page + 1) % pages)));
     }
 
-    public @NotNull UVRectangleWidget addRectWidget(@NotNull UVRectangleWidget rectWidget) {
+    public @NonNull UVRectangleWidget addRectWidget(@NonNull UVRectangleWidget rectWidget) {
         UVRectangleWidget foundRectWidget = rectWidgets.stream().filter(r -> r.contains(rectWidget)).findFirst().orElse(null);
         if (foundRectWidget == null) {
             rectWidgets.add(rectWidget);
@@ -430,7 +431,7 @@ public class ModelViewScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(@NotNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
+    public void extractRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
         super.extractRenderState(graphics, mouseX, mouseY, partialTicks);
         if (toggleCategoryButton.getValue() == Category.DISABLE && selectionModeButton.getValue() == 2 && inModelViewArea(mouseX, mouseY)) {
             GUIHelper.enableScissor(graphics, modelViewArea);
@@ -448,14 +449,14 @@ public class ModelViewScreen extends Screen {
     }
 
     @Override
-    public void extractBackground(@NotNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
+    public void extractBackground(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
         super.extractBackground(graphics, mouseX, mouseY, partialTicks);
         graphics.fill(x, y, x + (xSize - middleWidth) / 2 - 4, y + ySize, 0xFF444444);
         graphics.fill(x + (xSize - middleWidth) / 2, y, x + (xSize + middleWidth) / 2, y + ySize, 0xFF222222);
         graphics.fill(x + (xSize + middleWidth) / 2 + 4, y, x + xSize, y + ySize, 0xFF444444);
         analyser.initialize(genBindTarget(), modelScale);
         renderModelViewArea(graphics, minecraft.player);
-        renderTextureViewArea(graphics, minecraft.player);
+        renderTextureViewArea(graphics);
         applyAnalyser(graphics, mouseX, mouseY);
     }
 
@@ -484,7 +485,7 @@ public class ModelViewScreen extends Screen {
 
     protected void renderModelViewArea(GuiGraphicsExtractor graphics, LivingEntity entity) {
         int x1 = modelViewArea.left(), y1 = modelViewArea.top(), x2 = modelViewArea.right(), y2 = modelViewArea.bottom();
-        Quaternionf quaternionf = new Quaternionf().rotateX((float) Math.PI / 6 + xRot).rotateY((float) Math.PI / 6 + yRot).rotateZ((float) Math.PI);
+        Quaternionf rotation = new Quaternionf().rotateX((float) Math.PI / 6 + xRot).rotateY((float) Math.PI / 6 + yRot).rotateZ((float) Math.PI);
         float entityBodyYaw = entity.yBodyRot;
         float entityYaw = entity.getYRot();
         float entityPitch = entity.getXRot();
@@ -496,7 +497,7 @@ public class ModelViewScreen extends Screen {
         entity.yHeadRot = entity.getYRot();
         entity.yHeadRotO = entity.getYRot();
         Vector3f offset = new Vector3f((float) modelX, (float) modelY, 0);
-        renderEntityWithAnalyser(graphics, x1, y1, x2, y2, modelScale, offset, quaternionf, entity);
+        renderEntityWithAnalyser(graphics, x1, y1, x2, y2, modelScale, offset, rotation, entity);
         entity.yBodyRot = entityBodyYaw;
         entity.setYRot(entityYaw);
         entity.setXRot(entityPitch);
@@ -504,30 +505,34 @@ public class ModelViewScreen extends Screen {
         entity.yHeadRot = entityHeadYaw;
     }
 
-    protected void renderEntityWithAnalyser(GuiGraphicsExtractor graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset, Quaternionf quaternionf, LivingEntity entity) {
-        analyser.modelPose.translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
-        analyser.modelPose.scale(scale, scale, -scale);
-        analyser.modelPose.translate(offset.x(), offset.y(), offset.z());
-        analyser.modelPose.mulPose(quaternionf);
-        analyser.modelPose.translate(0, -entity.getBbHeight() / 2.0f, 0);
-        analyser.updateModel(minecraft, entity, 1.0f, analyser.modelPose);
-        EntityRenderState entityRenderState = minecraft.getEntityRenderDispatcher().getRenderer(entity).createRenderState(entity, 1.0F);
-        graphics.entity(entityRenderState, scale, offset, quaternionf, new Quaternionf(), x1, y1, x2, y2);
+    protected void renderEntityWithAnalyser(GuiGraphicsExtractor graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset, Quaternionf rotation, LivingEntity entity) {
+        PoseStack modelPose = analyser.modelPose;
+        modelPose.translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
+        modelPose.scale(scale, scale, -scale);
+        modelPose.translate(offset.x(), offset.y(), offset.z());
+        modelPose.mulPose(rotation);
+        modelPose.translate(0, - entity.getBbHeight() / 2.0f, 0);
+        analyser.updateModel(minecraft, entity, 1.0f, modelPose);
+        Matrix4f transform = new Matrix4f();
+        transform.translate(offset.x(), offset.y(), offset.z());
+        transform.rotate(rotation);
+        transform.translate(0, - entity.getBbHeight() / 2.0f, 0);
+        transform.mul(modelPose.last().pose().invert(new Matrix4f()));
+        GUIHelper.culledModels(graphics, analyser.modelRecords, scale, transform, x1, y1, x2, y2);
     }
 
-    protected void renderTextureViewArea(GuiGraphicsExtractor graphics, LivingEntity entity) {
+    protected void renderTextureViewArea(GuiGraphicsExtractor graphics) {
         if (textureViewArea == null) return;
         int x1 = textureViewArea.left(), y1 = textureViewArea.top(), x2 = textureViewArea.right(), y2 = textureViewArea.bottom();
         Vector3f offset = new Vector3f((float) textureX - 0.5f, (float) textureY - 0.5f, 0);
-        renderTextureWithAnalyser(graphics, x1, y1, x2, y2, (float) (textureScale * textureViewArea.width()) / 80, offset, entity);
+        renderTextureWithAnalyser(graphics, x1, y1, x2, y2, (float) (textureScale * textureViewArea.width()) / 80, offset);
     }
 
-    protected void renderTextureWithAnalyser(GuiGraphicsExtractor graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset, LivingEntity entity) {
+    protected void renderTextureWithAnalyser(GuiGraphicsExtractor graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset) {
         analyser.texturePose.translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
         analyser.texturePose.scale(scale, scale, -scale);
         analyser.texturePose.translate(offset.x(), offset.y(), offset.z());
-        EntityRenderState entityRenderState = minecraft.getEntityRenderDispatcher().getRenderer(entity).createRenderState(entity, 1.0F);
-        graphics.entity(entityRenderState, scale, offset, new Quaternionf(), null, x1, y1, x2, y2);
+        GUIHelper.flattenedModels(graphics, analyser.textureRecords, offset, x1, y1, x2, y2, scale);
     }
 
     protected void importBindTarget(Button button) {
@@ -744,7 +749,7 @@ public class ModelViewScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(@NotNull MouseButtonEvent event, boolean doubleClick) {
+    public boolean mouseClicked(@NonNull MouseButtonEvent event, boolean doubleClick) {
         double storedX = clickedX, storedY = clickedY;
         clickedX = clickedY = -1;
         if (event.input() == InputConstants.MOUSE_BUTTON_LEFT && toggleCategoryButton.getValue() != Category.PREVIEW) {
@@ -766,7 +771,7 @@ public class ModelViewScreen extends Screen {
     }
 
     @Override
-    public boolean mouseDragged(@NotNull MouseButtonEvent event, double dx, double dy) {
+    public boolean mouseDragged(@NonNull MouseButtonEvent event, double dx, double dy) {
         if (event.input() == InputConstants.MOUSE_BUTTON_LEFT && !InputConstants.isKeyDown(minecraft.getWindow(), modifierKey.getValue())) {
             if (inModelViewArea(event.x(), event.y())) {
                 xRot += (float) (Math.PI * dy / ySize);
@@ -806,7 +811,7 @@ public class ModelViewScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(@NotNull KeyEvent event) {
+    public boolean keyPressed(@NonNull KeyEvent event) {
         if (event.isSelection()) {
             GuiEventListener focused = getFocused();
             if (focused != null && !focused.isFocused()) setFocused(focusedRectWidget);
@@ -842,7 +847,7 @@ public class ModelViewScreen extends Screen {
             this.vMax = vMax;
         }
 
-        public UVRectangleWidget(float xMin, float yMin, float xMax, float yMax, @NotNull ScreenRectangle screenArea) {
+        public UVRectangleWidget(float xMin, float yMin, float xMax, float yMax, @NonNull ScreenRectangle screenArea) {
             super((int) xMin, (int) yMin, (int) (xMax - xMin), (int) (yMax - yMin), CommonComponents.EMPTY);
             Vec2 minUV = translateXYToUV(xMin, yMin, screenArea), maxUV = translateXYToUV(xMax, yMax, screenArea);
             this.uMin = minUV.x;
@@ -892,7 +897,7 @@ public class ModelViewScreen extends Screen {
         }
 
         @Override
-        protected void extractWidgetRenderState(@NotNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
+        protected void extractWidgetRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
             Vec2 minXY = translateUVToXY(uMin, vMin, textureViewArea), maxXY = translateUVToXY(uMax, vMax, textureViewArea);
             float x1 = minXY.x, y1 = minXY.y, x2 = maxXY.x, y2 = maxXY.y, width = x2 - x1, height = y2 - y1;
             setX((int) x1);
@@ -903,12 +908,12 @@ public class ModelViewScreen extends Screen {
             GUIHelper.fill(graphics, x1, y1, x2, y2, 0x4F3333CC);
             if (isHoveredOrFocused()) GUIHelper.fill(graphics, x1, y1, x2, y2, 0x2F3333CC);
             if (isFocused() || this == focusedRectWidget)
-                GUIHelper.renderOutline(graphics, x1, y1, width, height, 0xAAFFFFFF);
+                GUIHelper.outline(graphics, x1, y1, width, height, 0xAAFFFFFF);
             graphics.disableScissor();
         }
 
         @Override
-        public boolean keyPressed(@NotNull KeyEvent event) {
+        public boolean keyPressed(@NonNull KeyEvent event) {
             if (textureViewArea == null) return false;
             if (event.input() == InputConstants.KEY_DELETE && deleteFocusedRectWidget()) return true;
             if (event.isSelection() && uMin < uMax && vMin < vMax) {
@@ -934,7 +939,7 @@ public class ModelViewScreen extends Screen {
         }
 
         @Override
-        protected void updateWidgetNarration(@NotNull NarrationElementOutput narrationElementOutput) { }
+        protected void updateWidgetNarration(@NonNull NarrationElementOutput narrationElementOutput) { }
     }
 
 

@@ -3,10 +3,14 @@ package com.xtracr.realcamera.renderer.state.gui;
 import com.xtracr.realcamera.renderer.state.BuiltModelRecord;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.renderer.state.gui.pip.PictureInPictureRenderState;
+import org.joml.Matrix4f;
 import org.jspecify.annotations.Nullable;
 
-public record GuiTextureRenderState(
-        BuiltModelRecord record,
+import java.util.List;
+
+public record GuiCulledModelsRenderState(
+        List<BuiltModelRecord> records,
+        Matrix4f transform,
         int x0,
         int y0,
         int x1,
@@ -15,8 +19,9 @@ public record GuiTextureRenderState(
         @Nullable ScreenRectangle scissorArea,
         @Nullable ScreenRectangle bounds
 ) implements PictureInPictureRenderState {
-    public GuiTextureRenderState(
-            BuiltModelRecord record,
+    public GuiCulledModelsRenderState(
+            List<BuiltModelRecord> records,
+            Matrix4f transform,
             int x0,
             int y0,
             int x1,
@@ -24,6 +29,6 @@ public record GuiTextureRenderState(
             float scale,
             @Nullable ScreenRectangle scissorArea
     ) {
-        this(record, x0, y0, x1, y1, scale, scissorArea, PictureInPictureRenderState.getBounds(x0, y0, x1, y1, scissorArea));
+        this(records, transform, x0, y0, x1, y1, scale, scissorArea, PictureInPictureRenderState.getBounds(x0, y0, x1, y1, scissorArea));
     }
 }

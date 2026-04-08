@@ -2,7 +2,6 @@ package com.xtracr.realcamera.gui;
 
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.xtracr.realcamera.api.BindResult;
 import com.xtracr.realcamera.config.BindTarget;
@@ -10,22 +9,20 @@ import com.xtracr.realcamera.config.BindTarget.DisableConfig;
 import com.xtracr.realcamera.config.BindTarget.TargetConfig;
 import com.xtracr.realcamera.renderer.BuiltIterableBuffer;
 import com.xtracr.realcamera.renderer.MultiVertexCatcher;
-import com.xtracr.realcamera.renderer.VertexData;
 import com.xtracr.realcamera.renderer.state.BuiltModelRecord;
+import com.xtracr.realcamera.renderer.state.VertexData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.jspecify.annotations.Nullable;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -34,12 +31,13 @@ import java.util.List;
 import java.util.Set;
 
 public class ModelAnalyser {
+    private static final MultiVertexCatcher vertexCatcher = MultiVertexCatcher.create();
     private static final Set<RenderType> UNFOCUSABLE_RENDER_TYPES = Set.of(RenderTypes.armorEntityGlint(), RenderTypes.glintTranslucent(), RenderTypes.glint(), RenderTypes.entityGlint());
     private static final int planeArgb = 0x6F3333CC, forwardArgb = 0xFF00CC00, upwardArgb = 0xFFCC0000, leftArgb = 0xFF0000CC, focusedArgb = 0x4FFFFFFF;
     private static final int z1 = 210, z2 = z1 + 10;
     public final List<VertexData[]> focusedPolyhedron = new ArrayList<>();
     public final PoseStack modelPose = new PoseStack(), texturePose = new PoseStack();
-    private final List<BuiltModelRecord> modelRecords = new ArrayList<>(), textureRecords = new ArrayList<>();
+    protected final List<BuiltModelRecord> modelRecords = new ArrayList<>(), textureRecords = new ArrayList<>();
     private VertexData[][] targetPrimitives = new VertexData[3][];
     private BindResult bindResult = BindResult.EMPTY;
     private BindTarget target = BindTarget.EMPTY;
@@ -242,17 +240,17 @@ public class ModelAnalyser {
         Vec3 start = bindResult.getPosition();
         Matrix3f normal = bindResult.getRotation();
         if (normal.m00() == 0 && normal.m11() == 0 && normal.m22() == 0) return;
-        GUIHelper.renderVector(graphics, start, new Vec3(normal.m20(), normal.m21(), normal.m22()).scale(modelScale / 3), z2, forwardArgb);
-        GUIHelper.renderVector(graphics, start, new Vec3(normal.m10(), normal.m11(), normal.m12()).scale(modelScale / 6), z2, upwardArgb);
-        GUIHelper.renderVector(graphics, start, new Vec3(normal.m00(), normal.m01(), normal.m02()).scale(modelScale / 6), z2, leftArgb);
+        GUIHelper.vector(graphics, start, new Vec3(normal.m20(), normal.m21(), normal.m22()).scale(modelScale / 3), z2, forwardArgb);
+        GUIHelper.vector(graphics, start, new Vec3(normal.m10(), normal.m11(), normal.m12()).scale(modelScale / 6), z2, upwardArgb);
+        GUIHelper.vector(graphics, start, new Vec3(normal.m00(), normal.m01(), normal.m02()).scale(modelScale / 6), z2, leftArgb);
     }
 
     public void drawBindTarget(GuiGraphicsExtractor graphics) {
         if (currentRecord == null) return;
         TargetConfig config = target.targetConfig();
-        if (targetPrimitives[0] != null) GUIHelper.renderPolygon(graphics, targetPrimitives[0], z1, planeArgb);
-        if (targetPrimitives[1] != null) GUIHelper.renderVector(graphics, VertexData.position(targetPrimitives[1], config.forwardU(), config.forwardV()), VertexData.normal(targetPrimitives[1]).scale(-modelScale / 2), z2, forwardArgb);
-        if (targetPrimitives[2] != null) GUIHelper.renderVector(graphics, VertexData.position(targetPrimitives[2], config.upwardU(), config.upwardV()), VertexData.normal(targetPrimitives[2]).scale(-modelScale / 2), z2, upwardArgb);
+        if (targetPrimitives[0] != null) GUIHelper.polygon(graphics, targetPrimitives[0], z1, planeArgb);
+        if (targetPrimitives[1] != null) GUIHelper.vector(graphics, VertexData.position(targetPrimitives[1], config.forwardU(), config.forwardV()), VertexData.normal(targetPrimitives[1]).scale(-modelScale / 2), z2, forwardArgb);
+        if (targetPrimitives[2] != null) GUIHelper.vector(graphics, VertexData.position(targetPrimitives[2], config.upwardU(), config.upwardV()), VertexData.normal(targetPrimitives[2]).scale(-modelScale / 2), z2, upwardArgb);
     }
 
     public void drawFocusedInModelArea(GuiGraphicsExtractor graphics) {
@@ -260,8 +258,8 @@ public class ModelAnalyser {
         VertexData[] focused = focusedPolyhedron.getFirst();
         VertexData[] reversed = new VertexData[focused.length];
         for (int i = 0; i < focused.length; i++) reversed[i] = focused[focused.length - 1 - i];
-        GUIHelper.renderPolygon(graphics, reversed, z1, focusedArgb);
-        focusedPolyhedron.forEach(primitive -> GUIHelper.renderPolygon(graphics, primitive, z1, focusedArgb));
+        GUIHelper.polygon(graphics, reversed, z1, focusedArgb);
+        focusedPolyhedron.forEach(primitive -> GUIHelper.polygon(graphics, primitive, z1, focusedArgb));
     }
 
     public void drawFocusedInTextureArea(GuiGraphicsExtractor graphics) {
@@ -280,57 +278,16 @@ public class ModelAnalyser {
                 position.set(vertex.u(), vertex.v(), 0).mulPosition(positionMatrix);
                 transformed[i] = reversed[length - 1 - i] = VertexData.immutable(position.x(), position.y(), 0, vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
             }
-            GUIHelper.renderPolygon(graphics, transformed, 0, focusedArgb);
-            GUIHelper.renderPolygon(graphics, reversed, 0, focusedArgb);
+            GUIHelper.polygon(graphics, transformed, 0, focusedArgb);
+            GUIHelper.polygon(graphics, reversed, 0, focusedArgb);
         }
-    }
-
-    public void drawModel(MultiBufferSource bufferSource, PoseStack poseStack) {
-        poseStack.pushPose();
-        poseStack.mulPose(modelPose.last().pose().invert(new Matrix4f()));
-        float minEntityZ = 0f, maxEntityZ = 200f;
-        for (BuiltModelRecord record : modelRecords) {
-            for (VertexData vertex : record.vertices()) {
-                if (vertex.z() < minEntityZ) minEntityZ = vertex.z();
-                if (vertex.z() > maxEntityZ) maxEntityZ = vertex.z();
-            }
-        }
-        Matrix4f positionMatrix = new Matrix4f().mul(poseStack.last().pose()).scale(1, 1, 200 / (maxEntityZ - minEntityZ)).translate(0, 0, -minEntityZ);
-        Matrix3f normalMatrix = new Matrix3f(positionMatrix);
-        modelRecords.forEach(record -> {
-            VertexConsumer buffer = bufferSource.getBuffer(record.renderType());
-            if (!record.renderType().canConsolidateConsecutiveGeometry()) {
-                for (VertexData vertex : record.vertices()) vertex.render(buffer, positionMatrix, normalMatrix);
-                return;
-            }
-            for (VertexData[] primitive : record.primitives()) {
-                for (VertexData vertex : primitive) vertex.render(buffer, positionMatrix, normalMatrix);
-            }
-        });
-        poseStack.popPose();
-    }
-
-    public void drawTexture(MultiBufferSource bufferSource, PoseStack poseStack) {
-        Matrix4f positionMatrix = poseStack.last().pose();
-        textureRecords.forEach(record -> {
-            VertexConsumer buffer = bufferSource.getBuffer(record.renderType());
-            Vector3f position = new Vector3f();
-            for (VertexData vertex : record.vertices()) {
-                position.set(vertex.u(), vertex.v(), 0).mulPosition(positionMatrix);
-                buffer.addVertex(position.x(), position.y(), 0, vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
-            }
-        });
     }
 
     public void updateModel(Minecraft client, Entity entity, float partialTicks, PoseStack poseStack) {
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         client.gameRenderer.getLighting().setupFor(Lighting.Entry.ENTITY_IN_UI);
-        MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-        SubmitNodeStorage storage = new SubmitNodeStorage();
-        dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, storage);
-        catcher.renderTranslucentFeatures(storage);
-        storage.clear();
-        catcher.endCatching(this::computeBindResult);
+        dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, vertexCatcher.initialize());
+        vertexCatcher.endCatching(this::computeBindResult);
     }
 
     public void computeBindResult(BuiltIterableBuffer builtBuffer) {

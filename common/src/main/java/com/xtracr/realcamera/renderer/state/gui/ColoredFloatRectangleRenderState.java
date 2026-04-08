@@ -6,8 +6,8 @@ import com.xtracr.realcamera.gui.GUIHelper;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.TextureSetup;
 import net.minecraft.client.renderer.state.gui.GuiElementRenderState;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3x2f;
+import org.jspecify.annotations.Nullable;
 
 public record ColoredFloatRectangleRenderState(
         RenderPipeline pipeline,

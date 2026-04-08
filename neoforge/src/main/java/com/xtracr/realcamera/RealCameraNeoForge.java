@@ -1,10 +1,10 @@
 package com.xtracr.realcamera;
 
 import com.xtracr.realcamera.config.ConfigScreen;
-import com.xtracr.realcamera.renderer.gui.GuiCulledModelRenderer;
-import com.xtracr.realcamera.renderer.gui.GuiTextureRenderer;
-import com.xtracr.realcamera.renderer.state.gui.GuiCulledModelRenderState;
-import com.xtracr.realcamera.renderer.state.gui.GuiTextureRenderState;
+import com.xtracr.realcamera.renderer.gui.GuiCulledModelsRenderer;
+import com.xtracr.realcamera.renderer.gui.GuiFlattenedModelsRenderer;
+import com.xtracr.realcamera.renderer.state.gui.GuiCulledModelsRenderState;
+import com.xtracr.realcamera.renderer.state.gui.GuiFlattenedModelsRenderState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -45,8 +45,8 @@ public class RealCameraNeoForge implements RealCamera {
     }
 
     private void onPictureInPictureRenderersRegister(RegisterPictureInPictureRenderersEvent event) {
-        event.register(GuiCulledModelRenderState.class, GuiCulledModelRenderer::new);
-        event.register(GuiTextureRenderState.class, GuiTextureRenderer::new);
+        event.register(GuiCulledModelsRenderState.class, GuiCulledModelsRenderer::new);
+        event.register(GuiFlattenedModelsRenderState.class, GuiFlattenedModelsRenderer::new);
     }
 
     @Override

@@ -1,10 +1,10 @@
 package com.xtracr.realcamera.renderer;
 
-
 import com.mojang.blaze3d.vertex.MeshData;
-import com.xtracr.realcamera.renderer.VertexData.UV;
+import com.xtracr.realcamera.renderer.state.VertexData;
+import com.xtracr.realcamera.renderer.state.VertexData.UV;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.awt.*;
 import java.util.HashMap;

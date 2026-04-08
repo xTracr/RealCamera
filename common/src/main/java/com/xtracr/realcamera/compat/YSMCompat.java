@@ -7,9 +7,8 @@ import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.renderer.BuiltIterableBuffer;
 import com.xtracr.realcamera.renderer.MultiVertexCatcher;
-import com.xtracr.realcamera.renderer.VertexData;
+import com.xtracr.realcamera.renderer.state.VertexData;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.world.entity.Entity;
@@ -21,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class YSMCompat {
+    private static final MultiVertexCatcher vertexCatcher = MultiVertexCatcher.create();
     private static final Map<BindTarget, BindResult> resultMap = new HashMap<>();
     private static final TransformedVertexRecorder[] transformedRecorders = new TransformedVertexRecorder[4];
     private static BindResult bindResult = BindResult.EMPTY;
@@ -48,12 +48,8 @@ public class YSMCompat {
         for (TransformedVertexRecorder transformedRecorder : transformedRecorders) {
             poseStack.pushPose();
             poseStack.mulPose(transformedRecorder.matrix4f.invert(new Matrix4f()));
-            MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-            SubmitNodeStorage storage = new SubmitNodeStorage();
-            dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, storage);
-            catcher.renderTranslucentFeatures(storage);
-            storage.clear();
-            catcher.endCatching(transformedRecorder::computeBindResultInCache);
+            dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, vertexCatcher.initialize());
+            vertexCatcher.endCatching(transformedRecorder::computeBindResultInCache);
             poseStack.popPose();
             if (bindResult.available()) return bindResult;
         }
@@ -61,12 +57,8 @@ public class YSMCompat {
         for (TransformedVertexRecorder transformedRecorder : transformedRecorders) {
             poseStack.pushPose();
             poseStack.mulPose(transformedRecorder.matrix4f.invert(new Matrix4f()));
-            MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-            SubmitNodeStorage storage = new SubmitNodeStorage();
-            dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, storage);
-            catcher.renderTranslucentFeatures(storage);
-            storage.clear();
-            catcher.endCatching(transformedRecorder::computeBindResult);
+            dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, vertexCatcher.initialize());
+            vertexCatcher.endCatching(transformedRecorder::computeBindResult);
             poseStack.popPose();
             if (bindResult.available()) return bindResult;
         }

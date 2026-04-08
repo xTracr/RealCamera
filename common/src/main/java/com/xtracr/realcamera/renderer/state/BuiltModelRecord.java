@@ -1,6 +1,5 @@
 package com.xtracr.realcamera.renderer.state;
 
-import com.xtracr.realcamera.renderer.VertexData;
 import net.minecraft.client.renderer.rendertype.RenderType;
 
 public record BuiltModelRecord(

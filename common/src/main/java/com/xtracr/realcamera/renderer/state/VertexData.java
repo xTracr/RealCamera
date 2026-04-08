@@ -1,4 +1,4 @@
-package com.xtracr.realcamera.renderer;
+package com.xtracr.realcamera.renderer.state;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.world.phys.Vec3;

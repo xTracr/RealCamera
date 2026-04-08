@@ -4,7 +4,7 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import com.xtracr.realcamera.renderer.VertexData;
+import com.xtracr.realcamera.renderer.state.VertexData;
 import it.unimi.dsi.fastutil.floats.Float2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.floats.FloatOpenHashSet;
 import net.minecraft.network.FriendlyByteBuf;

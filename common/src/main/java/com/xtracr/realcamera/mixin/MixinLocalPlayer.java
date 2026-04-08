@@ -16,7 +16,7 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -53,7 +53,7 @@ public abstract class MixinLocalPlayer extends AbstractClientPlayer {
     }
 
     @Override
-    public @NotNull HitResult pick(double maxDistance, float partialTicks, boolean includeFluids) {
+    public @NonNull HitResult pick(double maxDistance, float partialTicks, boolean includeFluids) {
         if (!ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
             RaycastUtil.update(this, maxDistance * maxDistance, partialTicks);
             return level().clip(RaycastUtil.getClipContext(ClipContext.Block.OUTLINE,

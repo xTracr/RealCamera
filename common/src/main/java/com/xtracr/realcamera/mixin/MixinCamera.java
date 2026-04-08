@@ -7,13 +7,14 @@ import net.minecraft.client.Camera;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -31,8 +32,10 @@ public abstract class MixinCamera {
     @Unique
     private static final Vector3f LEFT = new Vector3f(-1.0F, 0.0F, 0.0F);
     @Shadow
-    private BlockGetter level;
+    @Nullable
+    private Level level;
     @Shadow
+    @Nullable
     private Entity entity;
     @Shadow
     private Vec3 position;

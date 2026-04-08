@@ -9,13 +9,12 @@ import com.xtracr.realcamera.config.BindTarget.DisableConfig;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.renderer.BuiltIterableBuffer;
 import com.xtracr.realcamera.renderer.MultiVertexCatcher;
-import com.xtracr.realcamera.renderer.VertexData;
+import com.xtracr.realcamera.renderer.state.VertexData;
 import com.xtracr.realcamera.util.CameraTransform;
 import com.xtracr.realcamera.util.LocUtil;
 import com.xtracr.realcamera.util.MathUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.world.entity.Entity;
@@ -25,6 +24,7 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 public class RealCameraCore {
+    private static final MultiVertexCatcher vertexCatcher = MultiVertexCatcher.create();
     private static final CameraTransform smoothedCamera = new CameraTransform();
     private static BindResult lastResult = BindResult.EMPTY, newResult = BindResult.EMPTY;
     private static boolean active = false, rendering = false;
@@ -72,12 +72,8 @@ public class RealCameraCore {
         newResult = RealCameraAPI.computeBindResult(client, partialTicks);
         if (!newResult.available()) {
             EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
-            MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-            SubmitNodeStorage storage = new SubmitNodeStorage();
-            dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, new PoseStack(), storage);
-            catcher.renderTranslucentFeatures(storage);
-            storage.clear();
-            catcher.endCatching(RealCameraCore::computeBindResult);
+            dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, new PoseStack(), vertexCatcher.initialize());
+            vertexCatcher.endCatching(RealCameraCore::computeBindResult);
         }
         entity.setInvisible(invisible);
         if (newResult.available()) {
@@ -113,14 +109,10 @@ public class RealCameraCore {
         poseStack.mulPose(new Matrix4f(invertedCameraPose).mulLocal(modelView.invert(new Matrix4f())));
         Entity entity = client.getCameraEntity();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
-        MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-        SubmitNodeStorage storage = new SubmitNodeStorage();
-        dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, storage);
-        catcher.renderTranslucentFeatures(storage);
-        storage.clear();
+        dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, vertexCatcher.initialize());
         final float m02 = modelView.m02(), m12 = modelView.m12(), m22 = modelView.m22(), m32 = modelView.m32();
         final float depth = currentTarget().disablingDepth();
-        catcher.endCatching(builtBuffer -> {
+        vertexCatcher.endCatching(builtBuffer -> {
             DisableConfig[] disableConfigs = currentTarget().filteredDisableConfigs(config -> builtBuffer.textureId().contains(config.textureId()));
             for (DisableConfig config : disableConfigs) if (config.disableAll()) return;
             submitNodeCollector.submitCustomGeometry(poseStack, builtBuffer.renderType(), (_, buffer) -> {

@@ -39,9 +39,9 @@ public class LegacyBindingMode {
                 poseStack.translate((float) (-direction.getStepX()) * f, 0.0f, (float) (-direction.getStepZ()) * f);
             }
         }
-        float g = renderState.scale;
-        poseStack.scale(g, g, g);
-        ((AvatarRendererAccessor) playerRenderer).invokeSetupRotations(renderState, poseStack, renderState.bodyRot, g);
+        float scale = renderState.scale;
+        poseStack.scale(scale, scale, scale);
+        ((AvatarRendererAccessor) playerRenderer).invokeSetupRotations(renderState, poseStack, renderState.bodyRot, scale);
         poseStack.scale(-1.0f, -1.0f, 1.0f);
         ((AvatarRendererAccessor) playerRenderer).invokeScale(renderState, poseStack);
         poseStack.translate(0.0f, -1.501f, 0.0f);

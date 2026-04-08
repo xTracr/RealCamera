@@ -4,10 +4,11 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
-import com.xtracr.realcamera.renderer.VertexData.MutableVertex;
+import com.xtracr.realcamera.renderer.state.VertexData;
+import com.xtracr.realcamera.renderer.state.VertexData.MutableVertex;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -113,7 +114,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
     }
 
     @Override
-    public @NotNull Iterator<VertexData> iterator() {
+    public @NonNull Iterator<VertexData> iterator() {
         return new VertexIterator();
     }
 
@@ -242,7 +243,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         }
 
         @Override
-        public @NotNull VertexData next() {
+        public @NonNull VertexData next() {
             bytePointer += vertexSize;
             return this;
         }
@@ -303,7 +304,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         }
 
         @Override
-        public @NotNull Iterator<VertexData[]> iterator() {
+        public @NonNull Iterator<VertexData[]> iterator() {
             return new PrimitiveIterator();
         }
 
@@ -397,7 +398,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         private final int quadCount = vertexCount / 4;
 
         @Override
-        public @NotNull Iterator<VertexData[]> iterator() {
+        public @NonNull Iterator<VertexData[]> iterator() {
             return new FastQuadIterator();
         }
 
