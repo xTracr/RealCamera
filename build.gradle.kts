@@ -6,15 +6,13 @@ plugins {
 allprojects {
     val commitSHA = findProperty("commitSHA")?.toString()?.take(7)
     group = property("mod_group_id") as String
-    version = "${property("mod_version")}$commitSHA"
+    version = "${property("mod_version")}-$commitSHA"
 
     repositories {
         mavenCentral()
-        listOf(
-            "https://maven.shedaniel.me/",
-            "https://maven.terraformersmc.com/releases/",
-            "https://maven.fabricmc.net/",
-            "https://maven.neoforged.net/releases"
-        ).forEach(::maven)
+        maven("https://maven.shedaniel.me/")
+        maven("https://maven.terraformersmc.com/releases/")
+        maven("https://maven.fabricmc.net/")
+        maven("https://maven.neoforged.net/releases/")
     }
 }
