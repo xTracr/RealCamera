@@ -9,6 +9,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectSortedMaps;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollection;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import org.jspecify.annotations.NonNull;
@@ -74,7 +75,7 @@ public class MultiVertexCatcher {
         }
     }
 
-    public SubmitNodeStorage initialize() {
+    public SubmitNodeCollector initialize() {
         meshCatcher.initialize();
         return storage;
     }

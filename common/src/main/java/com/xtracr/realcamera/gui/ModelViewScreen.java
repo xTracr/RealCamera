@@ -473,8 +473,7 @@ public class ModelViewScreen extends Screen {
             analyser.computeFocusedOnModel(mouseX - selectionRadius, mouseY - selectionRadius, mouseX + selectionRadius, mouseY + selectionRadius);
         if (inTextureViewArea(mouseX, mouseY)) analyser.computeFocusedOnTexture(mouseX, mouseY);
         if (inModelViewArea(mouseX, mouseY)) analyser.computeFocusedOnModel(mouseX, mouseY, layers);
-        if (toggleCategoryButton.getValue() == Category.CONFIGS || selectionModeButton.getValue() == 1)
-            analyser.computeFocusedPolyhedron();
+        if (toggleCategoryButton.getValue() == Category.CONFIGS || selectionModeButton.getValue() == 1) analyser.computeFocusedPolyhedron();
         focusedPolyhedron = analyser.focusedPolyhedron.toArray(new VertexData[0][]);
         focusedTextureId = analyser.getFocusedTextureId();
         GUIHelper.enableScissor(graphics, modelViewArea);

@@ -9,6 +9,7 @@ import com.xtracr.realcamera.config.BindTarget.DisableConfig;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.renderer.BuiltIterableBuffer;
 import com.xtracr.realcamera.renderer.MultiVertexCatcher;
+import com.xtracr.realcamera.renderer.RoutingSubmitCollector;
 import com.xtracr.realcamera.renderer.state.VertexData;
 import com.xtracr.realcamera.util.CameraTransform;
 import com.xtracr.realcamera.util.LocUtil;
@@ -109,7 +110,8 @@ public class RealCameraCore {
         poseStack.mulPose(new Matrix4f(invertedCameraPose).mulLocal(modelView.invert(new Matrix4f())));
         Entity entity = client.getCameraEntity();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
-        dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, vertexCatcher.initialize());
+        SubmitNodeCollector collector = new RoutingSubmitCollector(submitNodeCollector, vertexCatcher.initialize());
+        dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, collector);
         final float m02 = modelView.m02(), m12 = modelView.m12(), m22 = modelView.m22(), m32 = modelView.m32();
         final float depth = currentTarget().disablingDepth();
         vertexCatcher.endCatching(builtBuffer -> {
