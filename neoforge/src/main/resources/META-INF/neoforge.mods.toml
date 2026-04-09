@@ -24,7 +24,7 @@ Make the camera more realistic in the first-person view.
 
 [[dependencies.realcamera]]
 modId = "neoforge"
-type= "required"
+type = "required"
 versionRange = "[26,)"
 ordering = "NONE"
 side = "BOTH"
@@ -43,9 +43,9 @@ versionRange = "[21.0,)"
 ordering = "NONE"
 side = "CLIENT"
 [dependencies.realcamera.mc-publish]
-    ignore = false
-    modrinth = "cloth-config"
-    curseforge = "cloth-config"
+ignore = false
+modrinth = "cloth-config"
+curseforge = "cloth-config"
 
 [[mixins]]
 config = "realcamera-common.mixins.json"

@@ -15,19 +15,20 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 public class DisableHelper {
+    public static final Entry MAIN_FEATURE, RENDER_MODEL, RENDER_HANDS;
     private static final Predicate<Player> FALSE = _ -> false;
     private static final Map<String, Entry> entries = new HashMap<>();
-    public static final Entry MAIN_FEATURE = new Entry("mainFeature", player -> player.isSleeping() || player.isSpectator());
-    public static final Entry RENDER_MODEL = new Entry("renderModel", FALSE, Player::isScoping);
-    public static final Entry RENDER_HANDS = new Entry("renderHands", _ -> RealCameraCore.isRendering());
     public static int exitTick = 0;
 
     static {
+        MAIN_FEATURE = new Entry("mainFeature", player -> player.isSleeping() || player.isSpectator());
+        RENDER_MODEL = new Entry("renderModel", FALSE, Player::isScoping);
+        RENDER_HANDS = new Entry("renderHands", _ -> RealCameraCore.isRendering());
         MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSneaking() && player.isCrouching());
         MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSneaking() && player.isCrouching());
         MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSwimming() && checkCondition(player, player.isSwimming(), ConfigFile.config().getBindingOutTick()));
         MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSwimming() && checkCondition(player, player.isSwimming(), ConfigFile.config().getClassicOutTick()));
-        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenCrawling() && checkCondition(player, player.isVisuallyCrawling(), ConfigFile.config().getBindingOutTick()));   
+        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenCrawling() && checkCondition(player, player.isVisuallyCrawling(), ConfigFile.config().getBindingOutTick()));
         MAIN_FEATURE.registerOrInBinding(player -> {
             Item mainHand = player.getMainHandItem().getItem();
             Item offHand = player.getOffhandItem().getItem();

@@ -151,7 +151,8 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
 
         @Override
         public Vec3 position() {
-            if (hasPosition) return new Vec3(buffer.getFloat(bytePointer + positionOffset), buffer.getFloat(bytePointer + positionOffset + 4), buffer.getFloat(bytePointer + positionOffset + 8));
+            if (hasPosition)
+                return new Vec3(buffer.getFloat(bytePointer + positionOffset), buffer.getFloat(bytePointer + positionOffset + 4), buffer.getFloat(bytePointer + positionOffset + 8));
             return Vec3.ZERO;
         }
 
@@ -175,7 +176,8 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
 
         @Override
         public UV uv() {
-            if (hasUV) return new UV(buffer.getFloat(bytePointer + uvOffset), buffer.getFloat(bytePointer + uvOffset + 4));
+            if (hasUV)
+                return new UV(buffer.getFloat(bytePointer + uvOffset), buffer.getFloat(bytePointer + uvOffset + 4));
             return new UV(0, 0);
         }
 
@@ -211,7 +213,8 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
 
         @Override
         public Vec3 normal() {
-            if (hasNormal) return new Vec3(buffer.get(bytePointer + normalOffset) / 127.0f, buffer.get(bytePointer + normalOffset + 1) / 127.0f, buffer.get(bytePointer + normalOffset + 2) / 127.0f);
+            if (hasNormal)
+                return new Vec3(buffer.get(bytePointer + normalOffset) / 127.0f, buffer.get(bytePointer + normalOffset + 1) / 127.0f, buffer.get(bytePointer + normalOffset + 2) / 127.0f);
             return Vec3.ZERO;
         }
 

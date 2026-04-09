@@ -20,10 +20,10 @@ import java.util.SequencedMap;
 import java.util.function.Consumer;
 
 public class MultiVertexCatcher {
-    private final SubmitNodeStorage storage =  new SubmitNodeStorage();
+    private final SubmitNodeStorage storage = new SubmitNodeStorage();
     private final MeshCatcher meshCatcher = new MeshCatcher();
 
-    private MultiVertexCatcher() {}
+    private MultiVertexCatcher() { }
 
     public static MultiVertexCatcher create() {
         return new MultiVertexCatcher();

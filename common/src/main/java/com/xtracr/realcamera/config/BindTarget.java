@@ -43,7 +43,8 @@ public record BindTarget(
 
     public static BindTarget read(FriendlyByteBuf byteBuf) throws IllegalArgumentException {
         short version = byteBuf.readShort();
-        if (version != serialVersion) throw new IllegalArgumentException("Invalid version: " + version + ", expected " + serialVersion);
+        if (version != serialVersion)
+            throw new IllegalArgumentException("Invalid version: " + version + ", expected " + serialVersion);
         String name = byteBuf.readUtf();
         String textureId = byteBuf.readUtf();
         int priority = byteBuf.readVarInt();

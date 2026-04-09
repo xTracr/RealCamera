@@ -167,7 +167,8 @@ public class ModelViewScreen extends Screen {
         clearWidgets();
         initLeftWidgets();
         if (textureViewArea != null) rectWidgets.forEach(this::addRenderableWidget);
-        if (toggleCategoryButton.getValue() == Category.DISABLE) addRenderableWidget(showTextureButton).setPosition(x + (xSize - middleWidth) / 2 + 4, y + 4);
+        if (toggleCategoryButton.getValue() == Category.DISABLE)
+            addRenderableWidget(showTextureButton).setPosition(x + (xSize - middleWidth) / 2 + 4, y + 4);
         addRenderableWidget(pauseButton).setPosition(x + (xSize + middleWidth) / 2 - 38, y + 4);
         addRenderableWidget(new TexturedButton(x + (xSize + middleWidth) / 2 - 20, y + 4, 16, 16, 0, 0, _ -> {
             modelScale = textureScale = 80;
@@ -472,7 +473,8 @@ public class ModelViewScreen extends Screen {
             analyser.computeFocusedOnModel(mouseX - selectionRadius, mouseY - selectionRadius, mouseX + selectionRadius, mouseY + selectionRadius);
         if (inTextureViewArea(mouseX, mouseY)) analyser.computeFocusedOnTexture(mouseX, mouseY);
         if (inModelViewArea(mouseX, mouseY)) analyser.computeFocusedOnModel(mouseX, mouseY, layers);
-        if (toggleCategoryButton.getValue() == Category.CONFIGS || selectionModeButton.getValue() == 1) analyser.computeFocusedPolyhedron();
+        if (toggleCategoryButton.getValue() == Category.CONFIGS || selectionModeButton.getValue() == 1)
+            analyser.computeFocusedPolyhedron();
         focusedPolyhedron = analyser.focusedPolyhedron.toArray(new VertexData[0][]);
         focusedTextureId = analyser.getFocusedTextureId();
         GUIHelper.enableScissor(graphics, modelViewArea);
@@ -515,12 +517,12 @@ public class ModelViewScreen extends Screen {
         modelPose.scale(scale, scale, -scale);
         modelPose.translate(offset.x(), offset.y(), offset.z());
         modelPose.mulPose(rotation);
-        modelPose.translate(0, - entity.getBbHeight() / 2.0f, 0);
+        modelPose.translate(0, -entity.getBbHeight() / 2.0f, 0);
         analyser.updateModel(minecraft, entity, 1.0f, modelPose);
         Matrix4f transform = new Matrix4f();
         transform.translate(offset.x(), offset.y(), offset.z());
         transform.rotate(rotation);
-        transform.translate(0, - entity.getBbHeight() / 2.0f, 0);
+        transform.translate(0, -entity.getBbHeight() / 2.0f, 0);
         transform.mul(modelPose.last().pose().invert(new Matrix4f()));
         GUIHelper.culledModels(graphics, analyser.modelRecords, scale, transform, x1, y1, x2, y2);
     }
@@ -943,14 +945,7 @@ public class ModelViewScreen extends Screen {
         }
 
         @Override
-        protected void updateWidgetNarration(@NonNull NarrationElementOutput narrationElementOutput) { }
+        protected void updateWidgetNarration(@NonNull NarrationElementOutput narrationElementOutput) {
+        }
     }
-
-
-
-
-
-
-
-
 }
