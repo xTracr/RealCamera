@@ -60,12 +60,12 @@ public class ConfigScreen {
                 .setDefaultValue(false)
                 .setSaveConsumer(b -> config.classic.disableWhenSwimming = b)
                 .build());
-        classic.addEntry(entryBuilder.startIntField(LocUtil.CONFIG_OPTION("swimOutTick"), config.classic.swimOutTick)
+        classic.addEntry(entryBuilder.startIntField(LocUtil.CONFIG_OPTION("outTick"), config.classic.outTick)
                 .setDefaultValue(13)
                 .setMin(0)
                 .setMax(40)
-                .setTooltip(LocUtil.CONFIG_TOOLTIP("swimOutTick"))
-                .setSaveConsumer(i -> config.classic.swimOutTick = i)
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("outTick"))
+                .setSaveConsumer(i -> config.classic.outTick = i)
                 .build());
         classic.addEntry(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("scale"), config.classic.scale)
                 .setDefaultValue(8.0)
@@ -165,21 +165,6 @@ public class ConfigScreen {
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("renderStuckObjects"))
                 .setSaveConsumer(b -> config.binding.renderStuckObjects = b)
                 .build());
-        binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("disableWhenSneaking"), config.binding.disableWhenSneaking)
-                .setDefaultValue(false)
-                .setSaveConsumer(b -> config.binding.disableWhenSneaking = b)
-                .build());
-        binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("disableWhenSwimming"), config.binding.disableWhenSwimming)
-                .setDefaultValue(false)
-                .setSaveConsumer(b -> config.binding.disableWhenSwimming = b)
-                .build());
-        binding.addEntry(entryBuilder.startIntField(LocUtil.CONFIG_OPTION("swimOutTick"), config.binding.swimOutTick)
-                .setDefaultValue(13)
-                .setMin(0)
-                .setMax(40)
-                .setTooltip(LocUtil.CONFIG_TOOLTIP("swimOutTick"))
-                .setSaveConsumer(i -> config.binding.swimOutTick = i)
-                .build());
         binding.addEntry(entryBuilder.startIntField(LocUtil.CONFIG_OPTION("bindResultRetentionFrames"), config.binding.bindResultRetentionFrames)
                 .setDefaultValue(2)
                 .setMin(0)
@@ -206,16 +191,37 @@ public class ConfigScreen {
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("rotationSmoothFactor"))
                 .setSaveConsumer(d -> config.binding.rotationSmoothFactor = d)
                 .build());
-        binding.addEntry(entryBuilder.startStrList(LocUtil.CONFIG_OPTION("disableMainFeatureItems"), config.binding.disableMainFeatureItems)
-                .setDefaultValue(List.of())
-                .setTooltip(LocUtil.CONFIG_TOOLTIP("disableRenderItems"))
-                .setSaveConsumer(l -> config.binding.disableMainFeatureItems = l)
-                .build());
-        binding.addEntry(entryBuilder.startStrList(LocUtil.CONFIG_OPTION("disableRenderItems"), config.binding.disableRenderItems)
-                .setDefaultValue(ModConfig.Binding.defaultDisableRenderItems)
-                .setTooltip(LocUtil.CONFIG_TOOLTIP("disableRenderItems"))
-                .setSaveConsumer(l -> config.binding.disableRenderItems = l)
-                .build());
+        SubCategoryBuilder disableConfig = entryBuilder.startSubCategory(LocUtil.CONFIG_OPTION("disableConfig"));
+            disableConfig.add(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("disableWhenSneaking"), config.binding.disableWhenSneaking)
+                    .setDefaultValue(false)
+                    .setSaveConsumer(b -> config.binding.disableWhenSneaking = b)
+                    .build());
+            disableConfig.add(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("disableWhenCrawling"), config.binding.disableWhenCrawling)
+                    .setDefaultValue(false)
+                    .setSaveConsumer(b -> config.binding.disableWhenCrawling = b)
+                    .build());
+            disableConfig.add(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("disableWhenSwimming"), config.binding.disableWhenSwimming)
+                    .setDefaultValue(false)
+                    .setSaveConsumer(b -> config.binding.disableWhenSwimming = b)
+                    .build());
+            disableConfig.add(entryBuilder.startIntField(LocUtil.CONFIG_OPTION("outTick"), config.binding.outTick)
+                    .setDefaultValue(13)
+                    .setMin(0)
+                    .setMax(40)
+                    .setTooltip(LocUtil.CONFIG_TOOLTIP("outTick"))
+                    .setSaveConsumer(i -> config.binding.outTick = i)
+                    .build());
+            disableConfig.add(entryBuilder.startStrList(LocUtil.CONFIG_OPTION("disableMainFeatureItems"), config.binding.disableMainFeatureItems)
+                    .setDefaultValue(List.of())
+                    .setTooltip(LocUtil.CONFIG_TOOLTIP("disableRenderItems"))
+                    .setSaveConsumer(l -> config.binding.disableMainFeatureItems = l)
+                    .build());
+            disableConfig.add(entryBuilder.startStrList(LocUtil.CONFIG_OPTION("disableRenderItems"), config.binding.disableRenderItems)
+                    .setDefaultValue(ModConfig.Binding.defaultDisableRenderItems)
+                    .setTooltip(LocUtil.CONFIG_TOOLTIP("disableRenderItems"))
+                    .setSaveConsumer(l -> config.binding.disableRenderItems = l)
+                    .build());
+        binding.addEntry(disableConfig.build());
 
         return builder.build();
     }
