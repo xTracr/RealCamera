@@ -75,7 +75,7 @@ public class MultiVertexCatcher {
         }
     }
 
-    public SubmitNodeCollector initialize() {
+    public SubmitNodeCollector initCollector() {
         meshCatcher.initialize();
         return storage;
     }

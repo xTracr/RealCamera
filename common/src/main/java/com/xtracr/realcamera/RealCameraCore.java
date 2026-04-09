@@ -73,7 +73,7 @@ public class RealCameraCore {
         newResult = RealCameraAPI.computeBindResult(client, partialTicks);
         if (!newResult.available()) {
             EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
-            dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, new PoseStack(), vertexCatcher.initialize());
+            dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, new PoseStack(), vertexCatcher.initCollector());
             vertexCatcher.endCatching(RealCameraCore::computeBindResult);
         }
         entity.setInvisible(invisible);
@@ -110,7 +110,7 @@ public class RealCameraCore {
         poseStack.mulPose(new Matrix4f(invertedCameraPose).mulLocal(modelView.invert(new Matrix4f())));
         Entity entity = client.getCameraEntity();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
-        SubmitNodeCollector collector = new RoutingSubmitCollector(submitNodeCollector, vertexCatcher.initialize());
+        SubmitNodeCollector collector = new RoutingSubmitCollector(submitNodeCollector, vertexCatcher.initCollector());
         dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, collector);
         final float m02 = modelView.m02(), m12 = modelView.m12(), m22 = modelView.m22(), m32 = modelView.m32();
         final float depth = currentTarget().disablingDepth();

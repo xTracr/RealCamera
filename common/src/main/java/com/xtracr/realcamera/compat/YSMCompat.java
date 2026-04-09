@@ -48,7 +48,7 @@ public class YSMCompat {
         for (TransformedVertexRecorder transformedRecorder : transformedRecorders) {
             poseStack.pushPose();
             poseStack.mulPose(transformedRecorder.matrix4f.invert(new Matrix4f()));
-            dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, vertexCatcher.initialize());
+            dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, vertexCatcher.initCollector());
             vertexCatcher.endCatching(transformedRecorder::computeBindResultInCache);
             poseStack.popPose();
             if (bindResult.available()) return bindResult;
@@ -57,7 +57,7 @@ public class YSMCompat {
         for (TransformedVertexRecorder transformedRecorder : transformedRecorders) {
             poseStack.pushPose();
             poseStack.mulPose(transformedRecorder.matrix4f.invert(new Matrix4f()));
-            dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, vertexCatcher.initialize());
+            dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, vertexCatcher.initCollector());
             vertexCatcher.endCatching(transformedRecorder::computeBindResult);
             poseStack.popPose();
             if (bindResult.available()) return bindResult;
