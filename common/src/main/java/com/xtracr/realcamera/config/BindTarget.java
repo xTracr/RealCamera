@@ -67,7 +67,7 @@ public record BindTarget(
         DisableConfig playerHead = new DisableConfig("player_head", textureId, false, new UVRectangle[]{new UVRectangle(0, 0, 1.0f, 0.25f)});
         DisableConfig dragonHead = new DisableConfig("dragon_head", "minecraft:textures/entity/enderdragon/dragon.png", true, new UVRectangle[0]);
         DisableConfig[] disableConfigs = new DisableConfig[]{playerHead, dragonHead};
-        return new BindTarget(name, textureId, priority, 0.1f, targetConfig, bindConfig, offsets, disableConfigs);
+        return new BindTarget(name, textureId, priority, 0.2f, targetConfig, bindConfig, offsets, disableConfigs);
     }
 
     public boolean isEmpty() {

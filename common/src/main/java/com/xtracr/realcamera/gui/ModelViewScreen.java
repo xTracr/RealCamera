@@ -114,19 +114,19 @@ public class ModelViewScreen extends Screen {
             .displayOnlyValue()
             .create(0, 0, widgetWidth * 2 + 4, widgetHeight, CommonComponents.EMPTY, (_, i) -> {
                 if (i == 1) {
-                    offsetXField.setNumber((float) offsetXSlider.getValue());
-                    offsetYField.setNumber((float) offsetYSlider.getValue());
-                    offsetZField.setNumber((float) offsetZSlider.getValue());
-                    offsetPitchField.setNumber((float) offsetPitchSlider.getValue());
-                    offsetYawField.setNumber((float) offsetYawSlider.getValue());
-                    offsetRollField.setNumber((float) offsetRollSlider.getValue());
+                    offsetXField.setNumber((float) offsetXSlider.getDouble());
+                    offsetYField.setNumber((float) offsetYSlider.getDouble());
+                    offsetZField.setNumber((float) offsetZSlider.getDouble());
+                    offsetPitchField.setNumber((float) offsetPitchSlider.getDouble());
+                    offsetYawField.setNumber((float) offsetYawSlider.getDouble());
+                    offsetRollField.setNumber((float) offsetRollSlider.getDouble());
                 } else {
-                    offsetXSlider.setValue(offsetXField.getNumber());
-                    offsetYSlider.setValue(offsetYField.getNumber());
-                    offsetZSlider.setValue(offsetZField.getNumber());
-                    offsetPitchSlider.setValue(offsetPitchField.getNumber());
-                    offsetYawSlider.setValue(offsetYawField.getNumber());
-                    offsetRollSlider.setValue(offsetRollField.getNumber());
+                    offsetXSlider.setDouble(offsetXField.getNumber());
+                    offsetYSlider.setDouble(offsetYField.getNumber());
+                    offsetZSlider.setDouble(offsetZField.getNumber());
+                    offsetPitchSlider.setDouble(offsetPitchField.getNumber());
+                    offsetYawSlider.setDouble(offsetYawField.getNumber());
+                    offsetRollSlider.setDouble(offsetRollField.getNumber());
                 }
                 initWidgets(page);
             });
@@ -172,8 +172,8 @@ public class ModelViewScreen extends Screen {
         addRenderableWidget(pauseButton).setPosition(x + (xSize + middleWidth) / 2 - 38, y + 4);
         addRenderableWidget(new SimpleIconButton(x + (xSize + middleWidth) / 2 - 20, y + 4, 16, 16, 0, 0, _ -> {
             modelScale = textureScale = 80;
-            entityYawSlider.setValue(0);
-            entityPitchSlider.setValue(0);
+            entityYawSlider.setDouble(0);
+            entityPitchSlider.setDouble(0);
             modelX = modelY = textureX = textureY = 0;
             xRot = yRot = 0;
             layers = 0;
@@ -249,12 +249,12 @@ public class ModelViewScreen extends Screen {
                     offsetPitchField.setNumber(0f);
                     offsetYawField.setNumber(0f);
                     offsetRollField.setNumber(0f);
-                    offsetXSlider.setValue(0);
-                    offsetYSlider.setValue(0);
-                    offsetZSlider.setValue(0);
-                    offsetPitchSlider.setValue(0);
-                    offsetYawSlider.setValue(0);
-                    offsetRollSlider.setValue(0);
+                    offsetXSlider.setDouble(0);
+                    offsetYSlider.setDouble(0);
+                    offsetZSlider.setDouble(0);
+                    offsetPitchSlider.setDouble(0);
+                    offsetYawSlider.setDouble(0);
+                    offsetRollSlider.setDouble(0);
                 }), smallSettings);
                 if (useSliderOffset) rows.addChild(offsetRollSlider, sliderSettings);
                 else rows.addChild(offsetRollField, fieldSettings);
@@ -497,8 +497,8 @@ public class ModelViewScreen extends Screen {
         float entityPrevHeadYaw = entity.yHeadRotO;
         float entityHeadYaw = entity.yHeadRot;
         entity.yBodyRot = 180.0f;
-        entity.setYRot(180.0f + (float) entityYawSlider.getValue());
-        entity.setXRot((float) entityPitchSlider.getValue());
+        entity.setYRot(180.0f + (float) entityYawSlider.getDouble());
+        entity.setXRot((float) entityPitchSlider.getDouble());
         entity.yHeadRot = entity.getYRot();
         entity.yHeadRotO = entity.getYRot();
         Vector3f offset = new Vector3f((float) modelX, (float) modelY, 0);
@@ -605,17 +605,17 @@ public class ModelViewScreen extends Screen {
         bindZButton.setValue(target.bindConfig().bindZ() ? 0 : 1);
         bindRotButton.setValue(target.bindConfig().bindRotation() ? 0 : 1);
         scaleField.setNumber(target.offsets().getScale());
-        offsetXSlider.setValue(target.offsets().getX());
+        offsetXSlider.setDouble(target.offsets().getX());
         offsetXField.setNumber(target.offsets().getX());
-        offsetYSlider.setValue(target.offsets().getY());
+        offsetYSlider.setDouble(target.offsets().getY());
         offsetYField.setNumber(target.offsets().getY());
-        offsetZSlider.setValue(target.offsets().getZ());
+        offsetZSlider.setDouble(target.offsets().getZ());
         offsetZField.setNumber(target.offsets().getZ());
-        offsetPitchSlider.setValue(target.offsets().getPitch());
+        offsetPitchSlider.setDouble(target.offsets().getPitch());
         offsetPitchField.setNumber(target.offsets().getPitch());
-        offsetYawSlider.setValue(target.offsets().getYaw());
+        offsetYawSlider.setDouble(target.offsets().getYaw());
         offsetYawField.setNumber(target.offsets().getYaw());
-        offsetRollSlider.setValue(target.offsets().getRoll());
+        offsetRollSlider.setDouble(target.offsets().getRoll());
         offsetRollField.setNumber(target.offsets().getRoll());
         disableConfigs.clear();
         disableConfigs.addAll(List.of(target.disableConfigs()));
@@ -626,12 +626,12 @@ public class ModelViewScreen extends Screen {
         BindConfig bindConfig = new BindConfig(bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);
         OffsetConfig offsets = new OffsetConfig()
                 .setScale(scaleField.getNumber())
-                .setX(toggleSliderButton.getValue() == 0 ? (float) offsetXSlider.getValue() : offsetXField.getNumber())
-                .setY(toggleSliderButton.getValue() == 0 ? (float) offsetYSlider.getValue() : offsetYField.getNumber())
-                .setZ(toggleSliderButton.getValue() == 0 ? (float) offsetZSlider.getValue() : offsetZField.getNumber())
-                .setPitch(toggleSliderButton.getValue() == 0 ? (float) offsetPitchSlider.getValue() : offsetPitchField.getNumber())
-                .setYaw(toggleSliderButton.getValue() == 0 ? (float) offsetYawSlider.getValue() : offsetYawField.getNumber())
-                .setRoll(toggleSliderButton.getValue() == 0 ? (float) offsetRollSlider.getValue() : offsetRollField.getNumber());
+                .setX(toggleSliderButton.getValue() == 0 ? (float) offsetXSlider.getDouble() : offsetXField.getNumber())
+                .setY(toggleSliderButton.getValue() == 0 ? (float) offsetYSlider.getDouble() : offsetYField.getNumber())
+                .setZ(toggleSliderButton.getValue() == 0 ? (float) offsetZSlider.getDouble() : offsetZField.getNumber())
+                .setPitch(toggleSliderButton.getValue() == 0 ? (float) offsetPitchSlider.getDouble() : offsetPitchField.getNumber())
+                .setYaw(toggleSliderButton.getValue() == 0 ? (float) offsetYawSlider.getDouble() : offsetYawField.getNumber())
+                .setRoll(toggleSliderButton.getValue() == 0 ? (float) offsetRollSlider.getDouble() : offsetRollField.getNumber());
         DisableConfig currentDisableConfig = new DisableConfig(disabledNameField.getValue(), disabledIdField.getValue(), disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toArray(UVRectangle[]::new));
         DisableConfig[] disableConfigArray = disableConfigs.toArray(new DisableConfig[0]);
         for (int i = 0; i < disableConfigArray.length; i++) {
