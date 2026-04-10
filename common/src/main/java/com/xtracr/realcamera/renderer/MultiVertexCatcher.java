@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollection;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.SubmitNodeStorage;
+import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import org.jspecify.annotations.NonNull;
 
@@ -58,6 +59,31 @@ public class MultiVertexCatcher {
         poseStack.popPose();
     }
 
+    private static void renderCustomGeometry(Map<RenderType, List<SubmitNodeStorage.CustomGeometrySubmit>> customGeometrySubmits, MultiBufferSource.BufferSource bufferSource) {
+        for (Map.Entry<RenderType, List<SubmitNodeStorage.CustomGeometrySubmit>> entry : customGeometrySubmits.entrySet()) {
+            VertexConsumer buffer = bufferSource.getBuffer(entry.getKey());
+            for (SubmitNodeStorage.CustomGeometrySubmit customGeometrySubmit : entry.getValue()) {
+                customGeometrySubmit.customGeometryRenderer().render(customGeometrySubmit.pose(), buffer);
+            }
+        }
+    }
+
+    /** @see FeatureRenderDispatcher#renderSolidFeatures() */
+    private void renderSolidFeatures() {
+        for (SubmitNodeCollection collection : storage.getSubmitsPerOrder().values()) {
+            PoseStack poseStack = new PoseStack();
+            for (Map.Entry<RenderType, List<SubmitNodeStorage.ModelSubmit<?>>> entry : ((ModelFeatureRenderer$StorageAccessor) collection.getModelSubmits()).getSolidModelSubmits().entrySet()) {
+                VertexConsumer buffer = meshCatcher.getBuffer(entry.getKey());
+                for (SubmitNodeStorage.ModelSubmit<?> submit : entry.getValue()) {
+                    renderModel(poseStack, submit, buffer);
+                }
+            }
+            renderModelParts(poseStack, ((ModelPartFeatureRenderer$StorageAccessor) collection.getModelPartSubmits()).getSolidModelPartSubmits(), meshCatcher);
+            renderCustomGeometry(((CustomFeatureRenderer$StorageAccessor) collection.getCustomGeometrySubmits()).getSolidCustomGeometrySubmits(), meshCatcher);
+        }
+    }
+
+    /** @see FeatureRenderDispatcher#renderTranslucentFeatures() */
     private void renderTranslucentFeatures() {
         for (SubmitNodeCollection collection : storage.getSubmitsPerOrder().values()) {
             PoseStack poseStack = new PoseStack();
@@ -65,13 +91,7 @@ public class MultiVertexCatcher {
                 renderModel(poseStack, submit.modelSubmit(), meshCatcher.getBuffer(submit.renderType()));
             }
             renderModelParts(poseStack, ((ModelPartFeatureRenderer$StorageAccessor) collection.getModelPartSubmits()).getTranslucentModelPartSubmits(), meshCatcher);
-
-            for (Map.Entry<RenderType, List<SubmitNodeStorage.CustomGeometrySubmit>> entry : ((CustomFeatureRenderer$StorageAccessor) collection.getCustomGeometrySubmits()).getTranslucentCustomGeometrySubmits().entrySet()) {
-                VertexConsumer buffer = meshCatcher.getBuffer(entry.getKey());
-                for (SubmitNodeStorage.CustomGeometrySubmit customGeometrySubmit : entry.getValue()) {
-                    customGeometrySubmit.customGeometryRenderer().render(customGeometrySubmit.pose(), buffer);
-                }
-            }
+            renderCustomGeometry(((CustomFeatureRenderer$StorageAccessor) collection.getCustomGeometrySubmits()).getTranslucentCustomGeometrySubmits(), meshCatcher);
         }
     }
 
@@ -82,6 +102,7 @@ public class MultiVertexCatcher {
 
     public void endCatching(Consumer<BuiltIterableBuffer> consumer) {
         if (storage.getSubmitsPerOrder().isEmpty()) return;
+        renderSolidFeatures();
         renderTranslucentFeatures();
         storage.clear();
         meshCatcher.endCatching(consumer);

@@ -1,5 +1,6 @@
 package com.xtracr.realcamera.gui.components;
 
+import com.xtracr.realcamera.RealCamera;
 import com.xtracr.realcamera.util.LocUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
@@ -39,18 +40,18 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
     public T getNumber() {
         try {
             return getNumberInternal();
+        } catch (NumberFormatException e) {
+            return defaultValue;
         } catch (Exception e) {
+            RealCamera.LOGGER.warn("Unexpected error parsing number", e);
             return defaultValue;
         }
     }
 
     public void setNumber(T value) {
-        try {
-            if (value.compareTo(minimum) < 0) value = minimum;
-            else if (value.compareTo(maximum) > 0) value = maximum;
-            setValue(value.toString());
-        } catch (Exception ignored) {
-        }
+        if (value.compareTo(minimum) < 0) value = minimum;
+        else if (value.compareTo(maximum) > 0) value = maximum;
+        setValue(value.toString());
     }
 
     public NumberField<T> setMax(T maximum) {
@@ -68,7 +69,7 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
         return this;
     }
 
-    abstract protected T getNumberInternal();
+    abstract protected T getNumberInternal() throws NumberFormatException;
 
     protected void checkText() {
         super.setTooltip(tooltip);
@@ -76,8 +77,8 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
         if (getValue().isEmpty()) return;
         try {
             T value = getNumberInternal();
-            if (value.compareTo(minimum) < 0) throw new Exception("< " + minimum);
-            if (value.compareTo(maximum) > 0) throw new Exception("> " + maximum);
+            if (value.compareTo(minimum) < 0) throw new RuntimeException("< " + minimum);
+            if (value.compareTo(maximum) > 0) throw new RuntimeException("> " + maximum);
         } catch (Exception e) {
             super.setTooltip(Tooltip.create(LocUtil.literal("Invalid number: " + e.getMessage()).withStyle(s -> s.withColor(ChatFormatting.RED))));
             setTextColor(0xFFFF5555);
@@ -119,7 +120,7 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
         }
 
         @Override
-        protected Float getNumberInternal() {
+        protected Float getNumberInternal() throws NumberFormatException {
             return Float.parseFloat(getValue());
         }
     }
@@ -131,7 +132,7 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
         }
 
         @Override
-        protected Integer getNumberInternal() {
+        protected Integer getNumberInternal() throws NumberFormatException {
             return Integer.parseInt(getValue());
         }
     }

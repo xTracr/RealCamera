@@ -63,7 +63,8 @@ public class RealCameraCore {
 
     public static Vec3 getEulerAngle(float pitch, float yaw, float roll) {
         if (!currentTarget().bindConfig().bindRotation()) return new Vec3(pitch, yaw, roll);
-        return MathUtil.getEulerAngleYXZ(smoothedCamera.getRotation()).scale(Math.toDegrees(1));
+        double scale = Math.toDegrees(1);
+        return MathUtil.getEulerAngleYXZ(smoothedCamera.getRotation()).multiply(scale, -scale, scale);
     }
 
     public static void computeCamera(Minecraft client, float partialTicks) {
@@ -107,7 +108,8 @@ public class RealCameraCore {
                 .invert()
                 .translate(Vec3.ZERO.subtract(lastResult.getPosition()).toVector3f());
         PoseStack poseStack = new PoseStack();
-        poseStack.mulPose(new Matrix4f(invertedCameraPose).mulLocal(modelView.invert(new Matrix4f())));
+        poseStack.mulPose(modelView.invert(new Matrix4f()));
+        poseStack.mulPose(invertedCameraPose);
         Entity entity = client.getCameraEntity();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         SubmitNodeCollector collector = new RoutingSubmitCollector(submitNodeCollector, vertexCatcher.initCollector());

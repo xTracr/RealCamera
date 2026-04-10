@@ -12,5 +12,8 @@ import java.util.Map;
 @Mixin(CustomFeatureRenderer.Storage.class)
 public interface CustomFeatureRenderer$StorageAccessor {
     @Accessor
+    Map<RenderType, List<SubmitNodeStorage.CustomGeometrySubmit>> getSolidCustomGeometrySubmits();
+
+    @Accessor
     Map<RenderType, List<SubmitNodeStorage.CustomGeometrySubmit>> getTranslucentCustomGeometrySubmits();
 }

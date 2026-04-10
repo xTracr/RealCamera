@@ -11,10 +11,10 @@ import com.xtracr.realcamera.config.BindTarget.*;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ConfigScreen;
 import com.xtracr.realcamera.config.ModConfig;
-import com.xtracr.realcamera.gui.components.CyclingTexturedButton;
+import com.xtracr.realcamera.gui.components.CycleIconButton;
 import com.xtracr.realcamera.gui.components.DoubleSlider;
 import com.xtracr.realcamera.gui.components.NumberField;
-import com.xtracr.realcamera.gui.components.TexturedButton;
+import com.xtracr.realcamera.gui.components.SimpleIconButton;
 import com.xtracr.realcamera.renderer.state.VertexData;
 import com.xtracr.realcamera.util.LocUtil;
 import com.xtracr.realcamera.util.MathUtil;
@@ -76,12 +76,12 @@ public class ModelViewScreen extends Screen {
     private final List<DisableConfig> disableConfigs = new ArrayList<>();
     private final List<UVRectangleWidget> rectWidgets = new ArrayList<>();
     private final Map<String, Set<String>> hiddenNameMap = new HashMap<>();
-    private final CyclingTexturedButton showTextureButton = new CyclingTexturedButton(48, 16, 0, 2).setOnValueChange(_ -> initWidgets(page));
-    private final CyclingTexturedButton pauseButton = new CyclingTexturedButton(0, 16, 0, 2);
-    private final CyclingTexturedButton bindXButton = new CyclingTexturedButton(16, 16, 1, 2);
-    private final CyclingTexturedButton bindYButton = new CyclingTexturedButton(16, 16, 0, 2);
-    private final CyclingTexturedButton bindZButton = new CyclingTexturedButton(16, 16, 1, 2);
-    private final CyclingTexturedButton bindRotButton = new CyclingTexturedButton(16, 16, 1, 2);
+    private final CycleIconButton showTextureButton = new CycleIconButton(48, 16, 0, 2).setOnValueChange(_ -> initWidgets(page));
+    private final CycleIconButton pauseButton = new CycleIconButton(0, 16, 0, 2);
+    private final CycleIconButton bindXButton = new CycleIconButton(16, 16, 1, 2);
+    private final CycleIconButton bindYButton = new CycleIconButton(16, 16, 0, 2);
+    private final CycleIconButton bindZButton = new CycleIconButton(16, 16, 1, 2);
+    private final CycleIconButton bindRotButton = new CycleIconButton(16, 16, 1, 2);
     private final DoubleSlider entityPitchSlider = createSlider("pitch", widgetWidth * 2 + 4, -90.0, 90.0);
     private final DoubleSlider entityYawSlider = createSlider("yaw", widgetWidth * 2 + 4, -60.0, 60.0);
     private final DoubleSlider offsetXSlider = createSlider("offsetX", widgetWidth * 2 - 18, ModConfig.MIN_OFFSET_D, ModConfig.MAX_OFFSET_D);
@@ -170,7 +170,7 @@ public class ModelViewScreen extends Screen {
         if (toggleCategoryButton.getValue() == Category.DISABLE)
             addRenderableWidget(showTextureButton).setPosition(x + (xSize - middleWidth) / 2 + 4, y + 4);
         addRenderableWidget(pauseButton).setPosition(x + (xSize + middleWidth) / 2 - 38, y + 4);
-        addRenderableWidget(new TexturedButton(x + (xSize + middleWidth) / 2 - 20, y + 4, 16, 16, 0, 0, _ -> {
+        addRenderableWidget(new SimpleIconButton(x + (xSize + middleWidth) / 2 - 20, y + 4, 16, 16, 0, 0, _ -> {
             modelScale = textureScale = 80;
             entityYawSlider.setValue(0);
             entityPitchSlider.setValue(0);
@@ -242,7 +242,7 @@ public class ModelViewScreen extends Screen {
                 else rows.addChild(offsetPitchField, fieldSettings);
                 if (useSliderOffset) rows.addChild(offsetYawSlider, 2, grid.newCellSettings().padding(26, 2, 0, 0));
                 else rows.addChild(offsetYawField, 2, grid.newCellSettings().padding(29, 3, 1, 1));
-                rows.addChild(new TexturedButton(0, 0, _ -> {
+                rows.addChild(new SimpleIconButton(0, 0, _ -> {
                     offsetXField.setNumber(0f);
                     offsetYField.setNumber(0f);
                     offsetZField.setNumber(0f);
@@ -278,7 +278,7 @@ public class ModelViewScreen extends Screen {
                 }).setTooltip(createTooltip("focusedRectangleNumber"));
                 addRenderableWidget(new StringWidget(x + 4 + widgetWidth + 3, y + 4 + (widgetHeight + 2) * 3, 6, widgetHeight, LocUtil.literal("/"), font));
                 addRenderableWidget(rectWidgetsSizeWidget);
-                rows.addChild(new TexturedButton(48, 0, _ -> deleteFocusedRectWidget()), grid.newCellSettings().padding(5 + widgetWidth - 18, 3, 1, 1))
+                rows.addChild(new SimpleIconButton(48, 0, _ -> deleteFocusedRectWidget()), grid.newCellSettings().padding(5 + widgetWidth - 18, 3, 1, 1))
                         .setTooltip(createTooltip("deleteSelectedRectangle"));
                 rows.addChild(new StringWidget(26, widgetHeight, LocUtil.literal("uMin:"), font));
                 rows.addChild(uMinField, offsetXSettings).setOnValueChange(f -> {
@@ -325,7 +325,7 @@ public class ModelViewScreen extends Screen {
         LayoutSettings smallSettings = grid.newCellSettings().padding(5, 3, 1, 1);
         GridLayout.RowHelper rows = grid.createRowHelper(4);
         rows.addChild(toggleCategoryButton, 3);
-        rows.addChild(new TexturedButton(80, 0, _ -> {
+        rows.addChild(new SimpleIconButton(80, 0, _ -> {
             if (CompatibilityHelper.isModLoaded("cloth-config")) minecraft.setScreen(ConfigScreen.create(this));
         }), smallSettings).setTooltip(createTooltip("toConfigScreen"));
         final int widgetsPerPage, size;
@@ -338,7 +338,7 @@ public class ModelViewScreen extends Screen {
                 initWidgets(0);
             }), 2).setTooltip(createTooltip("paste"));
             rows.addChild(disabledNameField, 3, smallSettings).setTooltip(createTooltip("disabledName"));
-            rows.addChild(new TexturedButton(64, 0, button -> {
+            rows.addChild(new SimpleIconButton(64, 0, button -> {
                 String name = disabledNameField.getValue(), textureId = disabledIdField.getValue();
                 if (name.isBlank()) {
                     button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("emptyName").withStyle(ChatFormatting.RED)));
@@ -362,7 +362,7 @@ public class ModelViewScreen extends Screen {
                 DisableConfig config = disableConfigs.get(i);
                 String targetName = nameField.getValue();
                 Set<String> hiddenNames = hiddenNameMap.computeIfAbsent(targetName, _ -> new HashSet<>());
-                addRenderableWidget(new CyclingTexturedButton(32, 16, hiddenNames.contains(config.name()) ? 1 : 0, 2))
+                addRenderableWidget(new CycleIconButton(32, 16, hiddenNames.contains(config.name()) ? 1 : 0, 2))
                         .setOnValueChange(value -> {
                             if (value == 0) hiddenNames.remove(config.name());
                             else hiddenNames.add(config.name());
@@ -376,7 +376,7 @@ public class ModelViewScreen extends Screen {
                     for (UVRectangle rect : config.rectangles()) rectWidgets.add(createRectWidget(rect));
                     initWidgets(page);
                 }), 3).setTooltip(Tooltip.create(LocUtil.literal(config.name())));
-                rows.addChild(new TexturedButton(48, 0, _ -> {
+                rows.addChild(new SimpleIconButton(48, 0, _ -> {
                     disableConfigs.removeIf(disableConfig -> disableConfig.name().equals(config.name()));
                     if (disabledNameField.getValue().equals(config.name())) rectWidgets.clear();
                     initWidgets(page * widgetsPerPage > size - 2 && size > 1 ? page - 1 : page);
@@ -397,7 +397,7 @@ public class ModelViewScreen extends Screen {
                                 LocUtil.literal(name))
                         );
                 if (i < fixedTargetCount) continue;
-                rows.addChild(new TexturedButton(48, 0, _ -> {
+                rows.addChild(new SimpleIconButton(48, 0, _ -> {
                     targetList.remove(target);
                     ConfigFile.save();
                     initWidgets(page * widgetsPerPage > size - 2 && size > 1 ? page - 1 : page);
@@ -408,9 +408,9 @@ public class ModelViewScreen extends Screen {
         FrameLayout.alignInRectangle(grid, x + (xSize + middleWidth) / 2 + 4, y + 2, x + xSize, y + ySize, 0, 0);
         grid.visitWidgets(this::addRenderableWidget);
         final int pages = (size - 1) / widgetsPerPage + 1;
-        addRenderableWidget(new TexturedButton(x + (xSize + middleWidth) / 2 + 8, y + ySize - 20, 16, 16, 16, 0, _ -> initWidgets((page - 1 + pages) % pages)));
+        addRenderableWidget(new SimpleIconButton(x + (xSize + middleWidth) / 2 + 8, y + ySize - 20, 16, 16, 16, 0, _ -> initWidgets((page - 1 + pages) % pages)));
         addRenderableWidget(new StringWidget(x + (xSize + middleWidth) / 2 + 30, y + ySize - 20, widgetWidth * 2 - 40, widgetHeight, LocUtil.literal((page + 1) + " / " + pages), font));
-        addRenderableWidget(new TexturedButton(x + xSize - 21, y + ySize - 20, 16, 16, 32, 0, _ -> initWidgets((page + 1) % pages)));
+        addRenderableWidget(new SimpleIconButton(x + xSize - 21, y + ySize - 20, 16, 16, 32, 0, _ -> initWidgets((page + 1) % pages)));
     }
 
     public @NonNull UVRectangleWidget addRectWidget(@NonNull UVRectangleWidget rectWidget) {

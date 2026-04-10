@@ -4,9 +4,9 @@ plugins {
 }
 
 allprojects {
-    val commitSHA = findProperty("commitSHA")?.toString()?.take(7)
+    val commitSHA = findProperty("commitSHA")?.let { "-${it.toString().take(7)}" }
     group = property("mod_group_id") as String
-    version = "${property("mod_version")}-$commitSHA"
+    version = "${property("mod_version")}$commitSHA"
 
     repositories {
         mavenCentral()

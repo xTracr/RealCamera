@@ -12,22 +12,22 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.function.IntConsumer;
 
-public class CyclingTexturedButton extends AbstractButton {
+public class CycleIconButton extends AbstractButton {
     protected final Identifier texture;
     protected final int textureWidth, textureHeight, u, v, vOffset, size;
     @Nullable
     private IntConsumer onValueChange;
     private int value;
 
-    public CyclingTexturedButton(int u, int v, int value, int size) {
+    public CycleIconButton(int u, int v, int value, int size) {
         this(0, 0, 16, 16, u, v, value, size);
     }
 
-    public CyclingTexturedButton(int x, int y, int width, int height, int u, int v, int value, int size) {
-        this(x, y, width, height, u, v, height, value, size, TexturedButton.ICON_TEXTURE, 256, 256);
+    public CycleIconButton(int x, int y, int width, int height, int u, int v, int value, int size) {
+        this(x, y, width, height, u, v, height, value, size, SimpleIconButton.ICON_TEXTURE, 256, 256);
     }
 
-    public CyclingTexturedButton(int x, int y, int width, int height, int u, int v, int vOffset, int value, int size, Identifier texture, int textureWidth, int textureHeight) {
+    public CycleIconButton(int x, int y, int width, int height, int u, int v, int vOffset, int value, int size, Identifier texture, int textureWidth, int textureHeight) {
         super(x, y, width, height, CommonComponents.EMPTY);
         this.u = u;
         this.v = v;
@@ -47,7 +47,7 @@ public class CyclingTexturedButton extends AbstractButton {
         this.value = (value % size + size) % size;
     }
 
-    public CyclingTexturedButton setOnValueChange(IntConsumer onValueChange) {
+    public CycleIconButton setOnValueChange(IntConsumer onValueChange) {
         this.onValueChange = onValueChange;
         return this;
     }

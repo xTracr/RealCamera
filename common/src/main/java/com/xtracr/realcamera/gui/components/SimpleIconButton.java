@@ -2,43 +2,31 @@ package com.xtracr.realcamera.gui.components;
 
 import com.xtracr.realcamera.RealCamera;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.AbstractButton;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.input.InputWithModifiers;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.resources.Identifier;
-import org.jspecify.annotations.NonNull;
 
-import java.util.function.Consumer;
-
-public class TexturedButton extends AbstractButton {
+public class SimpleIconButton extends Button {
     public static final Identifier ICON_TEXTURE = Identifier.fromNamespaceAndPath(RealCamera.MODID, "textures/gui/icon.png");
     protected final Identifier texture;
     protected final int textureWidth, textureHeight, u, v;
-    private final Consumer<TexturedButton> onPress;
 
-    public TexturedButton(int u, int v, Consumer<TexturedButton> onPress) {
+    public SimpleIconButton(int u, int v, Button.OnPress onPress) {
         this(0, 0, 16, 16, u, v, onPress);
     }
 
-    public TexturedButton(int x, int y, int width, int height, int u, int v, Consumer<TexturedButton> onPress) {
+    public SimpleIconButton(int x, int y, int width, int height, int u, int v, Button.OnPress onPress) {
         this(x, y, width, height, u, v, ICON_TEXTURE, 256, 256, onPress);
     }
 
-    public TexturedButton(int x, int y, int width, int height, int u, int v, Identifier texture, int textureWidth, int textureHeight, Consumer<TexturedButton> onPress) {
-        super(x, y, width, height, CommonComponents.EMPTY);
+    public SimpleIconButton(int x, int y, int width, int height, int u, int v, Identifier texture, int textureWidth, int textureHeight, Button.OnPress onPress) {
+        super(x, y, width, height, CommonComponents.EMPTY, onPress, DEFAULT_NARRATION);
         this.textureWidth = textureWidth;
         this.textureHeight = textureHeight;
-        this.onPress = onPress;
         this.u = u;
         this.v = v;
         this.texture = texture;
-    }
-
-    @Override
-    public void onPress(@NonNull InputWithModifiers input) {
-        onPress.accept(this);
     }
 
     @Override
@@ -46,10 +34,5 @@ public class TexturedButton extends AbstractButton {
         graphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0xFF646464);
         graphics.blit(RenderPipelines.GUI_TEXTURED, texture, getX(), getY(), u, v, width, height, textureWidth, textureHeight);
         if (isHoveredOrFocused()) graphics.outline(getX(), getY(), getWidth(), getHeight(), 0xFFFFFFFF);
-    }
-
-    @Override
-    protected void updateWidgetNarration(@NonNull NarrationElementOutput builder) {
-        this.defaultButtonNarrationText(builder);
     }
 }
