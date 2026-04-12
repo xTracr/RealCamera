@@ -177,7 +177,7 @@ public class ModConfig {
     }
 
     public boolean bindingDisableWhenCrawling() {
-        return  binding.disableWhenCrawling;
+        return binding.disableWhenCrawling;
     }
 
     public boolean bindingDisableWhenSneaking() {

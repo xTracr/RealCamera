@@ -1,10 +1,6 @@
 package com.xtracr.realcamera.compat;
 
 import com.xtracr.realcamera.RealCamera;
-import com.xtracr.realcamera.RealCameraCore;
-import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.mixin.accessor.CameraAccessor;
-import net.minecraft.client.Camera;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 
@@ -26,7 +22,7 @@ public class CompatibilityHelper {
         if (isModLoaded("freecam")) try {
             Class<?> FC_Freecam = Class.forName("net.xolt.freecam.Freecam");
             Method FC_Freecam_isEnabled = FC_Freecam.getDeclaredMethod("isEnabled");
-            DisableHelper.MAIN_FEATURE.registerOr(player -> {
+            DisableHelper.MAIN_FEATURE.registerOr(_ -> {
                 try {
                     return (boolean) FC_Freecam_isEnabled.invoke(null);
                 } catch (Exception ignored) {
@@ -49,7 +45,7 @@ public class CompatibilityHelper {
             Class<?> SBW_ClientEventHandler = Class.forName("com.atsuishio.superbwarfare.event.ClientEventHandler");
             SBW_ClientEventHandler_zoomTime = SBW_ClientEventHandler.getDeclaredField("zoomTime");
             SBW_VehicleEntity = Class.forName("com.atsuishio.superbwarfare.entity.vehicle.base.VehicleEntity");
-            DisableHelper.MAIN_FEATURE.registerOrInBinding(player -> CompatibilityHelper.SBW_gunsIsZooming());
+            DisableHelper.MAIN_FEATURE.registerOrInBinding(_ -> CompatibilityHelper.SBW_gunsIsZooming());
             DisableHelper.MAIN_FEATURE.registerOrInBinding(CompatibilityHelper::SBW_isDrivingVehicle);
         } catch (Exception e) {
             RealCamera.LOGGER.warn("Compatibility with SuperbWarfare is outdated: [{}] {}", e.getClass().getName(), e.getMessage());
@@ -73,18 +69,12 @@ public class CompatibilityHelper {
         }
     }
 
-    public static void NEA_setDeltaTick(float deltaTick) {
+    public static void NEA_setDeltaTick(float partialTicks) {
         if (NEA_playerTransformer_setDeltaTick != null) try {
             Object INSTANCE = NEA_NEAnimationsLoader_INSTANCE.get(null);
             Object playerTransformer = NEA_NEAnimationsLoader_playerTransformer.get(INSTANCE);
-            NEA_playerTransformer_setDeltaTick.invoke(playerTransformer, deltaTick);
+            NEA_playerTransformer_setDeltaTick.invoke(playerTransformer, partialTicks);
         } catch (Exception ignored) {
-        }
-    }
-
-    public static void forceSetCameraPos(Camera camera) {
-        if (RealCameraCore.isActive() && !ConfigFile.config().isClassic()) {
-            ((CameraAccessor) camera).invokeSetPosition(RealCameraCore.getCameraPos(camera.getPosition()));
         }
     }
 

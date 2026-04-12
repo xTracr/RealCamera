@@ -1,13 +1,13 @@
-package com.xtracr.realcamera.util;
+package com.xtracr.realcamera.renderer;
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
-import com.xtracr.realcamera.util.VertexData.MutableVertex;
-import net.minecraft.util.FastColor;
+import com.xtracr.realcamera.renderer.state.VertexData;
+import com.xtracr.realcamera.renderer.state.VertexData.MutableVertex;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -20,12 +20,13 @@ import java.util.stream.StreamSupport;
 
 public class IterableVertexBuffer implements Iterable<VertexData> {
     private static final boolean IS_LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
+    private static final float NORMAL_SCALE = 1.0f / 127.0f;
     public final int vertexCount, vertexSize;
     private final MutableVertex reusableVertex = VertexData.mutable();
     private final Iterable<VertexData[]> primitives;
     private final ByteBuffer buffer;
     private final int positionOffset, colorOffset, uvOffset, overlayOffset, lightOffset, normalOffset;
-    private final boolean hasPosition, hasColor, hasUV, hasOverlay, hasLight, hasNormal, fastFormat;
+    private final boolean hasPosition, hasColor, hasUV, hasOverlay, hasLight, hasNormal, fullFormat;
 
     public IterableVertexBuffer(MeshData meshData) {
         buffer = meshData.vertexBuffer();
@@ -45,9 +46,9 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         hasOverlay = overlayOffset != -1;
         hasLight = lightOffset != -1;
         hasNormal = normalOffset != -1;
-        fastFormat = format == DefaultVertexFormat.NEW_ENTITY;
+        fullFormat = vertexSize == DefaultVertexFormat.ENTITY.getVertexSize();
         boolean isQuad = drawState.mode() == VertexFormat.Mode.QUADS;
-        primitives = fastFormat && isQuad ? new FastQuadReader() : new PrimitiveReader(drawState.mode());
+        primitives = fullFormat && isQuad ? new FastQuadReader() : new PrimitiveReader(drawState.mode());
     }
 
     public Iterable<VertexData[]> primitives() {
@@ -63,13 +64,29 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
     }
 
     public VertexData readVertexAt(int index) {
+        Objects.checkIndex(index, vertexCount);
         return readVertexAt(index, reusableVertex);
     }
 
-    public MutableVertex readVertexAt(int index, MutableVertex mutable) {
-        Objects.checkIndex(index, vertexCount);
+    @Override
+    public @NonNull Iterator<VertexData> iterator() {
+        return new VertexIterator();
+    }
+
+    @Override
+    public Spliterator<VertexData> spliterator() {
+        return new VertexSpliterator(0, vertexCount);
+    }
+
+    private int readColor(int offset) {
+        // net.minecraft.util.ARGB.fromABGR(abgr)
+        int abgr = IS_LITTLE_ENDIAN ? buffer.getInt(offset) : Integer.reverseBytes(buffer.getInt(offset));
+        return (abgr & 0xFF00FF00) | (abgr & 0xFF0000) >> 16 | (abgr & 0xFF) << 16;
+    }
+
+    private MutableVertex readVertexAt(int index, MutableVertex mutable) {
         int vertexOffset = index * vertexSize;
-        if (fastFormat) {
+        if (fullFormat) {
             mutable.x = buffer.getFloat(vertexOffset);
             mutable.y = buffer.getFloat(vertexOffset + 4);
             mutable.z = buffer.getFloat(vertexOffset + 8);
@@ -78,9 +95,9 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
             mutable.v = buffer.getFloat(vertexOffset + 20);
             mutable.overlay = buffer.getInt(vertexOffset + 24);
             mutable.light = buffer.getInt(vertexOffset + 28);
-            mutable.normalX = buffer.get(vertexOffset + 32) / 127.0f;
-            mutable.normalY = buffer.get(vertexOffset + 33) / 127.0f;
-            mutable.normalZ = buffer.get(vertexOffset + 34) / 127.0f;
+            mutable.normalX = buffer.get(vertexOffset + 32) * NORMAL_SCALE;
+            mutable.normalY = buffer.get(vertexOffset + 33) * NORMAL_SCALE;
+            mutable.normalZ = buffer.get(vertexOffset + 34) * NORMAL_SCALE;
             return mutable;
         }
         if (hasPosition) {
@@ -105,26 +122,11 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         }
         if (hasNormal) {
             int offset = vertexOffset + normalOffset;
-            mutable.normalX = buffer.get(offset) / 127.0f;
-            mutable.normalY = buffer.get(offset + 1) / 127.0f;
-            mutable.normalZ = buffer.get(offset + 2) / 127.0f;
+            mutable.normalX = buffer.get(offset) * NORMAL_SCALE;
+            mutable.normalY = buffer.get(offset + 1) * NORMAL_SCALE;
+            mutable.normalZ = buffer.get(offset + 2) * NORMAL_SCALE;
         }
         return mutable;
-    }
-
-    @Override
-    public @NotNull Iterator<VertexData> iterator() {
-        return new VertexIterator();
-    }
-
-    @Override
-    public Spliterator<VertexData> spliterator() {
-        return new VertexSpliterator(0, vertexCount);
-    }
-
-    private int readColor(int offset) {
-        // ABGR2ARGB is the same as ARGB2ABGR
-        return FastColor.ABGR32.fromArgb32(IS_LITTLE_ENDIAN ? buffer.getInt(offset) : Integer.reverseBytes(buffer.getInt(offset)));
     }
 
     private class VertexPointer implements VertexData {
@@ -150,7 +152,8 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
 
         @Override
         public Vec3 position() {
-            if (hasPosition) return new Vec3(buffer.getFloat(bytePointer + positionOffset), buffer.getFloat(bytePointer + positionOffset + 4), buffer.getFloat(bytePointer + positionOffset + 8));
+            if (hasPosition)
+                return new Vec3(buffer.getFloat(bytePointer + positionOffset), buffer.getFloat(bytePointer + positionOffset + 4), buffer.getFloat(bytePointer + positionOffset + 8));
             return Vec3.ZERO;
         }
 
@@ -174,7 +177,8 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
 
         @Override
         public UV uv() {
-            if (hasUV) return new UV(buffer.getFloat(bytePointer + uvOffset), buffer.getFloat(bytePointer + uvOffset + 4));
+            if (hasUV)
+                return new UV(buffer.getFloat(bytePointer + uvOffset), buffer.getFloat(bytePointer + uvOffset + 4));
             return new UV(0, 0);
         }
 
@@ -192,31 +196,32 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
 
         @Override
         public float normalX() {
-            if (hasNormal) return buffer.get(bytePointer + normalOffset) / 127.0f;
+            if (hasNormal) return buffer.get(bytePointer + normalOffset) * NORMAL_SCALE;
             return 0;
         }
 
         @Override
         public float normalY() {
-            if (hasNormal) return buffer.get(bytePointer + normalOffset + 1) / 127.0f;
+            if (hasNormal) return buffer.get(bytePointer + normalOffset + 1) * NORMAL_SCALE;
             return 0;
         }
 
         @Override
         public float normalZ() {
-            if (hasNormal) return buffer.get(bytePointer + normalOffset + 2) / 127.0f;
+            if (hasNormal) return buffer.get(bytePointer + normalOffset + 2) * NORMAL_SCALE;
             return 0;
         }
 
         @Override
         public Vec3 normal() {
-            if (hasNormal) return new Vec3(buffer.get(bytePointer + normalOffset) / 127.0f, buffer.get(bytePointer + normalOffset + 1) / 127.0f, buffer.get(bytePointer + normalOffset + 2) / 127.0f);
+            if (hasNormal)
+                return new Vec3(buffer.get(bytePointer + normalOffset) * NORMAL_SCALE, buffer.get(bytePointer + normalOffset + 1) * NORMAL_SCALE, buffer.get(bytePointer + normalOffset + 2) * NORMAL_SCALE);
             return Vec3.ZERO;
         }
 
         @Override
         public VertexData asImmutable() {
-            if (fastFormat) {
+            if (fullFormat) {
                 return new ImmutableVertex(buffer.getFloat(bytePointer),
                         buffer.getFloat(bytePointer + 4),
                         buffer.getFloat(bytePointer + 8),
@@ -225,9 +230,9 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
                         buffer.getFloat(bytePointer + 20),
                         buffer.getInt(bytePointer + 24),
                         buffer.getInt(bytePointer + 28),
-                        buffer.get(bytePointer + 32) / 127.0f,
-                        buffer.get(bytePointer + 33) / 127.0f,
-                        buffer.get(bytePointer + 34) / 127.0f);
+                        buffer.get(bytePointer + 32) * NORMAL_SCALE,
+                        buffer.get(bytePointer + 33) * NORMAL_SCALE,
+                        buffer.get(bytePointer + 34) * NORMAL_SCALE);
             }
             return VertexData.super.asImmutable();
         }
@@ -242,7 +247,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         }
 
         @Override
-        public @NotNull VertexData next() {
+        public @NonNull VertexData next() {
             bytePointer += vertexSize;
             return this;
         }
@@ -303,7 +308,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         }
 
         @Override
-        public @NotNull Iterator<VertexData[]> iterator() {
+        public @NonNull Iterator<VertexData[]> iterator() {
             return new PrimitiveIterator();
         }
 
@@ -397,7 +402,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         private final int quadCount = vertexCount / 4;
 
         @Override
-        public @NotNull Iterator<VertexData[]> iterator() {
+        public @NonNull Iterator<VertexData[]> iterator() {
             return new FastQuadIterator();
         }
 
@@ -418,9 +423,9 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
                 mutable.v = buffer.getFloat(vertexOffset + 20);
                 mutable.overlay = buffer.getInt(vertexOffset + 24);
                 mutable.light = buffer.getInt(vertexOffset + 28);
-                mutable.normalX = buffer.get(vertexOffset + 32) / 127.0f;
-                mutable.normalY = buffer.get(vertexOffset + 33) / 127.0f;
-                mutable.normalZ = buffer.get(vertexOffset + 34) / 127.0f;
+                mutable.normalX = buffer.get(vertexOffset + 32) * NORMAL_SCALE;
+                mutable.normalY = buffer.get(vertexOffset + 33) * NORMAL_SCALE;
+                mutable.normalZ = buffer.get(vertexOffset + 34) * NORMAL_SCALE;
             }
         }
 

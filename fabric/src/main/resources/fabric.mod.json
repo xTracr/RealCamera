@@ -27,11 +27,12 @@
     "realcamera.mixins.json",
     "realcamera-common.mixins.json"
   ],
+  "accessWidener": "realcamera.accesswidener",
   "depends": {
-    "fabricloader": "*",
+    "fabricloader": ">=0.18.4",
     "fabric-api": "*",
-    "minecraft": "1.21.1",
-    "java": ">=21"
+    "minecraft": "~26.1",
+    "java": ">=25"
   },
   "recommends": {
     "modmenu": "*",

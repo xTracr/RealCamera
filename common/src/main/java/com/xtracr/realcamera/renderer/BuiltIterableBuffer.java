@@ -1,10 +1,10 @@
-package com.xtracr.realcamera.util;
-
+package com.xtracr.realcamera.renderer;
 
 import com.mojang.blaze3d.vertex.MeshData;
-import com.xtracr.realcamera.util.VertexData.UV;
-import net.minecraft.client.renderer.RenderType;
-import org.jetbrains.annotations.Nullable;
+import com.xtracr.realcamera.renderer.state.VertexData;
+import com.xtracr.realcamera.renderer.state.VertexData.UV;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import org.jspecify.annotations.Nullable;
 
 import java.awt.*;
 import java.util.HashMap;
@@ -93,7 +93,7 @@ public record BuiltIterableBuffer(RenderType renderType, String textureId, Itera
                     uvCache[j * 2] = primitive[j].u();
                     uvCache[j * 2 + 1] = primitive[j].v();
                 }
-                FIND_PRIMITIVE_CACHE.computeIfAbsent(renderType, k -> new HashMap<>()).put(uv, uvCache);
+                FIND_PRIMITIVE_CACHE.computeIfAbsent(renderType, _ -> new HashMap<>()).put(uv, uvCache);
                 primitives[i] = VertexData.asImmutable(primitive);
             }
             return allFound;

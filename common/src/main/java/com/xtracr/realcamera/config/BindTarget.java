@@ -4,7 +4,7 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import com.xtracr.realcamera.util.VertexData;
+import com.xtracr.realcamera.renderer.state.VertexData;
 import it.unimi.dsi.fastutil.floats.Float2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.floats.FloatOpenHashSet;
 import net.minecraft.network.FriendlyByteBuf;
@@ -24,7 +24,7 @@ public record BindTarget(
         DisableConfig[] disableConfigs) {
     public static final List<BindTarget> defaultTargets;
     public static final BindTarget EMPTY = blank(null, null);
-    private static final short serialVersion = 703;
+    private static final short serialVersion = 703; // 0.7.3
 
     static {
         defaultTargets = List.of(
@@ -43,7 +43,8 @@ public record BindTarget(
 
     public static BindTarget read(FriendlyByteBuf byteBuf) throws IllegalArgumentException {
         short version = byteBuf.readShort();
-        if (version != serialVersion) throw new IllegalArgumentException("Invalid version: " + version + ", expected " + serialVersion);
+        if (version != serialVersion)
+            throw new IllegalArgumentException("Invalid version: " + version + ", expected " + serialVersion);
         String name = byteBuf.readUtf();
         String textureId = byteBuf.readUtf();
         int priority = byteBuf.readVarInt();
@@ -66,7 +67,7 @@ public record BindTarget(
         DisableConfig playerHead = new DisableConfig("player_head", textureId, false, new UVRectangle[]{new UVRectangle(0, 0, 1.0f, 0.25f)});
         DisableConfig dragonHead = new DisableConfig("dragon_head", "minecraft:textures/entity/enderdragon/dragon.png", true, new UVRectangle[0]);
         DisableConfig[] disableConfigs = new DisableConfig[]{playerHead, dragonHead};
-        return new BindTarget(name, textureId, priority, 0.1f, targetConfig, bindConfig, offsets, disableConfigs);
+        return new BindTarget(name, textureId, priority, 0.2f, targetConfig, bindConfig, offsets, disableConfigs);
     }
 
     public boolean isEmpty() {
@@ -270,10 +271,10 @@ public record BindTarget(
             }
             for (UVRectangle rect : rectangles) {
                 if (!rect.contains(u, v)) continue;
-                disableCacheMap.computeIfAbsent(u, k -> new FloatOpenHashSet()).add(v);
+                disableCacheMap.computeIfAbsent(u, _ -> new FloatOpenHashSet()).add(v);
                 return true;
             }
-            disableCacheMap.computeIfAbsent(u, k -> new FloatOpenHashSet()).add(-v);
+            disableCacheMap.computeIfAbsent(u, _ -> new FloatOpenHashSet()).add(-v);
             return false;
         }
 

@@ -5,12 +5,12 @@ import com.xtracr.realcamera.api.BindResult;
 import com.xtracr.realcamera.api.RealCameraAPI;
 import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.util.BuiltIterableBuffer;
-import com.xtracr.realcamera.util.MultiVertexCatcher;
-import com.xtracr.realcamera.util.VertexData;
+import com.xtracr.realcamera.renderer.BuiltIterableBuffer;
+import com.xtracr.realcamera.renderer.MultiVertexCatcher;
+import com.xtracr.realcamera.renderer.state.VertexData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.util.Mth;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
@@ -20,12 +20,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class YSMCompat {
+    private static final MultiVertexCatcher vertexCatcher = MultiVertexCatcher.create();
     private static final Map<BindTarget, BindResult> resultMap = new HashMap<>();
     private static final TransformedVertexRecorder[] transformedRecorders = new TransformedVertexRecorder[4];
     private static BindResult bindResult = BindResult.EMPTY;
     private static boolean allCached = false;
 
-    static  {
+    static {
         final float pitch = 1.9106332f, yaw = 2.0943951f;
         transformedRecorders[0] = new TransformedVertexRecorder();
         transformedRecorders[1] = new TransformedVertexRecorder().setRotation(pitch, 0);
@@ -37,7 +38,7 @@ public class YSMCompat {
         RealCameraAPI.registerFunction(-100, YSMCompat::computeBindResult);
     }
 
-    private static BindResult computeBindResult(Minecraft client, float deltaTick) {
+    private static BindResult computeBindResult(Minecraft client, float partialTicks) {
         resultMap.clear();
         bindResult = BindResult.EMPTY;
         allCached = true;
@@ -47,9 +48,8 @@ public class YSMCompat {
         for (TransformedVertexRecorder transformedRecorder : transformedRecorders) {
             poseStack.pushPose();
             poseStack.mulPose(transformedRecorder.matrix4f.invert(new Matrix4f()));
-            MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-            dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack, catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
-            catcher.endCatching(transformedRecorder::computeBindResultInCache);
+            dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, vertexCatcher.initCollector());
+            vertexCatcher.endCatching(transformedRecorder::computeBindResultInCache);
             poseStack.popPose();
             if (bindResult.available()) return bindResult;
         }
@@ -57,9 +57,8 @@ public class YSMCompat {
         for (TransformedVertexRecorder transformedRecorder : transformedRecorders) {
             poseStack.pushPose();
             poseStack.mulPose(transformedRecorder.matrix4f.invert(new Matrix4f()));
-            MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-            dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack, catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
-            catcher.endCatching(transformedRecorder::computeBindResult);
+            dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, vertexCatcher.initCollector());
+            vertexCatcher.endCatching(transformedRecorder::computeBindResult);
             poseStack.popPose();
             if (bindResult.available()) return bindResult;
         }
@@ -79,7 +78,7 @@ public class YSMCompat {
         public void computeBindResultInCache(BuiltIterableBuffer builtBuffer) {
             if (bindResult.available()) return;
             for (BindTarget target : ConfigFile.config().getBindTargetList(builtBuffer.textureId())) {
-                BindResult result = resultMap.computeIfAbsent(target, k -> new BindResult(target, false));
+                BindResult result = resultMap.computeIfAbsent(target, _ -> new BindResult(target));
                 BindTarget.TargetConfig config = target.targetConfig();
                 VertexData.UV posUV = new VertexData.UV(config.posU(), config.posV());
                 VertexData.UV forwardUV = new VertexData.UV(config.forwardU(), config.forwardV());
@@ -101,7 +100,7 @@ public class YSMCompat {
         public void computeBindResult(BuiltIterableBuffer builtBuffer) {
             if (bindResult.available()) return;
             for (BindTarget target : ConfigFile.config().getBindTargetList(builtBuffer.textureId())) {
-                BindResult result = resultMap.computeIfAbsent(target, k -> new BindResult(target, false));
+                BindResult result = resultMap.computeIfAbsent(target, _ -> new BindResult(target));
                 BindTarget.TargetConfig config = target.targetConfig();
                 VertexData.UV posUV = result.getPosition() == Vec3.ZERO ? new VertexData.UV(config.posU(), config.posV()) : null;
                 VertexData.UV forwardUV = result.getForward() == Vec3.ZERO ? new VertexData.UV(config.forwardU(), config.forwardV()) : null;

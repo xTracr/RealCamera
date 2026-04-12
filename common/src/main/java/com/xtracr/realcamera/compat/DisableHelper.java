@@ -3,7 +3,7 @@ package com.xtracr.realcamera.compat;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -15,19 +15,20 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 public class DisableHelper {
-    private static final Predicate<Player> FALSE = player -> false;
+    public static final Entry MAIN_FEATURE, RENDER_MODEL, RENDER_HANDS;
+    private static final Predicate<Player> FALSE = _ -> false;
     private static final Map<String, Entry> entries = new HashMap<>();
-    public static final Entry MAIN_FEATURE = new Entry("mainFeature", player -> player.isSleeping() || player.isSpectator());
-    public static final Entry RENDER_MODEL = new Entry("renderModel", FALSE, Player::isScoping);
-    public static final Entry RENDER_HANDS = new Entry("renderHands", player -> RealCameraCore.isRendering());
     public static int exitTick = 0;
 
     static {
+        MAIN_FEATURE = new Entry("mainFeature", player -> player.isSleeping() || player.isSpectator());
+        RENDER_MODEL = new Entry("renderModel", FALSE, Player::isScoping);
+        RENDER_HANDS = new Entry("renderHands", _ -> RealCameraCore.isRendering());
         MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSneaking() && player.isCrouching());
         MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSneaking() && player.isCrouching());
         MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSwimming() && checkCondition(player, player.isSwimming(), ConfigFile.config().getBindingOutTick()));
         MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSwimming() && checkCondition(player, player.isSwimming(), ConfigFile.config().getClassicOutTick()));
-        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenCrawling() && checkCondition(player, player.isVisuallyCrawling(), ConfigFile.config().getBindingOutTick()));   
+        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenCrawling() && checkCondition(player, player.isVisuallyCrawling(), ConfigFile.config().getBindingOutTick()));
         MAIN_FEATURE.registerOrInBinding(player -> {
             Item mainHand = player.getMainHandItem().getItem();
             Item offHand = player.getOffhandItem().getItem();
@@ -69,10 +70,10 @@ public class DisableHelper {
     public static boolean matchesItemPattern(Item item, String pattern) {
         if (pattern.startsWith("#")) {
             String tagId = pattern.substring(1);
-            TagKey<Item> itemTag = TagKey.create(BuiltInRegistries.ITEM.key(), ResourceLocation.parse(tagId));
-            return BuiltInRegistries.ITEM.getTag(itemTag)
-                .map(tag -> tag.contains(BuiltInRegistries.ITEM.wrapAsHolder(item)))
-                .orElse(false);
+            TagKey<Item> itemTag = TagKey.create(BuiltInRegistries.ITEM.key(), Identifier.parse(tagId));
+            return BuiltInRegistries.ITEM.get(itemTag)
+                    .map(tag -> tag.contains(BuiltInRegistries.ITEM.wrapAsHolder(item)))
+                    .orElse(false);
         }
         return simpleWildcardMatch(BuiltInRegistries.ITEM.getKey(item).toString(), pattern);
     }

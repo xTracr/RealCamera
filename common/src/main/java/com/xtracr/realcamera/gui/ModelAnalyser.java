@@ -2,25 +2,27 @@ package com.xtracr.realcamera.gui;
 
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.xtracr.realcamera.api.BindResult;
 import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.BindTarget.DisableConfig;
 import com.xtracr.realcamera.config.BindTarget.TargetConfig;
-import com.xtracr.realcamera.util.BuiltIterableBuffer;
-import com.xtracr.realcamera.util.MultiVertexCatcher;
-import com.xtracr.realcamera.util.VertexData;
+import com.xtracr.realcamera.renderer.BuiltIterableBuffer;
+import com.xtracr.realcamera.renderer.MultiVertexCatcher;
+import com.xtracr.realcamera.renderer.state.BuiltModelRecord;
+import com.xtracr.realcamera.renderer.state.VertexData;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.jspecify.annotations.Nullable;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -29,23 +31,27 @@ import java.util.List;
 import java.util.Set;
 
 public class ModelAnalyser {
-    private static final Set<RenderType> UNFOCUSABLE_RENDER_TYPES = Set.of(RenderType.armorEntityGlint(), RenderType.glintTranslucent(), RenderType.glint(), RenderType.entityGlint(), RenderType.entityGlintDirect());
+    private static final MultiVertexCatcher vertexCatcher = MultiVertexCatcher.create();
+    private static final Set<RenderType> UNFOCUSABLE_RENDER_TYPES = Set.of(RenderTypes.armorEntityGlint(), RenderTypes.glintTranslucent(), RenderTypes.glint(), RenderTypes.entityGlint());
     private static final int planeArgb = 0x6F3333CC, forwardArgb = 0xFF00CC00, upwardArgb = 0xFFCC0000, leftArgb = 0xFF0000CC, focusedArgb = 0x4FFFFFFF;
     private static final int z1 = 210, z2 = z1 + 10;
     public final List<VertexData[]> focusedPolyhedron = new ArrayList<>();
     public final PoseStack modelPose = new PoseStack(), texturePose = new PoseStack();
-    private final List<BuiltRecord> modelRecords = new ArrayList<>(), textureRecords = new ArrayList<>();
+    protected final List<BuiltModelRecord> modelRecords = new ArrayList<>(), textureRecords = new ArrayList<>();
     private VertexData[][] targetPrimitives = new VertexData[3][];
     private BindResult bindResult = BindResult.EMPTY;
     private BindTarget target = BindTarget.EMPTY;
     @Nullable
-    private BuiltRecord focusedRecord, currentRecord;
+    private BuiltModelRecord focusedRecord, currentRecord;
     private double modelScale;
 
     private static boolean haveCommonVertex(VertexData[] p1, List<VertexData[]> primitives) {
         final float precision = 1e-5f;
-        for (VertexData[] p2 : primitives) for (VertexData v1 : p1) for (VertexData v2 : p2)
-            if (Math.abs(v1.x() - v2.x()) < precision && Math.abs(v1.y() - v2.y()) < precision && Math.abs(v1.z() - v2.z()) < precision) return true;
+        for (VertexData[] p2 : primitives)
+            for (VertexData v1 : p1)
+                for (VertexData v2 : p2)
+                    if (Math.abs(v1.x() - v2.x()) < precision && Math.abs(v1.y() - v2.y()) < precision && Math.abs(v1.z() - v2.z()) < precision)
+                        return true;
         return false;
     }
 
@@ -79,15 +85,14 @@ public class ModelAnalyser {
     }
 
     public void applyDisableConfigs(String textureId, Set<String> hiddenNames) {
-        for (BuiltRecord record : modelRecords) {
-            if (!record.textureId().contains(textureId)) continue;
-            textureRecords.add(record);
+        for (BuiltModelRecord record : modelRecords) {
+            if (record.containsTextureId(textureId)) textureRecords.add(record);
         }
         for (int i = 0; i < modelRecords.size(); i++) {
-            BuiltRecord record = modelRecords.get(i);
+            BuiltModelRecord record = modelRecords.get(i);
             List<VertexData[]> primitives = new ArrayList<>();
-            DisableConfig[] disableConfigs = target.filteredDisableConfigs(config -> record.textureId().contains(config.textureId()) && hiddenNames.contains(config.name()));
-            boolean disableAll = !record.textureId().contains(textureId);
+            DisableConfig[] disableConfigs = target.filteredDisableConfigs(config -> record.containsTextureId(config.textureId()) && hiddenNames.contains(config.name()));
+            boolean disableAll = !record.containsTextureId(textureId);
             for (DisableConfig config : disableConfigs) {
                 if (config.disableAll()) {
                     disableAll = true;
@@ -104,7 +109,7 @@ public class ModelAnalyser {
                     break;
                 }
             }
-            modelRecords.set(i, new BuiltRecord(record.renderType(), record.textureId(), record.vertices(), primitives.toArray(new VertexData[0][])));
+            modelRecords.set(i, new BuiltModelRecord(record.renderType(), record.textureId(), record.vertices(), primitives.toArray(new VertexData[0][])));
         }
     }
 
@@ -112,7 +117,7 @@ public class ModelAnalyser {
         if (focusedRecord != null && !focusedPolyhedron.isEmpty()) return;
         Matrix4f positionMatrix = texturePose.last().pose();
         Vector3f position = new Vector3f();
-        for (BuiltRecord record : textureRecords) {
+        for (BuiltModelRecord record : textureRecords) {
             int length = record.renderType().mode().primitiveLength;
             int[] xs = new int[length], ys = new int[length];
             for (VertexData[] primitive : record.primitives()) {
@@ -134,7 +139,7 @@ public class ModelAnalyser {
     public void computeFocusedOnModel(int mouseX, int mouseY, int layers) {
         if (focusedRecord != null && !focusedPolyhedron.isEmpty()) return;
         List<Object[]> sortByZ = new ArrayList<>();
-        for (BuiltRecord record : modelRecords) {
+        for (BuiltModelRecord record : modelRecords) {
             if (UNFOCUSABLE_RENDER_TYPES.contains(record.renderType())) continue;
             VertexData[][] primitives = record.primitives();
             for (VertexData[] primitive : primitives) {
@@ -147,14 +152,14 @@ public class ModelAnalyser {
         if (sortByZ.isEmpty()) return;
         sortByZ.sort(Comparator.comparingDouble(array -> -(float) array[2]));
         Object[] result = sortByZ.get(Math.min(sortByZ.size() - 1, layers));
-        focusedRecord = (BuiltRecord) result[0];
+        focusedRecord = (BuiltModelRecord) result[0];
         focusedPolyhedron.add((VertexData[]) result[1]);
     }
 
     public void computeFocusedOnModel(int minX, int minY, int maxX, int maxY) {
         if (focusedRecord != null && !focusedPolyhedron.isEmpty()) return;
         List<Object[]> sortByZ = new ArrayList<>();
-        for (BuiltRecord record : modelRecords) {
+        for (BuiltModelRecord record : modelRecords) {
             if (UNFOCUSABLE_RENDER_TYPES.contains(record.renderType())) continue;
             VertexData[][] primitives = record.primitives();
             primitiveFor:
@@ -171,7 +176,7 @@ public class ModelAnalyser {
         if (sortByZ.isEmpty()) return;
         sortByZ.sort(Comparator.comparingDouble(array -> -(float) array[2]));
         List<Polygon> polygons = new ArrayList<>();
-        focusedRecord = (BuiltRecord) sortByZ.getFirst()[0];
+        focusedRecord = (BuiltModelRecord) sortByZ.getFirst()[0];
         while (!sortByZ.isEmpty()) {
             VertexData[] first = (VertexData[]) sortByZ.getFirst()[1];
             focusedPolyhedron.add(first);
@@ -182,7 +187,8 @@ public class ModelAnalyser {
                 VertexData[] primitive = (VertexData[]) array[1];
                 primitiveFor:
                 for (VertexData vertex : primitive) {
-                    for (Polygon polygon : polygons) if (polygon.contains(vertex.x(), vertex.y())) continue primitiveFor;
+                    for (Polygon polygon : polygons)
+                        if (polygon.contains(vertex.x(), vertex.y())) continue primitiveFor;
                     return false;
                 }
                 return true;
@@ -229,34 +235,34 @@ public class ModelAnalyser {
         resultIndexes.forEach(i -> focusedPolyhedron.add(primitives[i]));
     }
 
-    public void drawCameraDirections(GuiGraphics graphics) {
+    public void drawCameraDirections(GuiGraphicsExtractor graphics) {
         if (targetPrimitives[0] == null || targetPrimitives[1] == null || targetPrimitives[2] == null) return;
         Vec3 start = bindResult.getPosition();
         Matrix3f normal = bindResult.getRotation();
         if (normal.m00() == 0 && normal.m11() == 0 && normal.m22() == 0) return;
-        GUIHelper.renderVector(graphics, start, new Vec3(normal.m20(), normal.m21(), normal.m22()).scale(modelScale / 3), z2, forwardArgb);
-        GUIHelper.renderVector(graphics, start, new Vec3(normal.m10(), normal.m11(), normal.m12()).scale(modelScale / 6), z2, upwardArgb);
-        GUIHelper.renderVector(graphics, start, new Vec3(normal.m00(), normal.m01(), normal.m02()).scale(modelScale / 6), z2, leftArgb);
+        GUIHelper.vector(graphics, start, new Vec3(normal.m20(), normal.m21(), normal.m22()).scale(modelScale / 3), z2, forwardArgb);
+        GUIHelper.vector(graphics, start, new Vec3(normal.m10(), normal.m11(), normal.m12()).scale(modelScale / 6), z2, upwardArgb);
+        GUIHelper.vector(graphics, start, new Vec3(normal.m00(), normal.m01(), normal.m02()).scale(modelScale / 6), z2, leftArgb);
     }
 
-    public void drawBindTarget(GuiGraphics graphics) {
+    public void drawBindTarget(GuiGraphicsExtractor graphics) {
         if (currentRecord == null) return;
         TargetConfig config = target.targetConfig();
-        if (targetPrimitives[0] != null) GUIHelper.renderPolygon(graphics, targetPrimitives[0], z1, planeArgb);
-        if (targetPrimitives[1] != null) GUIHelper.renderVector(graphics, VertexData.position(targetPrimitives[1], config.forwardU(), config.forwardV()), VertexData.normal(targetPrimitives[1]).scale(-modelScale / 2), z2, forwardArgb);
-        if (targetPrimitives[2] != null) GUIHelper.renderVector(graphics, VertexData.position(targetPrimitives[2], config.upwardU(), config.upwardV()), VertexData.normal(targetPrimitives[2]).scale(-modelScale / 2), z2, upwardArgb);
+        if (targetPrimitives[0] != null) GUIHelper.polygon(graphics, targetPrimitives[0], z1, planeArgb);
+        if (targetPrimitives[1] != null) GUIHelper.vector(graphics, VertexData.position(targetPrimitives[1], config.forwardU(), config.forwardV()), VertexData.normal(targetPrimitives[1]).scale(-modelScale / 2), z2, forwardArgb);
+        if (targetPrimitives[2] != null) GUIHelper.vector(graphics, VertexData.position(targetPrimitives[2], config.upwardU(), config.upwardV()), VertexData.normal(targetPrimitives[2]).scale(-modelScale / 2), z2, upwardArgb);
     }
 
-    public void drawFocusedInModelArea(GuiGraphics graphics) {
+    public void drawFocusedInModelArea(GuiGraphicsExtractor graphics) {
         if (focusedPolyhedron.isEmpty() || focusedRecord == null) return;
         VertexData[] focused = focusedPolyhedron.getFirst();
         VertexData[] reversed = new VertexData[focused.length];
         for (int i = 0; i < focused.length; i++) reversed[i] = focused[focused.length - 1 - i];
-        GUIHelper.renderPolygon(graphics, reversed, z1, focusedArgb);
-        focusedPolyhedron.forEach(primitive -> GUIHelper.renderPolygon(graphics, primitive, z1, focusedArgb));
+        GUIHelper.polygon(graphics, reversed, z1, focusedArgb);
+        focusedPolyhedron.forEach(primitive -> GUIHelper.polygon(graphics, primitive, z1, focusedArgb));
     }
 
-    public void drawFocusedInTextureArea(GuiGraphics graphics) {
+    public void drawFocusedInTextureArea(GuiGraphicsExtractor graphics) {
         Matrix4f positionMatrix = texturePose.last().pose();
         int length = 0;
         VertexData[] transformed = new VertexData[0], reversed = new VertexData[0];
@@ -272,59 +278,16 @@ public class ModelAnalyser {
                 position.set(vertex.u(), vertex.v(), 0).mulPosition(positionMatrix);
                 transformed[i] = reversed[length - 1 - i] = VertexData.immutable(position.x(), position.y(), 0, vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
             }
-            GUIHelper.renderPolygon(graphics, transformed, 0, focusedArgb);
-            GUIHelper.renderPolygon(graphics, reversed, 0, focusedArgb);
+            GUIHelper.polygon(graphics, transformed, 0, focusedArgb);
+            GUIHelper.polygon(graphics, reversed, 0, focusedArgb);
         }
     }
 
-    public void drawModel(GuiGraphics graphics, PoseStack poseStack) {
-        poseStack.pushPose();
-        poseStack.mulPose(modelPose.last().pose().invert(new Matrix4f()));
-        float minEntityZ = 0f, maxEntityZ = 200f;
-        for (BuiltRecord record : modelRecords) {
-            for (VertexData vertex : record.vertices()) {
-                if (vertex.z() < minEntityZ) minEntityZ = vertex.z();
-                if (vertex.z() > maxEntityZ) maxEntityZ = vertex.z();
-            }
-        }
-        Matrix4f positionMatrix = new Matrix4f().mul(poseStack.last().pose()).scale(1, 1, 200 / (maxEntityZ - minEntityZ)).translate(0, 0, -minEntityZ);
-        Matrix3f normalMatrix = new Matrix3f(positionMatrix);
-        modelRecords.forEach(record -> {
-            VertexConsumer buffer = graphics.bufferSource().getBuffer(record.renderType());
-            if (!record.renderType().canConsolidateConsecutiveGeometry()) {
-                for (VertexData vertex : record.vertices()) vertex.render(buffer, positionMatrix, normalMatrix);
-                return;
-            }
-            for (VertexData[] primitive : record.primitives()) {
-                for (VertexData vertex : primitive) vertex.render(buffer, positionMatrix, normalMatrix);
-            }
-        });
-        poseStack.popPose();
-        graphics.flush();
-    }
-
-    public void drawTexture(GuiGraphics graphics, PoseStack poseStack) {
-        Matrix4f positionMatrix = poseStack.last().pose();
-        textureRecords.forEach(record -> {
-            VertexConsumer buffer = graphics.bufferSource().getBuffer(record.renderType());
-            Vector3f position = new Vector3f();
-            for (VertexData vertex : record.vertices()) {
-                position.set(vertex.u(), vertex.v(), 0).mulPosition(positionMatrix);
-                buffer.addVertex(position.x(), position.y(), 0, vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
-            }
-        });
-        graphics.flush();
-    }
-
-    public void updateModel(Minecraft client, Entity entity, float deltaTick, PoseStack poseStack) {
-        Lighting.setupForEntityInInventory();
+    public void updateModel(Minecraft client, Entity entity, float partialTicks, PoseStack poseStack) {
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
-        dispatcher.setRenderShadow(false);
-        MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-        dispatcher.render(entity, 0, 0, 0, 0, deltaTick, poseStack, catcher, 0xF000f0);
-        catcher.endCatching(this::computeBindResult);
-        dispatcher.setRenderShadow(true);
-        Lighting.setupFor3DItems();
+        client.gameRenderer.getLighting().setupFor(Lighting.Entry.ENTITY_IN_UI);
+        dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, vertexCatcher.initCollector());
+        vertexCatcher.endCatching(this::computeBindResult);
     }
 
     public void computeBindResult(BuiltIterableBuffer builtBuffer) {
@@ -338,10 +301,10 @@ public class ModelAnalyser {
             primitives[i][0] = vertices[startWithFirst ? 0 : k];
             System.arraycopy(vertices, k + 1, primitives[i], 1, primitiveLength - 1);
         }
-        BuiltRecord record = new BuiltRecord(builtBuffer.renderType(), builtBuffer.textureId(), vertices, primitives);
+        BuiltModelRecord record = new BuiltModelRecord(builtBuffer.renderType(), builtBuffer.textureId(), vertices, primitives);
         modelRecords.add(record);
         if (!builtBuffer.textureId().contains(target.textureId()) || currentRecord != null) return;
-        BindResult result = new BindResult(target, true);
+        BindResult result = new BindResult(target);
         BindTarget.TargetConfig config = target.targetConfig();
         VertexData.UV[] uvs = {new VertexData.UV(config.posU(), config.posV()), new VertexData.UV(config.forwardU(), config.forwardV()), new VertexData.UV(config.upwardU(), config.upwardV())};
         targetPrimitives = builtBuffer.findPrimitivesInCache(uvs);
@@ -359,9 +322,7 @@ public class ModelAnalyser {
         if (targetPrimitives[2] != null) result.setUpward(VertexData.normal(targetPrimitives[2]).scale(-1));
         if (result.weakAvailable()) {
             currentRecord = record;
-            bindResult = result.computeCamera();
+            bindResult = result.computeCamera(true);
         }
     }
-
-    private record BuiltRecord(RenderType renderType, String textureId, VertexData[] vertices, VertexData[][] primitives) { }
 }

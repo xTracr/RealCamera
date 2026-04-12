@@ -24,28 +24,28 @@ Make the camera more realistic in the first-person view.
 
 [[dependencies.realcamera]]
 modId = "neoforge"
-type= "required"
-versionRange = "[21,)"
+type = "required"
+versionRange = "[26,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.realcamera]]
 modId = "minecraft"
 type = "required"
-versionRange = "[1.21.1,1.21.2)"
+versionRange = "[26,27)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.realcamera]]
 modId = "cloth_config"
 type = "optional"
-versionRange = "[15.0,)"
+versionRange = "[21.0,)"
 ordering = "NONE"
 side = "CLIENT"
 [dependencies.realcamera.mc-publish]
-    ignore = false
-    modrinth = "cloth-config"
-    curseforge = "cloth-config"
+ignore = false
+modrinth = "cloth-config"
+curseforge = "cloth-config"
 
 [[mixins]]
 config = "realcamera-common.mixins.json"

@@ -1,16 +1,17 @@
-package com.xtracr.realcamera.gui;
+package com.xtracr.realcamera.gui.components;
 
+import com.xtracr.realcamera.RealCamera;
 import com.xtracr.realcamera.util.LocUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.navigation.CommonInputs;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.CommonComponents;
-import net.minecraft.network.chat.Style;
-import net.minecraft.util.FormattedCharSequence;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.util.function.Consumer;
 
@@ -39,18 +40,18 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
     public T getNumber() {
         try {
             return getNumberInternal();
+        } catch (NumberFormatException e) {
+            return defaultValue;
         } catch (Exception e) {
+            RealCamera.LOGGER.warn("Unexpected error parsing number", e);
             return defaultValue;
         }
     }
 
     public void setNumber(T value) {
-        try {
-            if (value.compareTo(minimum) < 0) value = minimum;
-            else if (value.compareTo(maximum) > 0) value = maximum;
-            setValue(value.toString());
-        } catch (Exception ignored) {
-        }
+        if (value.compareTo(minimum) < 0) value = minimum;
+        else if (value.compareTo(maximum) > 0) value = maximum;
+        setValue(value.toString());
     }
 
     public NumberField<T> setMax(T maximum) {
@@ -64,23 +65,23 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
     }
 
     public NumberField<T> setOnValueChange(Consumer<T> consumer) {
-        super.setResponder(str -> consumer.accept(getNumber()));
+        super.setResponder(_ -> consumer.accept(getNumber()));
         return this;
     }
 
-    abstract protected T getNumberInternal();
+    abstract protected T getNumberInternal() throws NumberFormatException;
 
     protected void checkText() {
         super.setTooltip(tooltip);
-        setFormatter((string, firstCharacterIndex) -> FormattedCharSequence.forward(string, Style.EMPTY));
+        setTextColor(EditBox.DEFAULT_TEXT_COLOR);
         if (getValue().isEmpty()) return;
         try {
             T value = getNumberInternal();
-            if (value.compareTo(minimum) < 0) throw new Exception("< " + minimum);
-            if (value.compareTo(maximum) > 0) throw new Exception("> " + maximum);
+            if (value.compareTo(minimum) < 0) throw new RuntimeException("< " + minimum);
+            if (value.compareTo(maximum) > 0) throw new RuntimeException("> " + maximum);
         } catch (Exception e) {
             super.setTooltip(Tooltip.create(LocUtil.literal("Invalid number: " + e.getMessage()).withStyle(s -> s.withColor(ChatFormatting.RED))));
-            setFormatter((string, firstCharacterIndex) -> FormattedCharSequence.forward(string, Style.EMPTY.withColor(ChatFormatting.RED)));
+            setTextColor(0xFFFF5555);
         }
     }
 
@@ -91,24 +92,25 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (CommonInputs.selected(keyCode)) {
+    public boolean keyPressed(@NonNull KeyEvent event) {
+        if (event.isSelection()) {
             setFocused(false);
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     @Override
-    public boolean charTyped(char chr, int modifiers) {
+    public boolean charTyped(CharacterEvent event) {
+        char chr = (char) event.codepoint();
         if (chr != '-' && chr != '.' && (chr < '0' || chr > '9')) return false;
-        return super.charTyped(chr, modifiers);
+        return super.charTyped(event);
     }
 
     @Override
-    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float deltaTick) {
+    public void extractWidgetRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
         checkText();
-        super.renderWidget(graphics, mouseX, mouseY, deltaTick);
+        super.extractWidgetRenderState(graphics, mouseX, mouseY, partialTicks);
     }
 
     private static class FloatField extends NumberField<Float> {
@@ -118,7 +120,7 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
         }
 
         @Override
-        protected Float getNumberInternal() {
+        protected Float getNumberInternal() throws NumberFormatException {
             return Float.parseFloat(getValue());
         }
     }
@@ -130,7 +132,7 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
         }
 
         @Override
-        protected Integer getNumberInternal() {
+        protected Integer getNumberInternal() throws NumberFormatException {
             return Integer.parseInt(getValue());
         }
     }
