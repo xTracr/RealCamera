@@ -15,13 +15,9 @@ base {
     archivesName = "$modId-$minecraftVersion-neoforge"
 }
 
-val dependencyProjects: List<Project> = listOf(
-    project(":common")
-)
+val commonProject = project(":common")
 
-dependencyProjects.forEach {
-    project.evaluationDependsOn(it.path)
-}
+project.evaluationDependsOn(commonProject.path)
 
 java {
     toolchain {
@@ -39,9 +35,7 @@ dependencies {
     // Cloth Config
     runtimeOnly("me.shedaniel.cloth:cloth-config-neoforge:$clothConfigVersion")
 
-    dependencyProjects.forEach {
-        implementation(it)
-    }
+    implementation(commonProject)
 }
 
 neoForge {
@@ -64,9 +58,7 @@ neoForge {
     mods {
         create(modId) {
             sourceSet(sourceSets.main.get())
-            for (dependencyProject in dependencyProjects) {
-                sourceSet(dependencyProject.sourceSets.main.get())
-            }
+            sourceSet(commonProject.sourceSets.main.get())
         }
     }
 }
@@ -80,23 +72,19 @@ tasks.processResources {
 
 tasks.jar {
     from(sourceSets.main.get().output)
-    for (p in dependencyProjects) {
-        from(p.sourceSets.main.get().output)
-    }
+    from(commonProject.sourceSets.main.get().output)
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 val sourcesJarTask = tasks.named<Jar>("sourcesJar") {
     from(sourceSets.main.get().allSource)
-    for (p in dependencyProjects) {
-        from(p.sourceSets.main.get().allSource)
-    }
+    from(commonProject.sourceSets.main.get().allSource)
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     archiveClassifier.set("sources")
 }
 
 artifacts {
-    archives(tasks.jar.get())
+    archives(tasks.jar)
     archives(sourcesJarTask)
 }
 
@@ -104,7 +92,7 @@ publishing {
     publications {
         register<MavenPublication>("neoforgeJar") {
             artifactId = base.archivesName.get()
-            artifact(tasks.jar.get())
+            artifact(tasks.jar)
             artifact(sourcesJarTask)
         }
     }

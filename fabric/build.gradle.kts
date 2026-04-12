@@ -16,13 +16,9 @@ base {
     archivesName = "$modId-$minecraftVersion-fabric"
 }
 
-val dependencyProjects: List<Project> = listOf(
-    project(":common")
-)
+val commonProject = project(":common")
 
-dependencyProjects.forEach {
-    project.evaluationDependsOn(it.path)
-}
+project.evaluationDependsOn(commonProject.path)
 
 java {
     toolchain {
@@ -38,8 +34,10 @@ tasks.withType<JavaCompile> {
 
 dependencies {
     minecraft("com.mojang:minecraft:$minecraftVersion")
+
     implementation("net.fabricmc:fabric-loader:$fabricLoaderVersion")
     implementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
+
     // Cloth Config
     runtimeOnly("me.shedaniel.cloth:cloth-config-fabric:$clothConfigVersion")
     // Modmenu
@@ -47,9 +45,7 @@ dependencies {
         exclude(group = "net.fabricmc.fabric-api")
     }
 
-    dependencyProjects.forEach {
-        implementation(it)
-    }
+    implementation(commonProject)
 }
 
 loom {
@@ -65,23 +61,34 @@ loom {
 sourceSets {
     named("main") {
         resources {
-            for (p in dependencyProjects) {
-                srcDir(p.sourceSets.main.get().resources)
-            }
+            srcDir(commonProject.sourceSets.main.get().resources)
         }
+    }
+}
+
+tasks.processResources {
+    inputs.property("version", project.version)
+    filesMatching("fabric.mod.json") {
+        expand("version" to project.version)
     }
 }
 
 tasks.jar {
     from(sourceSets.main.get().output)
-    for (p in dependencyProjects) {
-        from(p.sourceSets.main.get().output)
-    }
+    from(commonProject.sourceSets.main.get().output)
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+val sourcesJarTask = tasks.named<Jar>("sourcesJar") {
+    from(sourceSets.main.get().allSource)
+    from(commonProject.sourceSets.main.get().allSource)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    archiveClassifier.set("sources")
 }
 
 artifacts {
     archives(tasks.jar)
+    archives(sourcesJarTask)
 }
 
 publishing {
@@ -89,6 +96,7 @@ publishing {
         register<MavenPublication>("fabricJar") {
             artifactId = base.archivesName.get()
             artifact(tasks.jar)
+            artifact(sourcesJarTask)
         }
     }
 }
