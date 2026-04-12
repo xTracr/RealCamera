@@ -30,7 +30,8 @@ dependencies {
     minecraft("com.mojang:minecraft:$minecraftVersion")
 
     // We depend on Fabric Loader here to use mixin and the Fabric @Environment annotations,
-    implementation("net.fabricmc:fabric-loader:$fabricLoaderVersion")
+    // compileOnly so it doesn't leak into neoforge's runtime classpath
+    compileOnly("net.fabricmc:fabric-loader:$fabricLoaderVersion")
 
     // Cloth Config
     compileOnly("me.shedaniel.cloth:cloth-config:$clothConfigVersion") {

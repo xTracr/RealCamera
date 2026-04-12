@@ -152,6 +152,14 @@ public class MultiVertexCatcher {
         }
 
         @Override
+        public void endBatch(@NonNull RenderType type) {
+            BufferBuilder builder = this.startedBuilders.remove(type);
+            if (builder != null) {
+                endBatch(type, builder);
+            }
+        }
+
+        @Override
         protected void endBatch(@NonNull RenderType renderType, BufferBuilder bufferBuilder) {
             MeshData meshData = bufferBuilder.build();
             if (meshData != null) {
