@@ -1,6 +1,8 @@
 package com.xtracr.realcamera.mixin;
 
 import com.xtracr.realcamera.RealCameraCore;
+import com.xtracr.realcamera.compat.CompatibilityHelper;
+import com.xtracr.realcamera.compat.SableCompat;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
 import com.xtracr.realcamera.mixin.accessor.GameRendererAccessor;
@@ -11,6 +13,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -93,6 +96,12 @@ public abstract class MixinCamera {
     }
 
     @Unique
+    private double realcamera$getSqDistance(Level level, Vec3 a, Vec3 b) {
+        if (CompatibilityHelper.isModLoaded("sable")) return SableCompat.distanceSquaredWithSubLevels(level, a, b);
+        return a.distanceToSqr(b);
+    }
+
+    @Unique
     private void realcamera$clipToSpace(Vec3 startVec, Entity entity, double fov) {
         Vec3 offset = position.subtract(startVec);
         final float depth = 0.05f + (float) (fov * (0.0001 + 0.000005 * fov));
@@ -104,7 +113,7 @@ public abstract class MixinCamera {
             Vec3 end = startVec.add(offset).add(offsetX, offsetY, offsetZ);
             HitResult hitResult = level.clip(new ClipContext(start, end, ClipContext.Block.VISUAL, ClipContext.Fluid.NONE, entity));
             if (hitResult.getType() == HitResult.Type.MISS) continue;
-            double sqDistance = hitResult.getLocation().distanceToSqr(start);
+            double sqDistance = realcamera$getSqDistance(entity.level(), hitResult.getLocation(), start);
             double sqOffsetL = offset.lengthSqr();
             if (sqDistance >= sqOffsetL) continue;
             offset = offset.scale(Math.sqrt(sqDistance / sqOffsetL));
