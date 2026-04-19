@@ -64,7 +64,6 @@ public class ModelViewScreen extends Screen {
     @Nullable
     private ScreenRectangle textureViewArea;
     private VertexData[][] focusedPolyhedron = new VertexData[0][];
-    private List<DisableConfig> configsInClipBoard = new ArrayList<>();
     @Nullable
     private UVRectangleWidget focusedRectWidget;
     private StringWidget rectWidgetsSizeWidget;
@@ -182,7 +181,7 @@ public class ModelViewScreen extends Screen {
     }
 
     private void initLeftWidgets() {
-        rectWidgetsSizeWidget = new StringWidget(x + 4 + widgetWidth + 5, y + 4 + (widgetHeight + 2) * 3, widgetWidth - 22, widgetHeight, LocUtil.literal(String.valueOf(rectWidgets.size())), font);
+        rectWidgetsSizeWidget = new StringWidget(x + 4 + widgetWidth + 5 + font.width("/"), y + 4 + (widgetHeight + 2) * 3, widgetWidth - 22, widgetHeight, LocUtil.literal(String.valueOf(rectWidgets.size())), font);
         forwardUField = createFloatField(widgetWidth, 0, forwardUField);
         forwardVField = createFloatField(widgetWidth, 0, forwardVField);
         upwardUField = createFloatField(widgetWidth, 0, upwardUField);
@@ -330,13 +329,8 @@ public class ModelViewScreen extends Screen {
         }), smallSettings).setTooltip(createTooltip("toConfigScreen"));
         final int widgetsPerPage, size;
         if (toggleCategoryButton.getValue() == Category.DISABLE) {
-            widgetsPerPage = 6;
+            widgetsPerPage = 7;
             size = disableConfigs.size();
-            rows.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("copy"), widgetWidth, _ -> configsInClipBoard = List.copyOf(disableConfigs)), 2).setTooltip(createTooltip("copy"));
-            rows.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("paste"), widgetWidth, _ -> {
-                configsInClipBoard.stream().filter(config -> disableConfigs.stream().noneMatch(c -> c.name().equals(config.name()))).forEach(disableConfigs::add);
-                initWidgets(0);
-            }), 2).setTooltip(createTooltip("paste"));
             rows.addChild(disabledNameField, 3, smallSettings).setTooltip(createTooltip("disabledName"));
             rows.addChild(new SimpleIconButton(64, 0, button -> {
                 String name = disabledNameField.getValue(), textureId = disabledIdField.getValue();
@@ -367,7 +361,7 @@ public class ModelViewScreen extends Screen {
                             if (value == 0) hiddenNames.remove(config.name());
                             else hiddenNames.add(config.name());
                         })
-                        .setPosition(x + (xSize + middleWidth) / 2 - 20, y + 5 + (widgetHeight + 2) * (3 + i % widgetsPerPage));
+                        .setPosition(x + (xSize + middleWidth) / 2 - 20, y + 5 + (widgetHeight + 2) * (2 + i % widgetsPerPage));
                 rows.addChild(createButton(LocUtil.literal(config.name()), widgetWidth * 2 - 18, _ -> {
                     disabledNameField.setValue(config.name());
                     disabledIdField.setValue(config.textureId());
@@ -409,8 +403,8 @@ public class ModelViewScreen extends Screen {
         grid.visitWidgets(this::addRenderableWidget);
         final int pages = (size - 1) / widgetsPerPage + 1;
         addRenderableWidget(new SimpleIconButton(x + (xSize + middleWidth) / 2 + 8, y + ySize - 20, 16, 16, 16, 0, _ -> initWidgets((page - 1 + pages) % pages)));
-        Component pageInfo = LocUtil.literal((page + 1) + " / " + pages);
-        addRenderableWidget(new StringWidget(x + (3 * xSize + middleWidth) / 4 + 2 - font.width(pageInfo) / 2, y + ySize - 20, font.width(pageInfo), widgetHeight, pageInfo, font));
+        Component pageInfoText = LocUtil.literal((page + 1) + " / " + pages);
+        addRenderableWidget(new StringWidget(x + (3 * xSize + middleWidth) / 4 + 2 - font.width(pageInfoText) / 2, y + ySize - 20, font.width(pageInfoText), widgetHeight, pageInfoText, font));
         addRenderableWidget(new SimpleIconButton(x + xSize - 21, y + ySize - 20, 16, 16, 32, 0, _ -> initWidgets((page + 1) % pages)));
     }
 

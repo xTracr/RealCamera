@@ -19,7 +19,8 @@
     "accessor.CustomFeatureRenderer$StorageAccessor",
     "accessor.GuiGraphicsExtractorAccessor",
     "accessor.ModelFeatureRenderer$StorageAccessor",
-    "accessor.ModelPartFeatureRenderer$StorageAccessor"
+    "accessor.ModelPartFeatureRenderer$StorageAccessor",
+    "accessor.RenderTypeAccessor"
   ],
   "server": [
   ],

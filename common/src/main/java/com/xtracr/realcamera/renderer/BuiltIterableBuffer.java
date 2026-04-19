@@ -1,29 +1,52 @@
 package com.xtracr.realcamera.renderer;
 
 import com.mojang.blaze3d.vertex.MeshData;
+import com.xtracr.realcamera.RealCamera;
+import com.xtracr.realcamera.mixin.accessor.RenderTypeAccessor;
 import com.xtracr.realcamera.renderer.state.VertexData;
 import com.xtracr.realcamera.renderer.state.VertexData.UV;
+import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import org.jspecify.annotations.Nullable;
 
 import java.awt.*;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public record BuiltIterableBuffer(RenderType renderType, String textureId, IterableVertexBuffer vertexBuffer) {
-    private static final Pattern TEXTURE_ID_PATTERN = Pattern.compile("texture\\[Optional\\[(.*?)]");
+    @Nullable
+    private static final Field TEXTURES_FIELD;
     private static final Map<RenderType, String> TEXTURE_ID_CACHE = new HashMap<>();
     private static final Map<RenderType, Map<UV, float[]>> FIND_PRIMITIVE_CACHE = new HashMap<>();
 
+    static {
+        Field texturesField = null;
+        try {
+            texturesField = RenderSetup.class.getDeclaredField("textures");
+            texturesField.setAccessible(true);
+        } catch (NoSuchFieldException e) {
+            RealCamera.LOGGER.error("Failed to find textures field in RenderSetup", e);
+        }
+        TEXTURES_FIELD = texturesField;
+    }
+
     public static BuiltIterableBuffer buildFrom(RenderType renderType, MeshData meshData) {
-        String textureId = TEXTURE_ID_CACHE.computeIfAbsent(renderType, rt -> {
-            String renderTypeName = rt.toString();
-            Matcher matcher = TEXTURE_ID_PATTERN.matcher(renderTypeName);
-            return matcher.find() ? matcher.group(1) : renderTypeName;
-        });
+        String textureId = TEXTURE_ID_CACHE.computeIfAbsent(renderType, BuiltIterableBuffer::getTextureId);
         return new BuiltIterableBuffer(renderType, textureId, new IterableVertexBuffer(meshData));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static String getTextureId(RenderType renderType) {
+        if (TEXTURES_FIELD == null) return renderType.toString();
+        RenderSetup renderSetup = ((RenderTypeAccessor) renderType).getState();
+        try {
+            Map<String, RenderSetup.TextureBinding> textureBindings = (Map<String, RenderSetup.TextureBinding>) TEXTURES_FIELD.get(renderSetup);
+            RenderSetup.TextureBinding sampler0 = textureBindings.get("Sampler0");
+            if (sampler0 != null) return sampler0.location().toString();
+        } catch (IllegalAccessException | IllegalArgumentException | ClassCastException _) {
+        }
+        return renderType.toString();
     }
 
     public boolean anyNotCached(UV[] uvs) {
