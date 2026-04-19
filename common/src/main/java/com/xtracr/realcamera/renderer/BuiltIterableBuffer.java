@@ -18,12 +18,14 @@ public record BuiltIterableBuffer(RenderType renderType, String textureId, Itera
     private static final Map<RenderType, Map<UV, float[]>> FIND_PRIMITIVE_CACHE = new HashMap<>();
 
     public static BuiltIterableBuffer buildFrom(RenderType renderType, MeshData meshData) {
-        String textureId = TEXTURE_ID_CACHE.computeIfAbsent(renderType, rt -> {
-            String renderTypeName = rt.toString();
-            Matcher matcher = TEXTURE_ID_PATTERN.matcher(renderTypeName);
-            return matcher.find() ? matcher.group(1) : renderTypeName;
-        });
+        String textureId = TEXTURE_ID_CACHE.computeIfAbsent(renderType, BuiltIterableBuffer::getTextureId);
         return new BuiltIterableBuffer(renderType, textureId, new IterableVertexBuffer(meshData));
+    }
+
+    private static String getTextureId(RenderType renderType) {
+        String renderTypeName = renderType.toString();
+        Matcher matcher = TEXTURE_ID_PATTERN.matcher(renderTypeName);
+        return matcher.find() ? matcher.group(1) : renderTypeName;
     }
 
     public boolean anyNotCached(UV[] uvs) {
