@@ -2,22 +2,19 @@ package com.xtracr.realcamera.api;
 
 import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.ConfigFile;
+import com.xtracr.realcamera.util.CameraTransform;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix3f;
 import org.joml.Vector3f;
 
 import java.util.List;
 
-public class BindResult {
-    public static final BindResult EMPTY = new BindResult(BindTarget.EMPTY, false);
+public class BindResult extends CameraTransform {
+    public static final BindResult EMPTY = new BindResult(BindTarget.EMPTY);
     public final BindTarget target;
-    protected final Matrix3f rotation = new Matrix3f();
-    protected final boolean mirrored;
-    private Vec3 position = Vec3.ZERO, forward = Vec3.ZERO, upward = Vec3.ZERO;
+    private Vec3 forward = Vec3.ZERO, upward = Vec3.ZERO;
 
-    public BindResult(BindTarget target, boolean mirrored) {
+    public BindResult(BindTarget target) {
         this.target = target;
-        this.mirrored = mirrored;
     }
 
     public static BindResult getOrCreate(String name) {
@@ -30,7 +27,7 @@ public class BindResult {
                     fixedTargets.add(blank);
                     return blank;
                 });
-        return new BindResult(target, false);
+        return new BindResult(target);
     }
 
     public boolean available() {
@@ -39,14 +36,6 @@ public class BindResult {
 
     public boolean weakAvailable() {
         return !target.isEmpty() && (forward != Vec3.ZERO || upward != Vec3.ZERO || position != Vec3.ZERO) && Double.isFinite(position.lengthSqr());
-    }
-
-    public Vec3 getPosition() {
-        return position;
-    }
-
-    public void setPosition(Vec3 vec) {
-        position = vec;
     }
 
     public Vec3 getForward() {
@@ -65,11 +54,7 @@ public class BindResult {
         upward = vec.normalize();
     }
 
-    public Matrix3f getRotation() {
-        return rotation;
-    }
-
-    public BindResult computeCamera() {
+    public BindResult computeCamera(boolean mirrored) {
         if (!available()) return this;
         final int orientation = mirrored ? -1 : 1;
         upward = forward.cross(upward.cross(forward)).normalize();

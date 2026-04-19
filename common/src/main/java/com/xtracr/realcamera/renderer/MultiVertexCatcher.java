@@ -1,4 +1,4 @@
-package com.xtracr.realcamera.util;
+package com.xtracr.realcamera.renderer;
 
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
@@ -15,14 +15,13 @@ import java.util.SequencedMap;
 import java.util.function.Consumer;
 
 public interface MultiVertexCatcher extends MultiBufferSource {
-    static MultiVertexCatcher defaultImpl() {
-        return MeshCatcher.INSTANCE;
+    static MultiVertexCatcher create() {
+        return new MeshCatcher();
     }
 
     void endCatching(Consumer<BuiltIterableBuffer> consumer);
 
     class MeshCatcher extends MultiBufferSource.BufferSource implements MultiVertexCatcher {
-        private static final MeshCatcher INSTANCE = new MeshCatcher();
         private final SequencedMap<RenderType, ByteBufferBuilderPool> bufferPools = new Object2ObjectLinkedOpenHashMap<>();
         private final SequencedMap<MeshData, RenderType> caughtMeshes = new Object2ObjectLinkedOpenHashMap<>();
 

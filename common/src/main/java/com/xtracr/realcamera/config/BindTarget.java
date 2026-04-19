@@ -4,7 +4,7 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import com.xtracr.realcamera.util.VertexData;
+import com.xtracr.realcamera.renderer.state.VertexData;
 import it.unimi.dsi.fastutil.floats.Float2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.floats.FloatOpenHashSet;
 import net.minecraft.network.FriendlyByteBuf;
@@ -24,7 +24,7 @@ public record BindTarget(
         DisableConfig[] disableConfigs) {
     public static final List<BindTarget> defaultTargets;
     public static final BindTarget EMPTY = blank(null, null);
-    private static final short serialVersion = 703;
+    private static final short serialVersion = 703; // 0.7.3
 
     static {
         defaultTargets = List.of(
@@ -43,7 +43,8 @@ public record BindTarget(
 
     public static BindTarget read(FriendlyByteBuf byteBuf) throws IllegalArgumentException {
         short version = byteBuf.readShort();
-        if (version != serialVersion) throw new IllegalArgumentException("Invalid version: " + version + ", expected " + serialVersion);
+        if (version != serialVersion)
+            throw new IllegalArgumentException("Invalid version: " + version + ", expected " + serialVersion);
         String name = byteBuf.readUtf();
         String textureId = byteBuf.readUtf();
         int priority = byteBuf.readVarInt();

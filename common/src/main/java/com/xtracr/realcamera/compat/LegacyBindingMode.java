@@ -23,27 +23,27 @@ public class LegacyBindingMode {
         RealCameraAPI.registerFunction(100, LegacyBindingMode::computeBindResult);
     }
 
-    private static BindResult computeBindResult(Minecraft client, float deltaTick) {
+    private static BindResult computeBindResult(Minecraft client, float partialTicks) {
         if (!ConfigFile.config().legacyBindingMode()) return BindResult.EMPTY;
         PoseStack poseStack = new PoseStack();
         AbstractClientPlayer player = client.player;
         // WorldRenderer.render
         // EntityRenderDispatcher.render
         PlayerRenderer playerRenderer = (PlayerRenderer) client.getEntityRenderDispatcher().getRenderer(player);
-        Vec3 renderOffset = playerRenderer.getRenderOffset(player, deltaTick);
+        Vec3 renderOffset = playerRenderer.getRenderOffset(player, partialTicks);
         poseStack.translate(renderOffset.x(), renderOffset.y(), renderOffset.z());
         // PlayerEntityRenderer.render
         ((PlayerRendererAccessor) playerRenderer).invokeSetModelProperties(player);
         // LivingEntityRenderer.render
         PlayerModel<AbstractClientPlayer> playerModel = playerRenderer.getModel();
-        playerModel.attackTime = player.getAttackAnim(deltaTick);
+        playerModel.attackTime = player.getAttackAnim(partialTicks);
         playerModel.riding = player.isPassenger();
         playerModel.young = player.isBaby();
-        float h = Mth.rotLerp(deltaTick, player.yBodyRotO, player.yBodyRot);
-        float j = Mth.rotLerp(deltaTick, player.yHeadRotO, player.yHeadRot);
+        float h = Mth.rotLerp(partialTicks, player.yBodyRotO, player.yBodyRot);
+        float j = Mth.rotLerp(partialTicks, player.yHeadRotO, player.yHeadRot);
         float k = j - h;
         if (player.isPassenger() && player.getVehicle() instanceof LivingEntity livingEntity) {
-            h = Mth.rotLerp(deltaTick, livingEntity.yBodyRotO, livingEntity.yBodyRot);
+            h = Mth.rotLerp(partialTicks, livingEntity.yBodyRotO, livingEntity.yBodyRot);
             k = j - h;
             float l = Mth.wrapDegrees(k);
             if (l < -85.0F) {
@@ -58,7 +58,7 @@ public class LegacyBindingMode {
             }
             k = j - h;
         }
-        float m = Mth.lerp(deltaTick, player.xRotO, player.getXRot());
+        float m = Mth.lerp(partialTicks, player.xRotO, player.getXRot());
         if (LivingEntityRenderer.isEntityUpsideDown(player)) {
             m *= -1.0F;
             k *= -1.0F;
@@ -73,16 +73,16 @@ public class LegacyBindingMode {
         }
         float lx = player.getScale();
         poseStack.scale(lx, lx, lx);
-        float n = player.tickCount + deltaTick;
-        ((PlayerRendererAccessor) playerRenderer).invokeSetupRotations(player, poseStack, n, h, deltaTick, lx);
+        float n = player.tickCount + partialTicks;
+        ((PlayerRendererAccessor) playerRenderer).invokeSetupRotations(player, poseStack, n, h, partialTicks, lx);
         poseStack.scale(-1.0F, -1.0F, 1.0F);
-        ((PlayerRendererAccessor) playerRenderer).invokeScale(player, poseStack, deltaTick);
+        ((PlayerRendererAccessor) playerRenderer).invokeScale(player, poseStack, partialTicks);
         poseStack.translate(0.0F, -1.501F, 0.0F);
         float o = 0.0F;
         float p = 0.0F;
         if (!player.isPassenger() && player.isAlive()) {
-            o = player.walkAnimation.speed(deltaTick);
-            p = player.walkAnimation.position(deltaTick);
+            o = player.walkAnimation.speed(partialTicks);
+            p = player.walkAnimation.position(partialTicks);
             if (player.isBaby()) {
                 p *= 3.0F;
             }
@@ -91,7 +91,7 @@ public class LegacyBindingMode {
                 o = 1.0F;
             }
         }
-        playerModel.prepareMobModel(player, p, o, deltaTick);
+        playerModel.prepareMobModel(player, p, o, partialTicks);
         playerModel.setupAnim(player, p, o, n, k, m);
         // AnimalModel.render
         // ModelPart.render

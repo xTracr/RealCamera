@@ -12,8 +12,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public final class KeyMappings {
-    private static final Map<KeyMapping, Consumer<Minecraft>> KEY_MAPPINGS = new HashMap<>();
     public static final KeyMapping MODEL_VIEW_SCREEN;
+    private static final Map<KeyMapping, Consumer<Minecraft>> KEY_MAPPINGS = new HashMap<>();
 
     static {
         MODEL_VIEW_SCREEN = createKeyMapping("modelViewScreen", client -> client.setScreen(new ModelViewScreen()));

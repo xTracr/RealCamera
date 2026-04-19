@@ -1,6 +1,7 @@
 package com.xtracr.realcamera.mixin;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.datafixers.util.Pair;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.ConfigFile;
@@ -24,17 +25,16 @@ public abstract class MixinLocalPlayer extends AbstractClientPlayer {
     }
 
     @Inject(method = "getRopeHoldPosition", at = @At("HEAD"), cancellable = true)
-    private void realcamera$atGetRopePosHEAD(float deltaTick, CallbackInfoReturnable<Vec3> cir) {
-        if (DisableHelper.RENDER_HANDS.disabled(this)) cir.setReturnValue(super.getRopeHoldPosition(deltaTick));
+    private void realcamera$atGetRopePosHEAD(float f, CallbackInfoReturnable<Vec3> cir) {
+        if (DisableHelper.RENDER_HANDS.disabled(this)) cir.setReturnValue(super.getRopeHoldPosition(f));
     }
 
     @Override
-    public @NotNull HitResult pick(double maxDistance, float deltaTick, boolean includeFluids) {
+    public @NotNull HitResult pick(double maxDistance, float partialTicks, boolean includeFluids) {
         if (!ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
-            RaycastUtil.update(this, maxDistance * maxDistance, deltaTick);
-            return level().clip(RaycastUtil.getClipContext(ClipContext.Block.OUTLINE,
-                    includeFluids ? ClipContext.Fluid.ANY : ClipContext.Fluid.NONE, this));
+            Pair<Vec3, Vec3> fromAndTo = RaycastUtil.getFromAndTo(this, maxDistance * maxDistance, partialTicks);
+            return level().clip(new ClipContext(fromAndTo.getFirst(), fromAndTo.getSecond(), ClipContext.Block.OUTLINE, includeFluids ? ClipContext.Fluid.ANY : ClipContext.Fluid.NONE, this));
         }
-        return super.pick(maxDistance, deltaTick, includeFluids);
+        return super.pick(maxDistance, partialTicks, includeFluids);
     }
 }

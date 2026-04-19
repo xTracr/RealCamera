@@ -26,19 +26,19 @@ public abstract class MixinLevelRenderer {
     @Final private RenderBuffers renderBuffers;
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;endLastBatch()V", ordinal = 0))
-    private void realcamera$renderCameraEntity(DeltaTracker deltaTracker, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f modelView, Matrix4f projection, CallbackInfo ci) {
+    private void realcamera$renderCameraEntity(DeltaTracker deltaTracker, boolean bl, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f matrix4f, Matrix4f matrix4f2, CallbackInfo ci) {
         if (!RealCameraCore.isRendering()) return;
         MultiBufferSource.BufferSource bufferSource = renderBuffers.bufferSource();
         Entity entity = camera.getEntity();
         TickRateManager tickManager = minecraft.level.tickRateManager();
-        float deltaTick = deltaTracker.getGameTimeDeltaPartialTick(!tickManager.isEntityFrozen(entity));
-        if (!ConfigFile.config().isClassic()) RealCameraCore.renderCameraEntity(minecraft, deltaTick, bufferSource, modelView);
+        float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(!tickManager.isEntityFrozen(entity));
+        if (!ConfigFile.config().isClassic()) RealCameraCore.renderCameraEntity(minecraft, partialTicks, bufferSource, matrix4f);
         else {
             Vec3 cameraPos = camera.getPosition();
-            renderEntity(entity, cameraPos.x(), cameraPos.y(), cameraPos.z(), deltaTick, new PoseStack(), bufferSource);
+            renderEntity(entity, cameraPos.x(), cameraPos.y(), cameraPos.z(), partialTicks, new PoseStack(), bufferSource);
         }
     }
 
     @Shadow
-    protected abstract void renderEntity(Entity entity, double cameraX, double cameraY, double cameraZ, float deltaTick, PoseStack poseStack, MultiBufferSource bufferSource);
+    protected abstract void renderEntity(Entity entity, double d, double e, double f, float g, PoseStack poseStack, MultiBufferSource multiBufferSource);
 }

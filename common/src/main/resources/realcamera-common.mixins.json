@@ -16,7 +16,6 @@
     "MixinLocalPlayer",
     "MixinPlayerRenderer",
     "MixinStuckInBodyLayer",
-    "accessor.CameraAccessor",
     "accessor.GameRendererAccessor",
     "accessor.PlayerRendererAccessor"
   ],

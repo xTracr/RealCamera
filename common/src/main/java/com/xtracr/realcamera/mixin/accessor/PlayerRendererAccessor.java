@@ -12,8 +12,8 @@ public interface PlayerRendererAccessor {
     void invokeSetModelProperties(AbstractClientPlayer abstractClientPlayer);
 
     @Invoker
-    void invokeSetupRotations(AbstractClientPlayer livingEntity, PoseStack poseStack, float f, float g, float deltaTick, float i);
+    void invokeSetupRotations(AbstractClientPlayer livingEntity, PoseStack poseStack, float f, float g, float partialTicks, float i);
 
     @Invoker
-    void invokeScale(AbstractClientPlayer livingEntity, PoseStack poseStack, float deltaTick);
+    void invokeScale(AbstractClientPlayer livingEntity, PoseStack poseStack, float partialTicks);
 }
