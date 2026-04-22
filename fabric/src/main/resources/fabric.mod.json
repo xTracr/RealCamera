@@ -27,6 +27,7 @@
     "realcamera.mixins.json",
     "realcamera-common.mixins.json"
   ],
+  "accessWidener": "realcamera.accesswidener",
   "depends": {
     "fabricloader": "*",
     "fabric-api": "*",

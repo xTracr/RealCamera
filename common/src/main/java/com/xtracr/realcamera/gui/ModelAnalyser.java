@@ -322,6 +322,7 @@ public class ModelAnalyser {
     }
 
     public void updateModel(Minecraft client, Entity entity, float partialTicks, PoseStack poseStack) {
+        Lighting.setupForEntityInInventory();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         dispatcher.setRenderShadow(false);
         dispatcher.render(entity, 0, 0, 0, 0, partialTicks, poseStack, vertexCatcher, 0xF000f0);

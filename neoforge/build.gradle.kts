@@ -39,7 +39,7 @@ dependencies {
 //    runtimeOnly("maven.modrinth:create:6.0.10+mc1.21.1")
 //    runtimeOnly("maven.modrinth:sable:g8CObHcP")
 
-    implementation(commonProject)
+    implementation(commonProject.sourceSets.main.get().output)
 }
 
 neoForge {

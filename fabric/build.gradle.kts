@@ -46,7 +46,7 @@ dependencies {
         exclude(group = "net.fabricmc.fabric-api")
     }
 
-    implementation(commonProject)
+    implementation(commonProject.sourceSets.main.get().output)
 }
 
 loom {
