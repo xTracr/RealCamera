@@ -78,7 +78,7 @@ public class YSMCompat {
         public void computeBindResultInCache(BuiltIterableBuffer builtBuffer) {
             if (bindResult.available()) return;
             for (BindTarget target : ConfigFile.config().getBindTargetList(builtBuffer.textureId())) {
-                BindResult result = resultMap.computeIfAbsent(target, _ -> new BindResult(target));
+                BindResult result = resultMap.computeIfAbsent(target, BindResult::new);
                 BindTarget.TargetConfig config = target.targetConfig();
                 VertexData.UV posUV = new VertexData.UV(config.posU(), config.posV());
                 VertexData.UV forwardUV = new VertexData.UV(config.forwardU(), config.forwardV());
@@ -100,7 +100,7 @@ public class YSMCompat {
         public void computeBindResult(BuiltIterableBuffer builtBuffer) {
             if (bindResult.available()) return;
             for (BindTarget target : ConfigFile.config().getBindTargetList(builtBuffer.textureId())) {
-                BindResult result = resultMap.computeIfAbsent(target, _ -> new BindResult(target));
+                BindResult result = resultMap.computeIfAbsent(target, BindResult::new);
                 BindTarget.TargetConfig config = target.targetConfig();
                 VertexData.UV posUV = result.getPosition() == Vec3.ZERO ? new VertexData.UV(config.posU(), config.posV()) : null;
                 VertexData.UV forwardUV = result.getForward() == Vec3.ZERO ? new VertexData.UV(config.forwardU(), config.forwardV()) : null;

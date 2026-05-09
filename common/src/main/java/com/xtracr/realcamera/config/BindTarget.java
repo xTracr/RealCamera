@@ -5,8 +5,7 @@ import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import com.xtracr.realcamera.renderer.state.VertexData;
-import it.unimi.dsi.fastutil.floats.Float2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.floats.FloatOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Mth;
 
@@ -211,7 +210,7 @@ public record BindTarget(
 
     @JsonAdapter(DisableConfig.Adapter.class)
     public static class DisableConfig {
-        private final Float2ObjectOpenHashMap<FloatOpenHashSet> disableCacheMap = new Float2ObjectOpenHashMap<>();
+        private final LongOpenHashSet disabledUVs = new LongOpenHashSet(), enabledUVs = new LongOpenHashSet();
         private final String name;
         private final String textureId;
         private final boolean disableAll;
@@ -222,7 +221,6 @@ public record BindTarget(
             this.textureId = textureId;
             this.disableAll = disableAll;
             this.rectangles = rectangles;
-            disableCacheMap.defaultReturnValue(FloatOpenHashSet.of());
         }
 
         public static DisableConfig read(FriendlyByteBuf byteBuf) {
@@ -264,17 +262,15 @@ public record BindTarget(
 
         public boolean disable(VertexData vertex) {
             final float u = vertex.u(), v = vertex.v();
-            final FloatOpenHashSet cachedVs = disableCacheMap.get(u);
-            if (!cachedVs.isEmpty()) {
-                if (cachedVs.contains(v)) return true;
-                if (cachedVs.contains(-v)) return false;
-            }
+            final long packed = (long) Float.floatToIntBits(u) << 32 | Float.floatToIntBits(v);
+            if (enabledUVs.contains(packed)) return false;
+            if (disabledUVs.contains(packed)) return true;
             for (UVRectangle rect : rectangles) {
                 if (!rect.contains(u, v)) continue;
-                disableCacheMap.computeIfAbsent(u, _ -> new FloatOpenHashSet()).add(v);
+                disabledUVs.add(packed);
                 return true;
             }
-            disableCacheMap.computeIfAbsent(u, _ -> new FloatOpenHashSet()).add(-v);
+            enabledUVs.add(packed);
             return false;
         }
 
