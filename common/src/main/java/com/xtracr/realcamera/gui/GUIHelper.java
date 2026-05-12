@@ -16,7 +16,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
-public class GUIHelper {
+public final class GUIHelper {
     @Nullable
     public static ScreenRectangle getBounds(int x0, int y0, int x1, int y1, Matrix3x2f pose, @Nullable ScreenRectangle scissorArea) {
         ScreenRectangle scissorArea2 = new ScreenRectangle(x0, y0, x1 - x0, y1 - y0).transformMaxBounds(pose);

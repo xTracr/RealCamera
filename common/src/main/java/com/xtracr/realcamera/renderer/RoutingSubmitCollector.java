@@ -26,7 +26,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
-public class RoutingSubmitCollector implements SubmitNodeCollector {
+public final class RoutingSubmitCollector implements SubmitNodeCollector {
     private final SubmitNodeCollector defaultCollector;
     private final SubmitNodeCollector modelCollector;
 
@@ -105,7 +105,7 @@ public class RoutingSubmitCollector implements SubmitNodeCollector {
         defaultCollector.submitParticleGroup(particleGroupRenderer);
     }
 
-    private class RoutingOrderedCollector implements OrderedSubmitNodeCollector {
+    private final class RoutingOrderedCollector implements OrderedSubmitNodeCollector {
         private final OrderedSubmitNodeCollector defaultDelegate;
         private final OrderedSubmitNodeCollector modelDelegate;
 

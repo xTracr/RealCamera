@@ -11,7 +11,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class ConfigFile {
+public final class ConfigFile {
     private static final ModConfig modConfig = new ModConfig();
     private static final String FILE_NAME = RealCamera.MODID + ".json";
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();

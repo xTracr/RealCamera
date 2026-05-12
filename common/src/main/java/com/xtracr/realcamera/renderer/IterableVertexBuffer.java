@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class IterableVertexBuffer implements Iterable<VertexData> {
+public final class IterableVertexBuffer implements Iterable<VertexData> {
     private static final boolean IS_LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
     private static final float NORMAL_SCALE = 1.0f / 127.0f;
     public final int vertexCount, vertexSize;
@@ -238,7 +238,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         }
     }
 
-    private class VertexIterator extends VertexPointer implements Iterator<VertexData> {
+    private final class VertexIterator extends VertexPointer implements Iterator<VertexData> {
         private final int byteCount = vertexCount * vertexSize;
 
         @Override
@@ -253,7 +253,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         }
     }
 
-    private class VertexSpliterator extends VertexPointer implements Spliterator<VertexData> {
+    private final class VertexSpliterator extends VertexPointer implements Spliterator<VertexData> {
         private final int endIndex;
         private int currentIndex;
 
@@ -296,7 +296,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         }
     }
 
-    private class PrimitiveReader implements Iterable<VertexData[]> {
+    private final class PrimitiveReader implements Iterable<VertexData[]> {
         private final int primitiveLength, primitiveStride, primitiveCount;
         private final boolean startWithFirst;
 
@@ -348,7 +348,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
             }
         }
 
-        private class PrimitiveSpliterator implements Spliterator<VertexData[]> {
+        private final class PrimitiveSpliterator implements Spliterator<VertexData[]> {
             private final MutableVertex[] reusablePrimitive = new MutableVertex[primitiveLength];
             private final int endIndex;
             private int currentIndex;
@@ -398,7 +398,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
 
     }
 
-    private class FastQuadReader implements Iterable<VertexData[]> {
+    private final class FastQuadReader implements Iterable<VertexData[]> {
         private final int quadCount = vertexCount / 4;
 
         @Override
@@ -452,7 +452,7 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
             }
         }
 
-        private class FastQuadSpliterator implements Spliterator<VertexData[]> {
+        private final class FastQuadSpliterator implements Spliterator<VertexData[]> {
             private final MutableVertex[] reusableQuad = new MutableVertex[4];
             private final int endIndex;
             private int currentIndex;

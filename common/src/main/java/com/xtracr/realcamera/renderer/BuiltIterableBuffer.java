@@ -7,7 +7,6 @@ import com.xtracr.realcamera.util.RenderTypeUtil;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import org.jspecify.annotations.Nullable;
 
-import java.awt.*;
 import java.util.Map;
 
 public record BuiltIterableBuffer(RenderType renderType, String textureId, IterableVertexBuffer vertexBuffer) {
@@ -58,22 +57,15 @@ public record BuiltIterableBuffer(RenderType renderType, String textureId, Itera
     }
 
     public VertexData[] @Nullable [] findPrimitives(UV[] uvs) {
-        final int resolution = 1000000;
         int length = renderType.mode().primitiveLength, uvsLength = uvs.length;
-        int[] us = new int[length], vs = new int[length];
         VertexData[][] primitives = new VertexData[uvsLength][];
         vertexBuffer.primitiveStream().anyMatch(primitive -> {
-            for (int i = 0; i < length; i++) {
-                us[i] = (int) (resolution * primitive[i].u());
-                vs[i] = (int) (resolution * primitive[i].v());
-            }
-            Polygon polygon = new Polygon(us, vs, length);
             boolean allFound = true;
             for (int i = 0; i < uvsLength; i++) {
                 if (primitives[i] != null) continue;
                 UV uv = uvs[i];
                 if (uv == null) continue;
-                if (!polygon.contains(resolution * uv.u(), resolution * uv.v())) {
+                if (!VertexData.containsUV(primitive, uv.u(), uv.v())) {
                     allFound = false;
                     continue;
                 }

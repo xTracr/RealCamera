@@ -19,7 +19,7 @@ import org.joml.Matrix4f;
 import java.util.HashMap;
 import java.util.Map;
 
-public class YSMCompat {
+public final class YSMCompat {
     private static final MultiVertexCatcher vertexCatcher = MultiVertexCatcher.create();
     private static final Map<BindTarget, BindResult> resultMap = new HashMap<>();
     private static final TransformedVertexRecorder[] transformedRecorders = new TransformedVertexRecorder[4];

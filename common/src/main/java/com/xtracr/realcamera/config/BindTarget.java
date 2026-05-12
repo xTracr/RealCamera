@@ -127,7 +127,7 @@ public record BindTarget(
         }
     }
 
-    public static class OffsetConfig {
+    public static final class OffsetConfig {
         private float scale = 1, x = 0, y = 0, z = 0, pitch = 0, yaw = 0, roll = 0;
 
         public static OffsetConfig read(FriendlyByteBuf byteBuf) {
@@ -209,7 +209,7 @@ public record BindTarget(
     }
 
     @JsonAdapter(DisableConfig.Adapter.class)
-    public static class DisableConfig {
+    public static final class DisableConfig {
         private final LongOpenHashSet disabledUVs = new LongOpenHashSet(), enabledUVs = new LongOpenHashSet();
         private final String name;
         private final String textureId;
@@ -274,7 +274,7 @@ public record BindTarget(
             return false;
         }
 
-        public static class Adapter extends TypeAdapter<DisableConfig> {
+        public static final class Adapter extends TypeAdapter<DisableConfig> {
             @Override
             public void write(JsonWriter out, DisableConfig value) throws IOException {
                 out.beginObject();

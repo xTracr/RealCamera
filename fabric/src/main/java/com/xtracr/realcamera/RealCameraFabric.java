@@ -12,7 +12,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.KeyMapping;
 
 @Environment(EnvType.CLIENT)
-public class RealCameraFabric implements ClientModInitializer, RealCamera {
+public final class RealCameraFabric implements ClientModInitializer, RealCamera {
     @Override
     public void onInitializeClient() {
         initialize();

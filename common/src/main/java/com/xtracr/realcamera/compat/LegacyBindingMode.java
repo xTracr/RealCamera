@@ -15,7 +15,7 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
-public class LegacyBindingMode {
+public final class LegacyBindingMode {
     public static void register() {
         RealCameraAPI.registerFunction(100, LegacyBindingMode::computeBindResult);
     }

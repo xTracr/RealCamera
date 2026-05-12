@@ -1,6 +1,7 @@
 package com.xtracr.realcamera.renderer.state;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.xtracr.realcamera.util.MathUtil;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -38,6 +39,36 @@ public interface VertexData {
                 Vec3 a = vertices[0].position(), b = vertices[1].position(), c = vertices[2].position();
                 yield b.subtract(a).cross(c.subtract(a)).normalize();
             }
+        };
+    }
+
+    static boolean containsUV(VertexData[] vertices, float u, float v) {
+        return switch (vertices.length) {
+            case 3 -> MathUtil.pointInTriangle(u, v,
+                    vertices[0].u(), vertices[0].v(),
+                    vertices[1].u(), vertices[1].v(),
+                    vertices[2].u(), vertices[2].v());
+            case 4 -> MathUtil.pointInQuad(u, v,
+                    vertices[0].u(), vertices[0].v(),
+                    vertices[1].u(), vertices[1].v(),
+                    vertices[2].u(), vertices[2].v(),
+                    vertices[3].u(), vertices[3].v());
+            default -> false;
+        };
+    }
+
+    static boolean containsXY(VertexData[] vertices, float x, float y) {
+        return switch (vertices.length) {
+            case 3 -> MathUtil.pointInTriangle(x, y,
+                    vertices[0].x(), vertices[0].y(),
+                    vertices[1].x(), vertices[1].y(),
+                    vertices[2].x(), vertices[2].y());
+            case 4 -> MathUtil.pointInQuad(x, y,
+                    vertices[0].x(), vertices[0].y(),
+                    vertices[1].x(), vertices[1].y(),
+                    vertices[2].x(), vertices[2].y(),
+                    vertices[3].x(), vertices[3].y());
+            default -> false;
         };
     }
 
@@ -105,7 +136,7 @@ public interface VertexData {
 
     record ImmutableVertex(float x, float y, float z, int argb, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) implements VertexData { }
 
-    class MutableVertex implements VertexData {
+    final class MutableVertex implements VertexData {
         public float x, y, z;
         public int argb;
         public float u, v;

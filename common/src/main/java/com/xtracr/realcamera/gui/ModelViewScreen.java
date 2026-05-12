@@ -50,11 +50,11 @@ import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
-public class ModelViewScreen extends Screen {
+public final class ModelViewScreen extends Screen {
     public final ModelAnalyser analyser = new ModelAnalyser();
-    protected int xSize = 450, ySize = 206, middleWidth = xSize - 200, widgetWidth = (xSize - middleWidth) / 4 - 8, widgetHeight = 18;
-    protected int x, y, page = 0;
-    protected InputConstants.Key modifierKey = ConfigFile.config().getScreenModifierKey();
+    private final int xSize = 450, ySize = 206, middleWidth = xSize - 200, widgetWidth = (xSize - middleWidth) / 4 - 8, widgetHeight = 18;
+    private int x, y, page = 0;
+    private InputConstants.Key modifierKey = ConfigFile.config().getScreenModifierKey();
     private boolean initialized;
     private int  modelScale = 80, textureScale = 80, layers = 0, selectionRadius = 10;
     private double modelX, modelY, textureX, textureY, clickedX = -1, clickedY = -1;
@@ -460,7 +460,7 @@ public class ModelViewScreen extends Screen {
         applyAnalyser(graphics, mouseX, mouseY);
     }
 
-    protected void applyAnalyser(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+    private void applyAnalyser(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         String textureId = toggleCategoryButton.getValue() == Category.DISABLE ? disabledIdField.getValue() : "";
         Set<String> hiddenNames = hiddenNameMap.getOrDefault(nameField.getValue(), Set.of());
         analyser.applyDisableConfigs(textureId, hiddenNames);
@@ -483,7 +483,7 @@ public class ModelViewScreen extends Screen {
         }
     }
 
-    protected void renderModelViewArea(GuiGraphicsExtractor graphics, LivingEntity entity) {
+    private void renderModelViewArea(GuiGraphicsExtractor graphics, LivingEntity entity) {
         int x1 = modelViewArea.left(), y1 = modelViewArea.top(), x2 = modelViewArea.right(), y2 = modelViewArea.bottom();
         Quaternionf rotation = new Quaternionf().rotateX((float) Math.PI / 6 + xRot).rotateY((float) Math.PI / 6 + yRot).rotateZ((float) Math.PI);
         float entityBodyYaw = entity.yBodyRot;
@@ -505,7 +505,7 @@ public class ModelViewScreen extends Screen {
         entity.yHeadRot = entityHeadYaw;
     }
 
-    protected void renderEntityWithAnalyser(GuiGraphicsExtractor graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset, Quaternionf rotation, LivingEntity entity) {
+    private void renderEntityWithAnalyser(GuiGraphicsExtractor graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset, Quaternionf rotation, LivingEntity entity) {
         PoseStack modelPose = analyser.modelPose;
         modelPose.translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
         modelPose.scale(scale, scale, -scale);
@@ -521,21 +521,21 @@ public class ModelViewScreen extends Screen {
         GUIHelper.culledModels(graphics, analyser.modelRecords, scale, transform, x1, y1, x2, y2);
     }
 
-    protected void renderTextureViewArea(GuiGraphicsExtractor graphics) {
+    private void renderTextureViewArea(GuiGraphicsExtractor graphics) {
         if (textureViewArea == null) return;
         int x1 = textureViewArea.left(), y1 = textureViewArea.top(), x2 = textureViewArea.right(), y2 = textureViewArea.bottom();
         Vector3f offset = new Vector3f((float) textureX - 0.5f, (float) textureY - 0.5f, 0);
         renderTextureWithAnalyser(graphics, x1, y1, x2, y2, (float) (textureScale * textureViewArea.width()) / 80, offset);
     }
 
-    protected void renderTextureWithAnalyser(GuiGraphicsExtractor graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset) {
+    private void renderTextureWithAnalyser(GuiGraphicsExtractor graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset) {
         analyser.texturePose.translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
         analyser.texturePose.scale(scale, scale, -scale);
         analyser.texturePose.translate(offset.x(), offset.y(), offset.z());
         GUIHelper.flattenedModels(graphics, analyser.textureRecords, offset, x1, y1, x2, y2, scale);
     }
 
-    protected void importBindTarget(Button button) {
+    private void importBindTarget(Button button) {
         FriendlyByteBuf byteBuf = null;
         try {
             String base64 = minecraft.keyboardHandler.getClipboard();
@@ -562,7 +562,7 @@ public class ModelViewScreen extends Screen {
         }
     }
 
-    protected void exportBindTarget(Button button) {
+    private void exportBindTarget(Button button) {
         FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
         try {
             genBindTarget().write(byteBuf);
@@ -583,7 +583,7 @@ public class ModelViewScreen extends Screen {
         }
     }
 
-    protected void loadBindTarget(BindTarget target) {
+    private void loadBindTarget(BindTarget target) {
         if (target.isEmpty()) return;
         nameField.setValue(target.name());
         textureIdField.setValue(target.textureId());
@@ -616,7 +616,7 @@ public class ModelViewScreen extends Screen {
         disableConfigs.addAll(List.of(target.disableConfigs()));
     }
 
-    protected BindTarget genBindTarget() {
+    private BindTarget genBindTarget() {
         TargetConfig targetConfig = new TargetConfig(forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber());
         BindConfig bindConfig = new BindConfig(bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);
         OffsetConfig offsets = new OffsetConfig()
@@ -636,42 +636,42 @@ public class ModelViewScreen extends Screen {
         return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, disableConfigArray);
     }
 
-    protected Tooltip createTooltip(String key, Object... args) {
+    private Tooltip createTooltip(String key, Object... args) {
         return Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP(key, args));
     }
 
-    protected UVRectangleWidget createRectWidget(UVRectangle rect) {
+    private UVRectangleWidget createRectWidget(UVRectangle rect) {
         return new UVRectangleWidget(rect.uMin(), rect.vMin(), rect.uMax(), rect.vMax());
     }
 
-    protected Button createButton(Component message, int width, Button.OnPress onPress) {
+    private Button createButton(Component message, int width, Button.OnPress onPress) {
         return Button.builder(message, onPress).size(width, widgetHeight).build();
     }
 
-    protected <T> CycleButton.Builder<T> createCyclingButtonBuilder(Map<T, Component> messages, T defaultValue) {
+    private <T> CycleButton.Builder<T> createCyclingButtonBuilder(Map<T, Component> messages, T defaultValue) {
         return new CycleButton.Builder<>(messages::get, () -> defaultValue).withValues(messages.keySet());
     }
 
-    protected DoubleSlider createSlider(String key, int width, double min, double max) {
+    private DoubleSlider createSlider(String key, int width, double min, double max) {
         return new DoubleSlider(width, widgetHeight, 0, min, max, d -> LocUtil.MODEL_VIEW_WIDGET(key, MathUtil.round(d, 2)));
     }
 
-    protected NumberField<Float> createFloatField(int width, float defaultValue, @Nullable NumberField<Float> copyFrom) {
+    private NumberField<Float> createFloatField(int width, float defaultValue, @Nullable NumberField<Float> copyFrom) {
         return NumberField.ofFloat(font, width - 2, widgetHeight - 2, defaultValue, copyFrom).setMax(1.0f).setMin(0f);
     }
 
-    protected EditBox createTextField(int width, int maxLength, @Nullable EditBox copyFrom) {
+    private EditBox createTextField(int width, int maxLength, @Nullable EditBox copyFrom) {
         EditBox editBox = new EditBox(font, 0, 0, width - 2, widgetHeight - 2, CommonComponents.EMPTY);
         editBox.setMaxLength(maxLength);
         if (copyFrom != null) editBox.setValue(copyFrom.getValue());
         return editBox;
     }
 
-    protected boolean inModelViewArea(double x, double y) {
+    private boolean inModelViewArea(double x, double y) {
         return modelViewArea.containsPoint((int) x, (int) y);
     }
 
-    protected boolean inTextureViewArea(double x, double y) {
+    private boolean inTextureViewArea(double x, double y) {
         return textureViewArea != null && textureViewArea.containsPoint((int) x, (int) y);
     }
 
@@ -836,8 +836,8 @@ public class ModelViewScreen extends Screen {
         }
     }
 
-    public class UVRectangleWidget extends AbstractWidget {
-        protected float uMin, vMin, uMax, vMax;
+    public final class UVRectangleWidget extends AbstractWidget {
+        private float uMin, vMin, uMax, vMax;
 
         public UVRectangleWidget(float uMin, float vMin, float uMax, float vMax) {
             super(0, 0, 16, 16, CommonComponents.EMPTY);

@@ -24,7 +24,7 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
-public class RealCameraCore {
+public final class RealCameraCore {
     private static final MultiVertexCatcher vertexCatcher = MultiVertexCatcher.create();
     private static final CameraTransform smoothedCamera = new CameraTransform();
     private static BindResult lastResult = BindResult.EMPTY, newResult = BindResult.EMPTY;

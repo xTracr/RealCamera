@@ -11,7 +11,7 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.jspecify.annotations.NonNull;
 
-public class GuiCulledModelsRenderer extends PictureInPictureRenderer<GuiCulledModelsRenderState> {
+public final class GuiCulledModelsRenderer extends PictureInPictureRenderer<GuiCulledModelsRenderState> {
     public GuiCulledModelsRenderer(MultiBufferSource.BufferSource bufferSource) {
         super(bufferSource);
     }

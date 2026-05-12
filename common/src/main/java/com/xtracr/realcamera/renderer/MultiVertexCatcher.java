@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.SequencedMap;
 import java.util.function.Consumer;
 
-public class MultiVertexCatcher {
+public final class MultiVertexCatcher {
     private final SubmitNodeStorage storage = new SubmitNodeStorage();
     private final MeshCatcher meshCatcher = new MeshCatcher();
 
@@ -108,11 +108,11 @@ public class MultiVertexCatcher {
         meshCatcher.endCatching(consumer);
     }
 
-    static class MeshCatcher extends MultiBufferSource.BufferSource {
+    static final class MeshCatcher extends MultiBufferSource.BufferSource {
         private final SequencedMap<RenderType, ByteBufferBuilderPool> bufferPools = new Object2ObjectLinkedOpenHashMap<>();
         private final SequencedMap<MeshData, RenderType> caughtMeshes = new Object2ObjectLinkedOpenHashMap<>();
 
-        protected MeshCatcher() {
+        private MeshCatcher() {
             super(new ByteBufferBuilder(0), Object2ObjectSortedMaps.emptyMap());
         }
 
@@ -167,7 +167,7 @@ public class MultiVertexCatcher {
             }
         }
 
-        private static class ByteBufferBuilderPool {
+        private static final class ByteBufferBuilderPool {
             private final int bufferSize;
             private ByteBufferBuilder[] pool = new ByteBufferBuilder[0];
             private int next = 0;

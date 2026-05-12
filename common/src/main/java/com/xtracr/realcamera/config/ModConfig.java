@@ -9,7 +9,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.IntStream;
 
-public class ModConfig {
+public final class ModConfig {
     public static final double MIN_OFFSET_D = -1.0, MAX_OFFSET_D = 1.0;
     public static final float MIN_OFFSET_F = -1.0f, MAX_OFFSET_F = 1.0f;
     public boolean enabled = false;

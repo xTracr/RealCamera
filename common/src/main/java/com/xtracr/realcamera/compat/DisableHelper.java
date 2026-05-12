@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
-public class DisableHelper {
+public final class DisableHelper {
     public static final Entry MAIN_FEATURE, RENDER_MODEL, RENDER_HANDS;
     private static final Pattern MULTI_STAR = Pattern.compile("\\*+");
     private static final Predicate<Player> FALSE = _ -> false;

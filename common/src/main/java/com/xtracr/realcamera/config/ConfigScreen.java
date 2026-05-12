@@ -11,7 +11,7 @@ import net.minecraft.client.gui.screens.Screen;
 
 import java.util.List;
 
-public class ConfigScreen {
+public final class ConfigScreen {
     public static Screen create(Screen parent) {
         ConfigFile.load();
         ModConfig config = ConfigFile.config();
