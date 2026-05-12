@@ -23,7 +23,7 @@ public final class RenderTypeUtil {
             .maximumSize(64)
             .expireAfterAccess(60, TimeUnit.SECONDS)
             .build(new TextureIdCacheLoader());
-    private static final LoadingCache<RenderType, Map<UV, float[]>> PRIMITIVE_CACHE = CacheBuilder.newBuilder()
+    private static final LoadingCache<RenderType, Map<UV, Integer>> PRIMITIVE_CACHE = CacheBuilder.newBuilder()
             .maximumSize(64)
             .expireAfterAccess(60, TimeUnit.SECONDS)
             .build(new PrimitiveCacheLoader());
@@ -43,12 +43,12 @@ public final class RenderTypeUtil {
         return TEXTURE_ID_CACHE.getUnchecked(renderType);
     }
 
-    public static @Nullable Map<UV, float[]> getPrimitiveCache(RenderType renderType) {
+    public static @Nullable Map<UV, Integer> getPrimitiveCache(RenderType renderType) {
         return PRIMITIVE_CACHE.getIfPresent(renderType);
     }
 
-    public static void cachePrimitive(RenderType renderType, UV uv, float[] uvCoords) {
-        PRIMITIVE_CACHE.getUnchecked(renderType).put(uv, uvCoords);
+    public static void cachePrimitive(RenderType renderType, UV uv, int primitiveIndex) {
+        PRIMITIVE_CACHE.getUnchecked(renderType).put(uv, primitiveIndex);
     }
 
     private static class TextureIdCacheLoader extends CacheLoader<RenderType, String> {
@@ -67,9 +67,9 @@ public final class RenderTypeUtil {
         }
     }
 
-    private static class PrimitiveCacheLoader extends CacheLoader<RenderType, Map<UV, float[]>> {
+    private static class PrimitiveCacheLoader extends CacheLoader<RenderType, Map<UV, Integer>> {
         @Override
-        public @NonNull Map<UV, float[]> load(@NonNull RenderType renderType) {
+        public @NonNull Map<UV, Integer> load(@NonNull RenderType renderType) {
             return new HashMap<>(4);
         }
     }

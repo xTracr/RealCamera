@@ -6,7 +6,6 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
 import com.xtracr.realcamera.renderer.state.VertexData;
 import com.xtracr.realcamera.renderer.state.VertexData.MutableVertex;
-import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.NonNull;
 
 import java.nio.ByteBuffer;
@@ -21,18 +20,17 @@ import java.util.stream.StreamSupport;
 public final class IterableVertexBuffer implements Iterable<VertexData> {
     private static final boolean IS_LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
     private static final float NORMAL_SCALE = 1.0f / 127.0f;
-    public final int vertexCount, vertexSize;
-    private final MutableVertex reusableVertex = VertexData.mutable();
+    public final int vertexSize, vertexCount, primitiveLength, primitiveStride, primitiveCount;
     private final Iterable<VertexData[]> primitives;
     private final ByteBuffer buffer;
     private final int positionOffset, colorOffset, uvOffset, overlayOffset, lightOffset, normalOffset;
     private final boolean hasPosition, hasColor, hasUV, hasOverlay, hasLight, hasNormal, fullFormat;
+    private final boolean startWithFirst;
 
     public IterableVertexBuffer(MeshData meshData) {
         buffer = meshData.vertexBuffer();
         MeshData.DrawState drawState = meshData.drawState();
         VertexFormat format = drawState.format();
-        vertexCount = drawState.vertexCount();
         vertexSize = format.getVertexSize();
         positionOffset = format.getOffset(VertexFormatElement.POSITION);
         colorOffset = format.getOffset(VertexFormatElement.COLOR);
@@ -47,8 +45,14 @@ public final class IterableVertexBuffer implements Iterable<VertexData> {
         hasLight = lightOffset != -1;
         hasNormal = normalOffset != -1;
         fullFormat = vertexSize == DefaultVertexFormat.ENTITY.getVertexSize();
-        boolean isQuad = drawState.mode() == VertexFormat.Mode.QUADS;
-        primitives = fullFormat && isQuad ? new FastQuadReader() : new PrimitiveReader(drawState.mode());
+        vertexCount = drawState.vertexCount();
+        VertexFormat.Mode drawMode = drawState.mode();
+        primitiveLength = drawMode.primitiveLength;
+        primitiveStride = drawMode.primitiveStride;
+        primitiveCount = (vertexCount - primitiveLength) / primitiveStride + 1;
+        startWithFirst = drawMode == VertexFormat.Mode.TRIANGLE_FAN;
+        boolean isQuad = drawMode == VertexFormat.Mode.QUADS;
+        primitives = fullFormat && isQuad ? new FastQuadReader() : new PrimitiveReader();
     }
 
     public Iterable<VertexData[]> primitives() {
@@ -65,7 +69,14 @@ public final class IterableVertexBuffer implements Iterable<VertexData> {
 
     public VertexData readVertexAt(int index) {
         Objects.checkIndex(index, vertexCount);
-        return readVertexAt(index, reusableVertex);
+        return readVertexAt(index, VertexData.mutable());
+    }
+
+    public VertexData[] readPrimitiveAt(int primitiveIndex) {
+        Objects.checkIndex(primitiveIndex, primitiveCount);
+        MutableVertex[] mutableVertices = new MutableVertex[primitiveLength];
+        for (int i = 0; i < primitiveLength; i++) mutableVertices[i] = VertexData.mutable();
+        return readPrimitiveAt(primitiveIndex, mutableVertices);
     }
 
     @Override
@@ -129,131 +140,31 @@ public final class IterableVertexBuffer implements Iterable<VertexData> {
         return mutable;
     }
 
-    private class VertexPointer implements VertexData {
-        protected int bytePointer = 0;
-
-        @Override
-        public float x() {
-            if (hasPosition) return buffer.getFloat(bytePointer + positionOffset);
-            return 0;
+    private MutableVertex[] readPrimitiveAt(int index, MutableVertex[] mutableVertices) {
+        int vertexIndex = index * primitiveStride;
+        for (int i = startWithFirst ? 1 : 0; i < primitiveLength; i++) {
+            readVertexAt(vertexIndex + i, mutableVertices[i]);
         }
-
-        @Override
-        public float y() {
-            if (hasPosition) return buffer.getFloat(bytePointer + positionOffset + 4);
-            return 0;
-        }
-
-        @Override
-        public float z() {
-            if (hasPosition) return buffer.getFloat(bytePointer + positionOffset + 8);
-            return 0;
-        }
-
-        @Override
-        public Vec3 position() {
-            if (hasPosition)
-                return new Vec3(buffer.getFloat(bytePointer + positionOffset), buffer.getFloat(bytePointer + positionOffset + 4), buffer.getFloat(bytePointer + positionOffset + 8));
-            return Vec3.ZERO;
-        }
-
-        @Override
-        public int argb() {
-            if (hasColor) return readColor(bytePointer + colorOffset);
-            return 0;
-        }
-
-        @Override
-        public float u() {
-            if (hasUV) return buffer.getFloat(bytePointer + uvOffset);
-            return 0;
-        }
-
-        @Override
-        public float v() {
-            if (hasUV) return buffer.getFloat(bytePointer + uvOffset + 4);
-            return 0;
-        }
-
-        @Override
-        public UV uv() {
-            if (hasUV)
-                return new UV(buffer.getFloat(bytePointer + uvOffset), buffer.getFloat(bytePointer + uvOffset + 4));
-            return new UV(0, 0);
-        }
-
-        @Override
-        public int overlay() {
-            if (hasOverlay) return buffer.getInt(bytePointer + overlayOffset);
-            return 0;
-        }
-
-        @Override
-        public int light() {
-            if (hasLight) return buffer.getInt(bytePointer + lightOffset);
-            return 0;
-        }
-
-        @Override
-        public float normalX() {
-            if (hasNormal) return buffer.get(bytePointer + normalOffset) * NORMAL_SCALE;
-            return 0;
-        }
-
-        @Override
-        public float normalY() {
-            if (hasNormal) return buffer.get(bytePointer + normalOffset + 1) * NORMAL_SCALE;
-            return 0;
-        }
-
-        @Override
-        public float normalZ() {
-            if (hasNormal) return buffer.get(bytePointer + normalOffset + 2) * NORMAL_SCALE;
-            return 0;
-        }
-
-        @Override
-        public Vec3 normal() {
-            if (hasNormal)
-                return new Vec3(buffer.get(bytePointer + normalOffset) * NORMAL_SCALE, buffer.get(bytePointer + normalOffset + 1) * NORMAL_SCALE, buffer.get(bytePointer + normalOffset + 2) * NORMAL_SCALE);
-            return Vec3.ZERO;
-        }
-
-        @Override
-        public VertexData asImmutable() {
-            if (fullFormat) {
-                return new ImmutableVertex(buffer.getFloat(bytePointer),
-                        buffer.getFloat(bytePointer + 4),
-                        buffer.getFloat(bytePointer + 8),
-                        readColor(bytePointer + 12),
-                        buffer.getFloat(bytePointer + 16),
-                        buffer.getFloat(bytePointer + 20),
-                        buffer.getInt(bytePointer + 24),
-                        buffer.getInt(bytePointer + 28),
-                        buffer.get(bytePointer + 32) * NORMAL_SCALE,
-                        buffer.get(bytePointer + 33) * NORMAL_SCALE,
-                        buffer.get(bytePointer + 34) * NORMAL_SCALE);
-            }
-            return VertexData.super.asImmutable();
-        }
+        return mutableVertices;
     }
 
-    private final class VertexIterator extends VertexPointer implements Iterator<VertexData> {
-        private final int byteCount = vertexCount * vertexSize;
+    private final class VertexIterator implements Iterator<VertexData> {
+        private final MutableVertex reusableVertex = VertexData.mutable();
+        private int currentIndex = 0;
 
         @Override
         public boolean hasNext() {
-            return bytePointer < byteCount - vertexSize;
+            return currentIndex < vertexCount;
         }
 
         @Override
         public @NonNull VertexData next() {
-            bytePointer += vertexSize;
-            return this;
+            return readVertexAt(currentIndex++, reusableVertex);
         }
     }
 
-    private final class VertexSpliterator extends VertexPointer implements Spliterator<VertexData> {
+    private final class VertexSpliterator implements Spliterator<VertexData> {
+        private final MutableVertex reusableVertex = VertexData.mutable();
         private final int endIndex;
         private int currentIndex;
 
@@ -265,8 +176,7 @@ public final class IterableVertexBuffer implements Iterable<VertexData> {
         @Override
         public boolean tryAdvance(Consumer<? super VertexData> action) {
             if (currentIndex < endIndex) {
-                bytePointer = currentIndex * vertexSize;
-                action.accept(this);
+                action.accept(readVertexAt(currentIndex, reusableVertex));
                 currentIndex++;
                 return true;
             }
@@ -297,16 +207,6 @@ public final class IterableVertexBuffer implements Iterable<VertexData> {
     }
 
     private final class PrimitiveReader implements Iterable<VertexData[]> {
-        private final int primitiveLength, primitiveStride, primitiveCount;
-        private final boolean startWithFirst;
-
-        public PrimitiveReader(VertexFormat.Mode drawMode) {
-            primitiveLength = drawMode.primitiveLength;
-            primitiveStride = drawMode.primitiveStride;
-            primitiveCount = (vertexCount - primitiveLength) / primitiveStride + 1;
-            startWithFirst = drawMode == VertexFormat.Mode.TRIANGLE_FAN;
-        }
-
         @Override
         public @NonNull Iterator<VertexData[]> iterator() {
             return new PrimitiveIterator();
@@ -317,14 +217,7 @@ public final class IterableVertexBuffer implements Iterable<VertexData> {
             return new PrimitiveSpliterator(0, primitiveCount);
         }
 
-        private void readPrimitiveAt(int index, MutableVertex[] primitive) {
-            int vertexIndex = index * primitiveStride;
-            for (int i = startWithFirst ? 1 : 0; i < primitiveLength; i++) {
-                readVertexAt(vertexIndex + i, primitive[i]);
-            }
-        }
-
-        private class PrimitiveIterator implements Iterator<VertexData[]> {
+        private final class PrimitiveIterator implements Iterator<VertexData[]> {
             private final MutableVertex[] reusablePrimitive = new MutableVertex[primitiveLength];
             private int currentIndex = 0;
 

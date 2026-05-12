@@ -15,7 +15,7 @@ public record BuiltIterableBuffer(RenderType renderType, String textureId, Itera
     }
 
     public boolean anyNotCached(UV[] uvs) {
-        Map<UV, float[]> cache = RenderTypeUtil.getPrimitiveCache(renderType);
+        Map<UV, Integer> cache = RenderTypeUtil.getPrimitiveCache(renderType);
         if (cache == null) return true;
         for (UV uv : uvs) {
             if (!cache.containsKey(uv)) return true;
@@ -24,42 +24,27 @@ public record BuiltIterableBuffer(RenderType renderType, String textureId, Itera
     }
 
     public VertexData[] @Nullable [] findPrimitivesInCache(UV[] uvs) {
-        Map<UV, float[]> cache = RenderTypeUtil.getPrimitiveCache(renderType);
-        int length = renderType.mode().primitiveLength, uvsLength = uvs.length;
+        Map<UV, Integer> cache = RenderTypeUtil.getPrimitiveCache(renderType);
+        int uvsLength = uvs.length;
         VertexData[][] primitives = new VertexData[uvsLength][];
         if (cache == null) return primitives;
-        float[][] uvCacheArray = new float[uvsLength][];
-        boolean allNull = true;
         for (int i = 0; i < uvsLength; i++) {
-            uvCacheArray[i] = cache.get(uvs[i]);
-            if (uvCacheArray[i] != null) allNull = false;
+            if (uvs[i] == null) continue;
+            Integer primitiveIndex = cache.get(uvs[i]);
+            if (primitiveIndex == null) continue;
+            VertexData[] primitive = vertexBuffer.readPrimitiveAt(primitiveIndex);
+            if (!VertexData.containsUV(primitive, uvs[i].u(), uvs[i].v())) continue;
+            primitives[i] = primitive;
         }
-        if (allNull) return primitives;
-        vertexBuffer.primitiveStream().anyMatch(primitive -> {
-            float[] uvCache;
-            boolean allFound = true;
-            cacheFor:
-            for (int i = 0; i < uvsLength; i++) {
-                if (primitives[i] != null) continue;
-                uvCache = uvCacheArray[i];
-                if (uvCache == null) continue;
-                for (int j = 0; j < length; j++) {
-                    if (uvCache[j * 2] != primitive[j].u() || uvCache[j * 2 + 1] != primitive[j].v()) {
-                        allFound = false;
-                        continue cacheFor;
-                    }
-                }
-                primitives[i] = VertexData.asImmutable(primitive);
-            }
-            return allFound;
-        });
         return primitives;
     }
 
     public VertexData[] @Nullable [] findPrimitives(UV[] uvs) {
-        int length = renderType.mode().primitiveLength, uvsLength = uvs.length;
+        int uvsLength = uvs.length;
         VertexData[][] primitives = new VertexData[uvsLength][];
+        int[] counter = new int[1];
         vertexBuffer.primitiveStream().anyMatch(primitive -> {
+            int idx = counter[0]++;
             boolean allFound = true;
             for (int i = 0; i < uvsLength; i++) {
                 if (primitives[i] != null) continue;
@@ -69,12 +54,7 @@ public record BuiltIterableBuffer(RenderType renderType, String textureId, Itera
                     allFound = false;
                     continue;
                 }
-                float[] uvCache = new float[length * 2];
-                for (int j = 0; j < length; j++) {
-                    uvCache[j * 2] = primitive[j].u();
-                    uvCache[j * 2 + 1] = primitive[j].v();
-                }
-                RenderTypeUtil.cachePrimitive(renderType, uv, uvCache);
+                RenderTypeUtil.cachePrimitive(renderType, uv, idx);
                 primitives[i] = VertexData.asImmutable(primitive);
             }
             return allFound;
