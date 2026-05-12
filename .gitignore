@@ -36,5 +36,6 @@ replay_*.log
 *.hprof
 *.jfr
 
-# claude
+# agent
+AGENTS.md
 CLAUDE.md

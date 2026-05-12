@@ -5,7 +5,7 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4fc;
 import org.joml.Vector4f;
 
-public class MathUtil {
+public final class MathUtil {
     public static double round(double d, int digits) {
         return Math.round(d * Math.pow(10, digits)) / Math.pow(10, digits);
     }

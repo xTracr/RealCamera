@@ -1,56 +1,22 @@
 package com.xtracr.realcamera.renderer;
 
 import com.mojang.blaze3d.vertex.MeshData;
-import com.xtracr.realcamera.RealCamera;
-import com.xtracr.realcamera.mixin.accessor.RenderTypeAccessor;
 import com.xtracr.realcamera.renderer.state.VertexData;
 import com.xtracr.realcamera.renderer.state.VertexData.UV;
-import net.minecraft.client.renderer.rendertype.RenderSetup;
+import com.xtracr.realcamera.util.RenderTypeUtil;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import org.jspecify.annotations.Nullable;
 
 import java.awt.*;
-import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.Map;
 
 public record BuiltIterableBuffer(RenderType renderType, String textureId, IterableVertexBuffer vertexBuffer) {
-    @Nullable
-    private static final Field TEXTURES_FIELD;
-    private static final Map<RenderType, String> TEXTURE_ID_CACHE = new HashMap<>();
-    private static final Map<RenderType, Map<UV, float[]>> FIND_PRIMITIVE_CACHE = new HashMap<>();
-
-    static {
-        Field texturesField = null;
-        try {
-            texturesField = RenderSetup.class.getDeclaredField("textures");
-            texturesField.setAccessible(true);
-        } catch (NoSuchFieldException e) {
-            RealCamera.LOGGER.error("Failed to find textures field in RenderSetup", e);
-        }
-        TEXTURES_FIELD = texturesField;
-    }
-
     public static BuiltIterableBuffer buildFrom(RenderType renderType, MeshData meshData) {
-        String textureId = TEXTURE_ID_CACHE.computeIfAbsent(renderType, BuiltIterableBuffer::getTextureId);
-        return new BuiltIterableBuffer(renderType, textureId, new IterableVertexBuffer(meshData));
-    }
-
-    @SuppressWarnings("unchecked")
-    private static String getTextureId(RenderType renderType) {
-        if (TEXTURES_FIELD == null) return renderType.toString();
-        RenderSetup renderSetup = ((RenderTypeAccessor) renderType).getState();
-        try {
-            Map<String, RenderSetup.TextureBinding> textureBindings = (Map<String, RenderSetup.TextureBinding>) TEXTURES_FIELD.get(renderSetup);
-            RenderSetup.TextureBinding sampler0 = textureBindings.get("Sampler0");
-            if (sampler0 != null) return sampler0.location().toString();
-        } catch (IllegalAccessException | IllegalArgumentException | ClassCastException _) {
-        }
-        return renderType.toString();
+        return new BuiltIterableBuffer(renderType, RenderTypeUtil.getTextureId(renderType), new IterableVertexBuffer(meshData));
     }
 
     public boolean anyNotCached(UV[] uvs) {
-        Map<UV, float[]> cache = FIND_PRIMITIVE_CACHE.get(renderType);
+        Map<UV, float[]> cache = RenderTypeUtil.getPrimitiveCache(renderType);
         if (cache == null) return true;
         for (UV uv : uvs) {
             if (!cache.containsKey(uv)) return true;
@@ -59,7 +25,7 @@ public record BuiltIterableBuffer(RenderType renderType, String textureId, Itera
     }
 
     public VertexData[] @Nullable [] findPrimitivesInCache(UV[] uvs) {
-        Map<UV, float[]> cache = FIND_PRIMITIVE_CACHE.get(renderType);
+        Map<UV, float[]> cache = RenderTypeUtil.getPrimitiveCache(renderType);
         int length = renderType.mode().primitiveLength, uvsLength = uvs.length;
         VertexData[][] primitives = new VertexData[uvsLength][];
         if (cache == null) return primitives;
@@ -116,7 +82,7 @@ public record BuiltIterableBuffer(RenderType renderType, String textureId, Itera
                     uvCache[j * 2] = primitive[j].u();
                     uvCache[j * 2 + 1] = primitive[j].v();
                 }
-                FIND_PRIMITIVE_CACHE.computeIfAbsent(renderType, _ -> new HashMap<>()).put(uv, uvCache);
+                RenderTypeUtil.cachePrimitive(renderType, uv, uvCache);
                 primitives[i] = VertexData.asImmutable(primitive);
             }
             return allFound;
