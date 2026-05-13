@@ -23,7 +23,6 @@ public class YSMCompat {
     private static final Map<BindTarget, BindResult> resultMap = new HashMap<>();
     private static final TransformedVertexRecorder[] transformedRecorders = new TransformedVertexRecorder[4];
     private static BindResult bindResult = BindResult.EMPTY;
-    private static boolean allCached = false;
 
     static  {
         final float pitch = 1.9106332f, yaw = 2.0943951f;
@@ -44,37 +43,41 @@ public class YSMCompat {
     private static BindResult computeBindResult(Minecraft client, float deltaTick) {
         resultMap.clear();
         bindResult = BindResult.EMPTY;
-        allCached = true;
         Entity entity = client.getCameraEntity();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         PoseStack poseStack = new PoseStack();
-        for (TransformedVertexRecorder transformedRecorder : transformedRecorders) {
-            poseStack.pushPose();
-            poseStack.last().pose().mul(transformedRecorder.matrix4f.invert(new Matrix4f()));
-            poseStack.last().normal().mul(transformedRecorder.matrix3f.invert(new Matrix3f()));
-            MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-            dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack, catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
-            catcher.endCatching(transformedRecorder::computeBindResultInCache);
-            poseStack.popPose();
-            if (bindResult.available()) return bindResult;
+        float yaw = Mth.lerp(deltaTick, entity.yRotO, entity.getYRot());
+        int light = dispatcher.getPackedLightCoords(entity, deltaTick);
+        try {
+            for (TransformedVertexRecorder transformedRecorder : transformedRecorders) {
+                transformedRecorder.vertexCatcher.clear();
+                poseStack.pushPose();
+                try {
+                    poseStack.last().pose().mul(transformedRecorder.matrix4f.invert(new Matrix4f()));
+                    poseStack.last().normal().mul(transformedRecorder.matrix3f.invert(new Matrix3f()));
+                    dispatcher.render(entity, 0, 0, 0, yaw, deltaTick, poseStack, transformedRecorder.vertexCatcher, light);
+                    transformedRecorder.vertexCatcher.forEachBuffer(transformedRecorder::computeBindResultInCache);
+                } finally {
+                    poseStack.popPose();
+                }
+                if (bindResult.available()) return bindResult;
+            }
+            for (TransformedVertexRecorder transformedRecorder : transformedRecorders) {
+                transformedRecorder.vertexCatcher.forEachBuffer(transformedRecorder::computeBindResult);
+                if (bindResult.available()) return bindResult;
+            }
+            return BindResult.EMPTY;
+        } finally {
+            for (TransformedVertexRecorder transformedRecorder : transformedRecorders) {
+                transformedRecorder.vertexCatcher.clear();
+            }
         }
-        if (allCached) return BindResult.EMPTY;
-        for (TransformedVertexRecorder transformedRecorder : transformedRecorders) {
-            poseStack.pushPose();
-            poseStack.last().pose().mul(transformedRecorder.matrix4f.invert(new Matrix4f()));
-            poseStack.last().normal().mul(transformedRecorder.matrix3f.invert(new Matrix3f()));
-            MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-            dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack, catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
-            catcher.endCatching(transformedRecorder::computeBindResult);
-            poseStack.popPose();
-            if (bindResult.available()) return bindResult;
-        }
-        return BindResult.EMPTY;
     }
 
-    protected static class TransformedVertexRecorder {
-        protected final Matrix4f matrix4f = new Matrix4f();
-        protected final Matrix3f matrix3f = new Matrix3f();
+    private static final class TransformedVertexRecorder {
+        private final MultiVertexCatcher vertexCatcher = MultiVertexCatcher.create();
+        private final Matrix4f matrix4f = new Matrix4f();
+        private final Matrix3f matrix3f = new Matrix3f();
 
         public TransformedVertexRecorder setRotation(float pitch, float yaw) {
             matrix4f.rotationYXZ(yaw, pitch, 0).invert();
@@ -93,9 +96,7 @@ public class YSMCompat {
                 if (result.getPosition() != Vec3.ZERO) posUV = null;
                 if (result.getForward() != Vec3.ZERO) forwardUV = null;
                 if (result.getUpward() != Vec3.ZERO) upwardUV = null;
-                VertexData.UV[] uvs = new VertexData.UV[]{posUV, forwardUV, upwardUV};
-                VertexData[][] primitives = builtBuffer.findPrimitivesInCache(uvs);
-                if (builtBuffer.anyNotCached(uvs)) allCached = false;
+                VertexData[][] primitives = builtBuffer.findPrimitivesInCache(new VertexData.UV[]{posUV, forwardUV, upwardUV});
                 if (primitives[0] != null) result.setPosition(new Vec3(VertexData.position(primitives[0], config.posU(), config.posV()).toVector3f().mulPosition(matrix4f)));
                 if (primitives[1] != null) result.setForward(new Vec3(VertexData.normal(primitives[1]).toVector3f().mul(matrix3f)));
                 if (primitives[2] != null) result.setUpward(new Vec3(VertexData.normal(primitives[2]).toVector3f().mul(matrix3f)));

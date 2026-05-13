@@ -137,7 +137,12 @@ public interface VertexData {
         }
     }
 
-    record ImmutableVertex(float x, float y, float z, int argb, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) implements VertexData { }
+    record ImmutableVertex(float x, float y, float z, int argb, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) implements VertexData {
+        @Override
+        public VertexData asImmutable() {
+            return this;
+        }
+    }
 
     class MutableVertex implements VertexData {
         public float x, y, z;

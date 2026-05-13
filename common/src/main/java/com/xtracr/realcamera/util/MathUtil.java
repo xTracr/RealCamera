@@ -31,7 +31,7 @@ public class MathUtil {
                                       float x0, float y0, float x1, float y1,
                                       float x2, float y2, float x3, float y3) {
         return pointInTriangle(x, y, x0, y0, x1, y1, x2, y2)
-                || pointInTriangle(x, y, x1, y1, x2, y2, x3, y3);
+                || pointInTriangle(x, y, x0, y0, x2, y2, x3, y3);
     }
 
     public static Vec3 getEulerAngleYXZ(Matrix3f normal) {

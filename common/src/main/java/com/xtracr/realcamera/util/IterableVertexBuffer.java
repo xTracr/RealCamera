@@ -90,24 +90,6 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
                 hasPosition, hasColor, hasUV, hasOverlay, hasLight, hasNormal, fastFormat);
     }
 
-    public int uvFingerprint() {
-        int hash = Objects.hash(vertexCount, vertexSize, primitiveLength, primitiveCount);
-        if (primitiveCount <= 0) return hash;
-        hash = hashPrimitiveUV(hash, 0);
-        if (primitiveCount > 2) hash = hashPrimitiveUV(hash, primitiveCount / 2);
-        if (primitiveCount > 1) hash = hashPrimitiveUV(hash, primitiveCount - 1);
-        return hash;
-    }
-
-    private int hashPrimitiveUV(int hash, int index) {
-        VertexData[] primitive = readPrimitiveAt(index);
-        for (VertexData vertex : primitive) {
-            hash = 31 * hash + Float.floatToIntBits(vertex.u());
-            hash = 31 * hash + Float.floatToIntBits(vertex.v());
-        }
-        return hash;
-    }
-
     public VertexData readVertexAt(int index) {
         return readVertexAt(index, reusableVertex);
     }

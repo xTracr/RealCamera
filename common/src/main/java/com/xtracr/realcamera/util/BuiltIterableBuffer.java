@@ -4,10 +4,9 @@ package com.xtracr.realcamera.util;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.xtracr.realcamera.util.RenderTypeUtil.PrimitiveLayoutKey;
 import com.xtracr.realcamera.util.VertexData.UV;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.minecraft.client.renderer.RenderType;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Map;
 
 public record BuiltIterableBuffer(RenderType renderType, String textureId, IterableVertexBuffer vertexBuffer,
                                   PrimitiveLayoutKey primitiveLayoutKey) {
@@ -20,29 +19,29 @@ public record BuiltIterableBuffer(RenderType renderType, String textureId, Itera
         IterableVertexBuffer vertexBuffer = new IterableVertexBuffer(meshData);
         PrimitiveLayoutKey primitiveLayoutKey = new PrimitiveLayoutKey(renderType, textureId, vertexBuffer.mode(),
                 vertexBuffer.vertexSize, vertexBuffer.vertexCount, vertexBuffer.primitiveLength, vertexBuffer.primitiveCount,
-                meshOrdinal, vertexBuffer.vertexLayoutHash(), vertexBuffer.uvFingerprint());
+                meshOrdinal, vertexBuffer.vertexLayoutHash());
         return new BuiltIterableBuffer(renderType, textureId, vertexBuffer, primitiveLayoutKey);
     }
 
     public boolean anyNotCached(UV[] uvs) {
-        Map<UV, Integer> cache = RenderTypeUtil.getPrimitiveCache(primitiveLayoutKey);
+        Object2IntMap<UV> cache = RenderTypeUtil.getPrimitiveCache(primitiveLayoutKey);
         if (cache == null) return true;
         for (UV uv : uvs) {
             if (uv == null) continue;
-            if (!cache.containsKey(uv)) return true;
+            if (cache.getInt(uv) == -1) return true;
         }
         return false;
     }
 
     public VertexData[] @Nullable [] findPrimitivesInCache(UV[] uvs) {
-        Map<UV, Integer> cache = RenderTypeUtil.getPrimitiveCache(primitiveLayoutKey);
+        Object2IntMap<UV> cache = RenderTypeUtil.getPrimitiveCache(primitiveLayoutKey);
         int uvsLength = uvs.length;
         VertexData[][] primitives = new VertexData[uvsLength][];
         if (cache == null) return primitives;
         for (int i = 0; i < uvsLength; i++) {
             if (uvs[i] == null) continue;
-            Integer primitiveIndex = cache.get(uvs[i]);
-            if (primitiveIndex == null) continue;
+            int primitiveIndex = cache.getInt(uvs[i]);
+            if (primitiveIndex == -1) continue;
             VertexData[] primitive;
             try {
                 primitive = vertexBuffer.readPrimitiveAt(primitiveIndex);

@@ -7,6 +7,8 @@ import com.xtracr.realcamera.mixin.accessor.CompositeRenderTypeAccessor;
 import com.xtracr.realcamera.mixin.accessor.CompositeStateAccessor;
 import com.xtracr.realcamera.mixin.accessor.EmptyTextureStateShardAccessor;
 import com.xtracr.realcamera.util.VertexData.UV;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import com.mojang.blaze3d.vertex.VertexFormat;
@@ -14,8 +16,6 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -24,7 +24,7 @@ public final class RenderTypeUtil {
             .maximumSize(64)
             .expireAfterAccess(60, TimeUnit.SECONDS)
             .build(new TextureIdCacheLoader());
-    private static final LoadingCache<PrimitiveLayoutKey, Map<UV, Integer>> PRIMITIVE_CACHE = CacheBuilder.newBuilder()
+    private static final LoadingCache<PrimitiveLayoutKey, Object2IntMap<UV>> PRIMITIVE_CACHE = CacheBuilder.newBuilder()
             .maximumSize(256)
             .expireAfterAccess(60, TimeUnit.SECONDS)
             .build(new PrimitiveCacheLoader());
@@ -33,7 +33,7 @@ public final class RenderTypeUtil {
         return TEXTURE_ID_CACHE.getUnchecked(renderType);
     }
 
-    public static @Nullable Map<UV, Integer> getPrimitiveCache(PrimitiveLayoutKey layoutKey) {
+    public static @Nullable Object2IntMap<UV> getPrimitiveCache(PrimitiveLayoutKey layoutKey) {
         return PRIMITIVE_CACHE.getIfPresent(layoutKey);
     }
 
@@ -61,12 +61,14 @@ public final class RenderTypeUtil {
 
     public record PrimitiveLayoutKey(RenderType renderType, String textureId, VertexFormat.Mode mode,
                                      int vertexSize, int vertexCount, int primitiveLength, int primitiveCount,
-                                     int meshOrdinal, int vertexLayoutHash, int uvFingerprint) { }
+                                     int meshOrdinal, int vertexLayoutHash) { }
 
-    private static class PrimitiveCacheLoader extends CacheLoader<PrimitiveLayoutKey, Map<UV, Integer>> {
+    private static class PrimitiveCacheLoader extends CacheLoader<PrimitiveLayoutKey, Object2IntMap<UV>> {
         @Override
-        public @NotNull Map<UV, Integer> load(@NotNull PrimitiveLayoutKey layoutKey) {
-            return new HashMap<>(4);
+        public @NotNull Object2IntMap<UV> load(@NotNull PrimitiveLayoutKey layoutKey) {
+            Object2IntOpenHashMap<UV> map = new Object2IntOpenHashMap<>(4);
+            map.defaultReturnValue(-1);
+            return map;
         }
     }
 }
