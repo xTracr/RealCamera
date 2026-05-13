@@ -17,6 +17,9 @@
     "MixinPlayerRenderer",
     "MixinStuckInBodyLayer",
     "accessor.CameraAccessor",
+    "accessor.CompositeRenderTypeAccessor",
+    "accessor.CompositeStateAccessor",
+    "accessor.EmptyTextureStateShardAccessor",
     "accessor.GameRendererAccessor",
     "accessor.PlayerRendererAccessor"
   ],

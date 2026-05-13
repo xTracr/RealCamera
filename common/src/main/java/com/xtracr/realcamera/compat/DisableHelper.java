@@ -25,8 +25,9 @@ public class DisableHelper {
     static {
         MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSneaking() && player.isCrouching());
         MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSneaking() && player.isCrouching());
-        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().getBindingSwimOutTick()));
-        MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().getClassicSwimOutTick()));
+        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSwimming() && checkCondition(player, player.isSwimming(), ConfigFile.config().getBindingOutTick()));
+        MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSwimming() && checkCondition(player, player.isSwimming(), ConfigFile.config().getClassicOutTick()));
+        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenCrawling() && checkCondition(player, player.isVisuallyCrawling(), ConfigFile.config().getBindingOutTick()));
         MAIN_FEATURE.registerOrInBinding(player -> {
             Item mainHand = player.getMainHandItem().getItem();
             Item offHand = player.getOffhandItem().getItem();
@@ -45,14 +46,14 @@ public class DisableHelper {
         });
     }
 
-    private static boolean swimmingRecently(Player player, int swimOutTick) {
-        if (player.isSwimming()) {
+    private static boolean checkCondition(Player player, boolean condition, int outTick) {
+        if (condition) {
             exitTick = player.tickCount;
             return true;
         }
-        if (exitTick > 0 && !player.isSwimming()) {
+        if (exitTick > 0) {
             int elapsedTicks = player.tickCount - exitTick;
-            if (elapsedTicks <= swimOutTick) {
+            if (elapsedTicks <= outTick) {
                 return true;
             }
             exitTick = 0;

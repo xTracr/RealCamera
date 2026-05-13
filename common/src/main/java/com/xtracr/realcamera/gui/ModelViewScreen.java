@@ -57,7 +57,6 @@ public class ModelViewScreen extends Screen {
     @Nullable
     private ScreenRectangle textureViewArea;
     private VertexData[][] focusedPolyhedron = new VertexData[0][];
-    private List<DisableConfig> configsInClipBoard = new ArrayList<>();
     @Nullable
     private UVRectangleWidget focusedRectWidget;
     private StringWidget rectWidgetsSizeWidget;
@@ -329,11 +328,6 @@ public class ModelViewScreen extends Screen {
         if (toggleCategoryButton.getValue() == Category.DISABLE) {
             widgetsPerPage = 6;
             size = disableConfigs.size();
-            rows.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("copy"), widgetWidth, button -> configsInClipBoard = List.copyOf(disableConfigs)), 2).setTooltip(createTooltip("copy"));
-            rows.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("paste"), widgetWidth, button -> {
-                configsInClipBoard.stream().filter(config -> disableConfigs.stream().noneMatch(c -> c.name().equals(config.name()))).forEach(disableConfigs::add);
-                initWidgets(0);
-            }), 2).setTooltip(createTooltip("paste"));
             rows.addChild(disabledNameField, 3, smallSettings).setTooltip(createTooltip("disabledName"));
             rows.addChild(new TexturedButton(64, 0, button -> {
                 String name = disabledNameField.getValue(), textureId = disabledIdField.getValue();

@@ -2,28 +2,38 @@ package com.xtracr.realcamera.util;
 
 
 import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.xtracr.realcamera.mixin.accessor.CompositeRenderTypeAccessor;
+import com.xtracr.realcamera.mixin.accessor.CompositeStateAccessor;
+import com.xtracr.realcamera.mixin.accessor.EmptyTextureStateShardAccessor;
 import com.xtracr.realcamera.util.VertexData.UV;
+import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Optional;
 
 public record BuiltIterableBuffer(RenderType renderType, String textureId, IterableVertexBuffer vertexBuffer) {
-    private static final Pattern TEXTURE_ID_PATTERN = Pattern.compile("texture\\[Optional\\[(.*?)]");
     private static final Map<RenderType, String> TEXTURE_ID_CACHE = new HashMap<>();
     private static final Map<RenderType, Map<UV, float[]>> FIND_PRIMITIVE_CACHE = new HashMap<>();
 
     public static BuiltIterableBuffer buildFrom(RenderType renderType, BufferBuilder.RenderedBuffer meshData) {
-        String textureId = TEXTURE_ID_CACHE.computeIfAbsent(renderType, rt -> {
-            String renderTypeName = rt.toString();
-            Matcher matcher = TEXTURE_ID_PATTERN.matcher(renderTypeName);
-            return matcher.find() ? matcher.group(1) : renderTypeName;
-        });
+        String textureId = TEXTURE_ID_CACHE.computeIfAbsent(renderType, BuiltIterableBuffer::getTextureId);
         return new BuiltIterableBuffer(renderType, textureId, new IterableVertexBuffer(meshData));
+    }
+
+    private static String getTextureId(RenderType renderType) {
+        try {
+            RenderType.CompositeState state = ((CompositeRenderTypeAccessor) (Object) renderType).invokeState();
+            RenderStateShard.EmptyTextureStateShard textureState = ((CompositeStateAccessor) (Object) state).getTextureState();
+            Optional<ResourceLocation> textureId = ((EmptyTextureStateShardAccessor) (Object) textureState).invokeCutoutTexture();
+            if (textureId.isPresent()) return textureId.get().toString();
+        } catch (ClassCastException | NullPointerException ignored) {
+        }
+        return renderType.toString();
     }
 
     public boolean anyNotCached(UV[] uvs) {
