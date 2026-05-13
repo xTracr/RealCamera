@@ -44,12 +44,13 @@ public final class GUIHelper {
         fill(graphics, x + width - 1, y + 1, x + width, y + height - 1, argb);
     }
 
-    public static void polygon(GuiGraphicsExtractor graphics, VertexData[] polygon, float z, int argb) {
-        if (polygon.length < 3) return;
-        float x0 = polygon[0].x(), y0 = polygon[0].y();
-        float x1 = polygon[1].x(), y1 = polygon[1].y();
-        float x2 = polygon[2].x(), y2 = polygon[2].y();
-        float x3 = polygon.length > 3 ? polygon[3].x() : x2, y3 = polygon.length > 3 ? polygon[3].y() : y2;
+    public static void triangleOrQuad(GuiGraphicsExtractor graphics, VertexData[] vertices, float z, int argb) {
+        if (vertices.length < 3) return;
+        float x0 = vertices[0].x(), y0 = vertices[0].y();
+        float x1 = vertices[1].x(), y1 = vertices[1].y();
+        float x2 = vertices[2].x(), y2 = vertices[2].y();
+        boolean isQuad = vertices.length > 3;
+        float x3 = isQuad ? vertices[3].x() : x2, y3 = isQuad ? vertices[3].y() : y2;
         ((GuiGraphicsExtractorAccessor) graphics).getGuiRenderState().addGuiElement(new ColoredFloatQuadRenderState(
                 RenderPipelines.GUI, TextureSetup.noTexture(), new Matrix3x2f(graphics.pose()),
                 x0, y0, z, x1, y1, z, x2, y2, z, x3, y3, z, argb, ((GuiGraphicsExtractorAccessor) graphics).getScissorStack().peek()));

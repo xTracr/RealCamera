@@ -101,7 +101,8 @@ public final class MultiVertexCatcher {
     }
 
     public SubmitNodeCollector initCollector() {
-        meshCatcher.initialize();
+        meshCatcher.clear();
+        storage.clear();
         return storage;
     }
 
@@ -135,7 +136,7 @@ public final class MultiVertexCatcher {
             return bufferBuilder;
         }
 
-        public void initialize() {
+        public void clear() {
             for (MeshData meshData : caughtMeshes.keySet()) {
                 meshData.close();
             }

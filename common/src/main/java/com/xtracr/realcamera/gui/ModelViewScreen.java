@@ -472,12 +472,12 @@ public final class ModelViewScreen extends Screen {
         }
         if (inModelViewArea(mouseX, mouseY)) analyser.computeFocusedOnModel(mouseX, mouseY, layers);
         if (toggleCategoryButton.getValue() == Category.CONFIGS || selectionModeButton.getValue() == 1) analyser.computeFocusedPolyhedron();
-        focusedPolyhedron = analyser.focusedPolyhedron.toArray(new VertexData[0][]);
+        focusedPolyhedron = analyser.getFocusedPolyhedron();
         focusedTextureId = analyser.getFocusedTextureId();
         GUIHelper.enableScissor(graphics, modelViewArea);
         if (toggleCategoryButton.getValue() != Category.PREVIEW) analyser.drawFocusedInModelArea(graphics);
-        if (toggleCategoryButton.getValue() == Category.CONFIGS) analyser.drawBindTarget(graphics);
-        else analyser.drawCameraDirections(graphics);
+        if (toggleCategoryButton.getValue() == Category.CONFIGS) analyser.drawBindTarget(graphics, modelScale);
+        else analyser.drawCameraDirections(graphics, modelScale);
         graphics.disableScissor();
         if (textureViewArea != null) {
             GUIHelper.enableScissor(graphics, textureViewArea);
