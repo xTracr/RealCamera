@@ -2,28 +2,40 @@ package com.xtracr.realcamera.util;
 
 
 import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.xtracr.realcamera.util.RenderTypeUtil.PrimitiveLayoutKey;
 import com.xtracr.realcamera.util.VertexData.UV;
 import net.minecraft.client.renderer.RenderType;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-public record BuiltIterableBuffer(RenderType renderType, String textureId, IterableVertexBuffer vertexBuffer) {
+public record BuiltIterableBuffer(RenderType renderType, String textureId, IterableVertexBuffer vertexBuffer,
+                                  PrimitiveLayoutKey primitiveLayoutKey) {
     public static BuiltIterableBuffer buildFrom(RenderType renderType, BufferBuilder.RenderedBuffer meshData) {
-        return new BuiltIterableBuffer(renderType, RenderTypeUtil.getTextureId(renderType), new IterableVertexBuffer(meshData));
+        return buildFrom(renderType, meshData, 0);
+    }
+
+    public static BuiltIterableBuffer buildFrom(RenderType renderType, BufferBuilder.RenderedBuffer meshData, int meshOrdinal) {
+        String textureId = RenderTypeUtil.getTextureId(renderType);
+        IterableVertexBuffer vertexBuffer = new IterableVertexBuffer(meshData);
+        PrimitiveLayoutKey primitiveLayoutKey = new PrimitiveLayoutKey(renderType, textureId, vertexBuffer.mode(),
+                vertexBuffer.vertexSize, vertexBuffer.vertexCount, vertexBuffer.primitiveLength, vertexBuffer.primitiveCount,
+                meshOrdinal, vertexBuffer.vertexLayoutHash(), vertexBuffer.uvFingerprint());
+        return new BuiltIterableBuffer(renderType, textureId, vertexBuffer, primitiveLayoutKey);
     }
 
     public boolean anyNotCached(UV[] uvs) {
-        Map<UV, Integer> cache = RenderTypeUtil.getPrimitiveCache(renderType);
+        Map<UV, Integer> cache = RenderTypeUtil.getPrimitiveCache(primitiveLayoutKey);
         if (cache == null) return true;
         for (UV uv : uvs) {
+            if (uv == null) continue;
             if (!cache.containsKey(uv)) return true;
         }
         return false;
     }
 
     public VertexData[] @Nullable [] findPrimitivesInCache(UV[] uvs) {
-        Map<UV, Integer> cache = RenderTypeUtil.getPrimitiveCache(renderType);
+        Map<UV, Integer> cache = RenderTypeUtil.getPrimitiveCache(primitiveLayoutKey);
         int uvsLength = uvs.length;
         VertexData[][] primitives = new VertexData[uvsLength][];
         if (cache == null) return primitives;
@@ -31,9 +43,28 @@ public record BuiltIterableBuffer(RenderType renderType, String textureId, Itera
             if (uvs[i] == null) continue;
             Integer primitiveIndex = cache.get(uvs[i]);
             if (primitiveIndex == null) continue;
-            VertexData[] primitive = vertexBuffer.readPrimitiveAt(primitiveIndex);
-            if (!VertexData.containsUV(primitive, uvs[i].u(), uvs[i].v())) continue;
+            VertexData[] primitive;
+            try {
+                primitive = vertexBuffer.readPrimitiveAt(primitiveIndex);
+            } catch (IndexOutOfBoundsException ignored) {
+                return invalidatePrimitiveCache(uvsLength);
+            }
+            if (!VertexData.containsUV(primitive, uvs[i].u(), uvs[i].v())) return invalidatePrimitiveCache(uvsLength);
             primitives[i] = primitive;
+        }
+        return primitives;
+    }
+
+    public VertexData[] @Nullable [] resolvePrimitives(UV[] uvs) {
+        VertexData[][] primitives = findPrimitivesInCache(uvs);
+        if (!anyNotCached(uvs)) return primitives;
+        UV[] missingUVs = uvs.clone();
+        for (int i = 0; i < primitives.length; i++) {
+            if (primitives[i] != null) missingUVs[i] = null;
+        }
+        VertexData[][] resolvedPrimitives = findPrimitives(missingUVs);
+        for (int i = 0; i < primitives.length; i++) {
+            if (resolvedPrimitives[i] != null) primitives[i] = resolvedPrimitives[i];
         }
         return primitives;
     }
@@ -53,11 +84,16 @@ public record BuiltIterableBuffer(RenderType renderType, String textureId, Itera
                     allFound = false;
                     continue;
                 }
-                RenderTypeUtil.cachePrimitive(renderType, uv, idx);
+                RenderTypeUtil.cachePrimitive(primitiveLayoutKey, uv, idx);
                 primitives[i] = VertexData.asImmutable(primitive);
             }
             return allFound;
         });
         return primitives;
+    }
+
+    private VertexData[][] invalidatePrimitiveCache(int uvsLength) {
+        RenderTypeUtil.invalidatePrimitiveCache(primitiveLayoutKey);
+        return new VertexData[uvsLength][];
     }
 }

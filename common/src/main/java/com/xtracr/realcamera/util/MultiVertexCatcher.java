@@ -50,10 +50,13 @@ public interface MultiVertexCatcher extends MultiBufferSource {
         @Override
         public void endCatching(Consumer<BuiltIterableBuffer> consumer) {
             endBatch();
-            caughtMeshes.forEach((meshData, renderType) -> {
-                consumer.accept(BuiltIterableBuffer.buildFrom(renderType, meshData));
+            int meshOrdinal = 0;
+            for (var entry : caughtMeshes.entrySet()) {
+                RenderedBuffer meshData = entry.getKey();
+                RenderType renderType = entry.getValue();
+                consumer.accept(BuiltIterableBuffer.buildFrom(renderType, meshData, meshOrdinal++));
                 meshData.release();
-            });
+            }
             caughtMeshes.clear();
             bufferPools.values().forEach(BufferBuilderPool::release);
         }

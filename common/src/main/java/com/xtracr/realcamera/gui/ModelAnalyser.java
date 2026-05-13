@@ -327,16 +327,7 @@ public class ModelAnalyser {
         BindResult result = new BindResult(target, true);
         BindTarget.TargetConfig config = target.targetConfig();
         VertexData.UV[] uvs = {new VertexData.UV(config.posU(), config.posV()), new VertexData.UV(config.forwardU(), config.forwardV()), new VertexData.UV(config.upwardU(), config.upwardV())};
-        targetPrimitives = builtBuffer.findPrimitivesInCache(uvs);
-        if (builtBuffer.anyNotCached(uvs)) {
-            for (int i = 0; i < targetPrimitives.length; i++) {
-                if (targetPrimitives[i] != null) uvs[i] = null;
-            }
-            VertexData[][] newPrimitives = builtBuffer.findPrimitives(uvs);
-            for (int i = 0; i < targetPrimitives.length; i++) {
-                if (newPrimitives[i] != null) targetPrimitives[i] = newPrimitives[i];
-            }
-        }
+        targetPrimitives = builtBuffer.resolvePrimitives(uvs);
         if (targetPrimitives[0] != null) result.setPosition(VertexData.position(targetPrimitives[0], config.posU(), config.posV()));
         if (targetPrimitives[1] != null) result.setForward(VertexData.normal(targetPrimitives[1]).scale(-1));
         if (targetPrimitives[2] != null) result.setUpward(VertexData.normal(targetPrimitives[2]).scale(-1));

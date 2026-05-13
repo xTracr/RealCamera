@@ -90,11 +90,12 @@ public class YSMCompat {
                 VertexData.UV posUV = new VertexData.UV(config.posU(), config.posV());
                 VertexData.UV forwardUV = new VertexData.UV(config.forwardU(), config.forwardV());
                 VertexData.UV upwardUV = new VertexData.UV(config.upwardU(), config.upwardV());
-                if (builtBuffer.anyNotCached(new VertexData.UV[]{posUV, forwardUV, upwardUV})) allCached = false;
                 if (result.getPosition() != Vec3.ZERO) posUV = null;
                 if (result.getForward() != Vec3.ZERO) forwardUV = null;
                 if (result.getUpward() != Vec3.ZERO) upwardUV = null;
-                VertexData[][] primitives = builtBuffer.findPrimitivesInCache(new VertexData.UV[]{posUV, forwardUV, upwardUV});
+                VertexData.UV[] uvs = new VertexData.UV[]{posUV, forwardUV, upwardUV};
+                VertexData[][] primitives = builtBuffer.findPrimitivesInCache(uvs);
+                if (builtBuffer.anyNotCached(uvs)) allCached = false;
                 if (primitives[0] != null) result.setPosition(new Vec3(VertexData.position(primitives[0], config.posU(), config.posV()).toVector3f().mulPosition(matrix4f)));
                 if (primitives[1] != null) result.setForward(new Vec3(VertexData.normal(primitives[1]).toVector3f().mul(matrix3f)));
                 if (primitives[2] != null) result.setUpward(new Vec3(VertexData.normal(primitives[2]).toVector3f().mul(matrix3f)));

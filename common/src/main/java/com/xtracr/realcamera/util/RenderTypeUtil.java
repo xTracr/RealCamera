@@ -9,6 +9,7 @@ import com.xtracr.realcamera.mixin.accessor.EmptyTextureStateShardAccessor;
 import com.xtracr.realcamera.util.VertexData.UV;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,8 +24,8 @@ public final class RenderTypeUtil {
             .maximumSize(64)
             .expireAfterAccess(60, TimeUnit.SECONDS)
             .build(new TextureIdCacheLoader());
-    private static final LoadingCache<RenderType, Map<UV, Integer>> PRIMITIVE_CACHE = CacheBuilder.newBuilder()
-            .maximumSize(64)
+    private static final LoadingCache<PrimitiveLayoutKey, Map<UV, Integer>> PRIMITIVE_CACHE = CacheBuilder.newBuilder()
+            .maximumSize(256)
             .expireAfterAccess(60, TimeUnit.SECONDS)
             .build(new PrimitiveCacheLoader());
 
@@ -32,12 +33,16 @@ public final class RenderTypeUtil {
         return TEXTURE_ID_CACHE.getUnchecked(renderType);
     }
 
-    public static @Nullable Map<UV, Integer> getPrimitiveCache(RenderType renderType) {
-        return PRIMITIVE_CACHE.getIfPresent(renderType);
+    public static @Nullable Map<UV, Integer> getPrimitiveCache(PrimitiveLayoutKey layoutKey) {
+        return PRIMITIVE_CACHE.getIfPresent(layoutKey);
     }
 
-    public static void cachePrimitive(RenderType renderType, UV uv, int primitiveIndex) {
-        PRIMITIVE_CACHE.getUnchecked(renderType).put(uv, primitiveIndex);
+    public static void cachePrimitive(PrimitiveLayoutKey layoutKey, UV uv, int primitiveIndex) {
+        PRIMITIVE_CACHE.getUnchecked(layoutKey).put(uv, primitiveIndex);
+    }
+
+    public static void invalidatePrimitiveCache(PrimitiveLayoutKey layoutKey) {
+        PRIMITIVE_CACHE.invalidate(layoutKey);
     }
 
     private static class TextureIdCacheLoader extends CacheLoader<RenderType, String> {
@@ -54,9 +59,13 @@ public final class RenderTypeUtil {
         }
     }
 
-    private static class PrimitiveCacheLoader extends CacheLoader<RenderType, Map<UV, Integer>> {
+    public record PrimitiveLayoutKey(RenderType renderType, String textureId, VertexFormat.Mode mode,
+                                     int vertexSize, int vertexCount, int primitiveLength, int primitiveCount,
+                                     int meshOrdinal, int vertexLayoutHash, int uvFingerprint) { }
+
+    private static class PrimitiveCacheLoader extends CacheLoader<PrimitiveLayoutKey, Map<UV, Integer>> {
         @Override
-        public @NotNull Map<UV, Integer> load(@NotNull RenderType renderType) {
+        public @NotNull Map<UV, Integer> load(@NotNull PrimitiveLayoutKey layoutKey) {
             return new HashMap<>(4);
         }
     }

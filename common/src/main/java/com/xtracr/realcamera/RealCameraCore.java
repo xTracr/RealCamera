@@ -157,17 +157,8 @@ public class RealCameraCore {
             BindResult result = new BindResult(target, false);
             BindTarget.TargetConfig config = target.targetConfig();
             VertexData.UV[] uvs = {new VertexData.UV(config.posU(), config.posV()), new VertexData.UV(config.forwardU(), config.forwardV()), new VertexData.UV(config.upwardU(), config.upwardV())};
-            VertexData[][] primitives = builtBuffer.findPrimitivesInCache(uvs);
-            if (builtBuffer.anyNotCached(uvs)) {
-                for (int i = 0; i < primitives.length; i++) {
-                    if (primitives[i] != null) uvs[i] = null;
-                }
-                VertexData[][] newPrimitives = builtBuffer.findPrimitives(uvs);
-                for (int i = 0; i < primitives.length; i++) {
-                    if (newPrimitives[i] == null && primitives[i] == null) continue targetFor;
-                    else if (newPrimitives[i] != null) primitives[i] = newPrimitives[i];
-                }
-            }
+            VertexData[][] primitives = builtBuffer.resolvePrimitives(uvs);
+            for (VertexData[] primitive : primitives) if (primitive == null) continue targetFor;
             if (primitives[0] != null) result.setPosition(VertexData.position(primitives[0], config.posU(), config.posV()));
             if (primitives[1] != null) result.setForward(VertexData.normal(primitives[1]));
             if (primitives[2] != null) result.setUpward(VertexData.normal(primitives[2]));
