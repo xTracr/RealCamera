@@ -5,8 +5,8 @@ import com.xtracr.realcamera.api.BindResult;
 import com.xtracr.realcamera.api.RealCameraAPI;
 import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.BindTarget;
-import com.xtracr.realcamera.config.BindTarget.DisableConfig;
 import com.xtracr.realcamera.config.ConfigFile;
+import com.xtracr.realcamera.config.DisableConfig;
 import com.xtracr.realcamera.renderer.BuiltIterableBuffer;
 import com.xtracr.realcamera.renderer.MultiVertexCatcher;
 import com.xtracr.realcamera.renderer.RoutingSubmitCollector;
@@ -45,8 +45,8 @@ public final class RealCameraCore {
 
     public static void initialize(Minecraft client, boolean renderLevel) {
         Entity entity = client.getCameraEntity();
-        active = renderLevel && ConfigFile.config().enabled() && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.MAIN_FEATURE.disabled(entity);
-        rendering = ConfigFile.config().renderModel() && !DisableHelper.RENDER_MODEL.disabled(entity);
+        active = renderLevel && ConfigFile.config().enabled && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.MAIN_FEATURE.disabled(entity);
+        rendering = ConfigFile.config().renderModel && !DisableHelper.RENDER_MODEL.disabled(entity);
     }
 
     public static void reset() {
@@ -84,8 +84,8 @@ public final class RealCameraCore {
         } else {
             failureFrames++;
             Player player = client.player;
-            int retentionFrames = ConfigFile.config().getBindResultRetentionFrames();
-            if (!ConfigFile.config().hideBindingFailureMessage() && failureFrames == retentionFrames + 1 && player != null) {
+            int retentionFrames = ConfigFile.config().binding.bindResultRetentionFrames;
+            if (!ConfigFile.config().binding.hideFailureMessage && failureFrames == retentionFrames + 1 && player != null) {
                 player.sendSystemMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE(), KeyMappings.MODEL_VIEW_SCREEN.getTranslatedKeyMessage()));
             }
             if (!lastResult.available() || failureFrames > retentionFrames) {
@@ -94,8 +94,8 @@ public final class RealCameraCore {
                 return;
             }
         }
-        smoothedCamera.lerpPosition(lastResult.getPosition(), 1 - ConfigFile.config().getDisplacementSmoothFactor());
-        smoothedCamera.slerpRotation(lastResult.getRotation(), 1 - ConfigFile.config().getRotationSmoothFactor());
+        smoothedCamera.lerpPosition(lastResult.getPosition(), 1 - ConfigFile.config().binding.displacementSmoothFactor);
+        smoothedCamera.slerpRotation(lastResult.getRotation(), 1 - ConfigFile.config().binding.rotationSmoothFactor);
     }
 
     public static void renderCameraEntity(Minecraft client, float partialTicks, SubmitNodeCollector submitNodeCollector, Matrix4f modelView) {

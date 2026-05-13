@@ -21,7 +21,7 @@ public record BuiltIterableBuffer(RenderType renderType, String textureId, Itera
         for (int i = 0; i < uvsLength; i++) {
             if (uvs[i] == null) continue;
             int primitiveIndex = cache.getInt(uvs[i]);
-            if (primitiveIndex == -1) continue;
+            if (primitiveIndex == -1 || primitiveIndex >= vertexBuffer.primitiveCount) continue;
             VertexData[] primitive = vertexBuffer.readPrimitiveAt(primitiveIndex);
             if (!VertexData.containsUV(primitive, uvs[i].u(), uvs[i].v())) continue;
             primitives[i] = primitive;

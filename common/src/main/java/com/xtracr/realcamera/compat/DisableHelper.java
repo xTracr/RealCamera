@@ -26,15 +26,15 @@ public final class DisableHelper {
         MAIN_FEATURE = new Entry("mainFeature", player -> player.isSleeping() || player.isSpectator());
         RENDER_MODEL = new Entry("renderModel", FALSE, Player::isScoping);
         RENDER_HANDS = new Entry("renderHands", _ -> RealCameraCore.isRendering());
-        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSneaking() && player.isCrouching());
-        MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSneaking() && player.isCrouching());
-        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSwimming() && checkCondition(player, player.isSwimming(), ConfigFile.config().getBindingOutTick()));
-        MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSwimming() && checkCondition(player, player.isSwimming(), ConfigFile.config().getClassicOutTick()));
-        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenCrawling() && checkCondition(player, player.isVisuallyCrawling(), ConfigFile.config().getBindingOutTick()));
+        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().binding.disableWhenSneaking && player.isCrouching());
+        MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classic.disableWhenSneaking && player.isCrouching());
+        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().binding.disableWhenSwimming && checkCondition(player, player.isSwimming(), ConfigFile.config().binding.outTick));
+        MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classic.disableWhenSwimming && checkCondition(player, player.isSwimming(), ConfigFile.config().classic.outTick));
+        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().binding.disableWhenCrawling && checkCondition(player, player.isVisuallyCrawling(), ConfigFile.config().binding.outTick));
         MAIN_FEATURE.registerOrInBinding(player -> {
             Item mainHand = player.getMainHandItem().getItem();
             Item offHand = player.getOffhandItem().getItem();
-            for (String pattern : ConfigFile.config().getDisableMainFeatureItems())
+            for (String pattern : ConfigFile.config().binding.disableMainFeatureItems)
                 if (matchesItemPattern(mainHand, pattern) || matchesItemPattern(offHand, pattern))
                     return true;
             return false;
@@ -42,7 +42,7 @@ public final class DisableHelper {
         RENDER_MODEL.registerOrInBinding(player -> {
             Item mainHand = player.getMainHandItem().getItem();
             Item offHand = player.getOffhandItem().getItem();
-            for (String pattern : ConfigFile.config().getDisableRenderItems())
+            for (String pattern : ConfigFile.config().binding.disableRenderItems)
                 if (matchesItemPattern(mainHand, pattern) || matchesItemPattern(offHand, pattern))
                     return true;
             return false;
@@ -134,7 +134,7 @@ public final class DisableHelper {
 
         public boolean disabled(Entity cameraEntity) {
             if (!(cameraEntity instanceof Player player)) return false;
-            return ConfigFile.config().isClassic() ? predicateInClassic.test(player) : predicateInBinding.test(player);
+            return ConfigFile.config().isClassic ? predicateInClassic.test(player) : predicateInBinding.test(player);
         }
     }
 }

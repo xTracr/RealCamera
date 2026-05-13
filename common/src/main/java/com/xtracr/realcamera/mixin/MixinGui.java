@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinGui {
     @Inject(method = "extractCrosshair", at = @At("HEAD"))
     private void realcamera$atRenderCrosshairHEAD(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
-        if (ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
+        if (ConfigFile.config().dynamicCrosshair && RealCameraCore.isActive()) {
             graphics.pose().pushMatrix();
             CrosshairUtil.translateMatrices(graphics.pose());
         }
@@ -23,7 +23,7 @@ public abstract class MixinGui {
 
     @Inject(method = "extractCrosshair", at = @At("RETURN"))
     private void realcamera$atRenderCrosshairRETURN(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
-        if (ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
+        if (ConfigFile.config().dynamicCrosshair && RealCameraCore.isActive()) {
             graphics.pose().popMatrix();
         }
     }

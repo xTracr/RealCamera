@@ -22,7 +22,7 @@ public final class LegacyBindingMode {
 
     @SuppressWarnings("unchecked")
     private static BindResult computeBindResult(Minecraft client, float partialTicks) {
-        if (!ConfigFile.config().legacyBindingMode()) return BindResult.EMPTY;
+        if (!ConfigFile.config().binding.legacyMode) return BindResult.EMPTY;
         PoseStack poseStack = new PoseStack();
         AbstractClientPlayer player = client.player;
         // WorldRenderer.render

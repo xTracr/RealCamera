@@ -28,7 +28,7 @@ public abstract class MixinGameRenderer {
         float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(true);
         CompatibilityHelper.NEA_setDeltaTick(partialTicks);
         RealCameraCore.initialize(minecraft, renderLevel);
-        if (RealCameraCore.isActive() && !ConfigFile.config().isClassic()) {
+        if (RealCameraCore.isActive() && !ConfigFile.config().isClassic) {
             minecraft.getEntityRenderDispatcher().prepare(mainCamera, minecraft.crosshairPickEntity);
             RealCameraCore.computeCamera(minecraft, partialTicks);
         }

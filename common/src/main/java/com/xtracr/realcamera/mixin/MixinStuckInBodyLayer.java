@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinStuckInBodyLayer {
     @Inject(method = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/AvatarRenderState;FF)V", at = @At("HEAD"), cancellable = true)
     private void realcamera$cancelRender(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int lightCoords, AvatarRenderState state, float yRot, float xRot, CallbackInfo ci) {
-        if (RealCameraCore.isRendering() && state.id == Minecraft.getInstance().getCameraEntity().getId() && !ConfigFile.config().isClassic() && !ConfigFile.config().renderStuckObjects()) {
+        if (RealCameraCore.isRendering() && state.id == Minecraft.getInstance().getCameraEntity().getId() && !ConfigFile.config().isClassic && !ConfigFile.config().binding.renderStuckObjects) {
             ci.cancel();
         }
     }

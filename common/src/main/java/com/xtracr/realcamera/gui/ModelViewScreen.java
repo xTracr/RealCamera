@@ -6,11 +6,9 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.compat.CompatibilityHelper;
-import com.xtracr.realcamera.config.BindTarget;
-import com.xtracr.realcamera.config.BindTarget.*;
-import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.config.ConfigScreen;
-import com.xtracr.realcamera.config.ModConfig;
+import com.xtracr.realcamera.config.*;
+import com.xtracr.realcamera.config.BindTarget.BindConfig;
+import com.xtracr.realcamera.config.BindTarget.TargetConfig;
 import com.xtracr.realcamera.gui.components.CycleIconButton;
 import com.xtracr.realcamera.gui.components.DoubleSlider;
 import com.xtracr.realcamera.gui.components.NumberField;
@@ -54,7 +52,7 @@ import java.util.zip.InflaterInputStream;
 public final class ModelViewScreen extends Screen {
     private final int xSize = 450, ySize = 206, middleWidth = xSize - 200, widgetWidth = (xSize - middleWidth) / 4 - 8, widgetHeight = 18;
     private int x, y, page = 0;
-    private InputConstants.Key modifierKey = ConfigFile.config().getScreenModifierKey();
+    private InputConstants.Key modifierKey = InputConstants.getKey(ConfigFile.config().binding.screenModifierKey);
     private boolean initialized;
     private int modelScale = 80, textureScale = 80, layers = 0, selectionRadius = 10;
     private double modelX, modelY, textureX, textureY, clickedX = -1, clickedY = -1;
@@ -146,7 +144,7 @@ public final class ModelViewScreen extends Screen {
         super.init();
         x = (width - xSize) / 2;
         y = (height - ySize) / 2;
-        modifierKey = ConfigFile.config().getScreenModifierKey();
+        modifierKey = InputConstants.getKey(ConfigFile.config().binding.screenModifierKey);
         initWidgets(page);
         if (!initialized) loadBindTarget(RealCameraCore.currentTarget());
         initialized = true;
@@ -378,8 +376,8 @@ public final class ModelViewScreen extends Screen {
             }
         } else {
             widgetsPerPage = 8;
-            List<BindTarget> fixedTargetList = ConfigFile.config().getFixedTargetList().stream().filter(target -> target.name().equals(RealCameraCore.currentTarget().name())).toList();
-            List<BindTarget> targetList = ConfigFile.config().getBindTargetList();
+            List<BindTarget> fixedTargetList = ConfigFile.config().binding.fixedTargetList.stream().filter(target -> target.name().equals(RealCameraCore.currentTarget().name())).toList();
+            List<BindTarget> targetList = ConfigFile.config().binding.targetList;
             final int fixedTargetCount = fixedTargetList.size();
             size = fixedTargetCount + targetList.size();
             for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, size); i++) {
@@ -457,7 +455,7 @@ public final class ModelViewScreen extends Screen {
 
         ModelAnalyser analyser = new ModelAnalyser();
         BindTarget target = genBindTarget();
-        target.offsets().setScale(target.offsets().getScale() * modelScale);
+        target.offsets().scale *= modelScale;
         String textureId = toggleCategoryButton.getValue() == Category.DISABLE ? disabledIdField.getValue() : "";
         Set<String> hiddenNames = hiddenNameMap.getOrDefault(nameField.getValue(), Set.of());
         List<BuiltModelRecord> modelRecords = captureRotatedEntity(analyser, target, minecraft.player);
@@ -621,19 +619,19 @@ public final class ModelViewScreen extends Screen {
         bindYButton.setValue(target.bindConfig().bindY() ? 0 : 1);
         bindZButton.setValue(target.bindConfig().bindZ() ? 0 : 1);
         bindRotButton.setValue(target.bindConfig().bindRotation() ? 0 : 1);
-        scaleField.setNumber(target.offsets().getScale());
-        offsetXSlider.setDouble(target.offsets().getX());
-        offsetXField.setNumber(target.offsets().getX());
-        offsetYSlider.setDouble(target.offsets().getY());
-        offsetYField.setNumber(target.offsets().getY());
-        offsetZSlider.setDouble(target.offsets().getZ());
-        offsetZField.setNumber(target.offsets().getZ());
-        offsetPitchSlider.setDouble(target.offsets().getPitch());
-        offsetPitchField.setNumber(target.offsets().getPitch());
-        offsetYawSlider.setDouble(target.offsets().getYaw());
-        offsetYawField.setNumber(target.offsets().getYaw());
-        offsetRollSlider.setDouble(target.offsets().getRoll());
-        offsetRollField.setNumber(target.offsets().getRoll());
+        scaleField.setNumber(target.offsets().scale);
+        offsetXSlider.setDouble(target.offsets().x);
+        offsetXField.setNumber(target.offsets().x);
+        offsetYSlider.setDouble(target.offsets().y);
+        offsetYField.setNumber(target.offsets().y);
+        offsetZSlider.setDouble(target.offsets().z);
+        offsetZField.setNumber(target.offsets().z);
+        offsetPitchSlider.setDouble(target.offsets().pitch);
+        offsetPitchField.setNumber(target.offsets().pitch);
+        offsetYawSlider.setDouble(target.offsets().yaw);
+        offsetYawField.setNumber(target.offsets().yaw);
+        offsetRollSlider.setDouble(target.offsets().roll);
+        offsetRollField.setNumber(target.offsets().roll);
         disableConfigs.clear();
         disableConfigs.addAll(List.of(target.disableConfigs()));
     }
@@ -641,14 +639,15 @@ public final class ModelViewScreen extends Screen {
     private BindTarget genBindTarget() {
         TargetConfig targetConfig = new TargetConfig(forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber());
         BindConfig bindConfig = new BindConfig(bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);
-        OffsetConfig offsets = new OffsetConfig()
-                .setScale(scaleField.getNumber())
-                .setX(toggleSliderButton.getValue() == 0 ? (float) offsetXSlider.getDouble() : offsetXField.getNumber())
-                .setY(toggleSliderButton.getValue() == 0 ? (float) offsetYSlider.getDouble() : offsetYField.getNumber())
-                .setZ(toggleSliderButton.getValue() == 0 ? (float) offsetZSlider.getDouble() : offsetZField.getNumber())
-                .setPitch(toggleSliderButton.getValue() == 0 ? (float) offsetPitchSlider.getDouble() : offsetPitchField.getNumber())
-                .setYaw(toggleSliderButton.getValue() == 0 ? (float) offsetYawSlider.getDouble() : offsetYawField.getNumber())
-                .setRoll(toggleSliderButton.getValue() == 0 ? (float) offsetRollSlider.getDouble() : offsetRollField.getNumber());
+        OffsetConfig offsets = new OffsetConfig(
+                scaleField.getNumber(),
+                toggleSliderButton.getValue() == 0 ? (float) offsetXSlider.getDouble() : offsetXField.getNumber(),
+                toggleSliderButton.getValue() == 0 ? (float) offsetYSlider.getDouble() : offsetYField.getNumber(),
+                toggleSliderButton.getValue() == 0 ? (float) offsetZSlider.getDouble() : offsetZField.getNumber(),
+                toggleSliderButton.getValue() == 0 ? (float) offsetPitchSlider.getDouble() : offsetPitchField.getNumber(),
+                toggleSliderButton.getValue() == 0 ? (float) offsetYawSlider.getDouble() : offsetYawField.getNumber(),
+                toggleSliderButton.getValue() == 0 ? (float) offsetRollSlider.getDouble() : offsetRollField.getNumber()
+        );
         DisableConfig currentDisableConfig = new DisableConfig(disabledNameField.getValue(), disabledIdField.getValue(), disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toArray(UVRectangle[]::new));
         DisableConfig[] disableConfigArray = disableConfigs.toArray(new DisableConfig[0]);
         for (int i = 0; i < disableConfigArray.length; i++) {

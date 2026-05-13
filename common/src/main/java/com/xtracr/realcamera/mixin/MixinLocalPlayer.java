@@ -37,7 +37,7 @@ public abstract class MixinLocalPlayer extends AbstractClientPlayer {
 
     @WrapOperation(method = "pick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/ProjectileUtil;getEntityHitResult(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/AABB;Ljava/util/function/Predicate;D)Lnet/minecraft/world/phys/EntityHitResult;"))
     private static @Nullable EntityHitResult realcamera$wrapGetEntityHitResult(Entity except, Vec3 from, Vec3 to, AABB box, Predicate<Entity> matching, double maxValue, Operation<EntityHitResult> original, Entity cameraEntity, double blockInteractionRange, double entityInteractionRange, float partialTicks) {
-        if (!ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
+        if (!ConfigFile.config().dynamicCrosshair && RealCameraCore.isActive()) {
             double interactionRange = Math.max(blockInteractionRange, entityInteractionRange);
             Pair<Vec3, Vec3> fromAndTo = RaycastUtil.getFromAndTo(cameraEntity, interactionRange * interactionRange, partialTicks);
             Vec3 newFrom = fromAndTo.getFirst();
@@ -58,7 +58,7 @@ public abstract class MixinLocalPlayer extends AbstractClientPlayer {
 
     @Override
     public @NonNull HitResult pick(double maxDistance, float partialTicks, boolean includeFluids) {
-        if (!ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
+        if (!ConfigFile.config().dynamicCrosshair && RealCameraCore.isActive()) {
             Pair<Vec3, Vec3> fromAndTo = RaycastUtil.getFromAndTo(this, maxDistance * maxDistance, partialTicks);
             return level().clip(new ClipContext(fromAndTo.getFirst(), fromAndTo.getSecond(), ClipContext.Block.OUTLINE, includeFluids ? ClipContext.Fluid.ANY : ClipContext.Fluid.NONE, this));
         }

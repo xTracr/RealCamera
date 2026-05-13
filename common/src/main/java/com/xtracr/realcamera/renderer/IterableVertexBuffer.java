@@ -20,9 +20,10 @@ import java.util.stream.StreamSupport;
 public final class IterableVertexBuffer implements Iterable<VertexData> {
     private static final boolean IS_LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
     private static final float NORMAL_SCALE = 1.0f / 127.0f;
-    public final int vertexSize, vertexCount, primitiveLength, primitiveStride, primitiveCount;
+    public final int vertexCount, primitiveCount;
     private final Iterable<VertexData[]> primitives;
     private final ByteBuffer buffer;
+    private final int vertexSize, primitiveLength, primitiveStride;
     private final int positionOffset, colorOffset, uvOffset, overlayOffset, lightOffset, normalOffset;
     private final boolean hasPosition, hasColor, hasUV, hasOverlay, hasLight, hasNormal, fullFormat;
     private final boolean startWithFirst;
