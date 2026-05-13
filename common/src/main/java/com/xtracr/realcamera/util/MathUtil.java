@@ -5,8 +5,6 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4fc;
 import org.joml.Vector4f;
 
-import java.awt.*;
-
 public final class MathUtil {
     public static double round(double d, int digits) {
         return Math.round(d * Math.pow(10, digits)) / Math.pow(10, digits);
@@ -45,11 +43,8 @@ public final class MathUtil {
         return beta + gamma <= 1;
     }
 
-    public static boolean pointInQuad(float x, float y,
-                                      float x0, float y0, float x1, float y1,
-                                      float x2, float y2, float x3, float y3) {
-        return pointInTriangle(x, y, x0, y0, x1, y1, x2, y2)
-                || pointInTriangle(x, y, x1, y1, x2, y2, x3, y3);
+    public static boolean pointInQuad(float x, float y, float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3) {
+        return pointInTriangle(x, y, x0, y0, x1, y1, x2, y2) || pointInTriangle(x, y, x1, y1, x2, y2, x3, y3);
     }
 
     public static Vec3 getEulerAngleYXZ(Matrix3f normal) {

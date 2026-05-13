@@ -20,7 +20,7 @@ public final class DisableHelper {
     private static final Pattern MULTI_STAR = Pattern.compile("\\*+");
     private static final Predicate<Player> FALSE = _ -> false;
     private static final Map<String, Entry> entries = new HashMap<>();
-    public static int exitTick = 0;
+    private static int exitTick = 0;
 
     static {
         MAIN_FEATURE = new Entry("mainFeature", player -> player.isSleeping() || player.isSpectator());

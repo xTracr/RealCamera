@@ -56,7 +56,7 @@ public final class ModelViewScreen extends Screen {
     private int x, y, page = 0;
     private InputConstants.Key modifierKey = ConfigFile.config().getScreenModifierKey();
     private boolean initialized;
-    private int  modelScale = 80, textureScale = 80, layers = 0, selectionRadius = 10;
+    private int modelScale = 80, textureScale = 80, layers = 0, selectionRadius = 10;
     private double modelX, modelY, textureX, textureY, clickedX = -1, clickedY = -1;
     private float xRot, yRot;
     private String focusedTextureId;
@@ -466,7 +466,10 @@ public final class ModelViewScreen extends Screen {
         analyser.applyDisableConfigs(textureId, hiddenNames);
         if (toggleCategoryButton.getValue() == Category.DISABLE && selectionModeButton.getValue() == 2 && inModelViewArea(mouseX, mouseY))
             analyser.computeFocusedOnModel(mouseX - selectionRadius, mouseY - selectionRadius, mouseX + selectionRadius, mouseY + selectionRadius);
-        if (inTextureViewArea(mouseX, mouseY)) analyser.computeFocusedOnTexture(mouseX, mouseY);
+        if (inTextureViewArea(mouseX, mouseY)) {
+            Vec2 mouseUV = translateXYToUV(mouseX, mouseY, textureViewArea);
+            analyser.computeFocusedOnTexture(mouseUV.x, mouseUV.y);
+        }
         if (inModelViewArea(mouseX, mouseY)) analyser.computeFocusedOnModel(mouseX, mouseY, layers);
         if (toggleCategoryButton.getValue() == Category.CONFIGS || selectionModeButton.getValue() == 1) analyser.computeFocusedPolyhedron();
         focusedPolyhedron = analyser.focusedPolyhedron.toArray(new VertexData[0][]);
@@ -478,7 +481,13 @@ public final class ModelViewScreen extends Screen {
         graphics.disableScissor();
         if (textureViewArea != null) {
             GUIHelper.enableScissor(graphics, textureViewArea);
-            analyser.drawFocusedInTextureArea(graphics);
+            Matrix4f texturePose = new Matrix4f();
+            int x1 = textureViewArea.left(), y1 = textureViewArea.top(), x2 = textureViewArea.right(), y2 = textureViewArea.bottom();
+            float scale = (float) (textureScale * textureViewArea.width()) / 80;
+            texturePose.translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
+            texturePose.scale(scale, scale, -scale);
+            texturePose.translate((float) textureX - 0.5f, (float) textureY - 0.5f, 0);
+            analyser.drawFocusedInTextureArea(graphics, texturePose);
             graphics.disableScissor();
         }
     }
@@ -506,7 +515,7 @@ public final class ModelViewScreen extends Screen {
     }
 
     private void renderEntityWithAnalyser(GuiGraphicsExtractor graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset, Quaternionf rotation, LivingEntity entity) {
-        PoseStack modelPose = analyser.modelPose;
+        PoseStack modelPose = new PoseStack();
         modelPose.translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
         modelPose.scale(scale, scale, -scale);
         modelPose.translate(offset.x(), offset.y(), offset.z());
@@ -525,14 +534,26 @@ public final class ModelViewScreen extends Screen {
         if (textureViewArea == null) return;
         int x1 = textureViewArea.left(), y1 = textureViewArea.top(), x2 = textureViewArea.right(), y2 = textureViewArea.bottom();
         Vector3f offset = new Vector3f((float) textureX - 0.5f, (float) textureY - 0.5f, 0);
-        renderTextureWithAnalyser(graphics, x1, y1, x2, y2, (float) (textureScale * textureViewArea.width()) / 80, offset);
+        float scale = (float) (textureScale * textureViewArea.width()) / 80;
+        GUIHelper.flattenedModels(graphics, analyser.textureRecords, offset, x1, y1, x2, y2, scale);
     }
 
-    private void renderTextureWithAnalyser(GuiGraphicsExtractor graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset) {
-        analyser.texturePose.translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
-        analyser.texturePose.scale(scale, scale, -scale);
-        analyser.texturePose.translate(offset.x(), offset.y(), offset.z());
-        GUIHelper.flattenedModels(graphics, analyser.textureRecords, offset, x1, y1, x2, y2, scale);
+    private Vec2 translateUVToXY(float u, float v, ScreenRectangle screenArea) {
+        int x1 = screenArea.left(), y1 = screenArea.top(), x2 = screenArea.right(), y2 = screenArea.bottom();
+        Vector3f vector3f = new Vector3f(u, v, 0)
+                .add((float) textureX - 0.5f, (float) textureY - 0.5f, 0)
+                .mul((float) (textureScale * screenArea.width()) / 80)
+                .add((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
+        return new Vec2(vector3f.x(), vector3f.y());
+    }
+
+    private Vec2 translateXYToUV(float x, float y, ScreenRectangle screenArea) {
+        int x1 = screenArea.left(), y1 = screenArea.top(), x2 = screenArea.right(), y2 = screenArea.bottom();
+        Vector3f vector3f = new Vector3f(x, y, 0)
+                .add(-(float) (x1 + x2) / 2.0f, -(float) (y1 + y2) / 2.0f, 0)
+                .mul((float) 80 / (textureScale * screenArea.width()))
+                .add((float) -textureX + 0.5f, (float) -textureY + 0.5f, 0);
+        return new Vec2(vector3f.x(), vector3f.y());
     }
 
     private void importBindTarget(Button button) {
@@ -876,24 +897,6 @@ public final class ModelViewScreen extends Screen {
                 return true;
             }
             return false;
-        }
-
-        private Vec2 translateUVToXY(float u, float v, ScreenRectangle screenArea) {
-            int x1 = screenArea.left(), y1 = screenArea.top(), x2 = screenArea.right(), y2 = screenArea.bottom();
-            Vector3f vector3f = new Vector3f(u, v, 0)
-                    .add((float) textureX - 0.5f, (float) textureY - 0.5f, 0)
-                    .mul((float) (textureScale * screenArea.width()) / 80)
-                    .add((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
-            return new Vec2(vector3f.x(), vector3f.y());
-        }
-
-        private Vec2 translateXYToUV(float x, float y, ScreenRectangle screenArea) {
-            int x1 = screenArea.left(), y1 = screenArea.top(), x2 = screenArea.right(), y2 = screenArea.bottom();
-            Vector3f vector3f = new Vector3f(x, y, 0)
-                    .add(-(float) (x1 + x2) / 2.0f, -(float) (y1 + y2) / 2.0f, 0)
-                    .mul((float) 80 / (textureScale * screenArea.width()))
-                    .add((float) -textureX + 0.5f, (float) -textureY + 0.5f, 0);
-            return new Vec2(vector3f.x(), vector3f.y());
         }
 
         @Override

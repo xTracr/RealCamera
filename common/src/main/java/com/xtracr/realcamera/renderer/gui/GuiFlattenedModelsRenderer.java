@@ -44,6 +44,6 @@ public final class GuiFlattenedModelsRenderer extends PictureInPictureRenderer<G
 
     @Override
     protected @NonNull String getTextureLabel() {
-        return "realcamera.texture";
+        return "realcamera.flattened_models";
     }
 }

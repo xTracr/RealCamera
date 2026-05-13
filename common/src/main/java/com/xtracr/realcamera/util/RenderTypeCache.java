@@ -6,24 +6,25 @@ import com.google.common.cache.LoadingCache;
 import com.xtracr.realcamera.RealCamera;
 import com.xtracr.realcamera.mixin.accessor.RenderTypeAccessor;
 import com.xtracr.realcamera.renderer.state.VertexData.UV;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public final class RenderTypeUtil {
+public final class RenderTypeCache {
     @Nullable
     private static final Field TEXTURES_FIELD;
     private static final LoadingCache<RenderType, String> TEXTURE_ID_CACHE = CacheBuilder.newBuilder()
             .maximumSize(64)
             .expireAfterAccess(60, TimeUnit.SECONDS)
             .build(new TextureIdCacheLoader());
-    private static final LoadingCache<RenderType, Map<UV, Integer>> PRIMITIVE_CACHE = CacheBuilder.newBuilder()
+    private static final LoadingCache<RenderType, Object2IntMap<UV>> PRIMITIVE_CACHE = CacheBuilder.newBuilder()
             .maximumSize(64)
             .expireAfterAccess(60, TimeUnit.SECONDS)
             .build(new PrimitiveCacheLoader());
@@ -43,7 +44,7 @@ public final class RenderTypeUtil {
         return TEXTURE_ID_CACHE.getUnchecked(renderType);
     }
 
-    public static @Nullable Map<UV, Integer> getPrimitiveCache(RenderType renderType) {
+    public static @Nullable Object2IntMap<UV> getPrimitiveCache(RenderType renderType) {
         return PRIMITIVE_CACHE.getIfPresent(renderType);
     }
 
@@ -67,10 +68,12 @@ public final class RenderTypeUtil {
         }
     }
 
-    private static class PrimitiveCacheLoader extends CacheLoader<RenderType, Map<UV, Integer>> {
+    private static class PrimitiveCacheLoader extends CacheLoader<RenderType, Object2IntMap<UV>> {
         @Override
-        public @NonNull Map<UV, Integer> load(@NonNull RenderType renderType) {
-            return new HashMap<>(4);
+        public @NonNull Object2IntMap<UV> load(@NonNull RenderType renderType) {
+            Object2IntOpenHashMap<UV> map = new Object2IntOpenHashMap<>(4);
+            map.defaultReturnValue(-1);
+            return map;
         }
     }
 }

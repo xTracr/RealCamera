@@ -53,6 +53,6 @@ public final class GuiCulledModelsRenderer extends PictureInPictureRenderer<GuiC
 
     @Override
     protected @NonNull String getTextureLabel() {
-        return "realcamera.culled_model";
+        return "realcamera.culled_models";
     }
 }

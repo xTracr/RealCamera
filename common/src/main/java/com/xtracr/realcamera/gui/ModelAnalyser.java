@@ -1,5 +1,6 @@
 package com.xtracr.realcamera.gui;
 
+import com.google.common.collect.ImmutableSet;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
@@ -31,11 +32,10 @@ import java.util.Set;
 
 public final class ModelAnalyser {
     private static final MultiVertexCatcher vertexCatcher = MultiVertexCatcher.create();
-    private static final Set<RenderType> UNFOCUSABLE_RENDER_TYPES = Set.of(RenderTypes.armorEntityGlint(), RenderTypes.glintTranslucent(), RenderTypes.glint(), RenderTypes.entityGlint());
+    private static final Set<RenderType> UNFOCUSABLE_RENDER_TYPES = ImmutableSet.of(RenderTypes.armorEntityGlint(), RenderTypes.glintTranslucent(), RenderTypes.glint(), RenderTypes.entityGlint());
     private static final int planeArgb = 0x6F3333CC, forwardArgb = 0xFF00CC00, upwardArgb = 0xFFCC0000, leftArgb = 0xFF0000CC, focusedArgb = 0x4FFFFFFF;
     private static final int z1 = 210, z2 = z1 + 10;
     public final List<VertexData[]> focusedPolyhedron = new ArrayList<>();
-    public final PoseStack modelPose = new PoseStack(), texturePose = new PoseStack();
     final List<BuiltModelRecord> modelRecords = new ArrayList<>(), textureRecords = new ArrayList<>();
     private VertexData[][] targetPrimitives = new VertexData[3][];
     private BindResult bindResult = BindResult.EMPTY;
@@ -60,8 +60,6 @@ public final class ModelAnalyser {
         modelRecords.clear();
         textureRecords.clear();
         focusedPolyhedron.clear();
-        modelPose.setIdentity();
-        texturePose.setIdentity();
         targetPrimitives[0] = targetPrimitives[1] = targetPrimitives[2] = null;
         bindResult = BindResult.EMPTY;
         focusedRecord = currentRecord = null;
@@ -101,14 +99,11 @@ public final class ModelAnalyser {
         }
     }
 
-    public void computeFocusedOnTexture(int mouseX, int mouseY) {
+    public void computeFocusedOnTexture(float mouseU, float mouseV) {
         if (focusedRecord != null && !focusedPolyhedron.isEmpty()) return;
-        Vector3f newMousePosition = new Vector3f(mouseX, mouseY, 0)
-                .mulPosition(texturePose.last().pose().invert(new Matrix4f()));
-        float newMouseX = newMousePosition.x(), newMouseY = newMousePosition.y();
         for (BuiltModelRecord record : textureRecords) {
             for (VertexData[] primitive : record.primitives()) {
-                if (VertexData.containsUV(primitive, newMouseX, newMouseY)) {
+                if (VertexData.containsUV(primitive, mouseU, mouseV)) {
                     focusedRecord = record;
                     focusedPolyhedron.add(primitive);
                     break;
@@ -241,8 +236,7 @@ public final class ModelAnalyser {
         focusedPolyhedron.forEach(primitive -> GUIHelper.polygon(graphics, primitive, z1, focusedArgb));
     }
 
-    public void drawFocusedInTextureArea(GuiGraphicsExtractor graphics) {
-        Matrix4f positionMatrix = texturePose.last().pose();
+    public void drawFocusedInTextureArea(GuiGraphicsExtractor graphics, Matrix4f texturePose) {
         int length = 0;
         VertexData[] transformed = new VertexData[0], reversed = new VertexData[0];
         Vector3f position = new Vector3f();
@@ -254,7 +248,7 @@ public final class ModelAnalyser {
             }
             for (int i = 0; i < length; i++) {
                 VertexData vertex = primitive[i];
-                position.set(vertex.u(), vertex.v(), 0).mulPosition(positionMatrix);
+                position.set(vertex.u(), vertex.v(), 0).mulPosition(texturePose);
                 transformed[i] = reversed[length - 1 - i] = VertexData.immutable(position.x(), position.y(), 0, vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
             }
             GUIHelper.polygon(graphics, transformed, 0, focusedArgb);
@@ -266,7 +260,7 @@ public final class ModelAnalyser {
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         client.gameRenderer.getLighting().setupFor(Lighting.Entry.ENTITY_IN_UI);
         dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, vertexCatcher.initCollector());
-        vertexCatcher.endCatching(this::computeBindResult);
+        vertexCatcher.forEachBuffer(this::computeBindResult);
     }
 
     public void computeBindResult(BuiltIterableBuffer builtBuffer) {

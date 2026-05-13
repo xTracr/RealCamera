@@ -75,7 +75,7 @@ public final class RealCameraCore {
         if (!newResult.available()) {
             EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
             dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, new PoseStack(), vertexCatcher.initCollector());
-            vertexCatcher.endCatching(RealCameraCore::computeBindResult);
+            vertexCatcher.forEachBuffer(RealCameraCore::computeBindResult);
         }
         entity.setInvisible(invisible);
         if (newResult.available()) {
@@ -116,7 +116,7 @@ public final class RealCameraCore {
         dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, collector);
         final float m02 = modelView.m02(), m12 = modelView.m12(), m22 = modelView.m22(), m32 = modelView.m32();
         final float depth = currentTarget().disablingDepth();
-        vertexCatcher.endCatching(builtBuffer -> {
+        vertexCatcher.forEachBuffer(builtBuffer -> {
             DisableConfig[] disableConfigs = currentTarget().filteredDisableConfigs(config -> builtBuffer.textureId().contains(config.textureId()));
             for (DisableConfig config : disableConfigs) if (config.disableAll()) return;
             submitNodeCollector.submitCustomGeometry(poseStack, builtBuffer.renderType(), (_, buffer) -> {
@@ -147,10 +147,12 @@ public final class RealCameraCore {
             BindTarget.TargetConfig config = target.targetConfig();
             VertexData.UV[] uvs = {new VertexData.UV(config.posU(), config.posV()), new VertexData.UV(config.forwardU(), config.forwardV()), new VertexData.UV(config.upwardU(), config.upwardV())};
             VertexData[][] primitives = builtBuffer.findPrimitivesInCache(uvs);
-            if (builtBuffer.anyNotCached(uvs)) {
-                for (int i = 0; i < primitives.length; i++) {
-                    if (primitives[i] != null) uvs[i] = null;
-                }
+            boolean allFound = true;
+            for (int i = 0; i < primitives.length; i++) {
+                if (primitives[i] != null) uvs[i] = null;
+                else allFound = false;
+            }
+            if (!allFound) {
                 VertexData[][] newPrimitives = builtBuffer.findPrimitives(uvs);
                 for (int i = 0; i < primitives.length; i++) {
                     if (newPrimitives[i] == null && primitives[i] == null) continue targetFor;

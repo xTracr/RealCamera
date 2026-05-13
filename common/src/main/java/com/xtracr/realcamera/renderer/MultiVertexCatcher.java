@@ -25,7 +25,8 @@ public final class MultiVertexCatcher {
     private final SubmitNodeStorage storage = new SubmitNodeStorage();
     private final MeshCatcher meshCatcher = new MeshCatcher();
 
-    private MultiVertexCatcher() { }
+    private MultiVertexCatcher() {
+    }
 
     public static MultiVertexCatcher create() {
         return new MultiVertexCatcher();
@@ -44,7 +45,7 @@ public final class MultiVertexCatcher {
 
     private static void renderModelParts(PoseStack poseStack, Map<RenderType, List<SubmitNodeStorage.ModelPartSubmit>> modelPartSubmitsMap, MultiBufferSource.BufferSource bufferSource) {
         poseStack.pushPose();
-        for (Map.Entry<RenderType, List<SubmitNodeStorage.ModelPartSubmit>> entry : modelPartSubmitsMap.entrySet()) {
+        for (var entry : modelPartSubmitsMap.entrySet()) {
             RenderType renderType = entry.getKey();
             List<SubmitNodeStorage.ModelPartSubmit> modelPartSubmits = entry.getValue();
             VertexConsumer buffer = bufferSource.getBuffer(renderType);
@@ -60,7 +61,7 @@ public final class MultiVertexCatcher {
     }
 
     private static void renderCustomGeometry(Map<RenderType, List<SubmitNodeStorage.CustomGeometrySubmit>> customGeometrySubmits, MultiBufferSource.BufferSource bufferSource) {
-        for (Map.Entry<RenderType, List<SubmitNodeStorage.CustomGeometrySubmit>> entry : customGeometrySubmits.entrySet()) {
+        for (var entry : customGeometrySubmits.entrySet()) {
             VertexConsumer buffer = bufferSource.getBuffer(entry.getKey());
             for (SubmitNodeStorage.CustomGeometrySubmit customGeometrySubmit : entry.getValue()) {
                 customGeometrySubmit.customGeometryRenderer().render(customGeometrySubmit.pose(), buffer);
@@ -68,11 +69,13 @@ public final class MultiVertexCatcher {
         }
     }
 
-    /** @see FeatureRenderDispatcher#renderSolidFeatures() */
+    /**
+     * @see FeatureRenderDispatcher#renderSolidFeatures()
+     */
     private void renderSolidFeatures() {
         for (SubmitNodeCollection collection : storage.getSubmitsPerOrder().values()) {
             PoseStack poseStack = new PoseStack();
-            for (Map.Entry<RenderType, List<SubmitNodeStorage.ModelSubmit<?>>> entry : ((ModelFeatureRenderer$StorageAccessor) collection.getModelSubmits()).getSolidModelSubmits().entrySet()) {
+            for (var entry : ((ModelFeatureRenderer$StorageAccessor) collection.getModelSubmits()).getSolidModelSubmits().entrySet()) {
                 VertexConsumer buffer = meshCatcher.getBuffer(entry.getKey());
                 for (SubmitNodeStorage.ModelSubmit<?> submit : entry.getValue()) {
                     renderModel(poseStack, submit, buffer);
@@ -83,11 +86,13 @@ public final class MultiVertexCatcher {
         }
     }
 
-    /** @see FeatureRenderDispatcher#renderTranslucentFeatures() */
+    /**
+     * @see FeatureRenderDispatcher#renderTranslucentFeatures()
+     */
     private void renderTranslucentFeatures() {
         for (SubmitNodeCollection collection : storage.getSubmitsPerOrder().values()) {
             PoseStack poseStack = new PoseStack();
-            for (SubmitNodeStorage.TranslucentModelSubmit<?> submit : ((ModelFeatureRenderer$StorageAccessor) collection.getModelSubmits()).getTranslucentModelSubmits()) {
+            for (var submit : ((ModelFeatureRenderer$StorageAccessor) collection.getModelSubmits()).getTranslucentModelSubmits()) {
                 renderModel(poseStack, submit.modelSubmit(), meshCatcher.getBuffer(submit.renderType()));
             }
             renderModelParts(poseStack, ((ModelPartFeatureRenderer$StorageAccessor) collection.getModelPartSubmits()).getTranslucentModelPartSubmits(), meshCatcher);
@@ -100,12 +105,14 @@ public final class MultiVertexCatcher {
         return storage;
     }
 
-    public void endCatching(Consumer<BuiltIterableBuffer> consumer) {
-        if (storage.getSubmitsPerOrder().isEmpty()) return;
-        renderSolidFeatures();
-        renderTranslucentFeatures();
-        storage.clear();
-        meshCatcher.endCatching(consumer);
+    public void forEachBuffer(Consumer<BuiltIterableBuffer> consumer) {
+        if (!storage.getSubmitsPerOrder().isEmpty()) {
+            renderSolidFeatures();
+            renderTranslucentFeatures();
+            storage.clear();
+            meshCatcher.endBatch();
+        }
+        meshCatcher.forEachBuffer(consumer);
     }
 
     static final class MeshCatcher extends MultiBufferSource.BufferSource {
@@ -136,11 +143,9 @@ public final class MultiVertexCatcher {
             bufferPools.values().forEach(ByteBufferBuilderPool::release);
         }
 
-        public void endCatching(Consumer<BuiltIterableBuffer> consumer) {
-            endBatch();
-            for (Map.Entry<MeshData, RenderType> entry : caughtMeshes.entrySet()) {
-                MeshData meshData = entry.getKey();
-                consumer.accept(BuiltIterableBuffer.buildFrom(entry.getValue(), meshData));
+        public void forEachBuffer(Consumer<BuiltIterableBuffer> consumer) {
+            for (var entry : caughtMeshes.entrySet()) {
+                consumer.accept(BuiltIterableBuffer.buildFrom(entry.getValue(), entry.getKey()));
             }
         }
 
