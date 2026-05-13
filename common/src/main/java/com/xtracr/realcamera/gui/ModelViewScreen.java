@@ -15,6 +15,7 @@ import com.xtracr.realcamera.gui.components.CycleIconButton;
 import com.xtracr.realcamera.gui.components.DoubleSlider;
 import com.xtracr.realcamera.gui.components.NumberField;
 import com.xtracr.realcamera.gui.components.SimpleIconButton;
+import com.xtracr.realcamera.renderer.state.BuiltModelRecord;
 import com.xtracr.realcamera.renderer.state.VertexData;
 import com.xtracr.realcamera.util.LocUtil;
 import com.xtracr.realcamera.util.MathUtil;
@@ -51,7 +52,6 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
 public final class ModelViewScreen extends Screen {
-    public final ModelAnalyser analyser = new ModelAnalyser();
     private final int xSize = 450, ySize = 206, middleWidth = xSize - 200, widgetWidth = (xSize - middleWidth) / 4 - 8, widgetHeight = 18;
     private int x, y, page = 0;
     private InputConstants.Key modifierKey = ConfigFile.config().getScreenModifierKey();
@@ -454,47 +454,21 @@ public final class ModelViewScreen extends Screen {
         graphics.fill(x, y, x + (xSize - middleWidth) / 2 - 4, y + ySize, 0xFF444444);
         graphics.fill(x + (xSize - middleWidth) / 2, y, x + (xSize + middleWidth) / 2, y + ySize, 0xFF222222);
         graphics.fill(x + (xSize + middleWidth) / 2 + 4, y, x + xSize, y + ySize, 0xFF444444);
-        analyser.initialize(genBindTarget(), modelScale);
-        renderModelViewArea(graphics, minecraft.player);
-        renderTextureViewArea(graphics);
-        applyAnalyser(graphics, mouseX, mouseY);
-    }
 
-    private void applyAnalyser(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        ModelAnalyser analyser = new ModelAnalyser();
+        BindTarget target = genBindTarget();
+        target.offsets().setScale(target.offsets().getScale() * modelScale);
         String textureId = toggleCategoryButton.getValue() == Category.DISABLE ? disabledIdField.getValue() : "";
         Set<String> hiddenNames = hiddenNameMap.getOrDefault(nameField.getValue(), Set.of());
-        analyser.applyDisableConfigs(textureId, hiddenNames);
-        if (toggleCategoryButton.getValue() == Category.DISABLE && selectionModeButton.getValue() == 2 && inModelViewArea(mouseX, mouseY))
-            analyser.computeFocusedOnModel(mouseX - selectionRadius, mouseY - selectionRadius, mouseX + selectionRadius, mouseY + selectionRadius);
-        if (inTextureViewArea(mouseX, mouseY)) {
-            Vec2 mouseUV = translateXYToUV(mouseX, mouseY, textureViewArea);
-            analyser.computeFocusedOnTexture(mouseUV.x, mouseUV.y);
-        }
-        if (inModelViewArea(mouseX, mouseY)) analyser.computeFocusedOnModel(mouseX, mouseY, layers);
-        if (toggleCategoryButton.getValue() == Category.CONFIGS || selectionModeButton.getValue() == 1) analyser.computeFocusedPolyhedron();
-        focusedPolyhedron = analyser.getFocusedPolyhedron();
-        focusedTextureId = analyser.getFocusedTextureId();
-        GUIHelper.enableScissor(graphics, modelViewArea);
-        if (toggleCategoryButton.getValue() != Category.PREVIEW) analyser.drawFocusedInModelArea(graphics);
-        if (toggleCategoryButton.getValue() == Category.CONFIGS) analyser.drawBindTarget(graphics, modelScale);
-        else analyser.drawCameraDirections(graphics, modelScale);
-        graphics.disableScissor();
-        if (textureViewArea != null) {
-            GUIHelper.enableScissor(graphics, textureViewArea);
-            Matrix4f texturePose = new Matrix4f();
-            int x1 = textureViewArea.left(), y1 = textureViewArea.top(), x2 = textureViewArea.right(), y2 = textureViewArea.bottom();
-            float scale = (float) (textureScale * textureViewArea.width()) / 80;
-            texturePose.translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
-            texturePose.scale(scale, scale, -scale);
-            texturePose.translate((float) textureX - 0.5f, (float) textureY - 0.5f, 0);
-            analyser.drawFocusedInTextureArea(graphics, texturePose);
-            graphics.disableScissor();
-        }
+        List<BuiltModelRecord> modelRecords = captureRotatedEntity(analyser, target, minecraft.player);
+        List<BuiltModelRecord> textureRecords = modelRecords.stream().filter(record -> record.containsTextureId(textureId)).toList();
+        ModelAnalyser.applyDisableConfigs(modelRecords, target, textureId, hiddenNames);
+        computeFocusedPrimitives(analyser, modelRecords, textureRecords, mouseX, mouseY);
+        renderCulledModels(graphics, analyser, target, modelRecords);
+        if (textureViewArea != null) renderFlattenedModels(graphics, analyser, textureRecords);
     }
 
-    private void renderModelViewArea(GuiGraphicsExtractor graphics, LivingEntity entity) {
-        int x1 = modelViewArea.left(), y1 = modelViewArea.top(), x2 = modelViewArea.right(), y2 = modelViewArea.bottom();
-        Quaternionf rotation = new Quaternionf().rotateX((float) Math.PI / 6 + xRot).rotateY((float) Math.PI / 6 + yRot).rotateZ((float) Math.PI);
+    private List<BuiltModelRecord> captureRotatedEntity(ModelAnalyser analyser, BindTarget target, LivingEntity entity) {
         float entityBodyYaw = entity.yBodyRot;
         float entityYaw = entity.getYRot();
         float entityPitch = entity.getXRot();
@@ -505,37 +479,64 @@ public final class ModelViewScreen extends Screen {
         entity.setXRot((float) entityPitchSlider.getDouble());
         entity.yHeadRot = entity.getYRot();
         entity.yHeadRotO = entity.getYRot();
-        Vector3f offset = new Vector3f((float) modelX, (float) modelY, 0);
-        renderEntityWithAnalyser(graphics, x1, y1, x2, y2, modelScale, offset, rotation, entity);
-        entity.yBodyRot = entityBodyYaw;
-        entity.setYRot(entityYaw);
-        entity.setXRot(entityPitch);
-        entity.yHeadRotO = entityPrevHeadYaw;
-        entity.yHeadRot = entityHeadYaw;
+        try {
+            int x1 = modelViewArea.left(), y1 = modelViewArea.top(), x2 = modelViewArea.right(), y2 = modelViewArea.bottom();
+            Quaternionf rotation = new Quaternionf().rotateX((float) Math.PI / 6 + xRot).rotateY((float) Math.PI / 6 + yRot).rotateZ((float) Math.PI);
+            PoseStack modelPose = new PoseStack();
+            modelPose.translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
+            modelPose.scale(modelScale, modelScale, -modelScale);
+            modelPose.translate(modelX, modelY, 0);
+            modelPose.mulPose(rotation);
+            modelPose.translate(0, -entity.getBbHeight() / 2.0f, 0);
+            return analyser.captureModel(minecraft, entity, 1.0f, modelPose, target);
+        } finally {
+            entity.yBodyRot = entityBodyYaw;
+            entity.setYRot(entityYaw);
+            entity.setXRot(entityPitch);
+            entity.yHeadRotO = entityPrevHeadYaw;
+            entity.yHeadRot = entityHeadYaw;
+        }
     }
 
-    private void renderEntityWithAnalyser(GuiGraphicsExtractor graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset, Quaternionf rotation, LivingEntity entity) {
-        PoseStack modelPose = new PoseStack();
-        modelPose.translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
-        modelPose.scale(scale, scale, -scale);
-        modelPose.translate(offset.x(), offset.y(), offset.z());
-        modelPose.mulPose(rotation);
-        modelPose.translate(0, -entity.getBbHeight() / 2.0f, 0);
-        analyser.updateModel(minecraft, entity, 1.0f, modelPose);
-        Matrix4f transform = new Matrix4f();
-        transform.translate(offset.x(), offset.y(), offset.z());
-        transform.rotate(rotation);
-        transform.translate(0, -entity.getBbHeight() / 2.0f, 0);
-        transform.mul(modelPose.last().pose().invert(new Matrix4f()));
-        GUIHelper.culledModels(graphics, analyser.modelRecords, scale, transform, x1, y1, x2, y2);
+    private void computeFocusedPrimitives(ModelAnalyser analyser, List<BuiltModelRecord> modelRecords, List<BuiltModelRecord> textureRecords, int mouseX, int mouseY) {
+        if (toggleCategoryButton.getValue() == Category.DISABLE && selectionModeButton.getValue() == 2 && inModelViewArea(mouseX, mouseY))
+            analyser.computeFocusedOnModel(modelRecords, mouseX - selectionRadius, mouseY - selectionRadius, mouseX + selectionRadius, mouseY + selectionRadius);
+        if (inTextureViewArea(mouseX, mouseY)) {
+            Vec2 mouseUV = translateXYToUV(mouseX, mouseY, textureViewArea);
+            analyser.computeFocusedOnTexture(textureRecords, mouseUV.x, mouseUV.y);
+        }
+        if (inModelViewArea(mouseX, mouseY)) analyser.computeFocusedOnModel(modelRecords, mouseX, mouseY, layers);
+        if (toggleCategoryButton.getValue() == Category.CONFIGS || selectionModeButton.getValue() == 1) analyser.computeFocusedPolyhedron();
+        focusedPolyhedron = analyser.getFocusedPolyhedron();
+        focusedTextureId = analyser.getFocusedTextureId();
     }
 
-    private void renderTextureViewArea(GuiGraphicsExtractor graphics) {
-        if (textureViewArea == null) return;
+    private void renderCulledModels(GuiGraphicsExtractor graphics, ModelAnalyser analyser, BindTarget target, List<BuiltModelRecord> modelRecords) {
+        int x1 = modelViewArea.left(), y1 = modelViewArea.top(), x2 = modelViewArea.right(), y2 = modelViewArea.bottom();
+        GUIHelper.enableScissor(graphics, modelViewArea);
+        float invScale = 1.0f / modelScale;
+        Matrix4f modelTransform = new Matrix4f();
+        modelTransform.scale(invScale, invScale, -invScale);
+        modelTransform.translate(-(float) (x1 + x2) / 2.0f, -(float) (y1 + y2) / 2.0f, 0);
+        GUIHelper.culledModels(graphics, modelRecords, modelScale, modelTransform, x1, y1, x2, y2);
+        if (toggleCategoryButton.getValue() != Category.PREVIEW) analyser.drawFocusedInModelArea(graphics);
+        if (toggleCategoryButton.getValue() == Category.CONFIGS) analyser.drawBindTarget(graphics, target, modelScale);
+        else analyser.drawCameraDirections(graphics, modelScale);
+        graphics.disableScissor();
+    }
+
+    private void renderFlattenedModels(GuiGraphicsExtractor graphics, ModelAnalyser analyser, List<BuiltModelRecord> textureRecords) {
         int x1 = textureViewArea.left(), y1 = textureViewArea.top(), x2 = textureViewArea.right(), y2 = textureViewArea.bottom();
-        Vector3f offset = new Vector3f((float) textureX - 0.5f, (float) textureY - 0.5f, 0);
+        GUIHelper.enableScissor(graphics, textureViewArea);
         float scale = (float) (textureScale * textureViewArea.width()) / 80;
-        GUIHelper.flattenedModels(graphics, analyser.textureRecords, offset, x1, y1, x2, y2, scale);
+        Vector3f offset = new Vector3f((float) textureX - 0.5f, (float) textureY - 0.5f, 0);
+        GUIHelper.flattenedModels(graphics, textureRecords, offset, x1, y1, x2, y2, scale);
+        Matrix4f texturePose = new Matrix4f();
+        texturePose.translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
+        texturePose.scale(scale, scale, -scale);
+        texturePose.translate(offset);
+        analyser.drawFocusedInTextureArea(graphics, texturePose);
+        graphics.disableScissor();
     }
 
     private Vec2 translateUVToXY(float u, float v, ScreenRectangle screenArea) {
