@@ -81,6 +81,29 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         return readVertexAt(index, reusableVertex);
     }
 
+    public VertexData[] readPrimitiveAt(int index) {
+        if (primitives instanceof FastQuadReader fastQuadReader) {
+            Objects.checkIndex(index, fastQuadReader.quadCount);
+            MutableVertex[] quad = new MutableVertex[4];
+            for (int i = 0; i < quad.length; i++) {
+                quad[i] = VertexData.mutable();
+            }
+            fastQuadReader.fastReadQuadAt(index, quad);
+            return quad;
+        }
+        if (primitives instanceof PrimitiveReader primitiveReader) {
+            Objects.checkIndex(index, primitiveReader.primitiveCount);
+            MutableVertex[] primitive = new MutableVertex[primitiveReader.primitiveLength];
+            for (int i = 0; i < primitive.length; i++) {
+                primitive[i] = VertexData.mutable();
+            }
+            if (primitiveReader.startWithFirst && 0 < vertexCount) readVertexAt(0, primitive[0]);
+            primitiveReader.readPrimitiveAt(index, primitive);
+            return primitive;
+        }
+        throw new IllegalStateException("Unknown primitive reader");
+    }
+
     public MutableVertex readVertexAt(int index, MutableVertex mutable) {
         Objects.checkIndex(index, vertexCount);
         int vertexOffset = index * vertexSize;

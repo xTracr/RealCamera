@@ -22,7 +22,6 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -47,17 +46,6 @@ public class ModelAnalyser {
         for (VertexData[] p2 : primitives) for (VertexData v1 : p1) for (VertexData v2 : p2)
             if (Math.abs(v1.x() - v2.x()) < precision && Math.abs(v1.y() - v2.y()) < precision && Math.abs(v1.z() - v2.z()) < precision) return true;
         return false;
-    }
-
-    private static Polygon getPolygon(VertexData[] primitive) {
-        int length = primitive.length;
-        int[] xs = new int[length], ys = new int[length];
-        for (int j = 0; j < length; j++) {
-            VertexData vertex = primitive[j];
-            xs[j] = (int) vertex.x();
-            ys[j] = (int) vertex.y();
-        }
-        return new Polygon(xs, ys, length);
     }
 
     public void initialize(BindTarget target, int modelScale) {
@@ -110,19 +98,12 @@ public class ModelAnalyser {
 
     public void computeFocusedOnTexture(int mouseX, int mouseY) {
         if (focusedRecord != null && !focusedPolyhedron.isEmpty()) return;
-        Matrix4f positionMatrix = texturePose.last().pose();
-        Vector3f position = new Vector3f();
+        Vector3f newMousePosition = new Vector3f(mouseX, mouseY, 0)
+                .mulPosition(texturePose.last().pose().invert(new Matrix4f()));
+        float newMouseX = newMousePosition.x(), newMouseY = newMousePosition.y();
         for (BuiltRecord record : textureRecords) {
-            int length = record.renderType().mode().primitiveLength;
-            int[] xs = new int[length], ys = new int[length];
             for (VertexData[] primitive : record.primitives()) {
-                for (int j = 0; j < length; j++) {
-                    VertexData vertex = primitive[j];
-                    position.set(vertex.u(), vertex.v(), 0).mulPosition(positionMatrix);
-                    xs[j] = (int) position.x();
-                    ys[j] = (int) position.y();
-                }
-                if (new Polygon(xs, ys, length).contains(mouseX, mouseY)) {
+                if (VertexData.containsUV(primitive, newMouseX, newMouseY)) {
                     focusedRecord = record;
                     focusedPolyhedron.add(primitive);
                     break;
@@ -138,7 +119,7 @@ public class ModelAnalyser {
             if (UNFOCUSABLE_RENDER_TYPES.contains(record.renderType())) continue;
             VertexData[][] primitives = record.primitives();
             for (VertexData[] primitive : primitives) {
-                if (!getPolygon(primitive).contains(mouseX, mouseY)) continue;
+                if (!VertexData.containsXY(primitive, mouseX, mouseY)) continue;
                 VertexData vertex = primitive[0];
                 float deltaZ = vertex.normalZ() == 0 ? 0 : (vertex.normalX() * (mouseX - vertex.x()) + vertex.normalY() * (mouseY - vertex.y())) / vertex.normalZ();
                 sortByZ.add(new Object[]{record, primitive, vertex.z() + deltaZ});
@@ -170,19 +151,18 @@ public class ModelAnalyser {
         }
         if (sortByZ.isEmpty()) return;
         sortByZ.sort(Comparator.comparingDouble(array -> -(float) array[2]));
-        List<Polygon> polygons = new ArrayList<>();
         focusedRecord = (BuiltRecord) sortByZ.get(0)[0];
         while (!sortByZ.isEmpty()) {
             VertexData[] first = (VertexData[]) sortByZ.get(0)[1];
             focusedPolyhedron.add(first);
-            polygons.add(getPolygon(first));
             sortByZ.remove(0);
             sortByZ.removeIf(array -> {
                 if (array[0] != focusedRecord) return true;
                 VertexData[] primitive = (VertexData[]) array[1];
                 primitiveFor:
                 for (VertexData vertex : primitive) {
-                    for (Polygon polygon : polygons) if (polygon.contains(vertex.x(), vertex.y())) continue primitiveFor;
+                    for (VertexData[] focused : focusedPolyhedron)
+                        if (VertexData.containsXY(focused, vertex.x(), vertex.y())) continue primitiveFor;
                     return false;
                 }
                 return true;

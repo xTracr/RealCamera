@@ -21,6 +21,36 @@ public interface VertexData {
         return immutable;
     }
 
+    static boolean containsUV(VertexData[] vertices, float u, float v) {
+        return switch (vertices.length) {
+            case 3 -> MathUtil.pointInTriangle(u, v,
+                    vertices[0].u(), vertices[0].v(),
+                    vertices[1].u(), vertices[1].v(),
+                    vertices[2].u(), vertices[2].v());
+            case 4 -> MathUtil.pointInQuad(u, v,
+                    vertices[0].u(), vertices[0].v(),
+                    vertices[1].u(), vertices[1].v(),
+                    vertices[2].u(), vertices[2].v(),
+                    vertices[3].u(), vertices[3].v());
+            default -> false;
+        };
+    }
+
+    static boolean containsXY(VertexData[] vertices, float x, float y) {
+        return switch (vertices.length) {
+            case 3 -> MathUtil.pointInTriangle(x, y,
+                    vertices[0].x(), vertices[0].y(),
+                    vertices[1].x(), vertices[1].y(),
+                    vertices[2].x(), vertices[2].y());
+            case 4 -> MathUtil.pointInQuad(x, y,
+                    vertices[0].x(), vertices[0].y(),
+                    vertices[1].x(), vertices[1].y(),
+                    vertices[2].x(), vertices[2].y(),
+                    vertices[3].x(), vertices[3].y());
+            default -> false;
+        };
+    }
+
     static Vec3 position(VertexData[] vertices, float u, float v) {
         if (vertices.length < 3) return vertices[0].position();
         float u0 = vertices[0].u(), v0 = vertices[0].v(), u1 = vertices[1].u(), v1 = vertices[1].v(), u2 = vertices[2].u(), v2 = vertices[2].v();

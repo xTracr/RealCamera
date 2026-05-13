@@ -13,8 +13,10 @@ import net.minecraft.world.item.Item;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 public class DisableHelper {
+    private static final Pattern MULTI_STAR = Pattern.compile("\\*+");
     private static final Predicate<Player> FALSE = player -> false;
     private static final Map<String, Entry> entries = new HashMap<>();
     public static final Entry MAIN_FEATURE = new Entry("mainFeature", player -> player.isSleeping() || player.isSpectator());
@@ -80,7 +82,7 @@ public class DisableHelper {
     public static boolean simpleWildcardMatch(String text, String pattern) {
         if (pattern.isEmpty()) return text.isEmpty();
         if (pattern.equals(text)) return true;
-        String[] parts = pattern.split("\\*+");
+        String[] parts = MULTI_STAR.split(pattern);
         if (parts.length == 0) return true;
         int currentIndex = 0;
         if (!pattern.startsWith("*")) {
