@@ -67,7 +67,7 @@ public class CycleIconButton extends AbstractButton {
     }
 
     @Override
-    protected void updateWidgetNarration(@NonNull NarrationElementOutput builder) {
-        defaultButtonNarrationText(builder);
+    protected void updateWidgetNarration(@NonNull NarrationElementOutput output) {
+        defaultButtonNarrationText(output);
     }
 }

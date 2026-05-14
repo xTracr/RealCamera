@@ -12,6 +12,7 @@ import com.xtracr.realcamera.config.BindTarget.TargetConfig;
 import com.xtracr.realcamera.gui.components.CycleIconButton;
 import com.xtracr.realcamera.gui.components.DoubleSlider;
 import com.xtracr.realcamera.gui.components.NumberField;
+import com.xtracr.realcamera.gui.components.NumberWidgetPair;
 import com.xtracr.realcamera.gui.components.SimpleIconButton;
 import com.xtracr.realcamera.renderer.state.BuiltModelRecord;
 import com.xtracr.realcamera.renderer.state.VertexData;
@@ -50,11 +51,14 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
 public final class ModelViewScreen extends Screen {
-    private final int xSize = 450, ySize = 206, middleWidth = xSize - 200, widgetWidth = (xSize - middleWidth) / 4 - 8, widgetHeight = 18;
+    private static final int SELECTION_COLOR = 0x4F3333CC, SELECTION_HOVER_COLOR = 0x2F3333CC, OUTLINE_COLOR = 0xAAFFFFFF;
+    private static final int SIDE_PANEL_BG = 0xFF444444, CENTER_PANEL_BG = 0xFF222222;
+    private static final int DEFAULT_SCALE = 80, MIN_SCALE = 16, MAX_SCALE = 1024;
+    private final int xSize = 450, ySize = 206, middleWidth = xSize - 200, widgetWidth = (xSize - middleWidth) / 4 - 8, widgetHeight = 18, wideWidgetWidth = widgetWidth * 2 + 4, compactWidgetWidth = widgetWidth * 2 - 18;
     private int x, y, page = 0;
     private InputConstants.Key modifierKey = InputConstants.getKey(ConfigFile.config().binding.screenModifierKey);
     private boolean initialized;
-    private int modelScale = 80, textureScale = 80, layers = 0, selectionRadius = 10;
+    private int modelScale = DEFAULT_SCALE, textureScale = DEFAULT_SCALE, layers = 0, selectionRadius = 10;
     private double modelX, modelY, textureX, textureY, clickedX = -1, clickedY = -1;
     private float xRot, yRot;
     private String focusedTextureId;
@@ -69,7 +73,7 @@ public final class ModelViewScreen extends Screen {
     private NumberField<Integer> priorityField, focusedRectWidgetNumberField;
     private NumberField<Float> forwardUField, forwardVField, upwardUField, upwardVField, posUField, posVField;
     private NumberField<Float> uMinField, vMinField, uMaxField, vMaxField;
-    private NumberField<Float> offsetXField, offsetYField, offsetZField, offsetPitchField, offsetYawField, offsetRollField, scaleField, depthField;
+    private NumberField<Float> scaleField, depthField;
     private final List<DisableConfig> disableConfigs = new ArrayList<>();
     private final List<UVRectangleWidget> rectWidgets = new ArrayList<>();
     private final Map<String, Set<String>> hiddenNameMap = new HashMap<>();
@@ -79,52 +83,39 @@ public final class ModelViewScreen extends Screen {
     private final CycleIconButton bindYButton = new CycleIconButton(16, 16, 0, 2);
     private final CycleIconButton bindZButton = new CycleIconButton(16, 16, 1, 2);
     private final CycleIconButton bindRotButton = new CycleIconButton(16, 16, 1, 2);
-    private final DoubleSlider entityPitchSlider = createSlider("pitch", widgetWidth * 2 + 4, -90.0, 90.0);
-    private final DoubleSlider entityYawSlider = createSlider("yaw", widgetWidth * 2 + 4, -60.0, 60.0);
-    private final DoubleSlider offsetXSlider = createSlider("offsetX", widgetWidth * 2 - 18, ModConfig.MIN_OFFSET_D, ModConfig.MAX_OFFSET_D);
-    private final DoubleSlider offsetYSlider = createSlider("offsetY", widgetWidth * 2 - 18, ModConfig.MIN_OFFSET_D, ModConfig.MAX_OFFSET_D);
-    private final DoubleSlider offsetZSlider = createSlider("offsetZ", widgetWidth * 2 - 18, ModConfig.MIN_OFFSET_D, ModConfig.MAX_OFFSET_D);
-    private final DoubleSlider offsetPitchSlider = createSlider("pitch", widgetWidth * 2 - 18, -180.0, 180.0);
-    private final DoubleSlider offsetYawSlider = createSlider("yaw", widgetWidth * 2 - 18, -180.0, 180.0);
-    private final DoubleSlider offsetRollSlider = createSlider("roll", widgetWidth * 2 - 18, -180.0, 180.0);
+    private final DoubleSlider entityPitchSlider = createSlider("pitch", wideWidgetWidth, -90.0, 90.0);
+    private final DoubleSlider entityYawSlider = createSlider("yaw", wideWidgetWidth, -60.0, 60.0);
+    private final NumberWidgetPair offsetXPair = new NumberWidgetPair(font, "offsetX", compactWidgetWidth, widgetHeight, ModConfig.MIN_OFFSET_F, ModConfig.MAX_OFFSET_F);
+    private final NumberWidgetPair offsetYPair = new NumberWidgetPair(font, "offsetY", compactWidgetWidth, widgetHeight, ModConfig.MIN_OFFSET_F, ModConfig.MAX_OFFSET_F);
+    private final NumberWidgetPair offsetZPair = new NumberWidgetPair(font, "offsetZ", compactWidgetWidth, widgetHeight, ModConfig.MIN_OFFSET_F, ModConfig.MAX_OFFSET_F);
+    private final NumberWidgetPair offsetPitchPair = new NumberWidgetPair(font, "pitch", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
+    private final NumberWidgetPair offsetYawPair = new NumberWidgetPair(font, "yaw", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
+    private final NumberWidgetPair offsetRollPair = new NumberWidgetPair(font, "roll", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
+    private final List<NumberWidgetPair> widgetPairs = List.of(offsetXPair, offsetYPair, offsetZPair, offsetPitchPair, offsetYawPair, offsetRollPair);
     private final CycleButton<Integer> selectingButton = createCyclingButtonBuilder(ImmutableSortedMap.of(
             0, LocUtil.MODEL_VIEW_WIDGET("forwardVector").withStyle(ChatFormatting.GREEN),
             1, LocUtil.MODEL_VIEW_WIDGET("upwardVector").withStyle(ChatFormatting.RED),
             2, LocUtil.MODEL_VIEW_WIDGET("position").withStyle(ChatFormatting.BLUE)), 0)
             .withTooltip(_ -> createTooltip("selecting", modifierKey.getDisplayName(), modifierKey.getDisplayName()))
-            .create(0, 0, widgetWidth * 2 + 4, widgetHeight, LocUtil.MODEL_VIEW_WIDGET("selecting"));
+            .create(0, 0, wideWidgetWidth, widgetHeight, LocUtil.MODEL_VIEW_WIDGET("selecting"));
     private final CycleButton<Integer> disableModeButton = createCyclingButtonBuilder(ImmutableMap.of(
             0, LocUtil.MODEL_VIEW_WIDGET("all").withStyle(ChatFormatting.GREEN),
             1, LocUtil.MODEL_VIEW_WIDGET("part").withStyle(ChatFormatting.BLUE)), 0)
             .withTooltip(_ -> createTooltip("disableMode", modifierKey.getDisplayName()))
-            .create(0, 0, widgetWidth * 2 + 4, widgetHeight, LocUtil.MODEL_VIEW_WIDGET("disableMode"));
+            .create(0, 0, wideWidgetWidth, widgetHeight, LocUtil.MODEL_VIEW_WIDGET("disableMode"));
     private final CycleButton<Integer> selectionModeButton = createCyclingButtonBuilder(ImmutableSortedMap.of(
             0, LocUtil.MODEL_VIEW_WIDGET("single"),
             1, LocUtil.MODEL_VIEW_WIDGET("multiple"),
             2, LocUtil.MODEL_VIEW_WIDGET("range").withStyle(ChatFormatting.BLUE)), 0)
             .withTooltip(_ -> createTooltip("selectionMode", modifierKey.getDisplayName(), modifierKey.getDisplayName()))
-            .create(0, 0, widgetWidth * 2 + 4, widgetHeight, LocUtil.MODEL_VIEW_WIDGET("selectionMode"));
+            .create(0, 0, wideWidgetWidth, widgetHeight, LocUtil.MODEL_VIEW_WIDGET("selectionMode"));
     private final CycleButton<Integer> toggleSliderButton = createCyclingButtonBuilder(ImmutableMap.of(
             0, LocUtil.MODEL_VIEW_WIDGET("toggleSliderToField"),
             1, LocUtil.MODEL_VIEW_WIDGET("toggleFieldToSlider")), 0)
-            .withTooltip(_ -> createTooltip("toggleSlider"))
             .displayOnlyValue()
-            .create(0, 0, widgetWidth * 2 + 4, widgetHeight, CommonComponents.EMPTY, (_, i) -> {
-                if (i == 1) {
-                    offsetXField.setNumber((float) offsetXSlider.getDouble());
-                    offsetYField.setNumber((float) offsetYSlider.getDouble());
-                    offsetZField.setNumber((float) offsetZSlider.getDouble());
-                    offsetPitchField.setNumber((float) offsetPitchSlider.getDouble());
-                    offsetYawField.setNumber((float) offsetYawSlider.getDouble());
-                    offsetRollField.setNumber((float) offsetRollSlider.getDouble());
-                } else {
-                    offsetXSlider.setDouble(offsetXField.getNumber());
-                    offsetYSlider.setDouble(offsetYField.getNumber());
-                    offsetZSlider.setDouble(offsetZField.getNumber());
-                    offsetPitchSlider.setDouble(offsetPitchField.getNumber());
-                    offsetYawSlider.setDouble(offsetYawField.getNumber());
-                    offsetRollSlider.setDouble(offsetRollField.getNumber());
-                }
+            .create(0, 0, wideWidgetWidth, widgetHeight, CommonComponents.EMPTY, (_, i) -> {
+                boolean useSlider = i == 0;
+                for (NumberWidgetPair pair : widgetPairs) pair.syncAndSwitch(useSlider);
                 initWidgets(page);
             });
     private final CycleButton<Category> toggleCategoryButton = createCyclingButtonBuilder(ImmutableSortedMap.of(
@@ -133,7 +124,7 @@ public final class ModelViewScreen extends Screen {
             Category.DISABLE, LocUtil.MODEL_VIEW_WIDGET(Category.DISABLE.next().id)), Category.CONFIGS)
             .withTooltip(category -> createTooltip(category.next().id))
             .displayOnlyValue()
-            .create(0, 0, widgetWidth * 2 - 18, widgetHeight, CommonComponents.EMPTY, (_, _) -> initWidgets(0));
+            .create(0, 0, compactWidgetWidth, widgetHeight, CommonComponents.EMPTY, (_, _) -> initWidgets(0));
 
     public ModelViewScreen() {
         super(LocUtil.MODEL_VIEW_TITLE());
@@ -168,9 +159,9 @@ public final class ModelViewScreen extends Screen {
             addRenderableWidget(showTextureButton).setPosition(x + (xSize - middleWidth) / 2 + 4, y + 4);
         addRenderableWidget(pauseButton).setPosition(x + (xSize + middleWidth) / 2 - 38, y + 4);
         addRenderableWidget(new SimpleIconButton(x + (xSize + middleWidth) / 2 - 20, y + 4, 16, 16, 0, 0, _ -> {
-            modelScale = textureScale = 80;
-            entityYawSlider.setDouble(0);
-            entityPitchSlider.setDouble(0);
+            modelScale = textureScale = DEFAULT_SCALE;
+            entityYawSlider.setNumber(0);
+            entityPitchSlider.setNumber(0);
             modelX = modelY = textureX = textureY = 0;
             xRot = yRot = 0;
             layers = 0;
@@ -186,19 +177,13 @@ public final class ModelViewScreen extends Screen {
         upwardVField = createFloatField(widgetWidth, 0, upwardVField);
         posUField = createFloatField(widgetWidth, 0, posUField);
         posVField = createFloatField(widgetWidth, 0, posVField);
-        textureIdField = createTextField(widgetWidth * 2 + 4, 1024, textureIdField);
-        disabledIdField = createTextField(widgetWidth * 2 + 4, 1024, disabledIdField);
+        textureIdField = createTextField(wideWidgetWidth, 1024, textureIdField);
+        disabledIdField = createTextField(wideWidgetWidth, 1024, disabledIdField);
         focusedRectWidgetNumberField = NumberField.ofInt(font, widgetWidth - 2, widgetHeight - 2, 0, focusedRectWidgetNumberField).setMin(0).setMax(rectWidgets.size());
         uMinField = createFloatField(widgetWidth * 2 - 24, 0, uMinField).setMin(-1f).setMax(2f);
         uMaxField = createFloatField(widgetWidth * 2 - 24, 0, uMaxField).setMin(-1f).setMax(2f);
         vMinField = createFloatField(widgetWidth * 2 - 24, 0, vMinField).setMin(-1f).setMax(2f);
         vMaxField = createFloatField(widgetWidth * 2 - 24, 0, vMaxField).setMin(-1f).setMax(2f);
-        offsetXField = createFloatField(widgetWidth * 2 - 20, 0, offsetXField).setMin(ModConfig.MIN_OFFSET_F).setMax(ModConfig.MAX_OFFSET_F);
-        offsetYField = createFloatField(widgetWidth * 2 - 20, 0, offsetYField).setMin(ModConfig.MIN_OFFSET_F).setMax(ModConfig.MAX_OFFSET_F);
-        offsetZField = createFloatField(widgetWidth * 2 - 20, 0, offsetZField).setMin(ModConfig.MIN_OFFSET_F).setMax(ModConfig.MAX_OFFSET_F);
-        offsetPitchField = createFloatField(widgetWidth * 2 - 20, 0, offsetPitchField).setMin(-180.0f).setMax(180.0f);
-        offsetYawField = createFloatField(widgetWidth * 2 - 20, 0, offsetYawField).setMin(-180.0f).setMax(180.0f);
-        offsetRollField = createFloatField(widgetWidth * 2 - 20, 0, offsetRollField).setMin(-180.0f).setMax(180.0f);
         scaleField = createFloatField(widgetWidth, 1.0f, scaleField).setMax(64.0f);
         depthField = createFloatField(widgetWidth, 0.2f, depthField).setMax(16.0f);
         GridLayout grid = new GridLayout();
@@ -221,40 +206,19 @@ public final class ModelViewScreen extends Screen {
                 rows.addChild(textureIdField, 2, smallSettings).setTooltip(createTooltip("textureId"));
             }
             case PREVIEW -> {
-                boolean useSliderOffset = toggleSliderButton.getValue() == 0;
                 rows.addChild(toggleSliderButton, 2);
-                LayoutSettings sliderSettings = grid.newCellSettings().padding(-20, 2, 0, 0);
-                LayoutSettings fieldSettings = grid.newCellSettings().padding(-17, 3, 1, 1);
+                LayoutSettings numericControlSettings = grid.newCellSettings().padding(-20, 2, 0, 0);
                 rows.addChild(bindXButton, smallSettings).setTooltip(createTooltip("bindButtons"));
-                if (useSliderOffset) rows.addChild(offsetXSlider, sliderSettings);
-                else rows.addChild(offsetXField, fieldSettings);
+                rows.addChild(offsetXPair, numericControlSettings);
                 rows.addChild(bindYButton, smallSettings).setTooltip(createTooltip("bindButtons"));
-                if (useSliderOffset) rows.addChild(offsetYSlider, sliderSettings);
-                else rows.addChild(offsetYField, fieldSettings);
+                rows.addChild(offsetYPair, numericControlSettings);
                 rows.addChild(bindZButton, smallSettings).setTooltip(createTooltip("bindButtons"));
-                if (useSliderOffset) rows.addChild(offsetZSlider, sliderSettings);
-                else rows.addChild(offsetZField, fieldSettings);
+                rows.addChild(offsetZPair, numericControlSettings);
                 rows.addChild(bindRotButton, smallSettings).setTooltip(createTooltip("bindButtons"));
-                if (useSliderOffset) rows.addChild(offsetPitchSlider, sliderSettings);
-                else rows.addChild(offsetPitchField, fieldSettings);
-                if (useSliderOffset) rows.addChild(offsetYawSlider, 2, grid.newCellSettings().padding(26, 2, 0, 0));
-                else rows.addChild(offsetYawField, 2, grid.newCellSettings().padding(29, 3, 1, 1));
-                rows.addChild(new SimpleIconButton(0, 0, _ -> {
-                    offsetXField.setNumber(0f);
-                    offsetYField.setNumber(0f);
-                    offsetZField.setNumber(0f);
-                    offsetPitchField.setNumber(0f);
-                    offsetYawField.setNumber(0f);
-                    offsetRollField.setNumber(0f);
-                    offsetXSlider.setDouble(0);
-                    offsetYSlider.setDouble(0);
-                    offsetZSlider.setDouble(0);
-                    offsetPitchSlider.setDouble(0);
-                    offsetYawSlider.setDouble(0);
-                    offsetRollSlider.setDouble(0);
-                }), smallSettings);
-                if (useSliderOffset) rows.addChild(offsetRollSlider, sliderSettings);
-                else rows.addChild(offsetRollField, fieldSettings);
+                rows.addChild(offsetPitchPair, numericControlSettings);
+                rows.addChild(offsetYawPair, 2, grid.newCellSettings().padding(26, 2, 0, 0));
+                rows.addChild(new SimpleIconButton(0, 0, _ -> widgetPairs.forEach(pair -> pair.setNumber(0))), smallSettings);
+                rows.addChild(offsetRollPair, numericControlSettings);
                 rows.addChild(scaleField, smallSettings).setTooltip(createTooltip("scale"));
                 rows.addChild(depthField, smallSettings).setTooltip(createTooltip("depth"));
             }
@@ -309,14 +273,14 @@ public final class ModelViewScreen extends Screen {
             initWidgets(page);
         }));
         rows.addChild(priorityField = NumberField.ofInt(font, widgetWidth - 2, widgetHeight - 2, 0, priorityField), smallSettings).setTooltip(createTooltip("priority"));
-        rows.addChild(nameField = createTextField(widgetWidth * 2 + 4, 20, nameField), 2, smallSettings).setTooltip(createTooltip("targetName"));
+        rows.addChild(nameField = createTextField(wideWidgetWidth, 20, nameField), 2, smallSettings).setTooltip(createTooltip("targetName"));
         grid.arrangeElements();
         FrameLayout.alignInRectangle(grid, x, y + 2, x + (xSize - middleWidth) / 2 - 4, y + ySize, 0, 0);
         grid.visitWidgets(this::addRenderableWidget);
     }
 
     private void initRightWidgets() {
-        disabledNameField = createTextField(widgetWidth * 2 - 18, 20, disabledNameField);
+        disabledNameField = createTextField(compactWidgetWidth, 20, disabledNameField);
         GridLayout grid = new GridLayout();
         grid.defaultCellSetting().padding(4, 2, 0, 0);
         LayoutSettings smallSettings = grid.newCellSettings().padding(5, 3, 1, 1);
@@ -360,7 +324,7 @@ public final class ModelViewScreen extends Screen {
                             else hiddenNames.add(config.name());
                         })
                         .setPosition(x + (xSize + middleWidth) / 2 - 20, y + 5 + (widgetHeight + 2) * (2 + i % widgetsPerPage));
-                rows.addChild(createButton(LocUtil.literal(config.name()), widgetWidth * 2 - 18, _ -> {
+                rows.addChild(createButton(LocUtil.literal(config.name()), compactWidgetWidth, _ -> {
                     disabledNameField.setValue(config.name());
                     disabledIdField.setValue(config.textureId());
                     disableModeButton.setValue(config.disableAll() ? 0 : 1);
@@ -383,7 +347,7 @@ public final class ModelViewScreen extends Screen {
             for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, size); i++) {
                 BindTarget target = i < fixedTargetCount ? fixedTargetList.get(i) : targetList.get(i - fixedTargetCount);
                 String name = target.name();
-                rows.addChild(createButton(LocUtil.literal(name), widgetWidth * 2 - 18, _ -> loadBindTarget(target)), 3)
+                rows.addChild(createButton(LocUtil.literal(name), compactWidgetWidth, _ -> loadBindTarget(target)), 3)
                         .setTooltip(Tooltip.create(name.equals(RealCameraCore.currentTarget().name()) ?
                                 LocUtil.literal(name + "\n").append(LocUtil.MODEL_VIEW_WIDGET("currentConfig")) :
                                 LocUtil.literal(name))
@@ -406,18 +370,6 @@ public final class ModelViewScreen extends Screen {
         addRenderableWidget(new SimpleIconButton(x + xSize - 21, y + ySize - 20, 16, 16, 32, 0, _ -> initWidgets((page + 1) % pages)));
     }
 
-    public @NonNull UVRectangleWidget addRectWidget(@NonNull UVRectangleWidget rectWidget) {
-        UVRectangleWidget foundRectWidget = rectWidgets.stream().filter(r -> r.contains(rectWidget)).findFirst().orElse(null);
-        if (foundRectWidget == null) {
-            rectWidgets.add(rectWidget);
-            focusedRectWidgetNumberField.setMax(rectWidgets.size());
-            rectWidgetsSizeWidget.setMessage(LocUtil.literal(String.valueOf(rectWidgets.size())));
-            if (textureViewArea != null) addRenderableWidget(rectWidget);
-            return rectWidget;
-        }
-        return foundRectWidget;
-    }
-
     public boolean deleteFocusedRectWidget() {
         if (focusedRectWidget == null) return false;
         rectWidgets.remove(focusedRectWidget);
@@ -433,13 +385,13 @@ public final class ModelViewScreen extends Screen {
         super.extractRenderState(graphics, mouseX, mouseY, partialTicks);
         if (toggleCategoryButton.getValue() == Category.DISABLE && selectionModeButton.getValue() == 2 && inModelViewArea(mouseX, mouseY)) {
             GUIHelper.enableScissor(graphics, modelViewArea);
-            GUIHelper.fill(graphics, mouseX - selectionRadius, mouseY - selectionRadius, mouseX + selectionRadius, mouseY + selectionRadius, 400, 0x4F3333CC);
+            GUIHelper.fill(graphics, mouseX - selectionRadius, mouseY - selectionRadius, mouseX + selectionRadius, mouseY + selectionRadius, 400, SELECTION_COLOR);
             graphics.disableScissor();
         }
         if (textureViewArea != null) {
             GUIHelper.enableScissor(graphics, textureViewArea);
             if (clickedX >= 0 && clickedY >= 0)
-                graphics.fill(Math.min((int) clickedX, mouseX), Math.min((int) clickedY, mouseY), Math.max((int) clickedX, mouseX), Math.max((int) clickedY, mouseY), 0x4F3333CC);
+                graphics.fill(Math.min((int) clickedX, mouseX), Math.min((int) clickedY, mouseY), Math.max((int) clickedX, mouseX), Math.max((int) clickedY, mouseY), SELECTION_COLOR);
             if (disableModeButton.getValue() == 0)
                 new UVRectangleWidget(0f, 0f, 1f, 1f).extractWidgetRenderState(graphics, mouseX, mouseY, partialTicks);
             graphics.disableScissor();
@@ -449,9 +401,9 @@ public final class ModelViewScreen extends Screen {
     @Override
     public void extractBackground(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
         super.extractBackground(graphics, mouseX, mouseY, partialTicks);
-        graphics.fill(x, y, x + (xSize - middleWidth) / 2 - 4, y + ySize, 0xFF444444);
-        graphics.fill(x + (xSize - middleWidth) / 2, y, x + (xSize + middleWidth) / 2, y + ySize, 0xFF222222);
-        graphics.fill(x + (xSize + middleWidth) / 2 + 4, y, x + xSize, y + ySize, 0xFF444444);
+        graphics.fill(x, y, x + (xSize - middleWidth) / 2 - 4, y + ySize, SIDE_PANEL_BG);
+        graphics.fill(x + (xSize - middleWidth) / 2, y, x + (xSize + middleWidth) / 2, y + ySize, CENTER_PANEL_BG);
+        graphics.fill(x + (xSize + middleWidth) / 2 + 4, y, x + xSize, y + ySize, SIDE_PANEL_BG);
 
         ModelAnalyser analyser = new ModelAnalyser();
         BindTarget target = genBindTarget();
@@ -473,15 +425,15 @@ public final class ModelViewScreen extends Screen {
         float entityPrevHeadYaw = entity.yHeadRotO;
         float entityHeadYaw = entity.yHeadRot;
         entity.yBodyRot = 180.0f;
-        entity.setYRot(180.0f + (float) entityYawSlider.getDouble());
-        entity.setXRot((float) entityPitchSlider.getDouble());
+        entity.setYRot(180.0f + (float) entityYawSlider.getNumber());
+        entity.setXRot((float) entityPitchSlider.getNumber());
         entity.yHeadRot = entity.getYRot();
         entity.yHeadRotO = entity.getYRot();
         try {
             int x1 = modelViewArea.left(), y1 = modelViewArea.top(), x2 = modelViewArea.right(), y2 = modelViewArea.bottom();
             Quaternionf rotation = new Quaternionf().rotateX((float) Math.PI / 6 + xRot).rotateY((float) Math.PI / 6 + yRot).rotateZ((float) Math.PI);
             PoseStack modelPose = new PoseStack();
-            modelPose.translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
+            modelPose.translate((x1 + x2) / 2.0f, (y1 + y2) / 2.0f, 0);
             modelPose.scale(modelScale, modelScale, -modelScale);
             modelPose.translate(modelX, modelY, 0);
             modelPose.mulPose(rotation);
@@ -515,7 +467,7 @@ public final class ModelViewScreen extends Screen {
         float invScale = 1.0f / modelScale;
         Matrix4f modelTransform = new Matrix4f();
         modelTransform.scale(invScale, invScale, -invScale);
-        modelTransform.translate(-(float) (x1 + x2) / 2.0f, -(float) (y1 + y2) / 2.0f, 0);
+        modelTransform.translate(-(x1 + x2) / 2.0f, -(y1 + y2) / 2.0f, 0);
         GUIHelper.culledModels(graphics, modelRecords, modelScale, modelTransform, x1, y1, x2, y2);
         if (toggleCategoryButton.getValue() != Category.PREVIEW) analyser.drawFocusedInModelArea(graphics);
         if (toggleCategoryButton.getValue() == Category.CONFIGS) analyser.drawBindTarget(graphics, target, modelScale);
@@ -526,11 +478,11 @@ public final class ModelViewScreen extends Screen {
     private void renderFlattenedModels(GuiGraphicsExtractor graphics, ModelAnalyser analyser, List<BuiltModelRecord> textureRecords) {
         int x1 = textureViewArea.left(), y1 = textureViewArea.top(), x2 = textureViewArea.right(), y2 = textureViewArea.bottom();
         GUIHelper.enableScissor(graphics, textureViewArea);
-        float scale = (float) (textureScale * textureViewArea.width()) / 80;
+        float scale = (textureScale * textureViewArea.width()) / (float) DEFAULT_SCALE;
         Vector3f offset = new Vector3f((float) textureX - 0.5f, (float) textureY - 0.5f, 0);
         GUIHelper.flattenedModels(graphics, textureRecords, offset, x1, y1, x2, y2, scale);
         Matrix4f texturePose = new Matrix4f();
-        texturePose.translate((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
+        texturePose.translate((x1 + x2) / 2.0f, (y1 + y2) / 2.0f, 0);
         texturePose.scale(scale, scale, -scale);
         texturePose.translate(offset);
         analyser.drawFocusedInTextureArea(graphics, texturePose);
@@ -538,21 +490,19 @@ public final class ModelViewScreen extends Screen {
     }
 
     private Vec2 translateUVToXY(float u, float v, ScreenRectangle screenArea) {
-        int x1 = screenArea.left(), y1 = screenArea.top(), x2 = screenArea.right(), y2 = screenArea.bottom();
-        Vector3f vector3f = new Vector3f(u, v, 0)
-                .add((float) textureX - 0.5f, (float) textureY - 0.5f, 0)
-                .mul((float) (textureScale * screenArea.width()) / 80)
-                .add((float) (x1 + x2) / 2.0f, (float) (y1 + y2) / 2.0f, 0);
-        return new Vec2(vector3f.x(), vector3f.y());
+        int left = screenArea.left(), width = screenArea.width(), top = screenArea.top(), height = screenArea.height();
+        float scale = (textureScale * width) / (float) DEFAULT_SCALE;
+        float x = (u + (float) textureX - 0.5f) * scale + left + width / 2.0f;
+        float y = (v + (float) textureY - 0.5f) * scale + top + height / 2.0f;
+        return new Vec2(x, y);
     }
 
     private Vec2 translateXYToUV(float x, float y, ScreenRectangle screenArea) {
-        int x1 = screenArea.left(), y1 = screenArea.top(), x2 = screenArea.right(), y2 = screenArea.bottom();
-        Vector3f vector3f = new Vector3f(x, y, 0)
-                .add(-(float) (x1 + x2) / 2.0f, -(float) (y1 + y2) / 2.0f, 0)
-                .mul((float) 80 / (textureScale * screenArea.width()))
-                .add((float) -textureX + 0.5f, (float) -textureY + 0.5f, 0);
-        return new Vec2(vector3f.x(), vector3f.y());
+        int left = screenArea.left(), width = screenArea.width(), top = screenArea.top(), height = screenArea.height();
+        float invScale = (float) DEFAULT_SCALE / (textureScale * width);
+        float u = (x - left - width / 2.0f) * invScale - (float) textureX + 0.5f;
+        float v = (y - top - height / 2.0f) * invScale - (float) textureY + 0.5f;
+        return new Vec2(u, v);
     }
 
     private void importBindTarget(Button button) {
@@ -619,19 +569,14 @@ public final class ModelViewScreen extends Screen {
         bindYButton.setValue(target.bindConfig().bindY() ? 0 : 1);
         bindZButton.setValue(target.bindConfig().bindZ() ? 0 : 1);
         bindRotButton.setValue(target.bindConfig().bindRotation() ? 0 : 1);
-        scaleField.setNumber(target.offsets().scale);
-        offsetXSlider.setDouble(target.offsets().x);
-        offsetXField.setNumber(target.offsets().x);
-        offsetYSlider.setDouble(target.offsets().y);
-        offsetYField.setNumber(target.offsets().y);
-        offsetZSlider.setDouble(target.offsets().z);
-        offsetZField.setNumber(target.offsets().z);
-        offsetPitchSlider.setDouble(target.offsets().pitch);
-        offsetPitchField.setNumber(target.offsets().pitch);
-        offsetYawSlider.setDouble(target.offsets().yaw);
-        offsetYawField.setNumber(target.offsets().yaw);
-        offsetRollSlider.setDouble(target.offsets().roll);
-        offsetRollField.setNumber(target.offsets().roll);
+        OffsetConfig offsets = target.offsets();
+        scaleField.setNumber(offsets.scale);
+        offsetXPair.setNumber(offsets.x);
+        offsetYPair.setNumber(offsets.y);
+        offsetZPair.setNumber(offsets.z);
+        offsetPitchPair.setNumber(offsets.pitch);
+        offsetYawPair.setNumber(offsets.yaw);
+        offsetRollPair.setNumber(offsets.roll);
         disableConfigs.clear();
         disableConfigs.addAll(List.of(target.disableConfigs()));
     }
@@ -641,12 +586,12 @@ public final class ModelViewScreen extends Screen {
         BindConfig bindConfig = new BindConfig(bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);
         OffsetConfig offsets = new OffsetConfig(
                 scaleField.getNumber(),
-                toggleSliderButton.getValue() == 0 ? (float) offsetXSlider.getDouble() : offsetXField.getNumber(),
-                toggleSliderButton.getValue() == 0 ? (float) offsetYSlider.getDouble() : offsetYField.getNumber(),
-                toggleSliderButton.getValue() == 0 ? (float) offsetZSlider.getDouble() : offsetZField.getNumber(),
-                toggleSliderButton.getValue() == 0 ? (float) offsetPitchSlider.getDouble() : offsetPitchField.getNumber(),
-                toggleSliderButton.getValue() == 0 ? (float) offsetYawSlider.getDouble() : offsetYawField.getNumber(),
-                toggleSliderButton.getValue() == 0 ? (float) offsetRollSlider.getDouble() : offsetRollField.getNumber()
+                offsetXPair.getNumber(),
+                offsetYPair.getNumber(),
+                offsetZPair.getNumber(),
+                offsetPitchPair.getNumber(),
+                offsetYawPair.getNumber(),
+                offsetRollPair.getNumber()
         );
         DisableConfig currentDisableConfig = new DisableConfig(disabledNameField.getValue(), disabledIdField.getValue(), disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toArray(UVRectangle[]::new));
         DisableConfig[] disableConfigArray = disableConfigs.toArray(new DisableConfig[0]);
@@ -655,6 +600,19 @@ public final class ModelViewScreen extends Screen {
                 disableConfigArray[i] = currentDisableConfig;
         }
         return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, disableConfigArray);
+    }
+
+    @NonNull
+    private UVRectangleWidget addRectWidget(@NonNull UVRectangleWidget rectWidget) {
+        UVRectangleWidget foundRectWidget = rectWidgets.stream().filter(r -> r.contains(rectWidget)).findFirst().orElse(null);
+        if (foundRectWidget == null) {
+            rectWidgets.add(rectWidget);
+            focusedRectWidgetNumberField.setMax(rectWidgets.size());
+            rectWidgetsSizeWidget.setMessage(LocUtil.literal(String.valueOf(rectWidgets.size())));
+            if (textureViewArea != null) addRenderableWidget(rectWidget);
+            return rectWidget;
+        }
+        return foundRectWidget;
     }
 
     private Tooltip createTooltip(String key, Object... args) {
@@ -822,11 +780,11 @@ public final class ModelViewScreen extends Screen {
                     selectionRadius = Mth.clamp(selectionRadius + (int) verticalAmount * 2, 2, 48);
                 else layers = Math.max(0, layers + (int) verticalAmount);
             } else {
-                modelScale = Mth.clamp(modelScale + (int) verticalAmount * modelScale / 16, 16, 1024);
+                modelScale = Mth.clamp(modelScale + (int) verticalAmount * modelScale / 16, MIN_SCALE, MAX_SCALE);
             }
             return true;
         } else if (inTextureViewArea(mouseX, mouseY)) {
-            textureScale = Mth.clamp(textureScale + (int) verticalAmount * textureScale / 16, 16, 1024);
+            textureScale = Mth.clamp(textureScale + (int) verticalAmount * textureScale / 16, MIN_SCALE, MAX_SCALE);
         }
         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
@@ -857,7 +815,7 @@ public final class ModelViewScreen extends Screen {
         }
     }
 
-    public final class UVRectangleWidget extends AbstractWidget {
+    private final class UVRectangleWidget extends AbstractWidget {
         private float uMin, vMin, uMax, vMax;
 
         public UVRectangleWidget(float uMin, float vMin, float uMax, float vMax) {
@@ -908,10 +866,10 @@ public final class ModelViewScreen extends Screen {
             setWidth((int) width);
             setHeight((int) height);
             GUIHelper.enableScissor(graphics, textureViewArea);
-            GUIHelper.fill(graphics, x1, y1, x2, y2, 0x4F3333CC);
-            if (isHoveredOrFocused()) GUIHelper.fill(graphics, x1, y1, x2, y2, 0x2F3333CC);
+            GUIHelper.fill(graphics, x1, y1, x2, y2, SELECTION_COLOR);
+            if (isHoveredOrFocused()) GUIHelper.fill(graphics, x1, y1, x2, y2, SELECTION_HOVER_COLOR);
             if (isFocused() || this == focusedRectWidget)
-                GUIHelper.outline(graphics, x1, y1, width, height, 0xAAFFFFFF);
+                GUIHelper.outline(graphics, x1, y1, width, height, OUTLINE_COLOR);
             graphics.disableScissor();
         }
 
@@ -922,7 +880,7 @@ public final class ModelViewScreen extends Screen {
             if (event.isSelection() && uMin < uMax && vMin < vMax) {
                 textureX = 0.5 * (1 - uMin - uMax);
                 textureY = 0.5 * (1 - vMin - vMax);
-                textureScale = (int) Mth.clamp(2560d / (textureViewArea.width() * Math.sqrt((uMax - uMin) * (vMax - vMin))), 16, 1024);
+                textureScale = (int) Mth.clamp(32d * DEFAULT_SCALE / (textureViewArea.width() * Math.sqrt((uMax - uMin) * (vMax - vMin))), MIN_SCALE, MAX_SCALE);
                 return true;
             }
             return super.keyPressed(event);

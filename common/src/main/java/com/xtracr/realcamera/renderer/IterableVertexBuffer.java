@@ -5,7 +5,7 @@ import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
 import com.xtracr.realcamera.renderer.state.VertexData;
-import com.xtracr.realcamera.renderer.state.VertexData.MutableVertex;
+import com.xtracr.realcamera.renderer.state.MutableVertex;
 import org.jspecify.annotations.NonNull;
 
 import java.nio.ByteBuffer;

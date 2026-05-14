@@ -10,20 +10,22 @@ public final class MathUtil {
         return Math.round(d * Math.pow(10, digits)) / Math.pow(10, digits);
     }
 
-    public static double floor(double... ds) {
-        double d = ds[0];
-        for (int i = 1; i < ds.length; i++) {
-            d = Math.min(d, ds[i]);
-        }
-        return Math.floor(d);
+    public static double floor(double d1, double d2) {
+        return Math.floor(Math.min(d1, d2));
     }
 
-    public static double ceil(double... ds) {
-        double d = ds[0];
-        for (int i = 1; i < ds.length; i++) {
-            d = Math.max(d, ds[i]);
-        }
-        return Math.ceil(d);
+    public static double floor(double d1, double d2, double d3, double d4) {
+        double min = Math.min(Math.min(Math.min(d1, d2), d3), d4);
+        return Math.floor(min);
+    }
+
+    public static double ceil(double d1, double d2) {
+        return Math.ceil(Math.max(d1, d2));
+    }
+
+    public static double ceil(double d1, double d2, double d3, double d4) {
+        double max = Math.max(Math.max(Math.max(d1, d2), d3), d4);
+        return Math.ceil(max);
     }
 
     public static float cross(float a, float b, float c, float d) {

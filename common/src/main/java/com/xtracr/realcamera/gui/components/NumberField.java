@@ -29,12 +29,12 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
         if (copyFrom != null) setNumber(copyFrom.getNumber());
     }
 
-    public static NumberField<Float> ofFloat(Font font, int width, int height, float defaultValue, @Nullable NumberField<Float> copyFrom) {
-        return new FloatField(font, width, height, defaultValue, copyFrom);
-    }
-
     public static NumberField<Integer> ofInt(Font font, int width, int height, int defaultValue, @Nullable NumberField<Integer> copyFrom) {
         return new IntField(font, width, height, defaultValue, copyFrom);
+    }
+
+    public static NumberField<Float> ofFloat(Font font, int width, int height, float defaultValue, @Nullable NumberField<Float> copyFrom) {
+        return new FloatField(font, width, height, defaultValue, copyFrom);
     }
 
     public T getNumber() {
@@ -114,18 +114,6 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
         super.extractWidgetRenderState(graphics, mouseX, mouseY, partialTicks);
     }
 
-    private static final class FloatField extends NumberField<Float> {
-        FloatField(Font font, int width, int height, float defaultValue, @Nullable NumberField<Float> copyFrom) {
-            super(font, width, height, defaultValue, Float.MAX_VALUE, -Float.MAX_VALUE, copyFrom);
-            setMaxLength(16);
-        }
-
-        @Override
-        protected Float getNumberInternal(String str) throws NumberFormatException {
-            return Float.parseFloat(str);
-        }
-    }
-
     private static final class IntField extends NumberField<Integer> {
         IntField(Font font, int width, int height, int defaultValue, @Nullable NumberField<Integer> copyFrom) {
             super(font, width, height, defaultValue, Integer.MAX_VALUE, Integer.MIN_VALUE, copyFrom);
@@ -135,6 +123,18 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
         @Override
         protected Integer getNumberInternal(String str) throws NumberFormatException {
             return Integer.parseInt(str);
+        }
+    }
+
+    private static final class FloatField extends NumberField<Float> {
+        FloatField(Font font, int width, int height, float defaultValue, @Nullable NumberField<Float> copyFrom) {
+            super(font, width, height, defaultValue, Float.MAX_VALUE, -Float.MAX_VALUE, copyFrom);
+            setMaxLength(16);
+        }
+
+        @Override
+        protected Float getNumberInternal(String str) throws NumberFormatException {
+            return Float.parseFloat(str);
         }
     }
 }

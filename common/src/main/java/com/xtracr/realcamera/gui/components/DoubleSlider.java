@@ -17,17 +17,17 @@ public class DoubleSlider extends AbstractSliderButton {
         this.max = max;
     }
 
-    public double getDouble() {
+    public double getNumber() {
         return min + (max - min) * value;
     }
 
-    public void setDouble(double value) {
+    public void setNumber(double value) {
         setValue((value - min) / (max - min));
     }
 
     @Override
     protected void updateMessage() {
-        setMessage(textFactory.apply(getDouble()));
+        setMessage(textFactory.apply(getNumber()));
     }
 
     @Override
