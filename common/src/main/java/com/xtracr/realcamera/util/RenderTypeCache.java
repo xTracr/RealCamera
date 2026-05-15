@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-public final class RenderTypeUtil {
+public final class RenderTypeCache {
     private static final LoadingCache<RenderType, String> TEXTURE_ID_CACHE = CacheBuilder.newBuilder()
             .maximumSize(64)
             .expireAfterAccess(60, TimeUnit.SECONDS)

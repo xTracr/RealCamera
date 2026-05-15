@@ -1,4 +1,4 @@
-package com.xtracr.realcamera.gui;
+package com.xtracr.realcamera.gui.components;
 
 import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.network.chat.Component;
@@ -17,18 +17,18 @@ public class DoubleSlider extends AbstractSliderButton {
         this.max = max;
     }
 
-    public double getValue() {
+    public double getNumber() {
         return min + (max - min) * value;
     }
 
-    public void setValue(double value) {
+    public void setNumber(double value) {
         this.value = Mth.clamp(0, (value - min) / (max - min), 1);
         applyValue();
     }
 
     @Override
     protected void updateMessage() {
-        setMessage(textFactory.apply(getValue()));
+        setMessage(textFactory.apply(getNumber()));
     }
 
     @Override

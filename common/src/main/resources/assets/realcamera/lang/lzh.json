@@ -57,6 +57,7 @@
   "config.tooltip.xtracr_realcamera.rotationSmoothFactor": "鏡觀轉滑係，值愈大愈平",
   "config.tooltip.xtracr_realcamera.scale": "控偏移大小",
   "general.xtracr_realcamera.modName": "Real Camera",
+  "key.category.xtracr_realcamera.general": "Real Camera",
   "key.xtracr_realcamera.activeConfigIndexNEXT": "切下配",
   "key.xtracr_realcamera.activeConfigIndexPREV": "切上配",
   "key.xtracr_realcamera.activeConfigIndexRESET": "改配之引",

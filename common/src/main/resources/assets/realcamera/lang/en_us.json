@@ -57,6 +57,7 @@
   "config.tooltip.xtracr_realcamera.rotationSmoothFactor": "Smooth factor of camera rotation, the higher the value, the smoother the movement",
   "config.tooltip.xtracr_realcamera.scale": "Control the size of the offsets",
   "general.xtracr_realcamera.modName": "Real Camera",
+  "key.category.xtracr_realcamera.general": "Real Camera",
   "key.xtracr_realcamera.activeConfigIndexNEXT": "Switch to next configuration",
   "key.xtracr_realcamera.activeConfigIndexPREV": "Switch to previous configuration",
   "key.xtracr_realcamera.activeConfigIndexRESET": "Reset configuration index",

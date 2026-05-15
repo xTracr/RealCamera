@@ -57,6 +57,7 @@
   "config.tooltip.xtracr_realcamera.rotationSmoothFactor": "Facteur de lissage de la rotation de la caméra, plus la valeur est élevée, plus le mouvement est fluide",
   "config.tooltip.xtracr_realcamera.scale": "Contrôler la taille des décalages",
   "general.xtracr_realcamera.modName": "Real Camera",
+  "key.category.xtracr_realcamera.general": "Real Camera",
   "key.xtracr_realcamera.activeConfigIndexNEXT": "Passer à la configuration suivante",
   "key.xtracr_realcamera.activeConfigIndexPREV": "Passer à la configuration précédente",
   "key.xtracr_realcamera.activeConfigIndexRESET": "Réinitialiser l'index de configuration",

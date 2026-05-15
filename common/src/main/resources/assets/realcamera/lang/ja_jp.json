@@ -57,6 +57,7 @@
   "config.tooltip.xtracr_realcamera.rotationSmoothFactor": "カメラ回転平滑化係数、値が大きいほどスムーズ",
   "config.tooltip.xtracr_realcamera.scale": "オフセット量のサイズを制御",
   "general.xtracr_realcamera.modName": "Real Camera",
+  "key.category.xtracr_realcamera.general": "Real Camera",
   "key.xtracr_realcamera.activeConfigIndexNEXT": "次の設定に切り替え",
   "key.xtracr_realcamera.activeConfigIndexPREV": "前の設定に切り替え",
   "key.xtracr_realcamera.activeConfigIndexRESET": "設定インデックスをリセット",

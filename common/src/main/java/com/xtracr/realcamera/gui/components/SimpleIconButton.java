@@ -1,4 +1,4 @@
-package com.xtracr.realcamera.gui;
+package com.xtracr.realcamera.gui.components;
 
 import com.xtracr.realcamera.RealCamera;
 import net.minecraft.client.gui.GuiGraphics;
@@ -9,21 +9,21 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.function.Consumer;
 
-public class TexturedButton extends AbstractButton {
+public class SimpleIconButton extends AbstractButton {
     public static final ResourceLocation ICON_TEXTURE = new ResourceLocation(RealCamera.MODID, "textures/gui/icon.png");
     protected final ResourceLocation texture;
     protected final int textureWidth, textureHeight, u, v;
-    private final Consumer<TexturedButton> onPress;
+    private final Consumer<SimpleIconButton> onPress;
 
-    public TexturedButton(int u, int v, Consumer<TexturedButton> onPress) {
+    public SimpleIconButton(int u, int v, Consumer<SimpleIconButton> onPress) {
         this(0, 0, 16, 16, u, v, onPress);
     }
 
-    public TexturedButton(int x, int y, int width, int height, int u, int v, Consumer<TexturedButton> onPress) {
+    public SimpleIconButton(int x, int y, int width, int height, int u, int v, Consumer<SimpleIconButton> onPress) {
         this(x, y, width, height, u, v, ICON_TEXTURE, 256, 256, onPress);
     }
 
-    public TexturedButton(int x, int y, int width, int height, int u, int v, ResourceLocation texture, int textureWidth, int textureHeight, Consumer<TexturedButton> onPress) {
+    public SimpleIconButton(int x, int y, int width, int height, int u, int v, ResourceLocation texture, int textureWidth, int textureHeight, Consumer<SimpleIconButton> onPress) {
         super(x, y, width, height, Component.empty());
         this.textureWidth = textureWidth;
         this.textureHeight = textureHeight;

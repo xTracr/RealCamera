@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
-import com.xtracr.realcamera.util.VertexData.MutableVertex;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 

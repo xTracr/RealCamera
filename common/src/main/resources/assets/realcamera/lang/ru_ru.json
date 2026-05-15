@@ -57,6 +57,7 @@
   "config.tooltip.xtracr_realcamera.rotationSmoothFactor": "Коэффициент сглаживания вращения камеры, чем выше значение, тем плавнее движение",
   "config.tooltip.xtracr_realcamera.scale": "Контролировать размер смещений",
   "general.xtracr_realcamera.modName": "Real Camera",
+  "key.category.xtracr_realcamera.general": "Real Camera",
   "key.xtracr_realcamera.activeConfigIndexNEXT": "Переключиться на следующую конфигурацию",
   "key.xtracr_realcamera.activeConfigIndexPREV": "Переключиться на предыдущую конфигурацию",
   "key.xtracr_realcamera.activeConfigIndexRESET": "Сбросить индекс конфигурации",

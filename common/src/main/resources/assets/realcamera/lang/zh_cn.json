@@ -57,6 +57,7 @@
   "config.tooltip.xtracr_realcamera.rotationSmoothFactor": "相机旋转平滑系数，值越大越平滑",
   "config.tooltip.xtracr_realcamera.scale": "控制偏移量的大小",
   "general.xtracr_realcamera.modName": "Real Camera",
+  "key.category.xtracr_realcamera.general": "Real Camera",
   "key.xtracr_realcamera.activeConfigIndexNEXT": "切换到下一个配置",
   "key.xtracr_realcamera.activeConfigIndexPREV": "切换到上一个配置",
   "key.xtracr_realcamera.activeConfigIndexRESET": "重置配置索引",

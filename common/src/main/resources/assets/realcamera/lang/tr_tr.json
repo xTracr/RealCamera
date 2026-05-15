@@ -57,6 +57,7 @@
   "config.tooltip.xtracr_realcamera.rotationSmoothFactor": "Kamera dönüş düzgünleştirme faktörü, değer ne kadar yüksekse hareket o kadar pürüzsüz olur",
   "config.tooltip.xtracr_realcamera.scale": "Ofsetlerin boyutunu kontrol eder",
   "general.xtracr_realcamera.modName": "Real Camera",
+  "key.category.xtracr_realcamera.general": "Real Camera",
   "key.xtracr_realcamera.activeConfigIndexNEXT": "Sonraki yapılandırmaya geç",
   "key.xtracr_realcamera.activeConfigIndexPREV": "Önceki yapılandırmaya geç",
   "key.xtracr_realcamera.activeConfigIndexRESET": "Yapılandırma indeksini sıfırla",
