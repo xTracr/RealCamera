@@ -1,10 +1,18 @@
 package com.xtracr.realcamera.config;
 
+import com.mojang.serialization.DataResult;
+import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.zip.Deflater;
+import java.util.zip.DeflaterOutputStream;
+import java.util.zip.InflaterInputStream;
 
 public record BindTarget(
         String name, String textureId, int priority, float disablingDepth,
@@ -12,12 +20,12 @@ public record BindTarget(
         BindConfig bindConfig,
         OffsetConfig offsets,
         DisableConfig[] disableConfigs) {
-    public static final List<BindTarget> defaultTargets;
+    public static final List<BindTarget> DEFAULT_TARGETS;
     public static final BindTarget EMPTY = blank(null, null);
-    private static final short serialVersion = 703; // 0.7.3
+    private static final short SERIAL_VERSION = 703; // 0.7.3
 
     static {
-        defaultTargets = List.of(
+        DEFAULT_TARGETS = List.of(
                 BindTarget.vanillaTarget("minecraft_head", 5, false),
                 BindTarget.vanillaTarget("skin_head", 5, false),
                 BindTarget.vanillaTarget("minecraft_head_2", 1, true),
@@ -33,8 +41,8 @@ public record BindTarget(
 
     public static BindTarget read(FriendlyByteBuf byteBuf) throws IllegalArgumentException {
         short version = byteBuf.readShort();
-        if (version != serialVersion)
-            throw new IllegalArgumentException("Invalid version: " + version + ", expected " + serialVersion);
+        if (version != SERIAL_VERSION)
+            throw new IllegalArgumentException("Invalid version: " + toSemVer(version) + ", expected " + toSemVer(SERIAL_VERSION));
         String name = byteBuf.readUtf();
         String textureId = byteBuf.readUtf();
         int priority = byteBuf.readVarInt();
@@ -47,6 +55,40 @@ public record BindTarget(
             disableConfigs[i] = DisableConfig.read(byteBuf);
         }
         return new BindTarget(name, textureId, priority, disablingDepth, targetConfig, bindConfig, offsets, disableConfigs);
+    }
+
+    public static DataResult<BindTarget> fromCompressedBase64(String base64) {
+        FriendlyByteBuf byteBuf = null;
+        try {
+            byte[] compressed = Base64.getDecoder().decode(base64);
+            InflaterInputStream inflaterStream = new InflaterInputStream(new ByteArrayInputStream(compressed));
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int length;
+            while ((length = inflaterStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
+            }
+            byte[] bytes = outputStream.toByteArray();
+            byteBuf = new FriendlyByteBuf(Unpooled.wrappedBuffer(bytes));
+            BindTarget target = BindTarget.read(byteBuf);
+            if (target.isEmpty()) return DataResult.error(() -> "Invalid config format");
+            return DataResult.success(target);
+        } catch (Exception e) {
+            return DataResult.error(() -> {
+                String message = e.getClass().getSimpleName();
+                if (e instanceof IllegalArgumentException) message += ": " + e.getMessage();
+                return message;
+            });
+        } finally {
+            if (byteBuf != null) byteBuf.release();
+        }
+    }
+
+    private static String toSemVer(short version) {
+        int major = version / 10000;
+        int minor = version % 10000 / 100;
+        int patch = version % 100;
+        return major + "." + minor + "." + patch;
     }
 
     private static BindTarget vanillaTarget(String name, int priority, boolean shouldBind) {
@@ -70,7 +112,7 @@ public record BindTarget(
     }
 
     public void write(FriendlyByteBuf byteBuf) {
-        byteBuf.writeShort(serialVersion);
+        byteBuf.writeShort(SERIAL_VERSION);
         byteBuf.writeUtf(name);
         byteBuf.writeUtf(textureId);
         byteBuf.writeVarInt(priority);
@@ -81,6 +123,25 @@ public record BindTarget(
         byteBuf.writeVarInt(disableConfigs.length);
         for (DisableConfig disableConfig : disableConfigs) {
             disableConfig.write(byteBuf);
+        }
+    }
+
+    public DataResult<String> toCompressedBase64() {
+        FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
+        try {
+            write(byteBuf);
+            byte[] bytes = new byte[byteBuf.readableBytes()];
+            byteBuf.getBytes(byteBuf.readerIndex(), bytes);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            try (DeflaterOutputStream deflaterStream = new DeflaterOutputStream(outputStream, new Deflater(Deflater.BEST_COMPRESSION))) {
+                deflaterStream.write(bytes);
+            }
+            String base64 = Base64.getEncoder().encodeToString(outputStream.toByteArray());
+            return DataResult.success(base64);
+        } catch (Exception e) {
+            return DataResult.error(() -> e.getClass().getSimpleName() + ": " + e.getMessage());
+        } finally {
+            byteBuf.release();
         }
     }
 

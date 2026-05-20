@@ -182,7 +182,7 @@ public final class ModConfig {
     }
 
     public static class Binding {
-        protected static final List<String> defaultDisableRenderItems = List.of("minecraft:filled_map");
+        protected static final List<String> DEFAULT_DISABLE_RENDER_ITEMS = List.of("minecraft:filled_map");
         public String screenModifierKey = InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_LALT).getName();
         public boolean legacyMode = false;
         public boolean adjustOffset = true;
@@ -197,9 +197,9 @@ public final class ModConfig {
         public double displacementSmoothFactor = 0.4;
         public double rotationSmoothFactor = 0.4;
         public List<String> disableMainFeatureItems = List.of();
-        public List<String> disableRenderItems = defaultDisableRenderItems;
+        public List<String> disableRenderItems = DEFAULT_DISABLE_RENDER_ITEMS;
         public List<BindTarget> fixedTargetList = new ArrayList<>();
-        public List<BindTarget> targetList = new ArrayList<>(BindTarget.defaultTargets);
+        public List<BindTarget> targetList = new ArrayList<>(BindTarget.DEFAULT_TARGETS);
 
         private void clamp() {
             try {
@@ -216,10 +216,10 @@ public final class ModConfig {
             if (disableRenderItems == null) disableRenderItems = List.of();
             if (fixedTargetList == null) fixedTargetList = new ArrayList<>();
             else fixedTargetList.removeIf(BindTarget::isEmpty);
-            if (targetList == null) targetList = new ArrayList<>(BindTarget.defaultTargets);
+            if (targetList == null) targetList = new ArrayList<>(BindTarget.DEFAULT_TARGETS);
             else {
                 targetList.removeIf(BindTarget::isEmpty);
-                if (targetList.isEmpty()) targetList = new ArrayList<>(BindTarget.defaultTargets);
+                if (targetList.isEmpty()) targetList = new ArrayList<>(BindTarget.DEFAULT_TARGETS);
             }
         }
     }

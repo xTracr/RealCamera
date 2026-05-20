@@ -4,21 +4,17 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.serialization.DataResult;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.compat.CompatibilityHelper;
 import com.xtracr.realcamera.config.*;
 import com.xtracr.realcamera.config.BindTarget.BindConfig;
 import com.xtracr.realcamera.config.BindTarget.TargetConfig;
-import com.xtracr.realcamera.gui.components.CycleIconButton;
-import com.xtracr.realcamera.gui.components.DoubleSlider;
-import com.xtracr.realcamera.gui.components.NumberField;
-import com.xtracr.realcamera.gui.components.NumberWidgetPair;
-import com.xtracr.realcamera.gui.components.SimpleIconButton;
+import com.xtracr.realcamera.gui.components.*;
 import com.xtracr.realcamera.renderer.state.BuiltModelRecord;
 import com.xtracr.realcamera.renderer.state.VertexData;
 import com.xtracr.realcamera.util.LocUtil;
 import com.xtracr.realcamera.util.MathUtil;
-import io.netty.buffer.Unpooled;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.*;
@@ -31,7 +27,6 @@ import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -43,12 +38,7 @@ import org.joml.Vector3f;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.util.*;
-import java.util.zip.Deflater;
-import java.util.zip.DeflaterOutputStream;
-import java.util.zip.InflaterInputStream;
 
 public final class ModelViewScreen extends Screen {
     private static final int SELECTION_COLOR = 0x4F3333CC, SELECTION_HOVER_COLOR = 0x2F3333CC, OUTLINE_COLOR = 0xAAFFFFFF;
@@ -506,50 +496,33 @@ public final class ModelViewScreen extends Screen {
     }
 
     private void importBindTarget(Button button) {
-        FriendlyByteBuf byteBuf = null;
-        try {
-            String base64 = minecraft.keyboardHandler.getClipboard();
-            byte[] compressed = Base64.getDecoder().decode(base64);
-            InflaterInputStream inflaterStream = new InflaterInputStream(new ByteArrayInputStream(compressed));
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            byte[] buffer = new byte[4096];
-            int length;
-            while ((length = inflaterStream.read(buffer)) > 0) {
-                outputStream.write(buffer, 0, length);
+        String base64 = minecraft.keyboardHandler.getClipboard();
+        DataResult<BindTarget> result = BindTarget.fromCompressedBase64(base64);
+        switch (result) {
+            case DataResult.Success<BindTarget> success -> {
+                BindTarget target = success.value();
+                loadBindTarget(target);
+                button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("importSucceeded", LocUtil.literal("'" + target.name() + "'").withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GREEN)));
             }
-            byte[] bytes = outputStream.toByteArray();
-            byteBuf = new FriendlyByteBuf(Unpooled.wrappedBuffer(bytes));
-            BindTarget target = BindTarget.read(byteBuf);
-            if (target.isEmpty()) throw new IllegalArgumentException("Invalid config format");
-            loadBindTarget(target);
-            button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("importSucceeded", LocUtil.literal("'" + target.name() + "'").withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GREEN)));
-        } catch (Exception e) {
-            String message = e.getClass().getSimpleName();
-            if (e instanceof IllegalArgumentException) message += ": " + e.getMessage();
-            button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("importFailed", message).withStyle(ChatFormatting.RED)));
-        } finally {
-            if (byteBuf != null) byteBuf.release();
+            case DataResult.Error<BindTarget> error -> {
+                String message = error.message();
+                button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("importFailed", message).withStyle(ChatFormatting.RED)));
+            }
         }
     }
 
     private void exportBindTarget(Button button) {
-        FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
-        try {
-            genBindTarget().write(byteBuf);
-            byte[] bytes = new byte[byteBuf.readableBytes()];
-            byteBuf.getBytes(byteBuf.readerIndex(), bytes);
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            try (DeflaterOutputStream deflaterStream = new DeflaterOutputStream(outputStream, new Deflater(Deflater.BEST_COMPRESSION))) {
-                deflaterStream.write(bytes);
+        DataResult<String> result = genBindTarget().toCompressedBase64();
+        switch (result) {
+            case DataResult.Success<String> success -> {
+                String base64 = success.value();
+                minecraft.keyboardHandler.setClipboard(base64);
+                button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("exportSucceeded").withStyle(ChatFormatting.GREEN)));
             }
-            String base64 = Base64.getEncoder().encodeToString(outputStream.toByteArray());
-            minecraft.keyboardHandler.setClipboard(base64);
-            button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("exportSucceeded").withStyle(ChatFormatting.GREEN)));
-        } catch (Exception e) {
-            String message = e.getClass().getSimpleName() + ": " + e.getMessage();
-            button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("exportFailed", message).withStyle(ChatFormatting.RED)));
-        } finally {
-            byteBuf.release();
+            case DataResult.Error<String> error -> {
+                String message = error.message();
+                button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("exportFailed", message).withStyle(ChatFormatting.RED)));
+            }
         }
     }
 
@@ -602,8 +575,7 @@ public final class ModelViewScreen extends Screen {
         return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, disableConfigArray);
     }
 
-    @NonNull
-    private UVRectangleWidget addRectWidget(@NonNull UVRectangleWidget rectWidget) {
+    private UVRectangleWidget addRectWidget(UVRectangleWidget rectWidget) {
         UVRectangleWidget foundRectWidget = rectWidgets.stream().filter(r -> r.contains(rectWidget)).findFirst().orElse(null);
         if (foundRectWidget == null) {
             rectWidgets.add(rectWidget);

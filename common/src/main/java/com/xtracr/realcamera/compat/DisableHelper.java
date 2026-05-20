@@ -19,7 +19,7 @@ public final class DisableHelper {
     public static final Entry MAIN_FEATURE, RENDER_MODEL, RENDER_HANDS;
     private static final Pattern MULTI_STAR = Pattern.compile("\\*+");
     private static final Predicate<Player> FALSE = _ -> false;
-    private static final Map<String, Entry> entries = new HashMap<>();
+    private static final Map<String, Entry> ENTRIES = new HashMap<>();
     private static int exitTick = 0;
 
     static {
@@ -66,7 +66,7 @@ public final class DisableHelper {
 
     @Deprecated
     public static void registerOr(String name, Predicate<LivingEntity> predicate) {
-        entries.get(name).registerOrInBinding(predicate::test);
+        ENTRIES.get(name).registerOrInBinding(predicate::test);
     }
 
     public static boolean matchesItemPattern(Item item, String pattern) {
@@ -116,7 +116,7 @@ public final class DisableHelper {
         protected Entry(String name, Predicate<Player> predicateInClassic, Predicate<Player> predicateInBinding) {
             this.predicateInClassic = predicateInClassic;
             this.predicateInBinding = predicateInBinding;
-            entries.put(name, this);
+            ENTRIES.put(name, this);
         }
 
         public void registerOr(Predicate<Player> predicate) {
@@ -125,11 +125,13 @@ public final class DisableHelper {
         }
 
         public void registerOrInClassic(Predicate<Player> predicate) {
-            this.predicateInClassic = this.predicateInClassic.or(predicate);
+            if (predicateInClassic == FALSE) predicateInClassic = predicate;
+            else predicateInClassic = predicateInClassic.or(predicate);
         }
 
         public void registerOrInBinding(Predicate<Player> predicate) {
-            this.predicateInBinding = this.predicateInBinding.or(predicate);
+            if (predicateInBinding == FALSE) predicateInBinding = predicate;
+            else predicateInBinding = predicateInBinding.or(predicate);
         }
 
         public boolean disabled(Entity cameraEntity) {

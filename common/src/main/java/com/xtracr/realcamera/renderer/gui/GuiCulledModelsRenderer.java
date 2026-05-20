@@ -12,6 +12,8 @@ import org.joml.Matrix4f;
 import org.jspecify.annotations.NonNull;
 
 public final class GuiCulledModelsRenderer extends PictureInPictureRenderer<GuiCulledModelsRenderState> {
+    public static final int MIN_Z = 0, MAX_Z = 200;
+
     public GuiCulledModelsRenderer(MultiBufferSource.BufferSource bufferSource) {
         super(bufferSource);
     }
@@ -25,14 +27,14 @@ public final class GuiCulledModelsRenderer extends PictureInPictureRenderer<GuiC
     protected void renderToTexture(@NonNull GuiCulledModelsRenderState renderState, @NonNull PoseStack poseStack) {
         poseStack.mulPose(renderState.transform());
 
-        float minEntityZ = 0f, maxEntityZ = 200f;
+        float minEntityZ = MIN_Z, maxEntityZ = MAX_Z;
         for (BuiltModelRecord record : renderState.records()) {
             for (VertexData vertex : record.vertices()) {
                 if (vertex.z() < minEntityZ) minEntityZ = vertex.z();
                 if (vertex.z() > maxEntityZ) maxEntityZ = vertex.z();
             }
         }
-        Matrix4f positionMatrix = poseStack.last().pose().scale(1, 1, 200 / (maxEntityZ - minEntityZ)).translate(0, 0, -minEntityZ);
+        Matrix4f positionMatrix = poseStack.last().pose().scale(1, 1, MAX_Z / (maxEntityZ - minEntityZ)).translate(0, 0, -minEntityZ);
         Matrix3f normalMatrix = new Matrix3f(positionMatrix);
         for (BuiltModelRecord record : renderState.records()) {
             VertexConsumer buffer = bufferSource.getBuffer(record.renderType());

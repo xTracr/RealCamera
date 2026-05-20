@@ -20,16 +20,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class YSMCompat {
-    private static final Map<BindTarget, BindResult> resultMap = new HashMap<>();
-    private static final TransformedVertexRecorder[] transformedRecorders = new TransformedVertexRecorder[4];
+    private static final Map<BindTarget, BindResult> RESULT_MAP = new HashMap<>();
+    private static final TransformedVertexRecorder[] TRANSFORMED_RECORDERS = new TransformedVertexRecorder[4];
     private static BindResult bindResult = BindResult.EMPTY;
 
     static {
         final float pitch = 1.9106332f, yaw = 2.0943951f;
-        transformedRecorders[0] = new TransformedVertexRecorder();
-        transformedRecorders[1] = new TransformedVertexRecorder().setRotation(pitch, 0);
-        transformedRecorders[2] = new TransformedVertexRecorder().setRotation(pitch, yaw);
-        transformedRecorders[3] = new TransformedVertexRecorder().setRotation(pitch, 2 * yaw);
+        TRANSFORMED_RECORDERS[0] = new TransformedVertexRecorder();
+        TRANSFORMED_RECORDERS[1] = new TransformedVertexRecorder().setRotation(pitch, 0);
+        TRANSFORMED_RECORDERS[2] = new TransformedVertexRecorder().setRotation(pitch, yaw);
+        TRANSFORMED_RECORDERS[3] = new TransformedVertexRecorder().setRotation(pitch, 2 * yaw);
     }
 
     public static void register() {
@@ -37,12 +37,12 @@ public final class YSMCompat {
     }
 
     private static BindResult computeBindResult(Minecraft client, float partialTicks) {
-        resultMap.clear();
+        RESULT_MAP.clear();
         bindResult = BindResult.EMPTY;
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         EntityRenderState renderState = dispatcher.extractEntity(client.getCameraEntity(), partialTicks);
         PoseStack poseStack = new PoseStack();
-        for (TransformedVertexRecorder recorder : transformedRecorders) {
+        for (TransformedVertexRecorder recorder : TRANSFORMED_RECORDERS) {
             poseStack.pushPose();
             poseStack.mulPose(recorder.matrix4f.invert(new Matrix4f()));
             dispatcher.submit(renderState, new CameraRenderState(), 0, 0, 0, poseStack, recorder.vertexCatcher.initCollector());
@@ -50,7 +50,7 @@ public final class YSMCompat {
             poseStack.popPose();
             if (bindResult.available()) return bindResult;
         }
-        for (TransformedVertexRecorder recorder : transformedRecorders) {
+        for (TransformedVertexRecorder recorder : TRANSFORMED_RECORDERS) {
             recorder.vertexCatcher.forEachBuffer(recorder::computeBindResult);
             if (bindResult.available()) return bindResult;
         }
@@ -71,7 +71,7 @@ public final class YSMCompat {
         public void computeBindResultInCache(BuiltIterableBuffer builtBuffer) {
             if (bindResult.available()) return;
             for (BindTarget target : ConfigFile.config().getBindTargetList(builtBuffer.textureId())) {
-                BindResult result = resultMap.computeIfAbsent(target, BindResult::new);
+                BindResult result = RESULT_MAP.computeIfAbsent(target, BindResult::new);
                 BindTarget.TargetConfig config = target.targetConfig();
                 VertexData.UV posUV = new VertexData.UV(config.posU(), config.posV());
                 VertexData.UV forwardUV = new VertexData.UV(config.forwardU(), config.forwardV());
@@ -95,7 +95,7 @@ public final class YSMCompat {
         public void computeBindResult(BuiltIterableBuffer builtBuffer) {
             if (bindResult.available()) return;
             for (BindTarget target : ConfigFile.config().getBindTargetList(builtBuffer.textureId())) {
-                BindResult result = resultMap.computeIfAbsent(target, BindResult::new);
+                BindResult result = RESULT_MAP.computeIfAbsent(target, BindResult::new);
                 BindTarget.TargetConfig config = target.targetConfig();
                 VertexData.UV posUV = result.getPosition() == Vec3.ZERO ? new VertexData.UV(config.posU(), config.posV()) : null;
                 VertexData.UV forwardUV = result.getForward() == Vec3.ZERO ? new VertexData.UV(config.forwardU(), config.forwardV()) : null;

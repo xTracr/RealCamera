@@ -217,7 +217,7 @@ public final class ConfigScreen {
                 .setSaveConsumer(l -> config.binding.disableMainFeatureItems = l)
                 .build());
         disableConfig.add(entryBuilder.startStrList(LocUtil.CONFIG_OPTION("disableRenderItems"), config.binding.disableRenderItems)
-                .setDefaultValue(ModConfig.Binding.defaultDisableRenderItems)
+                .setDefaultValue(ModConfig.Binding.DEFAULT_DISABLE_RENDER_ITEMS)
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("disableRenderItems"))
                 .setSaveConsumer(l -> config.binding.disableRenderItems = l)
                 .build());
