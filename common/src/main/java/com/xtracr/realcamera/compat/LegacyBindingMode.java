@@ -18,13 +18,13 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
-public class LegacyBindingMode {
+public final class LegacyBindingMode {
     public static void register() {
         RealCameraAPI.registerFunction(100, LegacyBindingMode::computeBindResult);
     }
 
     private static BindResult computeBindResult(Minecraft client, float partialTicks) {
-        if (!ConfigFile.config().legacyBindingMode()) return BindResult.EMPTY;
+        if (!ConfigFile.config().binding.legacyMode) return BindResult.EMPTY;
         PoseStack poseStack = new PoseStack();
         AbstractClientPlayer player = client.player;
         // WorldRenderer.render

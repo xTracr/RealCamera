@@ -9,7 +9,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.loader.api.FabricLoader;
 
 @Environment(EnvType.CLIENT)
-public class RealCameraFabric implements ClientModInitializer, RealCamera {
+public final class RealCameraFabric implements ClientModInitializer, RealCamera {
     @Override
     public void onInitializeClient() {
         initialize();

@@ -18,13 +18,13 @@ public final class KeyMappings {
     static {
         MODEL_VIEW_SCREEN = createKeyMapping("modelViewScreen", client -> client.setScreen(new ModelViewScreen()));
         createKeyMapping("togglePerspective", InputConstants.KEY_F6, client -> {
-            boolean enabled = ConfigFile.config().enabled();
+            boolean enabled = ConfigFile.config().enabled;
             ConfigFile.load();
-            ConfigFile.config().setEnabled(!enabled);
+            ConfigFile.config().enabled = !enabled;
             RealCameraCore.reset();
         });
         createKeyMapping("toggleAdjustMode", client -> ConfigFile.config().cycleAdjustMode());
-        createKeyMapping("toggleCameraMode", client -> ConfigFile.config().setClassic(!ConfigFile.config().isClassic()));
+        createKeyMapping("toggleCameraMode", client -> ConfigFile.config().isClassic = !ConfigFile.config().isClassic);
         createKeyMapping("adjustFRONT", client -> ConfigFile.config().adjustOffsetX(1));
         createKeyMapping("adjustBACK", client -> ConfigFile.config().adjustOffsetX(-1));
         createKeyMapping("adjustUP", client -> ConfigFile.config().adjustOffsetY(1));
@@ -52,11 +52,15 @@ public final class KeyMappings {
 
     public static void handle(Minecraft client) {
         if (client.player == null) return;
-        KEY_MAPPINGS.forEach((keyMapping, whenPressed) -> {
+        boolean anyPressed = false;
+        for (var entry : KEY_MAPPINGS.entrySet()) {
+            KeyMapping keyMapping = entry.getKey();
+            Consumer<Minecraft> whenPressed = entry.getValue();
             while (keyMapping.consumeClick()) {
                 whenPressed.accept(client);
-                ConfigFile.save();
+                anyPressed = true;
             }
-        });
+        }
+        if (anyPressed) ConfigFile.save();
     }
 }

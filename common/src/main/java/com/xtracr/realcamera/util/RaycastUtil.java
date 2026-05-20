@@ -6,7 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 
-public class RaycastUtil {
+public final class RaycastUtil {
     /**
      * Updates raycast start and end points ensuring:
      * <li> End point is on camera's viewing direction

@@ -19,7 +19,9 @@ public interface MultiVertexCatcher extends MultiBufferSource {
         return new MeshCatcher();
     }
 
-    void endCatching(Consumer<BuiltIterableBuffer> consumer);
+    void forEachBuffer(Consumer<BuiltIterableBuffer> consumer);
+
+    void clear();
 
     class MeshCatcher extends MultiBufferSource.BufferSource implements MultiVertexCatcher {
         private final SequencedMap<RenderType, ByteBufferBuilderPool> bufferPools = new Object2ObjectLinkedOpenHashMap<>();
@@ -42,12 +44,15 @@ public interface MultiVertexCatcher extends MultiBufferSource {
         }
 
         @Override
-        public void endCatching(Consumer<BuiltIterableBuffer> consumer) {
+        public void forEachBuffer(Consumer<BuiltIterableBuffer> consumer) {
             endBatch();
-            caughtMeshes.forEach((meshData, renderType) -> {
-                consumer.accept(BuiltIterableBuffer.buildFrom(renderType, meshData));
-                meshData.close();
-            });
+            caughtMeshes.forEach((meshData, renderType) ->
+                consumer.accept(BuiltIterableBuffer.buildFrom(renderType, meshData)));
+        }
+
+        @Override
+        public void clear() {
+            caughtMeshes.keySet().forEach(MeshData::close);
             caughtMeshes.clear();
             bufferPools.values().forEach(ByteBufferBuilderPool::release);
         }

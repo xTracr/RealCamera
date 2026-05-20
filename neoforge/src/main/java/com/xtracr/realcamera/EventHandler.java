@@ -7,7 +7,7 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.common.NeoForge;
 
-public class EventHandler {
+public final class EventHandler {
     public static void addListeners() {
         NeoForge.EVENT_BUS.addListener(EventHandler::onClientTick);
         NeoForge.EVENT_BUS.addListener(EventHandler::onRenderLevelStage);
@@ -19,7 +19,7 @@ public class EventHandler {
 
     public static void onRenderLevelStage(RenderLevelStageEvent event) {
         if (RenderLevelStageEvent.Stage.AFTER_SKY.equals(event.getStage())) {
-            if (ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
+            if (ConfigFile.config().dynamicCrosshair && RealCameraCore.isActive()) {
                 CrosshairUtil.update(Minecraft.getInstance(), event.getCamera().getPosition(), event.getModelViewMatrix(), event.getProjectionMatrix());
             }
         }

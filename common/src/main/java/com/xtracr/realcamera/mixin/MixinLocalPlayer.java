@@ -31,7 +31,7 @@ public abstract class MixinLocalPlayer extends AbstractClientPlayer {
 
     @Override
     public @NotNull HitResult pick(double maxDistance, float partialTicks, boolean includeFluids) {
-        if (!ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
+        if (!ConfigFile.config().dynamicCrosshair && RealCameraCore.isActive()) {
             Pair<Vec3, Vec3> fromAndTo = RaycastUtil.getFromAndTo(this, maxDistance * maxDistance, partialTicks);
             return level().clip(new ClipContext(fromAndTo.getFirst(), fromAndTo.getSecond(), ClipContext.Block.OUTLINE, includeFluids ? ClipContext.Fluid.ANY : ClipContext.Fluid.NONE, this));
         }

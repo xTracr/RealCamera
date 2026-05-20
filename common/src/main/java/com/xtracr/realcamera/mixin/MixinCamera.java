@@ -61,7 +61,7 @@ public abstract class MixinCamera {
         if (!RealCameraCore.isActive()) return;
         ModConfig config = ConfigFile.config();
         Vec3 startVec = position;
-        if (config.isClassic()) {
+        if (config.isClassic) {
             double scale = entity instanceof LivingEntity livingEntity ? livingEntity.getScale() : 1;
             Vec3 offset = new Vec3(config.getClassicX(), config.getClassicY(), -config.getClassicZ()).scale(scale);
             Vec3 center = new Vec3(config.getCenterX(), config.getCenterY(), -config.getCenterZ()).scale(scale);

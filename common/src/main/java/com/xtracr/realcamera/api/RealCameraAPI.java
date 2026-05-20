@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 
-public class RealCameraAPI {
+public final class RealCameraAPI {
     private static final List<BiFunction<Minecraft, Float, BindResult>> FUNCTIONS = new ArrayList<>();
     private static final Map<BiFunction<Minecraft, Float, BindResult>, Integer> PRIORITIES = new Object2IntOpenHashMap<>();
 

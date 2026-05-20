@@ -6,8 +6,8 @@ import com.xtracr.realcamera.api.BindResult;
 import com.xtracr.realcamera.api.RealCameraAPI;
 import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.BindTarget;
-import com.xtracr.realcamera.config.BindTarget.DisableConfig;
 import com.xtracr.realcamera.config.ConfigFile;
+import com.xtracr.realcamera.config.DisableConfig;
 import com.xtracr.realcamera.renderer.BuiltIterableBuffer;
 import com.xtracr.realcamera.renderer.MultiVertexCatcher;
 import com.xtracr.realcamera.renderer.state.VertexData;
@@ -45,8 +45,8 @@ public class RealCameraCore {
 
     public static void initialize(Minecraft client, boolean renderLevel) {
         Entity entity = client.getCameraEntity();
-        active = renderLevel && ConfigFile.config().enabled() && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.MAIN_FEATURE.disabled(entity);
-        rendering = ConfigFile.config().renderModel() && !DisableHelper.RENDER_MODEL.disabled(entity);
+        active = renderLevel && ConfigFile.config().enabled && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.MAIN_FEATURE.disabled(entity);
+        rendering = ConfigFile.config().renderModel && !DisableHelper.RENDER_MODEL.disabled(entity);
     }
 
     public static void reset() {
@@ -75,7 +75,8 @@ public class RealCameraCore {
         if (!newResult.available()) {
             EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
             dispatcher.render(entity, 0, 0, 0, Mth.lerp(partialTicks, entity.yRotO, entity.getYRot()), partialTicks, new PoseStack(), vertexCatcher, dispatcher.getPackedLightCoords(entity, partialTicks));
-            vertexCatcher.endCatching(RealCameraCore::computeBindResult);
+            vertexCatcher.forEachBuffer(RealCameraCore::computeBindResult);
+            vertexCatcher.clear();
         }
         entity.setInvisible(invisible);
         if (newResult.available()) {
@@ -84,8 +85,8 @@ public class RealCameraCore {
         } else {
             failureFrames++;
             Player player = client.player;
-            int retentionFrames = ConfigFile.config().getBindResultRetentionFrames();
-            if (!ConfigFile.config().hideBindingFailureMessage() && failureFrames == retentionFrames + 1 && player != null) {
+            int retentionFrames = ConfigFile.config().binding.bindResultRetentionFrames;
+            if (!ConfigFile.config().binding.hideFailureMessage && failureFrames == retentionFrames + 1 && player != null) {
                 player.sendSystemMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE(), KeyMappings.MODEL_VIEW_SCREEN.getTranslatedKeyMessage()));
             }
             if (!lastResult.available() || failureFrames > retentionFrames) {
@@ -94,8 +95,8 @@ public class RealCameraCore {
                 return;
             }
         }
-        smoothedCamera.lerpPosition(lastResult.getPosition(), 1 - ConfigFile.config().getDisplacementSmoothFactor());
-        smoothedCamera.slerpRotation(lastResult.getRotation(), 1 - ConfigFile.config().getRotationSmoothFactor());
+        smoothedCamera.lerpPosition(lastResult.getPosition(), 1 - ConfigFile.config().binding.displacementSmoothFactor);
+        smoothedCamera.slerpRotation(lastResult.getRotation(), 1 - ConfigFile.config().binding.rotationSmoothFactor);
     }
 
     public static void renderCameraEntity(Minecraft client, float partialTicks, MultiBufferSource bufferSource, Matrix4f modelView) {
@@ -115,7 +116,7 @@ public class RealCameraCore {
         dispatcher.render(entity, 0, 0, 0, Mth.lerp(partialTicks, entity.yRotO, entity.getYRot()), partialTicks, poseStack, vertexCatcher, dispatcher.getPackedLightCoords(entity, partialTicks));
         final float m02 = modelView.m02(), m12 = modelView.m12(), m22 = modelView.m22(), m32 = modelView.m32();
         final float depth = currentTarget().disablingDepth();
-        vertexCatcher.endCatching(builtBuffer -> {
+        vertexCatcher.forEachBuffer(builtBuffer -> {
             DisableConfig[] disableConfigs = currentTarget().filteredDisableConfigs(config -> builtBuffer.textureId().contains(config.textureId()));
             for (DisableConfig config : disableConfigs) {
                 if (config.disableAll()) return;
@@ -137,6 +138,7 @@ public class RealCameraCore {
                 }
             });
         });
+        vertexCatcher.clear();
     }
 
     private static void computeBindResult(BuiltIterableBuffer builtBuffer) {
@@ -147,10 +149,12 @@ public class RealCameraCore {
             BindTarget.TargetConfig config = target.targetConfig();
             VertexData.UV[] uvs = {new VertexData.UV(config.posU(), config.posV()), new VertexData.UV(config.forwardU(), config.forwardV()), new VertexData.UV(config.upwardU(), config.upwardV())};
             VertexData[][] primitives = builtBuffer.findPrimitivesInCache(uvs);
-            if (builtBuffer.anyNotCached(uvs)) {
-                for (int i = 0; i < primitives.length; i++) {
-                    if (primitives[i] != null) uvs[i] = null;
-                }
+            boolean allFound = true;
+            for (int i = 0; i < primitives.length; i++) {
+                if (primitives[i] != null) uvs[i] = null;
+                else allFound = false;
+            }
+            if (!allFound) {
                 VertexData[][] newPrimitives = builtBuffer.findPrimitives(uvs);
                 for (int i = 0; i < primitives.length; i++) {
                     if (newPrimitives[i] == null && primitives[i] == null) continue targetFor;

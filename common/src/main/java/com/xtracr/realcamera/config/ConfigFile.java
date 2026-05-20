@@ -1,45 +1,51 @@
 package com.xtracr.realcamera.config;
 
+import com.google.common.base.Suppliers;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.xtracr.realcamera.RealCamera;
 import net.minecraft.client.Minecraft;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Supplier;
 
-public class ConfigFile {
-    private static final ModConfig modConfig = new ModConfig();
+public final class ConfigFile {
     private static final String FILE_NAME = RealCamera.MODID + ".json";
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final Path PATH;
+    private final static Supplier<Path> path = Suppliers.memoize(ConfigFile::getPath);
+    @Nullable
+    private static ModConfig config;
 
-    static {
+    private static Path getPath() {
         File configDir = new File(Minecraft.getInstance().gameDirectory, "config");
         if (!configDir.exists()) configDir.mkdirs();
-        PATH = configDir.toPath().resolve(FILE_NAME);
+        return configDir.toPath().resolve(FILE_NAME);
     }
 
     public static ModConfig config() {
-        return modConfig;
+        if (config == null) load();
+        return config;
     }
 
     public static void load() {
-        try (BufferedReader reader = Files.newBufferedReader(PATH)) {
-            modConfig.set(GSON.fromJson(reader, ModConfig.class));
-            modConfig.clamp();
+        try (BufferedReader reader = Files.newBufferedReader(path.get())) {
+            config = GSON.fromJson(reader, ModConfig.class);
+            config.clamp();
         } catch (Exception exception) {
-            RealCamera.LOGGER.warn("Failed to load " + FILE_NAME);
+            RealCamera.LOGGER.warn("Failed to load " + FILE_NAME, exception);
+            config = new ModConfig();
             save();
         }
     }
 
     public static void save() {
-        try (BufferedWriter writer = Files.newBufferedWriter(PATH)) {
-            GSON.toJson(modConfig, writer);
+        try (BufferedWriter writer = Files.newBufferedWriter(path.get())) {
+            GSON.toJson(config, writer);
         } catch (Exception exception) {
             RealCamera.LOGGER.warn("Failed to save " + FILE_NAME, exception);
             reset();
@@ -47,9 +53,9 @@ public class ConfigFile {
     }
 
     public static void reset() {
-        try (BufferedWriter writer = Files.newBufferedWriter(PATH)) {
-            modConfig.set(new ModConfig());
-            GSON.toJson(modConfig, writer);
+        try (BufferedWriter writer = Files.newBufferedWriter(path.get())) {
+            config = new ModConfig();
+            GSON.toJson(config, writer);
         } catch (Exception exception) {
             RealCamera.LOGGER.warn("Failed to reset " + FILE_NAME, exception);
         }

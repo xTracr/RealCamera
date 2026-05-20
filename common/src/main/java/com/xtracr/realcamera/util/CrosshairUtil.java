@@ -8,7 +8,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4fc;
 
-public class CrosshairUtil {
+public final class CrosshairUtil {
     public static EntityHitResult capturedEntityHitResult;
     public static Vec3 offset = Vec3.ZERO;
 

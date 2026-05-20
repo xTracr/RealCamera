@@ -13,26 +13,28 @@ import net.minecraft.world.item.Item;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
-public class DisableHelper {
+public final class DisableHelper {
     public static final Entry MAIN_FEATURE, RENDER_MODEL, RENDER_HANDS;
+    private static final Pattern MULTI_STAR = Pattern.compile("\\*+");
     private static final Predicate<Player> FALSE = player -> false;
-    private static final Map<String, Entry> entries = new HashMap<>();
-    public static int exitTick = 0;
+    private static final Map<String, Entry> ENTRIES = new HashMap<>();
+    private static int exitTick = 0;
 
     static {
         MAIN_FEATURE = new Entry("mainFeature", player -> player.isSleeping() || player.isSpectator());
         RENDER_MODEL = new Entry("renderModel", FALSE, Player::isScoping);
         RENDER_HANDS = new Entry("renderHands", player -> RealCameraCore.isRendering());
-        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSneaking() && player.isCrouching());
-        MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSneaking() && player.isCrouching());
-        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSwimming() && checkCondition(player, player.isSwimming(), ConfigFile.config().getBindingOutTick()));
-        MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSwimming() && checkCondition(player, player.isSwimming(), ConfigFile.config().getClassicOutTick()));
-        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenCrawling() && checkCondition(player, player.isVisuallyCrawling(), ConfigFile.config().getBindingOutTick()));
+        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().binding.disableWhenSneaking && player.isCrouching());
+        MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classic.disableWhenSneaking && player.isCrouching());
+        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().binding.disableWhenSwimming && checkCondition(player, player.isSwimming(), ConfigFile.config().binding.outTick));
+        MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classic.disableWhenSwimming && checkCondition(player, player.isSwimming(), ConfigFile.config().classic.outTick));
+        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().binding.disableWhenCrawling && checkCondition(player, player.isVisuallyCrawling(), ConfigFile.config().binding.outTick));
         MAIN_FEATURE.registerOrInBinding(player -> {
             Item mainHand = player.getMainHandItem().getItem();
             Item offHand = player.getOffhandItem().getItem();
-            for (String pattern : ConfigFile.config().getDisableMainFeatureItems())
+            for (String pattern : ConfigFile.config().binding.disableMainFeatureItems)
                 if (matchesItemPattern(mainHand, pattern) || matchesItemPattern(offHand, pattern))
                     return true;
             return false;
@@ -40,7 +42,7 @@ public class DisableHelper {
         RENDER_MODEL.registerOrInBinding(player -> {
             Item mainHand = player.getMainHandItem().getItem();
             Item offHand = player.getOffhandItem().getItem();
-            for (String pattern : ConfigFile.config().getDisableRenderItems())
+            for (String pattern : ConfigFile.config().binding.disableRenderItems)
                 if (matchesItemPattern(mainHand, pattern) || matchesItemPattern(offHand, pattern))
                     return true;
             return false;
@@ -64,7 +66,7 @@ public class DisableHelper {
 
     @Deprecated
     public static void registerOr(String name, Predicate<LivingEntity> predicate) {
-        entries.get(name).registerOrInBinding(predicate::test);
+        ENTRIES.get(name).registerOrInBinding(predicate::test);
     }
 
     public static boolean matchesItemPattern(Item item, String pattern) {
@@ -81,7 +83,7 @@ public class DisableHelper {
     public static boolean simpleWildcardMatch(String text, String pattern) {
         if (pattern.isEmpty()) return text.isEmpty();
         if (pattern.equals(text)) return true;
-        String[] parts = pattern.split("\\*+");
+        String[] parts = MULTI_STAR.split(pattern);
         if (parts.length == 0) return true;
         int currentIndex = 0;
         if (!pattern.startsWith("*")) {
@@ -114,7 +116,7 @@ public class DisableHelper {
         protected Entry(String name, Predicate<Player> predicateInClassic, Predicate<Player> predicateInBinding) {
             this.predicateInClassic = predicateInClassic;
             this.predicateInBinding = predicateInBinding;
-            entries.put(name, this);
+            ENTRIES.put(name, this);
         }
 
         public void registerOr(Predicate<Player> predicate) {
@@ -123,16 +125,18 @@ public class DisableHelper {
         }
 
         public void registerOrInClassic(Predicate<Player> predicate) {
-            this.predicateInClassic = this.predicateInClassic.or(predicate);
+            if (predicateInClassic == FALSE) predicateInClassic = predicate;
+            else predicateInClassic = predicateInClassic.or(predicate);
         }
 
         public void registerOrInBinding(Predicate<Player> predicate) {
-            this.predicateInBinding = this.predicateInBinding.or(predicate);
+            if (predicateInBinding == FALSE) predicateInBinding = predicate;
+            else predicateInBinding = predicateInBinding.or(predicate);
         }
 
         public boolean disabled(Entity cameraEntity) {
             if (!(cameraEntity instanceof Player player)) return false;
-            return ConfigFile.config().isClassic() ? predicateInClassic.test(player) : predicateInBinding.test(player);
+            return ConfigFile.config().isClassic ? predicateInClassic.test(player) : predicateInBinding.test(player);
         }
     }
 }

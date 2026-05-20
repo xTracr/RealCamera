@@ -7,7 +7,7 @@ import net.minecraft.world.entity.player.Player;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-public class CompatibilityHelper {
+public final class CompatibilityHelper {
     private static PlatformHelper platformHelper;
     private static Method NEA_playerTransformer_setDeltaTick;
     private static Field NEA_NEAnimationsLoader_INSTANCE;

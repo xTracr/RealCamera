@@ -1,20 +1,18 @@
 package com.xtracr.realcamera.config;
 
-import com.google.gson.TypeAdapter;
-import com.google.gson.annotations.JsonAdapter;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
-import com.xtracr.realcamera.renderer.state.VertexData;
-import it.unimi.dsi.fastutil.floats.Float2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.floats.FloatOpenHashSet;
+import com.mojang.serialization.DataResult;
+import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.util.Mth;
 
-import java.io.IOException;
-import java.util.ArrayList;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.zip.Deflater;
+import java.util.zip.DeflaterOutputStream;
+import java.util.zip.InflaterInputStream;
 
 public record BindTarget(
         String name, String textureId, int priority, float disablingDepth,
@@ -22,12 +20,12 @@ public record BindTarget(
         BindConfig bindConfig,
         OffsetConfig offsets,
         DisableConfig[] disableConfigs) {
-    public static final List<BindTarget> defaultTargets;
+    public static final List<BindTarget> DEFAULT_TARGETS;
     public static final BindTarget EMPTY = blank(null, null);
-    private static final short serialVersion = 703; // 0.7.3
+    private static final short SERIAL_VERSION = 703; // 0.7.3
 
     static {
-        defaultTargets = List.of(
+        DEFAULT_TARGETS = List.of(
                 BindTarget.vanillaTarget("minecraft_head", 5, false),
                 BindTarget.vanillaTarget("skin_head", 5, false),
                 BindTarget.vanillaTarget("minecraft_head_2", 1, true),
@@ -43,8 +41,8 @@ public record BindTarget(
 
     public static BindTarget read(FriendlyByteBuf byteBuf) throws IllegalArgumentException {
         short version = byteBuf.readShort();
-        if (version != serialVersion)
-            throw new IllegalArgumentException("Invalid version: " + version + ", expected " + serialVersion);
+        if (version != SERIAL_VERSION)
+            throw new IllegalArgumentException("Invalid version: " + toSemVer(version) + ", expected " + toSemVer(SERIAL_VERSION));
         String name = byteBuf.readUtf();
         String textureId = byteBuf.readUtf();
         int priority = byteBuf.readVarInt();
@@ -59,15 +57,50 @@ public record BindTarget(
         return new BindTarget(name, textureId, priority, disablingDepth, targetConfig, bindConfig, offsets, disableConfigs);
     }
 
+    public static DataResult<BindTarget> fromCompressedBase64(String base64) {
+        FriendlyByteBuf byteBuf = null;
+        try {
+            byte[] compressed = Base64.getDecoder().decode(base64);
+            InflaterInputStream inflaterStream = new InflaterInputStream(new ByteArrayInputStream(compressed));
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int length;
+            while ((length = inflaterStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
+            }
+            byte[] bytes = outputStream.toByteArray();
+            byteBuf = new FriendlyByteBuf(Unpooled.wrappedBuffer(bytes));
+            BindTarget target = BindTarget.read(byteBuf);
+            if (target.isEmpty()) return DataResult.error(() -> "Invalid config format");
+            return DataResult.success(target);
+        } catch (Exception e) {
+            return DataResult.error(() -> {
+                String message = e.getClass().getSimpleName();
+                if (e instanceof IllegalArgumentException) message += ": " + e.getMessage();
+                return message;
+            });
+        } finally {
+            if (byteBuf != null) byteBuf.release();
+        }
+    }
+
+    private static String toSemVer(short version) {
+        int major = version / 10000;
+        int minor = version % 10000 / 100;
+        int patch = version % 100;
+        return major + "." + minor + "." + patch;
+    }
+
     private static BindTarget vanillaTarget(String name, int priority, boolean shouldBind) {
         String textureId = name.contains("skin") ? "minecraft:skins/" : "minecraft:textures/entity/player/";
         TargetConfig targetConfig = new TargetConfig(0.1875f, 0.2f, 0.1875f, 0.075f, 0.1875f, 0.2f);
         BindConfig bindConfig = new BindConfig(shouldBind, true, shouldBind, shouldBind);
-        OffsetConfig offsets = new OffsetConfig().setX(-0.1f);
+        OffsetConfig offsets = new OffsetConfig();
+        offsets.x = -0.1f;
         DisableConfig playerHead = new DisableConfig("player_head", textureId, false, new UVRectangle[]{new UVRectangle(0, 0, 1.0f, 0.25f)});
         DisableConfig dragonHead = new DisableConfig("dragon_head", "minecraft:textures/entity/enderdragon/dragon.png", true, new UVRectangle[0]);
         DisableConfig[] disableConfigs = new DisableConfig[]{playerHead, dragonHead};
-        return new BindTarget(name, textureId, priority, 0.1f, targetConfig, bindConfig, offsets, disableConfigs);
+        return new BindTarget(name, textureId, priority, 0.2f, targetConfig, bindConfig, offsets, disableConfigs);
     }
 
     public boolean isEmpty() {
@@ -79,7 +112,7 @@ public record BindTarget(
     }
 
     public void write(FriendlyByteBuf byteBuf) {
-        byteBuf.writeShort(serialVersion);
+        byteBuf.writeShort(SERIAL_VERSION);
         byteBuf.writeUtf(name);
         byteBuf.writeUtf(textureId);
         byteBuf.writeVarInt(priority);
@@ -90,6 +123,25 @@ public record BindTarget(
         byteBuf.writeVarInt(disableConfigs.length);
         for (DisableConfig disableConfig : disableConfigs) {
             disableConfig.write(byteBuf);
+        }
+    }
+
+    public DataResult<String> toCompressedBase64() {
+        FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
+        try {
+            write(byteBuf);
+            byte[] bytes = new byte[byteBuf.readableBytes()];
+            byteBuf.getBytes(byteBuf.readerIndex(), bytes);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            try (DeflaterOutputStream deflaterStream = new DeflaterOutputStream(outputStream, new Deflater(Deflater.BEST_COMPRESSION))) {
+                deflaterStream.write(bytes);
+            }
+            String base64 = Base64.getEncoder().encodeToString(outputStream.toByteArray());
+            return DataResult.success(base64);
+        } catch (Exception e) {
+            return DataResult.error(() -> e.getClass().getSimpleName() + ": " + e.getMessage());
+        } finally {
+            byteBuf.release();
         }
     }
 
@@ -125,226 +177,6 @@ public record BindTarget(
             if (bindZ) bindFlags |= 0x04;
             if (bindRotation) bindFlags |= 0x08;
             byteBuf.writeByte(bindFlags);
-        }
-    }
-
-    public static class OffsetConfig {
-        private float scale = 1, x = 0, y = 0, z = 0, pitch = 0, yaw = 0, roll = 0;
-
-        public static OffsetConfig read(FriendlyByteBuf byteBuf) {
-            return new OffsetConfig().setScale(byteBuf.readFloat()).setX(byteBuf.readFloat()).setY(byteBuf.readFloat()).setZ(byteBuf.readFloat()).setPitch(byteBuf.readFloat()).setYaw(byteBuf.readFloat()).setRoll(byteBuf.readFloat());
-        }
-
-        public float getScale() {
-            return scale;
-        }
-
-        public OffsetConfig setScale(float scale) {
-            this.scale = scale;
-            return this;
-        }
-
-        public float getX() {
-            return x;
-        }
-
-        public OffsetConfig setX(float x) {
-            this.x = Mth.clamp(x, ModConfig.MIN_OFFSET_F, ModConfig.MAX_OFFSET_F);
-            return this;
-        }
-
-        public float getY() {
-            return y;
-        }
-
-        public OffsetConfig setY(float y) {
-            this.y = Mth.clamp(y, ModConfig.MIN_OFFSET_F, ModConfig.MAX_OFFSET_F);
-            return this;
-        }
-
-        public float getZ() {
-            return z;
-        }
-
-        public OffsetConfig setZ(float z) {
-            this.z = Mth.clamp(z, ModConfig.MIN_OFFSET_F, ModConfig.MAX_OFFSET_F);
-            return this;
-        }
-
-        public float getPitch() {
-            return pitch;
-        }
-
-        public OffsetConfig setPitch(float pitch) {
-            this.pitch = Mth.wrapDegrees(pitch);
-            return this;
-        }
-
-        public float getYaw() {
-            return yaw;
-        }
-
-        public OffsetConfig setYaw(float yaw) {
-            this.yaw = Mth.wrapDegrees(yaw);
-            return this;
-        }
-
-        public float getRoll() {
-            return roll;
-        }
-
-        public OffsetConfig setRoll(float roll) {
-            this.roll = Mth.wrapDegrees(roll);
-            return this;
-        }
-
-        public void write(FriendlyByteBuf byteBuf) {
-            byteBuf.writeFloat(scale);
-            byteBuf.writeFloat(x);
-            byteBuf.writeFloat(y);
-            byteBuf.writeFloat(z);
-            byteBuf.writeFloat(pitch);
-            byteBuf.writeFloat(yaw);
-            byteBuf.writeFloat(roll);
-        }
-    }
-
-    @JsonAdapter(DisableConfig.Adapter.class)
-    public static class DisableConfig {
-        private final Float2ObjectOpenHashMap<FloatOpenHashSet> disableCacheMap = new Float2ObjectOpenHashMap<>();
-        private final String name;
-        private final String textureId;
-        private final boolean disableAll;
-        private final UVRectangle[] rectangles;
-
-        public DisableConfig(String name, String textureId, boolean disableAll, UVRectangle[] rectangles) {
-            this.name = name;
-            this.textureId = textureId;
-            this.disableAll = disableAll;
-            this.rectangles = rectangles;
-            disableCacheMap.defaultReturnValue(FloatOpenHashSet.of());
-        }
-
-        public static DisableConfig read(FriendlyByteBuf byteBuf) {
-            String name = byteBuf.readUtf();
-            String textureId = byteBuf.readUtf();
-            boolean disableAll = byteBuf.readBoolean();
-            UVRectangle[] rectangles = new UVRectangle[byteBuf.readVarInt()];
-            for (int i = 0; i < rectangles.length; i++) {
-                rectangles[i] = UVRectangle.read(byteBuf);
-            }
-            return new DisableConfig(name, textureId, disableAll, rectangles);
-        }
-
-        public String name() {
-            return name;
-        }
-
-        public String textureId() {
-            return textureId;
-        }
-
-        public boolean disableAll() {
-            return disableAll;
-        }
-
-        public UVRectangle[] rectangles() {
-            return rectangles;
-        }
-
-        public void write(FriendlyByteBuf byteBuf) {
-            byteBuf.writeUtf(name);
-            byteBuf.writeUtf(textureId);
-            byteBuf.writeBoolean(disableAll);
-            byteBuf.writeVarInt(rectangles.length);
-            for (UVRectangle rect : rectangles) {
-                rect.write(byteBuf);
-            }
-        }
-
-        public boolean disable(VertexData vertex) {
-            final float u = vertex.u(), v = vertex.v();
-            final FloatOpenHashSet cachedVs = disableCacheMap.get(u);
-            if (!cachedVs.isEmpty()) {
-                if (cachedVs.contains(v)) return true;
-                if (cachedVs.contains(-v)) return false;
-            }
-            for (UVRectangle rect : rectangles) {
-                if (!rect.contains(u, v)) continue;
-                disableCacheMap.computeIfAbsent(u, k -> new FloatOpenHashSet()).add(v);
-                return true;
-            }
-            disableCacheMap.computeIfAbsent(u, k -> new FloatOpenHashSet()).add(-v);
-            return false;
-        }
-
-        public static class Adapter extends TypeAdapter<DisableConfig> {
-            @Override
-            public void write(JsonWriter out, DisableConfig value) throws IOException {
-                out.beginObject();
-                out.name("name").value(value.name());
-                out.name("textureId").value(value.textureId());
-                out.name("disableAll").value(value.disableAll());
-                out.name("rectangles");
-                out.beginArray();
-                for (UVRectangle rect : value.rectangles()) {
-                    out.beginObject();
-                    out.name("uMin").value(rect.uMin());
-                    out.name("vMin").value(rect.vMin());
-                    out.name("uMax").value(rect.uMax());
-                    out.name("vMax").value(rect.vMax());
-                    out.endObject();
-                }
-                out.endArray();
-                out.endObject();
-            }
-
-            @Override
-            public DisableConfig read(JsonReader in) throws IOException {
-                in.beginObject();
-                in.nextName();
-                String name = in.nextString();
-                in.nextName();
-                String textureId = in.nextString();
-                in.nextName();
-                boolean disableAll = in.nextBoolean();
-                in.nextName();
-                in.beginArray();
-                ArrayList<UVRectangle> rectangles = new ArrayList<>();
-                while (in.hasNext()) {
-                    in.beginObject();
-                    in.nextName();
-                    float uMin = (float) in.nextDouble();
-                    in.nextName();
-                    float vMin = (float) in.nextDouble();
-                    in.nextName();
-                    float uMax = (float) in.nextDouble();
-                    in.nextName();
-                    float vMax = (float) in.nextDouble();
-                    in.endObject();
-                    rectangles.add(new UVRectangle(uMin, vMin, uMax, vMax));
-                }
-                in.endArray();
-                in.endObject();
-                return new DisableConfig(name, textureId, disableAll, rectangles.toArray(UVRectangle[]::new));
-            }
-        }
-    }
-
-    public record UVRectangle(float uMin, float vMin, float uMax, float vMax) {
-        public static UVRectangle read(FriendlyByteBuf byteBuf) {
-            return new UVRectangle(byteBuf.readFloat(), byteBuf.readFloat(), byteBuf.readFloat(), byteBuf.readFloat());
-        }
-
-        public boolean contains(float u, float v) {
-            return u >= uMin && u <= uMax && v >= vMin && v <= vMax;
-        }
-
-        public void write(FriendlyByteBuf byteBuf) {
-            byteBuf.writeFloat(uMin);
-            byteBuf.writeFloat(vMin);
-            byteBuf.writeFloat(uMax);
-            byteBuf.writeFloat(vMax);
         }
     }
 }

@@ -11,7 +11,7 @@ import net.minecraft.client.gui.screens.Screen;
 
 import java.util.List;
 
-public class ConfigScreen {
+public final class ConfigScreen {
     public static Screen create(Screen parent) {
         ConfigFile.load();
         ModConfig config = ConfigFile.config();
@@ -140,16 +140,16 @@ public class ConfigScreen {
         binding.addEntry(entryBuilder.startTextDescription(LocUtil.CONFIG_OPTION("toModelViewScreen",
                         LocUtil.MODEL_VIEW_TITLE().withStyle(ChatFormatting.BLUE)))
                 .build());
-        binding.addEntry(entryBuilder.startKeyCodeField(LocUtil.CONFIG_OPTION("screenModifierKey", LocUtil.MODEL_VIEW_TITLE()), config.getScreenModifierKey())
+        binding.addEntry(entryBuilder.startKeyCodeField(LocUtil.CONFIG_OPTION("screenModifierKey", LocUtil.MODEL_VIEW_TITLE()), InputConstants.getKey(config.binding.screenModifierKey))
                 .setDefaultValue(InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_LALT))
                 .setAllowMouse(false)
                 .setAllowModifiers(false)
                 .setKeySaveConsumer(k -> config.binding.screenModifierKey = k.getName())
                 .build());
-        binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("legacyBindingMode"), config.binding.legacyBindingMode)
+        binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("legacyBindingMode"), config.binding.legacyMode)
                 .setDefaultValue(false)
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("legacyBindingMode", LocUtil.MODEL_VIEW_TITLE()))
-                .setSaveConsumer(b -> config.binding.legacyBindingMode = b)
+                .setSaveConsumer(b -> config.binding.legacyMode = b)
                 .build());
         binding.addEntry(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("adjustOffset"), config.binding.adjustOffset)
                 .setDefaultValue(true)
@@ -217,7 +217,7 @@ public class ConfigScreen {
                 .setSaveConsumer(l -> config.binding.disableMainFeatureItems = l)
                 .build());
         disableConfig.add(entryBuilder.startStrList(LocUtil.CONFIG_OPTION("disableRenderItems"), config.binding.disableRenderItems)
-                .setDefaultValue(ModConfig.Binding.defaultDisableRenderItems)
+                .setDefaultValue(ModConfig.Binding.DEFAULT_DISABLE_RENDER_ITEMS)
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("disableRenderItems"))
                 .setSaveConsumer(l -> config.binding.disableRenderItems = l)
                 .build());

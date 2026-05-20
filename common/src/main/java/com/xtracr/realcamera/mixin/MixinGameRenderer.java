@@ -37,7 +37,7 @@ public abstract class MixinGameRenderer {
 
     @WrapOperation(method = "pick(Lnet/minecraft/world/entity/Entity;DDF)Lnet/minecraft/world/phys/HitResult;", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/ProjectileUtil;getEntityHitResult(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/AABB;Ljava/util/function/Predicate;D)Lnet/minecraft/world/phys/EntityHitResult;"))
     private EntityHitResult realcamera$modifyEntityHitResult(Entity entity, Vec3 vec3, Vec3 vec32, AABB aABB, Predicate<Entity> predicate, double d, Operation<EntityHitResult> original) {
-        if (!ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
+        if (!ConfigFile.config().dynamicCrosshair && RealCameraCore.isActive()) {
             double interactionRange = Math.max(minecraft.player.blockInteractionRange(), minecraft.player.entityInteractionRange());
             Entity cameraEntity = minecraft.getCameraEntity();
             float partialTicks = minecraft.getTimer().getGameTimeDeltaPartialTick(true);
@@ -58,7 +58,7 @@ public abstract class MixinGameRenderer {
         final float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(true);
         CompatibilityHelper.NEA_setDeltaTick(partialTicks);
         RealCameraCore.initialize(minecraft, true);
-        if (RealCameraCore.isActive() && !ConfigFile.config().isClassic()) {
+        if (RealCameraCore.isActive() && !ConfigFile.config().isClassic) {
             EntityRenderDispatcher dispatcher = minecraft.getEntityRenderDispatcher();
             dispatcher.prepare(minecraft.level, mainCamera,  minecraft.crosshairPickEntity);
             RealCameraCore.computeCamera(minecraft, partialTicks);

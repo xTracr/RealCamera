@@ -4,7 +4,7 @@ import com.xtracr.realcamera.RealCamera;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
-public class LocUtil {
+public final class LocUtil {
     public static final String KEY_MOD_NAME = "general." + RealCamera.FULL_ID + ".modName";
 
     public static MutableComponent MOD_NAME() {
