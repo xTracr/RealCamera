@@ -289,7 +289,6 @@ public final class IterableVertexBuffer implements Iterable<VertexData> {
                 return ORDERED | SIZED | SUBSIZED | NONNULL;
             }
         }
-
     }
 
     private final class FastQuadReader implements Iterable<VertexData[]> {

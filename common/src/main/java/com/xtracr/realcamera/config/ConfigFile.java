@@ -21,12 +21,6 @@ public final class ConfigFile {
     @Nullable
     private static ModConfig config;
 
-    private static Path getPath() {
-        File configDir = new File(Minecraft.getInstance().gameDirectory, "config");
-        if (!configDir.exists()) configDir.mkdirs();
-        return configDir.toPath().resolve(FILE_NAME);
-    }
-
     public static ModConfig config() {
         if (config == null) load();
         return config;
@@ -59,5 +53,11 @@ public final class ConfigFile {
         } catch (Exception exception) {
             RealCamera.LOGGER.warn("Failed to reset " + FILE_NAME, exception);
         }
+    }
+
+    private static Path getPath() {
+        File configDir = new File(Minecraft.getInstance().gameDirectory, "config");
+        if (!configDir.exists()) configDir.mkdirs();
+        return configDir.toPath().resolve(FILE_NAME);
     }
 }

@@ -20,10 +20,6 @@ public final class OffsetConfig {
         this.roll = roll;
     }
 
-    public static OffsetConfig read(FriendlyByteBuf byteBuf) {
-        return new OffsetConfig(byteBuf.readFloat(), byteBuf.readFloat(), byteBuf.readFloat(), byteBuf.readFloat(), byteBuf.readFloat(), byteBuf.readFloat(), byteBuf.readFloat());
-    }
-
     public void clamp() {
         x = Mth.clamp(x, ModConfig.MIN_OFFSET_F, ModConfig.MAX_OFFSET_F);
         y = Mth.clamp(y, ModConfig.MIN_OFFSET_F, ModConfig.MAX_OFFSET_F);

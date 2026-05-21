@@ -10,6 +10,7 @@ import com.xtracr.realcamera.compat.CompatibilityHelper;
 import com.xtracr.realcamera.config.*;
 import com.xtracr.realcamera.config.BindTarget.BindConfig;
 import com.xtracr.realcamera.config.BindTarget.TargetConfig;
+import com.xtracr.realcamera.config.serialization.ConfigSerializer;
 import com.xtracr.realcamera.gui.components.*;
 import com.xtracr.realcamera.renderer.state.BuiltModelRecord;
 import com.xtracr.realcamera.renderer.state.VertexData;
@@ -58,15 +59,25 @@ public final class ModelViewScreen extends Screen {
     private VertexData[][] focusedPolyhedron = new VertexData[0][];
     @Nullable
     private UVRectangleWidget focusedRectWidget;
-    private StringWidget rectWidgetsSizeWidget;
-    private EditBox textureIdField, nameField, disabledNameField, disabledIdField;
-    private NumberField<Integer> priorityField, focusedRectWidgetNumberField;
-    private NumberField<Float> forwardUField, forwardVField, upwardUField, upwardVField, posUField, posVField;
-    private NumberField<Float> uMinField, vMinField, uMaxField, vMaxField;
-    private NumberField<Float> scaleField, depthField;
-    private final List<DisableConfig> disableConfigs = new ArrayList<>();
-    private final List<UVRectangleWidget> rectWidgets = new ArrayList<>();
-    private final Map<String, Set<String>> hiddenNameMap = new HashMap<>();
+    private final StringWidget rectWidgetsSizeWidget = new StringWidget(widgetWidth - 22, widgetHeight, CommonComponents.EMPTY, font);
+    private final EditBox nameField = createTextField(wideWidgetWidth, 20);
+    private final EditBox textureIdField = createTextField(wideWidgetWidth, 1024);
+    private final EditBox disabledNameField = createTextField(compactWidgetWidth, 20);
+    private final EditBox disabledIdField = createTextField(wideWidgetWidth, 1024);
+    private final NumberField<Integer> priorityField = NumberField.ofInt(font, widgetWidth - 2, widgetHeight - 2, 0, null);
+    private final NumberField<Integer> focusedRectWidgetNumberField = NumberField.ofInt(font, widgetWidth - 2, widgetHeight - 2, 0, null).setMin(0);
+    private final NumberField<Float> forwardUField = createFloatField(widgetWidth, 0);
+    private final NumberField<Float> forwardVField = createFloatField(widgetWidth, 0);
+    private final NumberField<Float> upwardUField = createFloatField(widgetWidth, 0);
+    private final NumberField<Float> upwardVField = createFloatField(widgetWidth, 0);
+    private final NumberField<Float> posUField = createFloatField(widgetWidth, 0);
+    private final NumberField<Float> posVField = createFloatField(widgetWidth, 0);
+    private final NumberField<Float> uMinField = createFloatField(widgetWidth * 2 - 24, 0).setMin(-1f).setMax(2f);
+    private final NumberField<Float> uMaxField = createFloatField(widgetWidth * 2 - 24, 0).setMin(-1f).setMax(2f);
+    private final NumberField<Float> vMinField = createFloatField(widgetWidth * 2 - 24, 0).setMin(-1f).setMax(2f);
+    private final NumberField<Float> vMaxField = createFloatField(widgetWidth * 2 - 24, 0).setMin(-1f).setMax(2f);
+    private final NumberField<Float> scaleField = createFloatField(widgetWidth, 1.0f).setMax(64.0f);
+    private final NumberField<Float> depthField = createFloatField(widgetWidth, 0.2f).setMax(16.0f);
     private final CycleIconButton showTextureButton = new CycleIconButton(48, 16, 0, 2).setOnValueChange(_ -> initWidgets(page));
     private final CycleIconButton pauseButton = new CycleIconButton(0, 16, 0, 2);
     private final CycleIconButton bindXButton = new CycleIconButton(16, 16, 1, 2);
@@ -81,6 +92,9 @@ public final class ModelViewScreen extends Screen {
     private final NumberWidgetPair offsetPitchPair = new NumberWidgetPair(font, "pitch", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
     private final NumberWidgetPair offsetYawPair = new NumberWidgetPair(font, "yaw", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
     private final NumberWidgetPair offsetRollPair = new NumberWidgetPair(font, "roll", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
+    private final List<DisableConfig> disableConfigs = new ArrayList<>();
+    private final List<UVRectangleWidget> rectWidgets = new ArrayList<>();
+    private final Map<String, Set<String>> hiddenNameMap = new HashMap<>();
     private final List<NumberWidgetPair> widgetPairs = List.of(offsetXPair, offsetYPair, offsetZPair, offsetPitchPair, offsetYawPair, offsetRollPair);
     private final CycleButton<Integer> selectingButton = createCyclingButtonBuilder(ImmutableSortedMap.of(
             0, LocUtil.MODEL_VIEW_WIDGET("forwardVector").withStyle(ChatFormatting.GREEN),
@@ -160,22 +174,6 @@ public final class ModelViewScreen extends Screen {
     }
 
     private void initLeftWidgets() {
-        rectWidgetsSizeWidget = new StringWidget(x + 4 + widgetWidth + 5 + font.width("/"), y + 4 + (widgetHeight + 2) * 3, widgetWidth - 22, widgetHeight, LocUtil.literal(String.valueOf(rectWidgets.size())), font);
-        forwardUField = createFloatField(widgetWidth, 0, forwardUField);
-        forwardVField = createFloatField(widgetWidth, 0, forwardVField);
-        upwardUField = createFloatField(widgetWidth, 0, upwardUField);
-        upwardVField = createFloatField(widgetWidth, 0, upwardVField);
-        posUField = createFloatField(widgetWidth, 0, posUField);
-        posVField = createFloatField(widgetWidth, 0, posVField);
-        textureIdField = createTextField(wideWidgetWidth, 1024, textureIdField);
-        disabledIdField = createTextField(wideWidgetWidth, 1024, disabledIdField);
-        focusedRectWidgetNumberField = NumberField.ofInt(font, widgetWidth - 2, widgetHeight - 2, 0, focusedRectWidgetNumberField).setMin(0).setMax(rectWidgets.size());
-        uMinField = createFloatField(widgetWidth * 2 - 24, 0, uMinField).setMin(-1f).setMax(2f);
-        uMaxField = createFloatField(widgetWidth * 2 - 24, 0, uMaxField).setMin(-1f).setMax(2f);
-        vMinField = createFloatField(widgetWidth * 2 - 24, 0, vMinField).setMin(-1f).setMax(2f);
-        vMaxField = createFloatField(widgetWidth * 2 - 24, 0, vMaxField).setMin(-1f).setMax(2f);
-        scaleField = createFloatField(widgetWidth, 1.0f, scaleField).setMax(64.0f);
-        depthField = createFloatField(widgetWidth, 0.2f, depthField).setMax(16.0f);
         GridLayout grid = new GridLayout();
         grid.defaultCellSetting().padding(4, 2, 0, 0);
         LayoutSettings smallSettings = grid.newCellSettings().padding(5, 3, 1, 1);
@@ -217,7 +215,7 @@ public final class ModelViewScreen extends Screen {
                 rows.addChild(disableModeButton, 2);
                 rows.addChild(disabledIdField, 2, smallSettings).setTooltip(createTooltip("textureId"));
                 rows.addChild(selectionModeButton, 2);
-                rows.addChild(focusedRectWidgetNumberField, smallSettings).setOnValueChange(index -> {
+                rows.addChild(focusedRectWidgetNumberField.setMax(rectWidgets.size()), smallSettings).setOnValueChange(index -> {
                     if (index == 0) focusedRectWidget = null;
                     else if (index > 0 && index <= rectWidgets.size()) {
                         focusedRectWidget = rectWidgets.get(index - 1);
@@ -228,6 +226,8 @@ public final class ModelViewScreen extends Screen {
                     }
                 }).setTooltip(createTooltip("focusedRectangleNumber"));
                 addRenderableWidget(new StringWidget(x + 4 + widgetWidth + 3, y + 4 + (widgetHeight + 2) * 3, 6, widgetHeight, LocUtil.literal("/"), font));
+                rectWidgetsSizeWidget.setPosition(x + 4 + widgetWidth + 5 + font.width("/"), y + 4 + (widgetHeight + 2) * 3);
+                rectWidgetsSizeWidget.setMessage(LocUtil.literal(String.valueOf(rectWidgets.size())));
                 addRenderableWidget(rectWidgetsSizeWidget);
                 rows.addChild(new SimpleIconButton(48, 0, _ -> deleteFocusedRectWidget()), grid.newCellSettings().padding(5 + widgetWidth - 18, 3, 1, 1))
                         .setTooltip(createTooltip("deleteSelectedRectangle"));
@@ -262,15 +262,14 @@ public final class ModelViewScreen extends Screen {
             loadBindTarget(bindTarget);
             initWidgets(page);
         }));
-        rows.addChild(priorityField = NumberField.ofInt(font, widgetWidth - 2, widgetHeight - 2, 0, priorityField), smallSettings).setTooltip(createTooltip("priority"));
-        rows.addChild(nameField = createTextField(wideWidgetWidth, 20, nameField), 2, smallSettings).setTooltip(createTooltip("targetName"));
+        rows.addChild(priorityField, smallSettings).setTooltip(createTooltip("priority"));
+        rows.addChild(nameField, 2, smallSettings).setTooltip(createTooltip("targetName"));
         grid.arrangeElements();
         FrameLayout.alignInRectangle(grid, x, y + 2, x + (xSize - middleWidth) / 2 - 4, y + ySize, 0, 0);
         grid.visitWidgets(this::addRenderableWidget);
     }
 
     private void initRightWidgets() {
-        disabledNameField = createTextField(compactWidgetWidth, 20, disabledNameField);
         GridLayout grid = new GridLayout();
         grid.defaultCellSetting().padding(4, 2, 0, 0);
         LayoutSettings smallSettings = grid.newCellSettings().padding(5, 3, 1, 1);
@@ -497,7 +496,7 @@ public final class ModelViewScreen extends Screen {
 
     private void importBindTarget(Button button) {
         String base64 = minecraft.keyboardHandler.getClipboard();
-        DataResult<BindTarget> result = BindTarget.fromCompressedBase64(base64);
+        DataResult<BindTarget> result = ConfigSerializer.fromCompressedBase64(base64);
         switch (result) {
             case DataResult.Success<BindTarget> success -> {
                 BindTarget target = success.value();
@@ -512,7 +511,8 @@ public final class ModelViewScreen extends Screen {
     }
 
     private void exportBindTarget(Button button) {
-        DataResult<String> result = genBindTarget().toCompressedBase64();
+        BindTarget target = genBindTarget();
+        DataResult<String> result = ConfigSerializer.toCompressedBase64(target);
         switch (result) {
             case DataResult.Success<String> success -> {
                 String base64 = success.value();
@@ -557,15 +557,7 @@ public final class ModelViewScreen extends Screen {
     private BindTarget genBindTarget() {
         TargetConfig targetConfig = new TargetConfig(forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber());
         BindConfig bindConfig = new BindConfig(bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);
-        OffsetConfig offsets = new OffsetConfig(
-                scaleField.getNumber(),
-                offsetXPair.getNumber(),
-                offsetYPair.getNumber(),
-                offsetZPair.getNumber(),
-                offsetPitchPair.getNumber(),
-                offsetYawPair.getNumber(),
-                offsetRollPair.getNumber()
-        );
+        OffsetConfig offsets = new OffsetConfig(scaleField.getNumber(), offsetXPair.getNumber(), offsetYPair.getNumber(), offsetZPair.getNumber(), offsetPitchPair.getNumber(), offsetYawPair.getNumber(), offsetRollPair.getNumber());
         DisableConfig currentDisableConfig = new DisableConfig(disabledNameField.getValue(), disabledIdField.getValue(), disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toArray(UVRectangle[]::new));
         DisableConfig[] disableConfigArray = disableConfigs.toArray(new DisableConfig[0]);
         for (int i = 0; i < disableConfigArray.length; i++) {
@@ -607,14 +599,13 @@ public final class ModelViewScreen extends Screen {
         return new DoubleSlider(width, widgetHeight, 0, min, max, d -> LocUtil.MODEL_VIEW_WIDGET(key, MathUtil.round(d, 2)));
     }
 
-    private NumberField<Float> createFloatField(int width, float defaultValue, @Nullable NumberField<Float> copyFrom) {
-        return NumberField.ofFloat(font, width - 2, widgetHeight - 2, defaultValue, copyFrom).setMax(1.0f).setMin(0f);
+    private NumberField<Float> createFloatField(int width, float defaultValue) {
+        return NumberField.ofFloat(font, width - 2, widgetHeight - 2, defaultValue, null).setMax(1.0f).setMin(0f);
     }
 
-    private EditBox createTextField(int width, int maxLength, @Nullable EditBox copyFrom) {
+    private EditBox createTextField(int width, int maxLength) {
         EditBox editBox = new EditBox(font, 0, 0, width - 2, widgetHeight - 2, CommonComponents.EMPTY);
         editBox.setMaxLength(maxLength);
-        if (copyFrom != null) editBox.setValue(copyFrom.getValue());
         return editBox;
     }
 
