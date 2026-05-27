@@ -56,6 +56,10 @@ public class BindResult extends CameraTransform {
     }
 
     public BindResult computeCamera(boolean mirrored) {
+        return computeCamera(mirrored, 0);
+    }
+
+    public BindResult computeCamera(boolean mirrored, float pitchAdjustment) {
         if (!available()) return this;
         final int orientation = mirrored ? -1 : 1;
         upward = forward.cross(upward.cross(forward)).normalize();
@@ -65,7 +69,7 @@ public class BindResult extends CameraTransform {
         Vector3f offset = new Vector3f(offsets.z, offsets.y, offsets.x).mul(offsets.scale).mul(rotation);
         position = position.add(offset.x(), offset.y(), offset.z());
         rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.yaw), rotation.m10, rotation.m11, rotation.m12);
-        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.pitch), rotation.m00, rotation.m01, rotation.m02);
+        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.pitch + pitchAdjustment), rotation.m00, rotation.m01, rotation.m02);
         rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.roll), rotation.m20, rotation.m21, rotation.m22);
         return this;
     }

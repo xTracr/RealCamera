@@ -64,17 +64,21 @@ public final class ModConfig {
     }
 
     public void adjustOffsetZ(int count) {
+        adjustOffsetZ(count, CameraPosture.BASE);
+    }
+
+    public void adjustOffsetZ(int count, CameraPosture posture) {
         if (isClassic) {
             switch (classic.adjustMode) {
                 case CENTER -> classic.centerZ += count * adjustStep;
-                case ROTATION -> classic.pitch += count * 100 * (float) adjustStep;
+                case ROTATION -> classic.adjustPitch(posture, count * 100 * (float) adjustStep);
                 default -> classic.cameraZ += count * adjustStep;
             }
             classic.clamp();
         } else {
             BindTarget target = RealCameraCore.currentTarget();
             if (binding.adjustOffset) target.offsets().z += count * (float) adjustStep;
-            else target.offsets().pitch += count * 100 * (float) adjustStep;
+            else target.offsets().adjustPitch(posture, count * 100 * (float) adjustStep);
             target.offsets().clamp();
         }
     }
@@ -105,6 +109,10 @@ public final class ModConfig {
 
     public float getClassicPitch() {
         return classic.pitch;
+    }
+
+    public float getClassicPitch(CameraPosture posture) {
+        return Mth.wrapDegrees(classic.pitch + classic.pitchAdjustment(posture));
     }
 
     public float getClassicYaw() {
@@ -152,6 +160,8 @@ public final class ModConfig {
         public double centerY = 0.0;
         public double centerZ = 0.0;
         public float pitch = 0.0f;
+        public float swimmingPitchAdjustment = 0.0f;
+        public float crawlingPitchAdjustment = 0.0f;
         public float yaw = 18.0f;
         public float roll = 0.0f;
 
@@ -166,8 +176,26 @@ public final class ModConfig {
             centerY = Mth.clamp(centerY, MIN_OFFSET_D, MAX_OFFSET_D);
             centerZ = Mth.clamp(centerZ, MIN_OFFSET_D, MAX_OFFSET_D);
             pitch = Mth.wrapDegrees(pitch);
+            swimmingPitchAdjustment = Mth.wrapDegrees(swimmingPitchAdjustment);
+            crawlingPitchAdjustment = Mth.wrapDegrees(crawlingPitchAdjustment);
             yaw = Mth.wrapDegrees(yaw);
             roll = Mth.wrapDegrees(roll);
+        }
+
+        private float pitchAdjustment(CameraPosture posture) {
+            return switch (posture) {
+                case SWIMMING -> swimmingPitchAdjustment;
+                case CRAWLING -> crawlingPitchAdjustment;
+                default -> 0;
+            };
+        }
+
+        private void adjustPitch(CameraPosture posture, float value) {
+            switch (posture) {
+                case SWIMMING -> swimmingPitchAdjustment += value;
+                case CRAWLING -> crawlingPitchAdjustment += value;
+                default -> pitch += value;
+            }
         }
 
         public enum AdjustMode {

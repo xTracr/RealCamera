@@ -123,6 +123,18 @@ public final class ConfigScreen {
                 .setMax(180.0f)
                 .setSaveConsumer(f -> config.classic.pitch = f)
                 .build());
+        classicCameraRotation.add(entryBuilder.startFloatField(LocUtil.CONFIG_OPTION("swimmingPitchAdjustment"), config.classic.swimmingPitchAdjustment)
+                .setDefaultValue(0.0f)
+                .setMin(-180.0f)
+                .setMax(180.0f)
+                .setSaveConsumer(f -> config.classic.swimmingPitchAdjustment = f)
+                .build());
+        classicCameraRotation.add(entryBuilder.startFloatField(LocUtil.CONFIG_OPTION("crawlingPitchAdjustment"), config.classic.crawlingPitchAdjustment)
+                .setDefaultValue(0.0f)
+                .setMin(-180.0f)
+                .setMax(180.0f)
+                .setSaveConsumer(f -> config.classic.crawlingPitchAdjustment = f)
+                .build());
         classicCameraRotation.add(entryBuilder.startFloatField(LocUtil.CONFIG_OPTION("yaw"), config.classic.yaw)
                 .setDefaultValue(18.0f)
                 .setMin(-180.0f)

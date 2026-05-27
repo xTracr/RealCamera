@@ -1,6 +1,7 @@
 package com.xtracr.realcamera.mixin;
 
 import com.xtracr.realcamera.RealCameraCore;
+import com.xtracr.realcamera.config.CameraPosture;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
 import net.minecraft.client.Camera;
@@ -65,7 +66,7 @@ public abstract class MixinCamera {
             double scale = entity instanceof LivingEntity livingEntity ? livingEntity.getScale() : 1;
             Vec3 offset = new Vec3(config.getClassicX(), config.getClassicY(), -config.getClassicZ()).scale(scale);
             Vec3 center = new Vec3(config.getCenterX(), config.getCenterY(), -config.getCenterZ()).scale(scale);
-            float newPitch = xRot + config.getClassicPitch();
+            float newPitch = xRot + config.getClassicPitch(CameraPosture.from(entity));
             float newYaw = yRot - config.getClassicYaw();
             setRotation(yRot, 0.0f);
             move((float) center.x(), (float) center.y(), (float) center.z());
