@@ -7,7 +7,6 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import com.xtracr.realcamera.api.BindResult;
 import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.BindTarget.TargetConfig;
-import com.xtracr.realcamera.config.CameraPosture;
 import com.xtracr.realcamera.config.DisableConfig;
 import com.xtracr.realcamera.renderer.BuiltIterableBuffer;
 import com.xtracr.realcamera.renderer.MultiVertexCatcher;
@@ -239,16 +238,16 @@ public final class ModelAnalyser {
         }
     }
 
-    public List<BuiltModelRecord> captureModel(Minecraft client, Entity entity, float partialTicks, PoseStack poseStack, BindTarget target, CameraPosture posture) {
+    public List<BuiltModelRecord> captureModel(Minecraft client, Entity entity, float partialTicks, PoseStack poseStack, BindTarget target, float pitchAdjustment) {
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         client.gameRenderer.getLighting().setupFor(Lighting.Entry.ENTITY_IN_UI);
         dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, vertexCatcher.initCollector());
         List<BuiltModelRecord> records = new ArrayList<>();
-        vertexCatcher.forEachBuffer(buf -> computeRecord(buf, records, target, posture));
+        vertexCatcher.forEachBuffer(buf -> computeRecord(buf, records, target, pitchAdjustment));
         return records;
     }
 
-    private void computeRecord(BuiltIterableBuffer builtBuffer, List<BuiltModelRecord> records, BindTarget target, CameraPosture posture) {
+    private void computeRecord(BuiltIterableBuffer builtBuffer, List<BuiltModelRecord> records, BindTarget target, float pitchAdjustment) {
         VertexData[] vertices = builtBuffer.vertexBuffer().stream().map(VertexData::asImmutable).toArray(VertexData[]::new);
         VertexFormat.Mode drawMode = builtBuffer.renderType().mode();
         final int primitiveLength = drawMode.primitiveLength, primitiveStride = drawMode.primitiveStride;
@@ -269,7 +268,7 @@ public final class ModelAnalyser {
         if (targetPrimitives[0] != null) result.setPosition(VertexData.position(targetPrimitives[0], config.posU(), config.posV()));
         if (targetPrimitives[1] != null) result.setForward(VertexData.normal(targetPrimitives[1]).scale(-1));
         if (targetPrimitives[2] != null) result.setUpward(VertexData.normal(targetPrimitives[2]).scale(-1));
-        if (result.weakAvailable()) bindResult = result.computeCamera(true, target.offsets().pitchAdjustment(posture));
+        if (result.weakAvailable()) bindResult = result.computeCamera(true, pitchAdjustment);
     }
 
     private record ZEntry(BuiltModelRecord record, VertexData[] primitive, float z) {

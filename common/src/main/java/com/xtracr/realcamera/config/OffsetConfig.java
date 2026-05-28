@@ -1,6 +1,8 @@
 package com.xtracr.realcamera.config;
 
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 
 public final class OffsetConfig {
     public float scale = 1;
@@ -37,20 +39,27 @@ public final class OffsetConfig {
         crawlingPitchAdjustment = Mth.wrapDegrees(crawlingPitchAdjustment);
     }
 
-    public float pitchAdjustment(CameraPosture posture) {
-        return switch (posture) {
-            case SWIMMING -> swimmingPitchAdjustment;
-            case CRAWLING -> crawlingPitchAdjustment;
-            default -> 0;
-        };
+    public float pitchAdjustment(Entity entity) {
+        if (!(entity instanceof Player player)) return 0;
+        if (player.isSwimming()) return swimmingPitchAdjustment;
+        if (player.isVisuallyCrawling()) return crawlingPitchAdjustment;
+        return 0;
     }
 
-    public void adjustPitch(CameraPosture posture, float value) {
-        switch (posture) {
-            case SWIMMING -> swimmingPitchAdjustment += value;
-            case CRAWLING -> crawlingPitchAdjustment += value;
-            default -> pitch += value;
+    public void adjustPitch(Entity entity, float value) {
+        if (entity instanceof Player player) {
+            if (player.isSwimming()) {
+                swimmingPitchAdjustment += value;
+                clamp();
+                return;
+            }
+            if (player.isVisuallyCrawling()) {
+                crawlingPitchAdjustment += value;
+                clamp();
+                return;
+            }
         }
+        pitch += value;
         clamp();
     }
 }

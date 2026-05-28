@@ -5,7 +5,6 @@ import com.xtracr.realcamera.api.BindResult;
 import com.xtracr.realcamera.api.RealCameraAPI;
 import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.BindTarget;
-import com.xtracr.realcamera.config.CameraPosture;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.DisableConfig;
 import com.xtracr.realcamera.renderer.BuiltIterableBuffer;
@@ -81,7 +80,7 @@ public final class RealCameraCore {
         entity.setInvisible(invisible);
         if (newResult.available()) {
             failureFrames = 0;
-            float pitchAdjustment = newResult.target.offsets().pitchAdjustment(CameraPosture.from(entity));
+            float pitchAdjustment = newResult.target.offsets().pitchAdjustment(entity);
             lastResult = newResult.computeCamera(false, pitchAdjustment);
         } else {
             failureFrames++;

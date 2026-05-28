@@ -93,8 +93,8 @@ public final class ModelViewScreen extends Screen {
     private final NumberWidgetPair offsetPitchPair = new NumberWidgetPair(font, "pitch", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
     private final NumberWidgetPair offsetYawPair = new NumberWidgetPair(font, "yaw", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
     private final NumberWidgetPair offsetRollPair = new NumberWidgetPair(font, "roll", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
-    private final NumberWidgetPair swimmingPitchAdjustmentPair = new NumberWidgetPair(font, "swimmingPitchAdjustment", wideWidgetWidth, widgetHeight, -180.0f, 180.0f);
-    private final NumberWidgetPair crawlingPitchAdjustmentPair = new NumberWidgetPair(font, "crawlingPitchAdjustment", wideWidgetWidth, widgetHeight, -180.0f, 180.0f);
+    private final NumberWidgetPair swimmingPitchAdjustmentPair = new NumberWidgetPair(font, "swimmingPitchAdjustment", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
+    private final NumberWidgetPair crawlingPitchAdjustmentPair = new NumberWidgetPair(font, "crawlingPitchAdjustment", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
     private final List<DisableConfig> disableConfigs = new ArrayList<>();
     private final List<UVRectangleWidget> rectWidgets = new ArrayList<>();
     private final Map<String, Set<String>> hiddenNameMap = new HashMap<>();
@@ -125,16 +125,16 @@ public final class ModelViewScreen extends Screen {
                 for (NumberWidgetPair pair : widgetPairs) pair.syncAndSwitch(useSlider);
                 initWidgets(page);
             });
-    private final CycleButton<CameraPosture> posturePreviewButton = createCyclingButtonBuilder(ImmutableSortedMap.of(
-            CameraPosture.BASE, LocUtil.MODEL_VIEW_WIDGET("basePosture"),
-            CameraPosture.SWIMMING, LocUtil.MODEL_VIEW_WIDGET("swimmingPosture"),
-            CameraPosture.CRAWLING, LocUtil.MODEL_VIEW_WIDGET("crawlingPosture")), CameraPosture.BASE)
+    private final CycleButton<Integer> posturePreviewButton = createCyclingButtonBuilder(ImmutableSortedMap.of(
+            0, LocUtil.MODEL_VIEW_WIDGET("basePosture"),
+            1, LocUtil.MODEL_VIEW_WIDGET("swimmingPosture"),
+            2, LocUtil.MODEL_VIEW_WIDGET("crawlingPosture")), 0)
             .withTooltip(_ -> createTooltip("posture"))
-            .create(0, 0, wideWidgetWidth, widgetHeight, LocUtil.MODEL_VIEW_WIDGET("posture"));
+            .displayOnlyValue()
+            .create(0, 0, wideWidgetWidth, widgetHeight, LocUtil.MODEL_VIEW_WIDGET("posture"), (_, _) -> initWidgets(page));
     private final CycleButton<Category> toggleCategoryButton = createCyclingButtonBuilder(ImmutableSortedMap.of(
             Category.CONFIGS, LocUtil.MODEL_VIEW_WIDGET(Category.CONFIGS.next().id),
             Category.PREVIEW, LocUtil.MODEL_VIEW_WIDGET(Category.PREVIEW.next().id),
-            Category.POSTURE, LocUtil.MODEL_VIEW_WIDGET(Category.POSTURE.next().id),
             Category.DISABLE, LocUtil.MODEL_VIEW_WIDGET(Category.DISABLE.next().id)), Category.CONFIGS)
             .withTooltip(category -> createTooltip(category.next().id))
             .displayOnlyValue()
@@ -179,11 +179,14 @@ public final class ModelViewScreen extends Screen {
             modelScale = textureScale = DEFAULT_SCALE;
             entityYawSlider.setNumber(0);
             entityPitchSlider.setNumber(0);
-            posturePreviewButton.setValue(CameraPosture.BASE);
+            posturePreviewButton.setValue(0);
             modelX = modelY = textureX = textureY = 0;
             xRot = yRot = 0;
             layers = 0;
+            initWidgets(page);
         }));
+        if (toggleCategoryButton.getValue() == Category.PREVIEW)
+            addRenderableWidget(posturePreviewButton).setPosition(modelViewArea.left() + 4, modelViewArea.top() + 4);
         initRightWidgets();
     }
 
@@ -217,19 +220,12 @@ public final class ModelViewScreen extends Screen {
                 rows.addChild(bindZButton, smallSettings).setTooltip(createTooltip("bindButtons"));
                 rows.addChild(offsetZPair, numericControlSettings);
                 rows.addChild(bindRotButton, smallSettings).setTooltip(createTooltip("bindButtons"));
-                rows.addChild(offsetPitchPair, numericControlSettings);
+                rows.addChild(currentPitchPair(), numericControlSettings);
                 rows.addChild(offsetYawPair, 2, grid.newCellSettings().padding(26, 2, 0, 0));
                 rows.addChild(new SimpleIconButton(0, 0, _ -> widgetPairs.forEach(pair -> pair.setNumber(0))), smallSettings);
                 rows.addChild(offsetRollPair, numericControlSettings);
                 rows.addChild(scaleField, smallSettings).setTooltip(createTooltip("scale"));
                 rows.addChild(depthField, smallSettings).setTooltip(createTooltip("depth"));
-            }
-            case POSTURE -> {
-                rows.addChild(toggleSliderButton, 2);
-                rows.addChild(posturePreviewButton, 2);
-                rows.addChild(offsetPitchPair, 2);
-                rows.addChild(swimmingPitchAdjustmentPair, 2);
-                rows.addChild(crawlingPitchAdjustmentPair, 2);
             }
             case DISABLE -> {
                 LayoutSettings offsetXSettings = grid.newCellSettings().padding(-13, 3, 1, 1);
@@ -440,7 +436,7 @@ public final class ModelViewScreen extends Screen {
             modelPose.translate(modelX, modelY, 0);
             modelPose.mulPose(rotation);
             modelPose.translate(0, -entity.getBbHeight() / 2.0f, 0);
-            return analyser.captureModel(minecraft, entity, 1.0f, modelPose, target, previewPosture());
+            return analyser.captureModel(minecraft, entity, 1.0f, modelPose, target, previewPitchAdjustment());
         } finally {
             entity.yBodyRot = entityBodyYaw;
             entity.setYRot(entityYaw);
@@ -471,7 +467,7 @@ public final class ModelViewScreen extends Screen {
         modelTransform.scale(invScale, invScale, -invScale);
         modelTransform.translate(-(x1 + x2) / 2.0f, -(y1 + y2) / 2.0f, 0);
         GUIHelper.culledModels(graphics, modelRecords, modelScale, modelTransform, x1, y1, x2, y2);
-        if (toggleCategoryButton.getValue() != Category.PREVIEW && toggleCategoryButton.getValue() != Category.POSTURE) analyser.drawFocusedInModelArea(graphics);
+        if (toggleCategoryButton.getValue() != Category.PREVIEW) analyser.drawFocusedInModelArea(graphics);
         if (toggleCategoryButton.getValue() == Category.CONFIGS) analyser.drawBindTarget(graphics, target, modelScale);
         else analyser.drawCameraDirections(graphics, modelScale);
         graphics.disableScissor();
@@ -745,8 +741,20 @@ public final class ModelViewScreen extends Screen {
         return textureViewArea != null && textureViewArea.containsPoint((int) x, (int) y);
     }
 
-    private CameraPosture previewPosture() {
-        return toggleCategoryButton.getValue() == Category.POSTURE ? posturePreviewButton.getValue() : CameraPosture.BASE;
+    private NumberWidgetPair currentPitchPair() {
+        return switch (posturePreviewButton.getValue()) {
+            case 1 -> swimmingPitchAdjustmentPair;
+            case 2 -> crawlingPitchAdjustmentPair;
+            default -> offsetPitchPair;
+        };
+    }
+
+    private float previewPitchAdjustment() {
+        return switch (posturePreviewButton.getValue()) {
+            case 1 -> swimmingPitchAdjustmentPair.getNumber();
+            case 2 -> crawlingPitchAdjustmentPair.getNumber();
+            default -> 0.0f;
+        };
     }
 
     public boolean leftClickedWithModifier(double mouseX, double mouseY) {
@@ -901,7 +909,6 @@ public final class ModelViewScreen extends Screen {
     private enum Category {
         CONFIGS,
         PREVIEW,
-        POSTURE,
         DISABLE;
 
         public final String id = name().toLowerCase();
