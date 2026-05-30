@@ -1,6 +1,7 @@
 package com.xtracr.realcamera.api;
 
 import com.xtracr.realcamera.config.BindTarget;
+import com.xtracr.realcamera.config.CameraPosture;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.OffsetConfig;
 import com.xtracr.realcamera.util.CameraTransform;
@@ -56,10 +57,10 @@ public class BindResult extends CameraTransform {
     }
 
     public BindResult computeCamera(boolean mirrored) {
-        return computeCamera(mirrored, 0);
+        return computeCamera(mirrored, CameraPosture.STAND);
     }
 
-    public BindResult computeCamera(boolean mirrored, float pitchAdjustment) {
+    public BindResult computeCamera(boolean mirrored, CameraPosture posture) {
         if (!available()) return this;
         final int orientation = mirrored ? -1 : 1;
         upward = forward.cross(upward.cross(forward)).normalize();
@@ -68,9 +69,9 @@ public class BindResult extends CameraTransform {
         OffsetConfig offsets = target.offsets();
         Vector3f offset = new Vector3f(offsets.z, offsets.y, offsets.x).mul(offsets.scale).mul(rotation);
         position = position.add(offset.x(), offset.y(), offset.z());
-        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.yaw), rotation.m10, rotation.m11, rotation.m12);
-        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.pitch + pitchAdjustment), rotation.m00, rotation.m01, rotation.m02);
-        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.roll), rotation.m20, rotation.m21, rotation.m22);
+        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.yaw(posture)), rotation.m10, rotation.m11, rotation.m12);
+        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.pitch(posture)), rotation.m00, rotation.m01, rotation.m02);
+        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.roll(posture)), rotation.m20, rotation.m21, rotation.m22);
         return this;
     }
 }

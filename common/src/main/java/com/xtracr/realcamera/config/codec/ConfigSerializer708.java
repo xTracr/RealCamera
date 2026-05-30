@@ -1,6 +1,7 @@
 package com.xtracr.realcamera.config.codec;
 
 import com.xtracr.realcamera.config.BindTarget;
+import com.xtracr.realcamera.config.CameraPosture;
 import com.xtracr.realcamera.config.OffsetConfig;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.DecoderException;
@@ -21,6 +22,13 @@ final class ConfigSerializer708 {
                     byteBuf.readFloat(),
                     byteBuf.readFloat(),
                     byteBuf.readFloat(),
+                    byteBuf.readFloat(),
+                    byteBuf.readFloat(),
+                    byteBuf.readFloat(),
+                    byteBuf.readFloat(),
+                    byteBuf.readFloat(),
+                    byteBuf.readFloat(),
+                    byteBuf.readFloat(),
                     byteBuf.readFloat());
         }
 
@@ -30,11 +38,11 @@ final class ConfigSerializer708 {
             byteBuf.writeFloat(offsets.x);
             byteBuf.writeFloat(offsets.y);
             byteBuf.writeFloat(offsets.z);
-            byteBuf.writeFloat(offsets.pitch);
-            byteBuf.writeFloat(offsets.yaw);
-            byteBuf.writeFloat(offsets.roll);
-            byteBuf.writeFloat(offsets.swimmingPitchAdjustment);
-            byteBuf.writeFloat(offsets.crawlingPitchAdjustment);
+            for (CameraPosture posture : CameraPosture.values()) {
+                byteBuf.writeFloat(offsets.pitch(posture));
+                byteBuf.writeFloat(offsets.yaw(posture));
+                byteBuf.writeFloat(offsets.roll(posture));
+            }
         }
     };
     static final StreamCodec<ByteBuf, BindTarget> CODEC = StreamCodec.composite(
