@@ -1,0 +1,43 @@
+name: 新功能建议
+description: 为我们提供新的想法
+title: "[new feature]:"
+labels: [ "new feature" ]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢您花时间提出新的功能想法！
+        请确保最新版本内没有这个功能！
+
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: 这个功能是什么？
+      description: 请清晰地描述您希望添加的功能
+      placeholder: 我希望...
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem-and-solution
+    attributes:
+      label: 这个功能可以解决什么问题？
+      description: 请详细说明其作用
+      placeholder: 这个功能可以帮助解决...
+    validations:
+      required: true
+
+  - type: textarea
+    id: ideal-solution
+    attributes:
+      label: 这个功能理想中的解决方案是什么样的？
+      description: 例如新的按钮应该在何处，哪里需要新的配置选项
+      placeholder: 我希望...
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 其他信息
+      description: 任何关于功能的上下文或截图

@@ -18,8 +18,10 @@ import java.util.zip.InflaterInputStream;
 
 public interface ConfigSerializer {
     ConfigSerializer SERIALIZER_703 = new ConfigSerializer703();
+    ConfigSerializer SERIALIZER_708 = new ConfigSerializer708();
     Map<Short, ConfigSerializer> SERIALIZERS = ImmutableMap.of(
-            SERIALIZER_703.version(), SERIALIZER_703
+            SERIALIZER_703.version(), SERIALIZER_703,
+            SERIALIZER_708.version(), SERIALIZER_708
     );
 
     static BindTarget readWithVersion(FriendlyByteBuf byteBuf) throws DecoderException, IllegalArgumentException {
@@ -30,7 +32,7 @@ public interface ConfigSerializer {
     }
 
     static void writeWithVersion(BindTarget bindTarget, FriendlyByteBuf byteBuf) throws EncoderException {
-        byteBuf.writeShort(SERIALIZER_703.version());
+        byteBuf.writeShort(SERIALIZER_708.version());
         bindTarget.write(byteBuf);
     }
 

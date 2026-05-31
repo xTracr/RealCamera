@@ -3,6 +3,7 @@ package com.xtracr.realcamera.config;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.xtracr.realcamera.RealCameraCore;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -31,7 +32,12 @@ public final class ModConfig {
         else binding.adjustOffset = !binding.adjustOffset;
     }
 
+    @Deprecated
     public void adjustOffsetX(int count) {
+        adjustOffsetX(count, null);
+    }
+
+    public void adjustOffsetX(int count, Entity entity) {
         if (isClassic) {
             switch (classic.adjustMode) {
                 case CENTER -> classic.centerX += count * adjustStep;
@@ -42,12 +48,17 @@ public final class ModConfig {
         } else {
             BindTarget target = RealCameraCore.currentTarget();
             if (binding.adjustOffset) target.offsets().x += count * (float) adjustStep;
-            else target.offsets().roll += count * 100 * (float) adjustStep;
+            else target.offsets().adjustRoll(entity, -count * 100 * (float) adjustStep);
             target.offsets().clamp();
         }
     }
 
+    @Deprecated
     public void adjustOffsetY(int count) {
+        adjustOffsetY(count, null);
+    }
+
+    public void adjustOffsetY(int count, Entity entity) {
         if (isClassic) {
             switch (classic.adjustMode) {
                 case CENTER -> classic.centerY += count * adjustStep;
@@ -58,12 +69,17 @@ public final class ModConfig {
         } else {
             BindTarget target = RealCameraCore.currentTarget();
             if (binding.adjustOffset) target.offsets().y += count * (float) adjustStep;
-            else target.offsets().yaw += count * 100 * (float) adjustStep;
+            else target.offsets().adjustPitch(entity, -count * 100 * (float) adjustStep);
             target.offsets().clamp();
         }
     }
 
+    @Deprecated
     public void adjustOffsetZ(int count) {
+        adjustOffsetZ(count, null);
+    }
+
+    public void adjustOffsetZ(int count, Entity entity) {
         if (isClassic) {
             switch (classic.adjustMode) {
                 case CENTER -> classic.centerZ += count * adjustStep;
@@ -74,7 +90,7 @@ public final class ModConfig {
         } else {
             BindTarget target = RealCameraCore.currentTarget();
             if (binding.adjustOffset) target.offsets().z += count * (float) adjustStep;
-            else target.offsets().pitch += count * 100 * (float) adjustStep;
+            else target.offsets().adjustYaw(entity, count * 100 * (float) adjustStep);
             target.offsets().clamp();
         }
     }

@@ -7,6 +7,7 @@ import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.DisableConfig;
+import com.xtracr.realcamera.config.OffsetConfig;
 import com.xtracr.realcamera.renderer.BuiltIterableBuffer;
 import com.xtracr.realcamera.renderer.MultiVertexCatcher;
 import com.xtracr.realcamera.renderer.RoutingSubmitCollector;
@@ -80,7 +81,7 @@ public final class RealCameraCore {
         entity.setInvisible(invisible);
         if (newResult.available()) {
             failureFrames = 0;
-            lastResult = newResult.computeCamera(false);
+            lastResult = newResult.computeCamera(false, OffsetConfig.from(entity));
         } else {
             failureFrames++;
             Player player = client.player;
