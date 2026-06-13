@@ -86,8 +86,12 @@ public class RealCameraCore {
         if (!newResult.available()) {
             EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
             MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-            dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, new PoseStack(), catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
-            catcher.endCatching(RealCameraCore::computeBindResult);
+            try {
+                dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, new PoseStack(), catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
+                catcher.forEachBuffer(RealCameraCore::computeBindResult);
+            } finally {
+                catcher.clear();
+            }
         }
         entity.setInvisible(invisible);
         if (newResult.available()) {
@@ -124,30 +128,34 @@ public class RealCameraCore {
         Entity entity = client.getCameraEntity();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
-        dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack, catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
-        final float depth = currentTarget().disablingDepth();
-        catcher.endCatching(builtBuffer -> {
-            DisableConfig[] disableConfigs = currentTarget().filteredDisableConfigs(config -> builtBuffer.textureId().contains(config.textureId()));
-            for (DisableConfig config : disableConfigs) {
-                if (config.disableAll()) return;
-            }
-            VertexConsumer buffer = bufferSource.getBuffer(builtBuffer.renderType());
-            if (!builtBuffer.renderType().canConsolidateConsecutiveGeometry()) {
-                for (VertexData vertex : builtBuffer.vertexBuffer()) vertex.render(buffer);
-                return;
-            }
-            builtBuffer.vertexBuffer().primitiveStream().forEach(primitive -> {
-                primitiveFor:
-                for (VertexData vertex : primitive) {
-                    if (vertex.z() > -depth) continue;
-                    for (DisableConfig config : disableConfigs) {
-                        if (config.disable(vertex)) continue primitiveFor;
-                    }
-                    for (VertexData vertexData : primitive) vertexData.render(buffer);
-                    break;
+        try {
+            dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, poseStack, catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
+            final float depth = currentTarget().disablingDepth();
+            catcher.forEachBuffer(builtBuffer -> {
+                DisableConfig[] disableConfigs = currentTarget().filteredDisableConfigs(config -> builtBuffer.textureId().contains(config.textureId()));
+                for (DisableConfig config : disableConfigs) {
+                    if (config.disableAll()) return;
                 }
+                VertexConsumer buffer = bufferSource.getBuffer(builtBuffer.renderType());
+                if (!builtBuffer.renderType().canConsolidateConsecutiveGeometry()) {
+                    for (VertexData vertex : builtBuffer.vertexBuffer()) vertex.render(buffer);
+                    return;
+                }
+                builtBuffer.vertexBuffer().primitiveStream().forEach(primitive -> {
+                    primitiveFor:
+                    for (VertexData vertex : primitive) {
+                        if (vertex.z() > -depth) continue;
+                        for (DisableConfig config : disableConfigs) {
+                            if (config.disable(vertex)) continue primitiveFor;
+                        }
+                        for (VertexData vertexData : primitive) vertexData.render(buffer);
+                        break;
+                    }
+                });
             });
-        });
+        } finally {
+            catcher.clear();
+        }
     }
 
     private static void computeBindResult(BuiltIterableBuffer builtBuffer) {
@@ -157,17 +165,8 @@ public class RealCameraCore {
             BindResult result = new BindResult(target, false);
             BindTarget.TargetConfig config = target.targetConfig();
             VertexData.UV[] uvs = {new VertexData.UV(config.posU(), config.posV()), new VertexData.UV(config.forwardU(), config.forwardV()), new VertexData.UV(config.upwardU(), config.upwardV())};
-            VertexData[][] primitives = builtBuffer.findPrimitivesInCache(uvs);
-            if (builtBuffer.anyNotCached(uvs)) {
-                for (int i = 0; i < primitives.length; i++) {
-                    if (primitives[i] != null) uvs[i] = null;
-                }
-                VertexData[][] newPrimitives = builtBuffer.findPrimitives(uvs);
-                for (int i = 0; i < primitives.length; i++) {
-                    if (newPrimitives[i] == null && primitives[i] == null) continue targetFor;
-                    else if (newPrimitives[i] != null) primitives[i] = newPrimitives[i];
-                }
-            }
+            VertexData[][] primitives = builtBuffer.resolvePrimitives(uvs);
+            for (VertexData[] primitive : primitives) if (primitive == null) continue targetFor;
             if (primitives[0] != null) result.setPosition(VertexData.position(primitives[0], config.posU(), config.posV()));
             if (primitives[1] != null) result.setForward(VertexData.normal(primitives[1]));
             if (primitives[2] != null) result.setUpward(VertexData.normal(primitives[2]));

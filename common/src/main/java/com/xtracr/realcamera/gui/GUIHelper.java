@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
-public class GUIHelper {
+public final class GUIHelper {
     public static void enableScissor(GuiGraphics graphics, ScreenRectangle rectangle) {
         graphics.enableScissor(rectangle.left(), rectangle.top(), rectangle.right(), rectangle.bottom());
     }
@@ -37,21 +37,21 @@ public class GUIHelper {
         graphics.flush();
     }
 
-    public static void renderOutline(GuiGraphics graphics, float x, float y, float width, float height, int argb) {
+    public static void outline(GuiGraphics graphics, float x, float y, float width, float height, int argb) {
         fill(graphics, x, y, x + width, y + 1, argb);
         fill(graphics, x, y + height - 1, x + width, y + height, argb);
         fill(graphics, x, y + 1, x + 1, y + height - 1, argb);
         fill(graphics, x + width - 1, y + 1, x + width, y + height - 1, argb);
     }
 
-    public static void renderPolygon(GuiGraphics graphics, VertexData[] polygon, float z, int argb) {
+    public static void triangleOrQuad(GuiGraphics graphics, VertexData[] polygon, float z, int argb) {
         VertexConsumer buffer = graphics.bufferSource().getBuffer(RenderType.gui());
         for (VertexData vertex : polygon) buffer.vertex(vertex.x(), vertex.y(), z).color(argb).endVertex();
         if (polygon.length == 3) buffer.vertex(polygon[2].x(), polygon[2].y(), z).color(argb).endVertex();
         graphics.flush();
     }
 
-    public static void renderVector(GuiGraphics graphics, Vec3 start, Vec3 vector, float z, int argb) {
+    public static void vector(GuiGraphics graphics, Vec3 start, Vec3 vector, float z, int argb) {
         VertexConsumer buffer = graphics.bufferSource().getBuffer(RenderType.lines());
         buffer.vertex((float) start.x, (float) start.y, z).color(argb).normal((float) vector.x, (float) vector.y, 0).endVertex();
         buffer.vertex((float) (start.x + vector.x), (float) (start.y + vector.y), z).color(argb).normal((float) vector.x, (float) vector.y, 0).endVertex();

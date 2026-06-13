@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
-import com.xtracr.realcamera.util.VertexData.MutableVertex;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,17 +18,19 @@ import java.util.stream.StreamSupport;
 
 public class IterableVertexBuffer implements Iterable<VertexData> {
     private static final boolean IS_LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
-    public final int vertexCount, vertexSize;
+    public final int vertexCount, vertexSize, primitiveLength, primitiveCount;
     private final MutableVertex reusableVertex = VertexData.mutable();
     private final Iterable<VertexData[]> primitives;
     private final ByteBuffer buffer;
     private final int positionOffset, colorOffset, uvOffset, overlayOffset, lightOffset, normalOffset;
     private final boolean hasPosition, hasColor, hasUV, hasOverlay, hasLight, hasNormal, fastFormat;
+    private final VertexFormat.Mode mode;
 
     public IterableVertexBuffer(BufferBuilder.RenderedBuffer meshData) {
         buffer = meshData.vertexBuffer();
         BufferBuilder.DrawState drawState = meshData.drawState();
         VertexFormat format = drawState.format();
+        mode = drawState.mode();
         vertexCount = drawState.vertexCount();
         vertexSize = format.getVertexSize();
         int offset = 0, po = -1, co = -1, uo = -1, oo = -1, lo = -1, no = -1;
@@ -61,8 +62,10 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         hasLight = lightOffset != -1;
         hasNormal = normalOffset != -1;
         fastFormat = format == DefaultVertexFormat.NEW_ENTITY;
-        boolean isQuad = drawState.mode() == VertexFormat.Mode.QUADS;
-        primitives = fastFormat && isQuad ? new FastQuadReader() : new PrimitiveReader(drawState.mode());
+        primitiveLength = mode.primitiveLength;
+        primitiveCount = (vertexCount - primitiveLength) / mode.primitiveStride + 1;
+        boolean isQuad = mode == VertexFormat.Mode.QUADS;
+        primitives = fastFormat && isQuad ? new FastQuadReader() : new PrimitiveReader(mode);
     }
 
     public Iterable<VertexData[]> primitives() {
@@ -77,8 +80,40 @@ public class IterableVertexBuffer implements Iterable<VertexData> {
         return StreamSupport.stream(primitives.spliterator(), false);
     }
 
+    public VertexFormat.Mode mode() {
+        return mode;
+    }
+
+    public int vertexLayoutHash() {
+        return Objects.hash(vertexSize, positionOffset, colorOffset, uvOffset, overlayOffset, lightOffset, normalOffset,
+                hasPosition, hasColor, hasUV, hasOverlay, hasLight, hasNormal, fastFormat);
+    }
+
     public VertexData readVertexAt(int index) {
         return readVertexAt(index, reusableVertex);
+    }
+
+    public VertexData[] readPrimitiveAt(int index) {
+        if (primitives instanceof FastQuadReader fastQuadReader) {
+            Objects.checkIndex(index, fastQuadReader.quadCount);
+            MutableVertex[] quad = new MutableVertex[4];
+            for (int i = 0; i < quad.length; i++) {
+                quad[i] = VertexData.mutable();
+            }
+            fastQuadReader.fastReadQuadAt(index, quad);
+            return quad;
+        }
+        if (primitives instanceof PrimitiveReader primitiveReader) {
+            Objects.checkIndex(index, primitiveReader.primitiveCount);
+            MutableVertex[] primitive = new MutableVertex[primitiveReader.primitiveLength];
+            for (int i = 0; i < primitive.length; i++) {
+                primitive[i] = VertexData.mutable();
+            }
+            if (primitiveReader.startWithFirst && 0 < vertexCount) readVertexAt(0, primitive[0]);
+            primitiveReader.readPrimitiveAt(index, primitive);
+            return primitive;
+        }
+        throw new IllegalStateException("Unknown primitive reader");
     }
 
     public MutableVertex readVertexAt(int index, MutableVertex mutable) {

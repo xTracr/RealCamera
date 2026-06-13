@@ -13,8 +13,10 @@ import net.minecraft.world.item.Item;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 public class DisableHelper {
+    private static final Pattern MULTI_STAR = Pattern.compile("\\*+");
     private static final Predicate<Player> FALSE = player -> false;
     private static final Map<String, Entry> entries = new HashMap<>();
     public static final Entry MAIN_FEATURE = new Entry("mainFeature", player -> player.isSleeping() || player.isSpectator());
@@ -25,8 +27,9 @@ public class DisableHelper {
     static {
         MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSneaking() && player.isCrouching());
         MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSneaking() && player.isCrouching());
-        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().getBindingSwimOutTick()));
-        MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSwimming() && swimmingRecently(player, ConfigFile.config().getClassicSwimOutTick()));
+        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSwimming() && checkCondition(player, player.isSwimming(), ConfigFile.config().getBindingOutTick()));
+        MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSwimming() && checkCondition(player, player.isSwimming(), ConfigFile.config().getClassicOutTick()));
+        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenCrawling() && checkCondition(player, player.isVisuallyCrawling(), ConfigFile.config().getBindingOutTick()));
         MAIN_FEATURE.registerOrInBinding(player -> {
             Item mainHand = player.getMainHandItem().getItem();
             Item offHand = player.getOffhandItem().getItem();
@@ -45,14 +48,14 @@ public class DisableHelper {
         });
     }
 
-    private static boolean swimmingRecently(Player player, int swimOutTick) {
-        if (player.isSwimming()) {
+    private static boolean checkCondition(Player player, boolean condition, int outTick) {
+        if (condition) {
             exitTick = player.tickCount;
             return true;
         }
-        if (exitTick > 0 && !player.isSwimming()) {
+        if (exitTick > 0) {
             int elapsedTicks = player.tickCount - exitTick;
-            if (elapsedTicks <= swimOutTick) {
+            if (elapsedTicks <= outTick) {
                 return true;
             }
             exitTick = 0;
@@ -79,7 +82,7 @@ public class DisableHelper {
     public static boolean simpleWildcardMatch(String text, String pattern) {
         if (pattern.isEmpty()) return text.isEmpty();
         if (pattern.equals(text)) return true;
-        String[] parts = pattern.split("\\*+");
+        String[] parts = MULTI_STAR.split(pattern);
         if (parts.length == 0) return true;
         int currentIndex = 0;
         if (!pattern.startsWith("*")) {

@@ -41,7 +41,7 @@ public final class KeyMappings {
     }
 
     private static KeyMapping createKeyMapping(String id, int code, Consumer<Minecraft> whenPressed) {
-        KeyMapping keyMapping = new KeyMapping("key." + RealCamera.FULL_ID + "." + id, code, LocUtil.KEY_MOD_NAME);
+        KeyMapping keyMapping = new KeyMapping("key." + RealCamera.FULL_ID + "." + id, code, LocUtil.KEY_CATEGORY_GENERAL);
         KEY_MAPPINGS.put(keyMapping, whenPressed);
         return keyMapping;
     }
@@ -52,11 +52,15 @@ public final class KeyMappings {
 
     public static void handle(Minecraft client) {
         if (client.player == null) return;
-        KEY_MAPPINGS.forEach((keyMapping, whenPressed) -> {
+        boolean anyPressed = false;
+        for (var entry : KEY_MAPPINGS.entrySet()) {
+            KeyMapping keyMapping = entry.getKey();
+            Consumer<Minecraft> whenPressed = entry.getValue();
             while (keyMapping.consumeClick()) {
                 whenPressed.accept(client);
-                ConfigFile.save();
+                anyPressed = true;
             }
-        });
+        }
+        if (anyPressed) ConfigFile.save();
     }
 }

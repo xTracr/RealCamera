@@ -119,8 +119,13 @@ public class ModConfig {
         return classic.disableWhenSwimming;
     }
 
+    public int getClassicOutTick() {
+        return classic.outTick;
+    }
+
+    @Deprecated
     public int getClassicSwimOutTick() {
-        return classic.swimOutTick;
+        return getClassicOutTick();
     }
 
     public double getClassicX() {
@@ -176,6 +181,10 @@ public class ModConfig {
         return binding.hideFailureMessage;
     }
 
+    public boolean bindingDisableWhenCrawling() {
+        return binding.disableWhenCrawling;
+    }
+
     public boolean bindingDisableWhenSneaking() {
         return binding.disableWhenSneaking;
     }
@@ -184,8 +193,13 @@ public class ModConfig {
         return binding.disableWhenSwimming;
     }
 
+    public int getBindingOutTick() {
+        return binding.outTick;
+    }
+
+    @Deprecated
     public int getBindingSwimOutTick() {
-        return binding.swimOutTick;
+        return getBindingOutTick();
     }
 
     public int getBindResultRetentionFrames() {
@@ -246,7 +260,9 @@ public class ModConfig {
         public AdjustMode adjustMode = AdjustMode.CAMERA;
         public boolean disableWhenSneaking = false;
         public boolean disableWhenSwimming = false;
-        public int swimOutTick = 13;
+        public int outTick = 13;
+        @Deprecated
+        public Integer swimOutTick = null;
         public double scale = 8.0;
         public double cameraX = -0.5;
         public double cameraY = 0.04;
@@ -260,7 +276,11 @@ public class ModConfig {
 
         private void clamp() {
             if (adjustMode == null) adjustMode = AdjustMode.CAMERA;
-            swimOutTick = Mth.clamp(swimOutTick, 0, 40);
+            if (swimOutTick != null) {
+                if (outTick == 13) outTick = swimOutTick;
+                swimOutTick = null;
+            }
+            outTick = Mth.clamp(outTick, 0, 40);
             scale = Mth.clamp(scale, 0.0, 64.0);
             cameraX = Mth.clamp(cameraX, MIN_OFFSET_D, MAX_OFFSET_D);
             cameraY = Mth.clamp(cameraY, MIN_OFFSET_D, MAX_OFFSET_D);
@@ -291,9 +311,12 @@ public class ModConfig {
         public boolean adjustOffset = true;
         public boolean hideFailureMessage = false;
         public boolean renderStuckObjects = true;
+        public boolean disableWhenCrawling = false;
         public boolean disableWhenSneaking = false;
         public boolean disableWhenSwimming = false;
-        public int swimOutTick = 13;
+        public int outTick = 13;
+        @Deprecated
+        public Integer swimOutTick = null;
         public int bindResultRetentionFrames = 2;
         public int activeConfigIndex = 0;
         public double displacementSmoothFactor = 0.4;
@@ -309,7 +332,11 @@ public class ModConfig {
             } catch (Exception e) {
                 screenModifierKey = InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_LALT).getName();
             }
-            swimOutTick = Mth.clamp(swimOutTick, 0, 40);
+            if (swimOutTick != null) {
+                if (outTick == 13) outTick = swimOutTick;
+                swimOutTick = null;
+            }
+            outTick = Mth.clamp(outTick, 0, 40);
             bindResultRetentionFrames = Math.max(bindResultRetentionFrames, 0);
             activeConfigIndex = Math.max(activeConfigIndex, 0);
             displacementSmoothFactor = Mth.clamp(displacementSmoothFactor, 0.0, 1.0);

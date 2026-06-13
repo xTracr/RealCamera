@@ -21,6 +21,36 @@ public interface VertexData {
         return immutable;
     }
 
+    static boolean containsUV(VertexData[] vertices, float u, float v) {
+        return switch (vertices.length) {
+            case 3 -> MathUtil.pointInTriangle(u, v,
+                    vertices[0].u(), vertices[0].v(),
+                    vertices[1].u(), vertices[1].v(),
+                    vertices[2].u(), vertices[2].v());
+            case 4 -> MathUtil.pointInQuad(u, v,
+                    vertices[0].u(), vertices[0].v(),
+                    vertices[1].u(), vertices[1].v(),
+                    vertices[2].u(), vertices[2].v(),
+                    vertices[3].u(), vertices[3].v());
+            default -> false;
+        };
+    }
+
+    static boolean containsXY(VertexData[] vertices, float x, float y) {
+        return switch (vertices.length) {
+            case 3 -> MathUtil.pointInTriangle(x, y,
+                    vertices[0].x(), vertices[0].y(),
+                    vertices[1].x(), vertices[1].y(),
+                    vertices[2].x(), vertices[2].y());
+            case 4 -> MathUtil.pointInQuad(x, y,
+                    vertices[0].x(), vertices[0].y(),
+                    vertices[1].x(), vertices[1].y(),
+                    vertices[2].x(), vertices[2].y(),
+                    vertices[3].x(), vertices[3].y());
+            default -> false;
+        };
+    }
+
     static Vec3 position(VertexData[] vertices, float u, float v) {
         if (vertices.length < 3) return vertices[0].position();
         float u0 = vertices[0].u(), v0 = vertices[0].v(), u1 = vertices[1].u(), v1 = vertices[1].v(), u2 = vertices[2].u(), v2 = vertices[2].v();
@@ -107,70 +137,11 @@ public interface VertexData {
         }
     }
 
-    record ImmutableVertex(float x, float y, float z, int argb, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) implements VertexData { }
-
-    class MutableVertex implements VertexData {
-        public float x, y, z;
-        public int argb;
-        public float u, v;
-        public int overlay, light;
-        public float normalX, normalY, normalZ;
-
-        private MutableVertex() { }
-
+    record ImmutableVertex(float x, float y, float z, int argb, float u, float v, int overlay, int light, float normalX, float normalY, float normalZ) implements VertexData {
         @Override
-        public float x() {
-            return x;
-        }
-
-        @Override
-        public float y() {
-            return y;
-        }
-
-        @Override
-        public float z() {
-            return z;
-        }
-
-        @Override
-        public int argb() {
-            return argb;
-        }
-
-        @Override
-        public float u() {
-            return u;
-        }
-
-        @Override
-        public float v() {
-            return v;
-        }
-
-        @Override
-        public int overlay() {
-            return overlay;
-        }
-
-        @Override
-        public int light() {
-            return light;
-        }
-
-        @Override
-        public float normalX() {
-            return normalX;
-        }
-
-        @Override
-        public float normalY() {
-            return normalY;
-        }
-
-        @Override
-        public float normalZ() {
-            return normalZ;
+        public VertexData asImmutable() {
+            return this;
         }
     }
+
 }

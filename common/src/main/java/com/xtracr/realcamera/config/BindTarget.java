@@ -5,8 +5,7 @@ import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import com.xtracr.realcamera.util.VertexData;
-import it.unimi.dsi.fastutil.floats.Float2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.floats.FloatOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Mth;
 
@@ -66,7 +65,7 @@ public record BindTarget(
         DisableConfig playerHead = new DisableConfig("player_head", textureId, false, new UVRectangle[]{new UVRectangle(0, 0, 1.0f, 0.25f)});
         DisableConfig dragonHead = new DisableConfig("dragon_head", "minecraft:textures/entity/enderdragon/dragon.png", true, new UVRectangle[0]);
         DisableConfig[] disableConfigs = new DisableConfig[]{playerHead, dragonHead};
-        return new BindTarget(name, textureId, priority, 0.1f, targetConfig, bindConfig, offsets, disableConfigs);
+        return new BindTarget(name, textureId, priority, 0.2f, targetConfig, bindConfig, offsets, disableConfigs);
     }
 
     public boolean isEmpty() {
@@ -210,7 +209,7 @@ public record BindTarget(
 
     @JsonAdapter(DisableConfig.Adapter.class)
     public static class DisableConfig {
-        private final Float2ObjectOpenHashMap<FloatOpenHashSet> disableCacheMap = new Float2ObjectOpenHashMap<>();
+        private final LongOpenHashSet disabledUVs = new LongOpenHashSet(), enabledUVs = new LongOpenHashSet();
         private final String name;
         private final String textureId;
         private final boolean disableAll;
@@ -221,7 +220,6 @@ public record BindTarget(
             this.textureId = textureId;
             this.disableAll = disableAll;
             this.rectangles = rectangles;
-            disableCacheMap.defaultReturnValue(new FloatOpenHashSet());
         }
 
         public static DisableConfig read(FriendlyByteBuf byteBuf) {
@@ -263,17 +261,15 @@ public record BindTarget(
 
         public boolean disable(VertexData vertex) {
             final float u = vertex.u(), v = vertex.v();
-            final FloatOpenHashSet cachedVs = disableCacheMap.get(u);
-            if (!cachedVs.isEmpty()) {
-                if (cachedVs.contains(v)) return true;
-                if (cachedVs.contains(-v)) return false;
-            }
+            final long packed = (long) Float.floatToIntBits(u) << 32 | Float.floatToIntBits(v);
+            if (enabledUVs.contains(packed)) return false;
+            if (disabledUVs.contains(packed)) return true;
             for (UVRectangle rect : rectangles) {
                 if (!rect.contains(u, v)) continue;
-                disableCacheMap.computeIfAbsent(u, k -> new FloatOpenHashSet()).add(v);
+                disabledUVs.add(packed);
                 return true;
             }
-            disableCacheMap.computeIfAbsent(u, k -> new FloatOpenHashSet()).add(-v);
+            enabledUVs.add(packed);
             return false;
         }
 

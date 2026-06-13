@@ -2,12 +2,54 @@ package com.xtracr.realcamera.util;
 
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
-import org.joml.Matrix4f;
+import org.joml.Matrix4fc;
 import org.joml.Vector4f;
 
-public class MathUtil {
+public final class MathUtil {
     public static double round(double d, int digits) {
         return Math.round(d * Math.pow(10, digits)) / Math.pow(10, digits);
+    }
+
+    public static double floor(double d1, double d2) {
+        return Math.floor(Math.min(d1, d2));
+    }
+
+    public static double floor(double d1, double d2, double d3, double d4) {
+        double min = Math.min(Math.min(Math.min(d1, d2), d3), d4);
+        return Math.floor(min);
+    }
+
+    public static double ceil(double d1, double d2) {
+        return Math.ceil(Math.max(d1, d2));
+    }
+
+    public static double ceil(double d1, double d2, double d3, double d4) {
+        double max = Math.max(Math.max(Math.max(d1, d2), d3), d4);
+        return Math.ceil(max);
+    }
+
+    public static float cross(float a, float b, float c, float d) {
+        return a * d - b * c;
+    }
+
+    public static boolean pointInTriangle(float x, float y, float x0, float y0, float x1, float y1, float x2, float y2) {
+        float abX = x1 - x0, abY = y1 - y0;
+        float acX = x2 - x0, acY = y2 - y0;
+        float alpha = cross(abX, abY, acX, acY);
+        if (alpha == 0) return false;
+        float apX = x - x0, apY = y - y0;
+        float beta = cross(apX, apY, acX, acY) / alpha;
+        if (beta < 0) return false;
+        float gamma = cross(abX, abY, apX, apY) / alpha;
+        if (gamma < 0) return false;
+        return beta + gamma <= 1;
+    }
+
+    public static boolean pointInQuad(float x, float y,
+                                      float x0, float y0, float x1, float y1,
+                                      float x2, float y2, float x3, float y3) {
+        return pointInTriangle(x, y, x0, y0, x1, y1, x2, y2)
+                || pointInTriangle(x, y, x0, y0, x2, y2, x3, y3);
     }
 
     public static Vec3 getEulerAngleYXZ(Matrix3f normal) {
@@ -24,9 +66,9 @@ public class MathUtil {
         return linePoint.add(lineNormal.scale(distance));
     }
 
-    public static Vec3 projectToVec2(Vec3 vec3, Matrix4f... projectionMatrices) {
+    public static Vec3 projectToVec2(Vec3 vec3, Matrix4fc... projectionMatrices) {
         Vector4f vector4f = new Vector4f((float) vec3.x(), (float) vec3.y(), (float) vec3.z(), 1.0f);
-        for (Matrix4f matrix4f : projectionMatrices) vector4f.mul(matrix4f);
+        for (Matrix4fc matrix4f : projectionMatrices) vector4f.mul(matrix4f);
         if (vector4f.w() == 0.0) return Vec3.ZERO;
         return new Vec3(vector4f.x(), vector4f.y(), 0).scale(1 / (double) vector4f.w());
     }

@@ -18,7 +18,21 @@ public interface MultiVertexCatcher extends MultiBufferSource {
         return MeshCatcher.INSTANCE;
     }
 
-    void endCatching(Consumer<BuiltIterableBuffer> consumer);
+    static MultiVertexCatcher create() {
+        return new MeshCatcher();
+    }
+
+    void clear();
+
+    void forEachBuffer(Consumer<BuiltIterableBuffer> consumer);
+
+    default void endCatching(Consumer<BuiltIterableBuffer> consumer) {
+        try {
+            forEachBuffer(consumer);
+        } finally {
+            clear();
+        }
+    }
 
     class MeshCatcher extends MultiBufferSource.BufferSource implements MultiVertexCatcher {
         private static final MeshCatcher INSTANCE = new MeshCatcher();
@@ -48,14 +62,24 @@ public interface MultiVertexCatcher extends MultiBufferSource {
         }
 
         @Override
-        public void endCatching(Consumer<BuiltIterableBuffer> consumer) {
-            endBatch();
-            caughtMeshes.forEach((meshData, renderType) -> {
-                consumer.accept(BuiltIterableBuffer.buildFrom(renderType, meshData));
+        public void clear() {
+            startedBuilders.clear();
+            for (RenderedBuffer meshData : caughtMeshes.keySet()) {
                 meshData.release();
-            });
+            }
             caughtMeshes.clear();
             bufferPools.values().forEach(BufferBuilderPool::release);
+        }
+
+        @Override
+        public void forEachBuffer(Consumer<BuiltIterableBuffer> consumer) {
+            endBatch();
+            int meshOrdinal = 0;
+            for (var entry : caughtMeshes.entrySet()) {
+                RenderedBuffer meshData = entry.getKey();
+                RenderType renderType = entry.getValue();
+                consumer.accept(BuiltIterableBuffer.buildFrom(renderType, meshData, meshOrdinal++));
+            }
         }
 
         @Override
