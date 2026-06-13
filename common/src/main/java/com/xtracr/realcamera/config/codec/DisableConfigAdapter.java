@@ -1,4 +1,4 @@
-package com.xtracr.realcamera.config.serialization;
+package com.xtracr.realcamera.config.codec;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
@@ -33,30 +33,30 @@ public final class DisableConfigAdapter extends TypeAdapter<DisableConfig> {
     @Override
     public DisableConfig read(JsonReader in) throws IOException {
         in.beginObject();
-        in.nextName();
+        String _ = in.nextName();
         String name = in.nextString();
-        in.nextName();
+        String _ = in.nextName();
         String textureId = in.nextString();
-        in.nextName();
+        String _ = in.nextName();
         boolean disableAll = in.nextBoolean();
-        in.nextName();
+        String _ = in.nextName();
         in.beginArray();
         ArrayList<UVRectangle> rectangles = new ArrayList<>();
         while (in.hasNext()) {
             in.beginObject();
-            in.nextName();
+            String _ = in.nextName();
             float uMin = (float) in.nextDouble();
-            in.nextName();
+            String _ = in.nextName();
             float vMin = (float) in.nextDouble();
-            in.nextName();
+            String _ = in.nextName();
             float uMax = (float) in.nextDouble();
-            in.nextName();
+            String _ = in.nextName();
             float vMax = (float) in.nextDouble();
             in.endObject();
             rectangles.add(new UVRectangle(uMin, vMin, uMax, vMax));
         }
         in.endArray();
         in.endObject();
-        return new DisableConfig(name, textureId, disableAll, rectangles.toArray(UVRectangle[]::new));
+        return new DisableConfig(name, textureId, disableAll, rectangles);
     }
 }

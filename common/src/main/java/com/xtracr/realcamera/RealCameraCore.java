@@ -99,12 +99,8 @@ public final class RealCameraCore {
     }
 
     public static void renderCameraEntity(Minecraft client, float partialTicks, SubmitNodeCollector submitNodeCollector, Matrix4f modelView) {
-        Vec3 targetEulerAngle = MathUtil.getEulerAngleYXZ(lastResult.getRotation());
-        Matrix4f invertedCameraPose = new Matrix4f()
-                .rotateZ((float) targetEulerAngle.z())
-                .rotateX((float) targetEulerAngle.x())
-                .rotateY((float) (Math.PI - targetEulerAngle.y()))
-                .transpose()
+        Matrix4f invertedCameraPose = new Matrix4f(lastResult.getRotation())
+                .scale(-1f, 1f, -1f)
                 .invert()
                 .translate(Vec3.ZERO.subtract(lastResult.getPosition()).toVector3f());
         PoseStack poseStack = new PoseStack();

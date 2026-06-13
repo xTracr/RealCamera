@@ -10,7 +10,7 @@ import com.xtracr.realcamera.compat.CompatibilityHelper;
 import com.xtracr.realcamera.config.*;
 import com.xtracr.realcamera.config.BindTarget.BindConfig;
 import com.xtracr.realcamera.config.BindTarget.TargetConfig;
-import com.xtracr.realcamera.config.serialization.ConfigSerializer;
+import com.xtracr.realcamera.config.codec.ConfigCodec;
 import com.xtracr.realcamera.gui.components.*;
 import com.xtracr.realcamera.renderer.state.BuiltModelRecord;
 import com.xtracr.realcamera.renderer.state.VertexData;
@@ -291,7 +291,7 @@ public final class ModelViewScreen extends Screen {
                     button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("emptyTextureId").withStyle(ChatFormatting.RED)));
                 } else {
                     button.setTooltip(createTooltip("saveAs"));
-                    DisableConfig disableConfig = new DisableConfig(name, textureId, disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toArray(UVRectangle[]::new));
+                    DisableConfig disableConfig = new DisableConfig(name, textureId, disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toList());
                     for (int i = 0; i < disableConfigs.size(); i++) {
                         if (disableConfigs.get(i).name().equals(name)) {
                             disableConfigs.set(i, disableConfig);
@@ -496,7 +496,7 @@ public final class ModelViewScreen extends Screen {
 
     private void importBindTarget(Button button) {
         String base64 = minecraft.keyboardHandler.getClipboard();
-        DataResult<BindTarget> result = ConfigSerializer.fromCompressedBase64(base64);
+        DataResult<BindTarget> result = ConfigCodec.fromCompressedBase64(base64);
         switch (result) {
             case DataResult.Success<BindTarget> success -> {
                 BindTarget target = success.value();
@@ -512,7 +512,7 @@ public final class ModelViewScreen extends Screen {
 
     private void exportBindTarget(Button button) {
         BindTarget target = genBindTarget();
-        DataResult<String> result = ConfigSerializer.toCompressedBase64(target);
+        DataResult<String> result = ConfigCodec.toCompressedBase64(target);
         switch (result) {
             case DataResult.Success<String> success -> {
                 String base64 = success.value();
@@ -551,20 +551,20 @@ public final class ModelViewScreen extends Screen {
         offsetYawPair.setNumber(offsets.yaw);
         offsetRollPair.setNumber(offsets.roll);
         disableConfigs.clear();
-        disableConfigs.addAll(List.of(target.disableConfigs()));
+        disableConfigs.addAll(target.disableConfigs());
     }
 
     private BindTarget genBindTarget() {
         TargetConfig targetConfig = new TargetConfig(forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber());
         BindConfig bindConfig = new BindConfig(bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);
         OffsetConfig offsets = new OffsetConfig(scaleField.getNumber(), offsetXPair.getNumber(), offsetYPair.getNumber(), offsetZPair.getNumber(), offsetPitchPair.getNumber(), offsetYawPair.getNumber(), offsetRollPair.getNumber());
-        DisableConfig currentDisableConfig = new DisableConfig(disabledNameField.getValue(), disabledIdField.getValue(), disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toArray(UVRectangle[]::new));
-        DisableConfig[] disableConfigArray = disableConfigs.toArray(new DisableConfig[0]);
-        for (int i = 0; i < disableConfigArray.length; i++) {
-            if (disableConfigArray[i].name().equals(currentDisableConfig.name()))
-                disableConfigArray[i] = currentDisableConfig;
+        DisableConfig currentDisableConfig = new DisableConfig(disabledNameField.getValue(), disabledIdField.getValue(), disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toList());
+        List<DisableConfig> newDisableConfigs = new ArrayList<>(disableConfigs);
+        for (int i = 0; i < newDisableConfigs.size(); i++) {
+            if (newDisableConfigs.get(i).name().equals(currentDisableConfig.name()))
+                newDisableConfigs.set(i, currentDisableConfig);
         }
-        return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, disableConfigArray);
+        return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, newDisableConfigs);
     }
 
     private UVRectangleWidget addRectWidget(UVRectangleWidget rectWidget) {
