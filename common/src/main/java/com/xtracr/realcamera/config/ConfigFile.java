@@ -55,6 +55,7 @@ public final class ConfigFile {
         }
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     private static Path getPath() {
         File configDir = new File(Minecraft.getInstance().gameDirectory, "config");
         if (!configDir.exists()) configDir.mkdirs();

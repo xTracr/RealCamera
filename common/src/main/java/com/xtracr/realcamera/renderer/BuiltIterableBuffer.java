@@ -29,6 +29,7 @@ public record BuiltIterableBuffer(RenderType renderType, String textureId, Itera
         return primitives;
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public VertexData[] @Nullable [] findPrimitives(UV[] uvs) {
         int uvsLength = uvs.length;
         VertexData[][] primitives = new VertexData[uvsLength][];

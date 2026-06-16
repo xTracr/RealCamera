@@ -119,10 +119,10 @@ public abstract class MixinCamera {
     protected abstract float calculateFov(float partialTicks);
 
     @Shadow
-    protected abstract void move(float x, float y, float z);
+    protected abstract void move(float forwards, float up, float right);
 
     @Shadow
-    protected abstract void setRotation(float yaw, float pitch);
+    protected abstract void setRotation(float yRot, float xRot);
 
     @Shadow
     protected abstract void setPosition(Vec3 position);
