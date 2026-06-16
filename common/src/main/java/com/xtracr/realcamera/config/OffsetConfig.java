@@ -1,30 +1,118 @@
 package com.xtracr.realcamera.config;
 
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Pose;
 
 public final class OffsetConfig {
     public float scale = 1;
-    public float x, y, z, pitch, yaw, roll;
+    public float x, y, z;
+    public Posture standing = new Posture();
+    public Posture crouching = new Posture();
+    public Posture swimming = new Posture();
+    public Posture flying = new Posture();
 
     public OffsetConfig() {
     }
 
+    @Deprecated
     public OffsetConfig(float scale, float x, float y, float z, float pitch, float yaw, float roll) {
+        this(scale, x, y, z, new Posture(pitch, yaw, roll), new Posture(), new Posture(), new Posture());
+    }
+
+    public OffsetConfig(float scale, float x, float y, float z, Posture standing, Posture crouching, Posture swimming, Posture flying) {
         this.scale = scale;
         this.x = x;
         this.y = y;
         this.z = z;
-        this.pitch = pitch;
-        this.yaw = yaw;
-        this.roll = roll;
+        this.standing = standing;
+        this.crouching = crouching;
+        this.swimming = swimming;
+        this.flying = flying;
+    }
+
+
+    public float pitch(Pose state) {
+        return switch (state) {
+            case CROUCHING -> crouching.pitch + standing.pitch;
+            case SWIMMING -> swimming.pitch + standing.pitch;
+            case FALL_FLYING -> flying.pitch + standing.pitch;
+            default -> standing.pitch;
+        };
+    }
+
+    public float yaw(Pose state) {
+        return switch (state) {
+            case CROUCHING -> crouching.yaw + standing.yaw;
+            case SWIMMING -> swimming.yaw + standing.yaw;
+            case FALL_FLYING -> flying.yaw + standing.yaw;
+            default -> standing.yaw;
+        };
+    }
+
+    public float roll(Pose state) {
+        return switch (state) {
+            case CROUCHING -> crouching.roll + standing.roll;
+            case SWIMMING -> swimming.roll + standing.roll;
+            case FALL_FLYING -> flying.roll + standing.roll;
+            default -> standing.roll;
+        };
+    }
+
+    public void adjustPitch(Pose state, float value) {
+        switch (state) {
+            case CROUCHING:
+                crouching.pitch += value;
+                break;
+            case SWIMMING:
+                swimming.pitch += value;
+                break;
+            case FALL_FLYING:
+                flying.pitch += value;
+                break;
+            default:
+                standing.pitch += value;
+        }
+    }
+
+    public void adjustYaw(Pose state, float value) {
+        switch (state) {
+            case CROUCHING:
+                crouching.yaw += value;
+                break;
+            case SWIMMING:
+                swimming.yaw += value;
+                break;
+            case FALL_FLYING:
+                flying.yaw += value;
+                break;
+            default:
+                standing.yaw += value;
+        }
+    }
+
+    public void adjustRoll(Pose state, float value) {
+        switch (state) {
+            case CROUCHING:
+                crouching.roll += value;
+                break;
+            case SWIMMING:
+                swimming.roll += value;
+                break;
+            case FALL_FLYING:
+                flying.roll += value;
+                break;
+            default:
+                standing.roll += value;
+        }
     }
 
     public void clamp() {
         x = Mth.clamp(x, ModConfig.MIN_OFFSET_F, ModConfig.MAX_OFFSET_F);
         y = Mth.clamp(y, ModConfig.MIN_OFFSET_F, ModConfig.MAX_OFFSET_F);
         z = Mth.clamp(z, ModConfig.MIN_OFFSET_F, ModConfig.MAX_OFFSET_F);
-        pitch = Mth.wrapDegrees(pitch);
-        yaw = Mth.wrapDegrees(yaw);
-        roll = Mth.wrapDegrees(roll);
+        standing.clamp();
+        crouching.clamp();
+        swimming.clamp();
+        flying.clamp();
     }
 }

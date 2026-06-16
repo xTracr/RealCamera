@@ -4,6 +4,7 @@ import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.OffsetConfig;
 import com.xtracr.realcamera.util.CameraTransform;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
@@ -55,7 +56,12 @@ public class BindResult extends CameraTransform {
         upward = vec.normalize();
     }
 
+    @Deprecated
     public BindResult computeCamera(boolean mirrored) {
+        return computeCamera(mirrored, Pose.STANDING);
+    }
+
+    public BindResult computeCamera(boolean mirrored, Pose state) {
         if (!available()) return this;
         final int orientation = mirrored ? -1 : 1;
         upward = forward.cross(upward.cross(forward)).normalize();
@@ -64,9 +70,9 @@ public class BindResult extends CameraTransform {
         OffsetConfig offsets = target.offsets();
         Vector3f offset = new Vector3f(offsets.z, offsets.y, offsets.x).mul(offsets.scale).mul(rotation);
         position = position.add(offset.x(), offset.y(), offset.z());
-        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.yaw), rotation.m10, rotation.m11, rotation.m12);
-        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.pitch), rotation.m00, rotation.m01, rotation.m02);
-        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.roll), rotation.m20, rotation.m21, rotation.m22);
+        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.yaw(state)), rotation.m10, rotation.m11, rotation.m12);
+        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.pitch(state)), rotation.m00, rotation.m01, rotation.m02);
+        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.roll(state)), rotation.m20, rotation.m21, rotation.m22);
         return this;
     }
 }

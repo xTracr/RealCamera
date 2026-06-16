@@ -32,6 +32,7 @@ import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.phys.Vec2;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -54,6 +55,7 @@ public final class ModelViewScreen extends Screen {
     private float xRot, yRot;
     private String focusedTextureId;
     private ScreenRectangle modelViewArea;
+    private Pose currentPosture = Pose.STANDING;
     @Nullable
     private ScreenRectangle textureViewArea;
     private VertexData[][] focusedPolyhedron = new VertexData[0][];
@@ -89,13 +91,26 @@ public final class ModelViewScreen extends Screen {
     private final NumberWidgetPair offsetXPair = new NumberWidgetPair(font, "offsetX", compactWidgetWidth, widgetHeight, ModConfig.MIN_OFFSET_F, ModConfig.MAX_OFFSET_F);
     private final NumberWidgetPair offsetYPair = new NumberWidgetPair(font, "offsetY", compactWidgetWidth, widgetHeight, ModConfig.MIN_OFFSET_F, ModConfig.MAX_OFFSET_F);
     private final NumberWidgetPair offsetZPair = new NumberWidgetPair(font, "offsetZ", compactWidgetWidth, widgetHeight, ModConfig.MIN_OFFSET_F, ModConfig.MAX_OFFSET_F);
-    private final NumberWidgetPair offsetPitchPair = new NumberWidgetPair(font, "pitch", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
-    private final NumberWidgetPair offsetYawPair = new NumberWidgetPair(font, "yaw", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
-    private final NumberWidgetPair offsetRollPair = new NumberWidgetPair(font, "roll", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
+    private final NumberWidgetPair offsetStandingPitchPair = new NumberWidgetPair(font, "pitch", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
+    private final NumberWidgetPair offsetStandingYawPair = new NumberWidgetPair(font, "yaw", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
+    private final NumberWidgetPair offsetStandingRollPair = new NumberWidgetPair(font, "roll", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
+    private final NumberWidgetPair offsetCrouchingPitchPair = new NumberWidgetPair(font, "pitch", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
+    private final NumberWidgetPair offsetCrouchingYawPair = new NumberWidgetPair(font, "yaw", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
+    private final NumberWidgetPair offsetCrouchingRollPair = new NumberWidgetPair(font, "roll", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
+    private final NumberWidgetPair offsetSwimmingPitchPair = new NumberWidgetPair(font, "pitch", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
+    private final NumberWidgetPair offsetFlyingPitchPair = new NumberWidgetPair(font, "pitch", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
+    private final NumberWidgetPair offsetSwimmingYawPair = new NumberWidgetPair(font, "yaw", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
+    private final NumberWidgetPair offsetSwimmingRollPair = new NumberWidgetPair(font, "roll", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
+    private final NumberWidgetPair offsetFlyingYawPair = new NumberWidgetPair(font, "yaw", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
+    private final NumberWidgetPair offsetFlyingRollPair = new NumberWidgetPair(font, "roll", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
     private final List<DisableConfig> disableConfigs = new ArrayList<>();
     private final List<UVRectangleWidget> rectWidgets = new ArrayList<>();
     private final Map<String, Set<String>> hiddenNameMap = new HashMap<>();
-    private final List<NumberWidgetPair> widgetPairs = List.of(offsetXPair, offsetYPair, offsetZPair, offsetPitchPair, offsetYawPair, offsetRollPair);
+    private final List<NumberWidgetPair> widgetPairs = List.of(offsetXPair, offsetYPair, offsetZPair,
+            offsetStandingPitchPair, offsetStandingYawPair, offsetStandingRollPair,
+            offsetCrouchingPitchPair, offsetCrouchingYawPair, offsetCrouchingRollPair,
+            offsetSwimmingPitchPair, offsetSwimmingYawPair, offsetSwimmingRollPair,
+            offsetFlyingPitchPair, offsetFlyingYawPair, offsetFlyingRollPair);
     private final CycleButton<Integer> selectingButton = createCyclingButtonBuilder(ImmutableSortedMap.of(
             0, LocUtil.MODEL_VIEW_WIDGET("forwardVector").withStyle(ChatFormatting.GREEN),
             1, LocUtil.MODEL_VIEW_WIDGET("upwardVector").withStyle(ChatFormatting.RED),
@@ -117,11 +132,23 @@ public final class ModelViewScreen extends Screen {
             0, LocUtil.MODEL_VIEW_WIDGET("toggleSliderToField"),
             1, LocUtil.MODEL_VIEW_WIDGET("toggleFieldToSlider")), 0)
             .displayOnlyValue()
-            .create(0, 0, wideWidgetWidth, widgetHeight, CommonComponents.EMPTY, (_, i) -> {
+            .create(0, 0, widgetWidth, widgetHeight, CommonComponents.EMPTY, (_, i) -> {
                 boolean useSlider = i == 0;
                 for (NumberWidgetPair pair : widgetPairs) pair.syncAndSwitch(useSlider);
                 initWidgets(page);
             });
+    private final CycleButton<Pose> posturePreviewButton = createCyclingButtonBuilder(ImmutableMap.of(
+            Pose.STANDING, LocUtil.MODEL_VIEW_WIDGET("standingPosture"),
+            Pose.CROUCHING, LocUtil.MODEL_VIEW_WIDGET("crouchingPosture"),
+            Pose.SWIMMING, LocUtil.MODEL_VIEW_WIDGET("swimmingPosture"),
+            Pose.FALL_FLYING, LocUtil.MODEL_VIEW_WIDGET("flyingPosture")), Pose.STANDING)
+            .withTooltip(_ -> createTooltip("posture"))
+            .displayOnlyValue()
+            .create(0, 0, widgetWidth, widgetHeight, LocUtil.MODEL_VIEW_WIDGET("posture"),
+                    (_, posture) -> {
+                        currentPosture = posture;
+                        initWidgets(page);
+                    });
     private final CycleButton<Category> toggleCategoryButton = createCyclingButtonBuilder(ImmutableSortedMap.of(
             Category.CONFIGS, LocUtil.MODEL_VIEW_WIDGET(Category.CONFIGS.next().id),
             Category.PREVIEW, LocUtil.MODEL_VIEW_WIDGET(Category.PREVIEW.next().id),
@@ -194,7 +221,8 @@ public final class ModelViewScreen extends Screen {
                 rows.addChild(textureIdField, 2, smallSettings).setTooltip(createTooltip("textureId"));
             }
             case PREVIEW -> {
-                rows.addChild(toggleSliderButton, 2);
+                rows.addChild(toggleSliderButton, 1);
+                rows.addChild(posturePreviewButton, 1);
                 LayoutSettings numericControlSettings = grid.newCellSettings().padding(-20, 2, 0, 0);
                 rows.addChild(bindXButton, smallSettings).setTooltip(createTooltip("bindButtons"));
                 rows.addChild(offsetXPair, numericControlSettings);
@@ -203,10 +231,10 @@ public final class ModelViewScreen extends Screen {
                 rows.addChild(bindZButton, smallSettings).setTooltip(createTooltip("bindButtons"));
                 rows.addChild(offsetZPair, numericControlSettings);
                 rows.addChild(bindRotButton, smallSettings).setTooltip(createTooltip("bindButtons"));
-                rows.addChild(offsetPitchPair, numericControlSettings);
-                rows.addChild(offsetYawPair, 2, grid.newCellSettings().padding(26, 2, 0, 0));
+                rows.addChild(currentPitchPair(), numericControlSettings);
+                rows.addChild(currentYawPair(), 2, grid.newCellSettings().padding(26, 2, 0, 0));
                 rows.addChild(new SimpleIconButton(0, 0, _ -> widgetPairs.forEach(pair -> pair.setNumber(0))), smallSettings);
-                rows.addChild(offsetRollPair, numericControlSettings);
+                rows.addChild(currentRollPair(), numericControlSettings);
                 rows.addChild(scaleField, smallSettings).setTooltip(createTooltip("scale"));
                 rows.addChild(depthField, smallSettings).setTooltip(createTooltip("depth"));
             }
@@ -427,7 +455,7 @@ public final class ModelViewScreen extends Screen {
             modelPose.translate(modelX, modelY, 0);
             modelPose.mulPose(rotation);
             modelPose.translate(0, -entity.getBbHeight() / 2.0f, 0);
-            return analyser.captureModel(minecraft, entity, 1.0f, modelPose, target);
+            return analyser.captureModel(minecraft, entity, 1.0f, modelPose, target, currentPosture);
         } finally {
             entity.yBodyRot = entityBodyYaw;
             entity.setYRot(entityYaw);
@@ -495,7 +523,7 @@ public final class ModelViewScreen extends Screen {
     }
 
     private void importBindTarget(Button button) {
-        String base64 = minecraft.keyboardHandler.getClipboard();
+        String base64 = minecraft.keyboardHandler.getClipboard().trim();
         DataResult<BindTarget> result = ConfigCodec.fromCompressedBase64(base64);
         switch (result) {
             case DataResult.Success<BindTarget> success -> {
@@ -547,9 +575,18 @@ public final class ModelViewScreen extends Screen {
         offsetXPair.setNumber(offsets.x);
         offsetYPair.setNumber(offsets.y);
         offsetZPair.setNumber(offsets.z);
-        offsetPitchPair.setNumber(offsets.pitch);
-        offsetYawPair.setNumber(offsets.yaw);
-        offsetRollPair.setNumber(offsets.roll);
+        offsetStandingPitchPair.setNumber(offsets.standing.pitch);
+        offsetStandingYawPair.setNumber(offsets.standing.yaw);
+        offsetStandingRollPair.setNumber(offsets.standing.roll);
+        offsetCrouchingPitchPair.setNumber(offsets.crouching.pitch);
+        offsetCrouchingYawPair.setNumber(offsets.crouching.yaw);
+        offsetCrouchingRollPair.setNumber(offsets.crouching.roll);
+        offsetSwimmingPitchPair.setNumber(offsets.swimming.pitch);
+        offsetSwimmingYawPair.setNumber(offsets.swimming.yaw);
+        offsetSwimmingRollPair.setNumber(offsets.swimming.roll);
+        offsetFlyingPitchPair.setNumber(offsets.flying.pitch);
+        offsetFlyingYawPair.setNumber(offsets.flying.yaw);
+        offsetFlyingRollPair.setNumber(offsets.flying.roll);
         disableConfigs.clear();
         disableConfigs.addAll(target.disableConfigs());
     }
@@ -557,7 +594,11 @@ public final class ModelViewScreen extends Screen {
     private BindTarget genBindTarget() {
         TargetConfig targetConfig = new TargetConfig(forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber());
         BindConfig bindConfig = new BindConfig(bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);
-        OffsetConfig offsets = new OffsetConfig(scaleField.getNumber(), offsetXPair.getNumber(), offsetYPair.getNumber(), offsetZPair.getNumber(), offsetPitchPair.getNumber(), offsetYawPair.getNumber(), offsetRollPair.getNumber());
+        OffsetConfig offsets = new OffsetConfig(scaleField.getNumber(), offsetXPair.getNumber(), offsetYPair.getNumber(), offsetZPair.getNumber(),
+                new Posture(offsetStandingPitchPair.getNumber(), offsetStandingYawPair.getNumber(), offsetStandingRollPair.getNumber()),
+                new Posture(offsetCrouchingPitchPair.getNumber(), offsetCrouchingYawPair.getNumber(), offsetCrouchingRollPair.getNumber()),
+                new Posture(offsetSwimmingPitchPair.getNumber(), offsetSwimmingYawPair.getNumber(), offsetSwimmingRollPair.getNumber()),
+                new Posture(offsetFlyingPitchPair.getNumber(), offsetFlyingYawPair.getNumber(), offsetFlyingRollPair.getNumber()));
         DisableConfig currentDisableConfig = new DisableConfig(disabledNameField.getValue(), disabledIdField.getValue(), disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toList());
         List<DisableConfig> newDisableConfigs = new ArrayList<>(disableConfigs);
         for (int i = 0; i < newDisableConfigs.size(); i++) {
@@ -577,6 +618,33 @@ public final class ModelViewScreen extends Screen {
             return rectWidget;
         }
         return foundRectWidget;
+    }
+
+    private NumberWidgetPair currentPitchPair() {
+        return switch (currentPosture) {
+            case CROUCHING -> offsetCrouchingPitchPair;
+            case SWIMMING -> offsetSwimmingPitchPair;
+            case FALL_FLYING -> offsetFlyingPitchPair;
+            default -> offsetStandingPitchPair;
+        };
+    }
+
+    private NumberWidgetPair currentYawPair() {
+        return switch (currentPosture) {
+            case CROUCHING -> offsetCrouchingYawPair;
+            case SWIMMING -> offsetSwimmingYawPair;
+            case FALL_FLYING -> offsetFlyingYawPair;
+            default -> offsetStandingYawPair;
+        };
+    }
+
+    private NumberWidgetPair currentRollPair() {
+        return switch (currentPosture) {
+            case CROUCHING -> offsetCrouchingRollPair;
+            case SWIMMING -> offsetSwimmingRollPair;
+            case FALL_FLYING -> offsetFlyingRollPair;
+            default -> offsetStandingRollPair;
+        };
     }
 
     private Tooltip createTooltip(String key, Object... args) {

@@ -21,6 +21,7 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -238,16 +239,16 @@ public final class ModelAnalyser {
         }
     }
 
-    public List<BuiltModelRecord> captureModel(Minecraft client, Entity entity, float partialTicks, PoseStack poseStack, BindTarget target) {
+    public List<BuiltModelRecord> captureModel(Minecraft client, Entity entity, float partialTicks, PoseStack poseStack, BindTarget target, Pose posture) {
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         client.gameRenderer.getLighting().setupFor(Lighting.Entry.ENTITY_IN_UI);
         dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, vertexCatcher.initCollector());
         List<BuiltModelRecord> records = new ArrayList<>();
-        vertexCatcher.forEachBuffer(buf -> computeRecord(buf, records, target));
+        vertexCatcher.forEachBuffer(buf -> computeRecord(buf, records, target, posture));
         return records;
     }
 
-    private void computeRecord(BuiltIterableBuffer builtBuffer, List<BuiltModelRecord> records, BindTarget target) {
+    private void computeRecord(BuiltIterableBuffer builtBuffer, List<BuiltModelRecord> records, BindTarget target, Pose posture) {
         VertexData[] vertices = builtBuffer.vertexBuffer().stream().map(VertexData::asImmutable).toArray(VertexData[]::new);
         VertexFormat.Mode drawMode = builtBuffer.renderType().mode();
         final int primitiveLength = drawMode.primitiveLength, primitiveStride = drawMode.primitiveStride;
@@ -268,7 +269,7 @@ public final class ModelAnalyser {
         if (targetPrimitives[0] != null) result.setPosition(VertexData.position(targetPrimitives[0], config.posU(), config.posV()));
         if (targetPrimitives[1] != null) result.setForward(VertexData.normal(targetPrimitives[1]).scale(-1));
         if (targetPrimitives[2] != null) result.setUpward(VertexData.normal(targetPrimitives[2]).scale(-1));
-        if (result.weakAvailable()) bindResult = result.computeCamera(true);
+        if (result.weakAvailable()) bindResult = result.computeCamera(true, posture);
     }
 
     private record ZEntry(BuiltModelRecord record, VertexData[] primitive, float z) {

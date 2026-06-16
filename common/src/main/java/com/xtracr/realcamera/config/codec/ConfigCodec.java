@@ -19,8 +19,10 @@ import java.util.zip.InflaterInputStream;
 
 public interface ConfigCodec extends StreamCodec<ByteBuf, BindTarget> {
     ConfigCodec SERIALIZER_703 = new ConfigCodec703();
+    ConfigCodec SERIALIZER_708 = new ConfigCodec708();
     Map<Short, ConfigCodec> SERIALIZERS = ImmutableMap.of(
-            SERIALIZER_703.version(), SERIALIZER_703
+            SERIALIZER_703.version(), SERIALIZER_703,
+            SERIALIZER_708.version(), SERIALIZER_708
     );
 
     static BindTarget readWithVersion(ByteBuf byteBuf) throws DecoderException, IllegalArgumentException {
@@ -31,8 +33,8 @@ public interface ConfigCodec extends StreamCodec<ByteBuf, BindTarget> {
     }
 
     static void writeWithVersion(ByteBuf byteBuf, BindTarget bindTarget) throws EncoderException {
-        byteBuf.writeShort(SERIALIZER_703.version());
-        SERIALIZER_703.encode(byteBuf, bindTarget);
+        byteBuf.writeShort(SERIALIZER_708.version());
+        SERIALIZER_708.encode(byteBuf, bindTarget);
     }
 
     static DataResult<BindTarget> fromCompressedBase64(String base64) {

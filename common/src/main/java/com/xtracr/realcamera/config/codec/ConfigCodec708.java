@@ -1,11 +1,8 @@
 package com.xtracr.realcamera.config.codec;
 
-import com.xtracr.realcamera.config.BindTarget;
+import com.xtracr.realcamera.config.*;
 import com.xtracr.realcamera.config.BindTarget.BindConfig;
 import com.xtracr.realcamera.config.BindTarget.TargetConfig;
-import com.xtracr.realcamera.config.DisableConfig;
-import com.xtracr.realcamera.config.OffsetConfig;
-import com.xtracr.realcamera.config.UVRectangle;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.DecoderException;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -14,7 +11,7 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.List;
 
-final class ConfigCodec703 implements ConfigCodec {
+final class ConfigCodec708 implements ConfigCodec {
     static final StreamCodec<ByteBuf, TargetConfig> TARGET_CONFIG_CODEC = StreamCodec.composite(
             ByteBufCodecs.FLOAT, TargetConfig::forwardU,
             ByteBufCodecs.FLOAT, TargetConfig::forwardV,
@@ -42,14 +39,21 @@ final class ConfigCodec703 implements ConfigCodec {
                 return new BindConfig(bindX, bindY, bindZ, bindRotation);
             }
     );
+    static final StreamCodec<ByteBuf, Posture> OFFSET_POSTURE_CODEC = StreamCodec.composite(
+            ByteBufCodecs.FLOAT, posture -> posture.pitch,
+            ByteBufCodecs.FLOAT, posture -> posture.yaw,
+            ByteBufCodecs.FLOAT, posture -> posture.roll,
+            Posture::new
+    );
     static final StreamCodec<ByteBuf, OffsetConfig> OFFSET_CONFIG_CODEC = StreamCodec.composite(
             ByteBufCodecs.FLOAT, offsets -> offsets.scale,
             ByteBufCodecs.FLOAT, offsets -> offsets.x,
             ByteBufCodecs.FLOAT, offsets -> offsets.y,
             ByteBufCodecs.FLOAT, offsets -> offsets.z,
-            ByteBufCodecs.FLOAT, offsets -> offsets.standing.pitch,
-            ByteBufCodecs.FLOAT, offsets -> offsets.standing.yaw,
-            ByteBufCodecs.FLOAT, offsets -> offsets.standing.roll,
+            OFFSET_POSTURE_CODEC, offsets -> offsets.standing,
+            OFFSET_POSTURE_CODEC, offsets -> offsets.crouching,
+            OFFSET_POSTURE_CODEC, offsets -> offsets.swimming,
+            OFFSET_POSTURE_CODEC, offsets -> offsets.flying,
             OffsetConfig::new
     );
     static final StreamCodec<ByteBuf, List<UVRectangle>> UV_RECTANGLES_CODEC = StreamCodec.composite(
@@ -80,7 +84,7 @@ final class ConfigCodec703 implements ConfigCodec {
 
     @Override
     public short version() {
-        return 703; // 0.7.3
+        return 708; // 0.7.8
     }
 
     @Override

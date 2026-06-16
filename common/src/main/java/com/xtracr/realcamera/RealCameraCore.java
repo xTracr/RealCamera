@@ -80,7 +80,7 @@ public final class RealCameraCore {
         entity.setInvisible(invisible);
         if (newResult.available()) {
             failureFrames = 0;
-            lastResult = newResult.computeCamera(false);
+            lastResult = newResult.computeCamera(false, entity.getPose());
         } else {
             failureFrames++;
             Player player = client.player;
