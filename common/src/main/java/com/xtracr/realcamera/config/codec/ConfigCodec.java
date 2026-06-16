@@ -1,38 +1,37 @@
 package com.xtracr.realcamera.config.codec;
 
-import com.google.common.collect.ImmutableMap;
 import com.mojang.serialization.DataResult;
 import com.xtracr.realcamera.config.BindTarget;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
+import it.unimi.dsi.fastutil.shorts.Short2ReferenceMap;
 import net.minecraft.network.codec.StreamCodec;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Base64;
-import java.util.Map;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
 public interface ConfigCodec extends StreamCodec<ByteBuf, BindTarget> {
-    ConfigCodec SERIALIZER_703 = new ConfigCodec703();
-    Map<Short, ConfigCodec> SERIALIZERS = ImmutableMap.of(
-            SERIALIZER_703.version(), SERIALIZER_703
+    ConfigCodec CODEC_703 = new ConfigCodec703();
+    Short2ReferenceMap<ConfigCodec> CODECS = Short2ReferenceMap.ofEntries(
+            Short2ReferenceMap.entry(CODEC_703.version(), CODEC_703)
     );
 
     static BindTarget readWithVersion(ByteBuf byteBuf) throws DecoderException, IllegalArgumentException {
         short version = byteBuf.readShort();
-        ConfigCodec serializer = SERIALIZERS.get(version);
-        if (serializer  == null) throw new IllegalArgumentException("Incompatible version: " + toSemVer(version));
+        ConfigCodec serializer = CODECS.get(version);
+        if (serializer == null) throw new IllegalArgumentException("Incompatible version: " + toSemVer(version));
         return serializer.decode(byteBuf);
     }
 
     static void writeWithVersion(ByteBuf byteBuf, BindTarget bindTarget) throws EncoderException {
-        byteBuf.writeShort(SERIALIZER_703.version());
-        SERIALIZER_703.encode(byteBuf, bindTarget);
+        byteBuf.writeShort(CODEC_703.version());
+        CODEC_703.encode(byteBuf, bindTarget);
     }
 
     static DataResult<BindTarget> fromCompressedBase64(String base64) {

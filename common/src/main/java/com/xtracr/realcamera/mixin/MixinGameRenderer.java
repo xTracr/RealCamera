@@ -24,10 +24,10 @@ public abstract class MixinGameRenderer {
     private Camera mainCamera;
 
     @Inject(method = "update", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;update(Lnet/minecraft/client/DeltaTracker;)V"))
-    private void realcamera$atCameraUpdate(DeltaTracker deltaTracker, boolean renderLevel, CallbackInfo ci) {
+    private void realcamera$atCameraUpdate(DeltaTracker deltaTracker, boolean advanceGameTime, CallbackInfo ci) {
         float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(true);
         CompatibilityHelper.NEA_setDeltaTick(partialTicks);
-        RealCameraCore.initialize(minecraft, renderLevel);
+        RealCameraCore.initialize(minecraft, advanceGameTime);
         if (RealCameraCore.isActive() && !ConfigFile.config().isClassic) {
             minecraft.getEntityRenderDispatcher().prepare(mainCamera, minecraft.crosshairPickEntity);
             RealCameraCore.computeCamera(minecraft, partialTicks);

@@ -43,7 +43,7 @@ final class ConfigCodec703 implements ConfigCodec {
             }
     );
     static final StreamCodec<ByteBuf, OffsetConfig> OFFSET_CONFIG_CODEC = StreamCodec.composite(
-            ByteBufCodecs.FLOAT, offsets -> offsets.x,
+            ByteBufCodecs.FLOAT, offsets -> offsets.scale,
             ByteBufCodecs.FLOAT, offsets -> offsets.x,
             ByteBufCodecs.FLOAT, offsets -> offsets.y,
             ByteBufCodecs.FLOAT, offsets -> offsets.z,
