@@ -37,13 +37,6 @@ dependencies {
     compileOnly("me.shedaniel.cloth:cloth-config:$clothConfigVersion") {
         exclude(group = "net.fabricmc.fabric-api")
     }
-
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
 }
 
 loom {
