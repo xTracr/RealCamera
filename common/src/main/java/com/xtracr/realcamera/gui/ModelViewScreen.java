@@ -45,8 +45,8 @@ public final class ModelViewScreen extends Screen {
     private static final int SELECTION_COLOR = 0x4F3333CC, SELECTION_HOVER_COLOR = 0x2F3333CC, OUTLINE_COLOR = 0xAAFFFFFF;
     private static final int SIDE_PANEL_BG = 0xFF444444, CENTER_PANEL_BG = 0xFF222222;
     private static final int DEFAULT_SCALE = 80, MIN_SCALE = 16, MAX_SCALE = 1024;
-    private final int xSize = 450, ySize = 206, middleWidth = xSize - 200, widgetWidth = (xSize - middleWidth) / 4 - 8, widgetHeight = 18, wideWidgetWidth = widgetWidth * 2 + 4, compactWidgetWidth = widgetWidth * 2 - 18;
-    private int x, y, page = 0;
+    private final int widgetWidth = 42, widgetHeight = 18, wideWidgetWidth = widgetWidth * 2 + 4, compactWidgetWidth = widgetWidth * 2 - 18;
+    private int x, y, xSize, ySize, middleWidth, page = 0;
     private InputConstants.Key modifierKey = InputConstants.getKey(ConfigFile.config().binding.screenModifierKey);
     private boolean initialized;
     private int modelScale = DEFAULT_SCALE, textureScale = DEFAULT_SCALE, layers = 0, selectionRadius = 10;
@@ -137,6 +137,9 @@ public final class ModelViewScreen extends Screen {
     @Override
     protected void init() {
         super.init();
+        xSize = Math.clamp(width - 10, 10, 450);
+        ySize = Math.clamp(height - 10, 10, 206);
+        middleWidth = Math.max(10, xSize - 200);
         x = (width - xSize) / 2;
         y = (height - ySize) / 2;
         modifierKey = InputConstants.getKey(ConfigFile.config().binding.screenModifierKey);
@@ -276,7 +279,7 @@ public final class ModelViewScreen extends Screen {
         GridLayout.RowHelper rows = grid.createRowHelper(4);
         rows.addChild(toggleCategoryButton, 3);
         rows.addChild(new SimpleIconButton(80, 0, _ -> {
-            if (CompatibilityHelper.isModLoaded("cloth-config")) minecraft.setScreen(ConfigScreen.create(this));
+            if (CompatibilityHelper.isModLoaded("cloth-config")) minecraft.gui.setScreen(ConfigScreen.create(this));
         }), smallSettings).setTooltip(createTooltip("toConfigScreen"));
         final int widgetsPerPage, size;
         if (toggleCategoryButton.getValue() == Category.DISABLE) {
@@ -404,7 +407,7 @@ public final class ModelViewScreen extends Screen {
         ModelAnalyser.applyDisableConfigs(modelRecords, target, textureId, hiddenNames);
         computeFocusedPrimitives(analyser, modelRecords, textureRecords, mouseX, mouseY);
         renderCulledModels(graphics, analyser, target, modelRecords);
-        if (textureViewArea != null) renderFlattenedModels(graphics, analyser, textureRecords);
+        renderFlattenedModels(graphics, analyser, textureRecords);
     }
 
     private List<BuiltModelRecord> captureRotatedEntity(ModelAnalyser analyser, BindTarget target, LivingEntity entity) {
@@ -465,6 +468,7 @@ public final class ModelViewScreen extends Screen {
     }
 
     private void renderFlattenedModels(GuiGraphicsExtractor graphics, ModelAnalyser analyser, List<BuiltModelRecord> textureRecords) {
+        if (textureViewArea == null) return;
         int x1 = textureViewArea.left(), y1 = textureViewArea.top(), x2 = textureViewArea.right(), y2 = textureViewArea.bottom();
         GUIHelper.enableScissor(graphics, textureViewArea);
         float scale = (textureScale * textureViewArea.width()) / (float) DEFAULT_SCALE;
@@ -610,7 +614,7 @@ public final class ModelViewScreen extends Screen {
     }
 
     private boolean inModelViewArea(double x, double y) {
-        return modelViewArea.containsPoint((int) x, (int) y);
+        return modelViewArea != null && modelViewArea.containsPoint((int) x, (int) y);
     }
 
     private boolean inTextureViewArea(double x, double y) {

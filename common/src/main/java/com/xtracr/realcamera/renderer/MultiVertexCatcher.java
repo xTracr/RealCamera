@@ -1,23 +1,21 @@
 package com.xtracr.realcamera.renderer;
 
-import com.mojang.blaze3d.vertex.*;
-import com.xtracr.realcamera.mixin.accessor.CustomFeatureRenderer$StorageAccessor;
-import com.xtracr.realcamera.mixin.accessor.ModelFeatureRenderer$StorageAccessor;
-import com.xtracr.realcamera.mixin.accessor.ModelPartFeatureRenderer$StorageAccessor;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.ByteBufferBuilder;
+import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.SheetedDecalTextureGenerator;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectSortedMaps;
 import net.minecraft.client.model.Model;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.SubmitNodeCollection;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.SubmitNodeStorage;
-import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
+import net.minecraft.client.renderer.feature.CustomFeatureRenderer;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.feature.submit.SubmitNode;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import org.jspecify.annotations.NonNull;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import java.util.SequencedMap;
 import java.util.function.Consumer;
 
@@ -32,107 +30,62 @@ public final class MultiVertexCatcher {
         return new MultiVertexCatcher();
     }
 
-    private static <S> void renderModel(PoseStack poseStack, SubmitNodeStorage.ModelSubmit<S> submit, VertexConsumer buffer) {
-        poseStack.pushPose();
+    @SuppressWarnings("resource")
+    private static <S> void renderModelSubmit(ModelFeatureRenderer.Submit<S> submit, VertexConsumer buffer) {
+        PoseStack poseStack = new PoseStack();
         poseStack.last().set(submit.pose());
+        VertexConsumer wrappedBuffer;
+        if (submit.sheetedDecalPose() != null) {
+            wrappedBuffer = new SheetedDecalTextureGenerator(buffer, submit.sheetedDecalPose(), 1.0F);
+        } else if (submit.sprite() != null) {
+            wrappedBuffer = submit.sprite().wrap(buffer);
+        } else {
+            wrappedBuffer = buffer;
+        }
         Model<? super S> model = submit.model();
-        //noinspection resource
-        VertexConsumer wrappedBuffer = submit.sprite() == null ? buffer : submit.sprite().wrap(buffer);
         model.setupAnim(submit.state());
         model.renderToBuffer(poseStack, wrappedBuffer, submit.lightCoords(), submit.overlayCoords(), submit.tintedColor());
-        poseStack.popPose();
-    }
-
-    private static void renderModelParts(PoseStack poseStack, Map<RenderType, List<SubmitNodeStorage.ModelPartSubmit>> modelPartSubmitsMap, MultiBufferSource.BufferSource bufferSource) {
-        poseStack.pushPose();
-        for (var entry : modelPartSubmitsMap.entrySet()) {
-            RenderType renderType = entry.getKey();
-            List<SubmitNodeStorage.ModelPartSubmit> modelPartSubmits = entry.getValue();
-            VertexConsumer buffer = bufferSource.getBuffer(renderType);
-
-            for (SubmitNodeStorage.ModelPartSubmit submit : modelPartSubmits) {
-                //noinspection resource
-                VertexConsumer wrappedBuffer = submit.sprite() == null ? buffer : submit.sprite().wrap(buffer);
-                poseStack.last().set(submit.pose());
-                submit.modelPart().render(poseStack, wrappedBuffer, submit.lightCoords(), submit.overlayCoords(), submit.tintedColor());
-            }
-        }
-        poseStack.popPose();
-    }
-
-    private static void renderCustomGeometry(Map<RenderType, List<SubmitNodeStorage.CustomGeometrySubmit>> customGeometrySubmits, MultiBufferSource.BufferSource bufferSource) {
-        for (var entry : customGeometrySubmits.entrySet()) {
-            VertexConsumer buffer = bufferSource.getBuffer(entry.getKey());
-            for (SubmitNodeStorage.CustomGeometrySubmit customGeometrySubmit : entry.getValue()) {
-                customGeometrySubmit.customGeometryRenderer().render(customGeometrySubmit.pose(), buffer);
-            }
-        }
-    }
-
-    /**
-     * @see FeatureRenderDispatcher#renderSolidFeatures()
-     */
-    private void renderSolidFeatures() {
-        for (SubmitNodeCollection collection : storage.getSubmitsPerOrder().values()) {
-            PoseStack poseStack = new PoseStack();
-            for (var entry : ((ModelFeatureRenderer$StorageAccessor) collection.getModelSubmits()).getSolidModelSubmits().entrySet()) {
-                VertexConsumer buffer = meshCatcher.getBuffer(entry.getKey());
-                for (SubmitNodeStorage.ModelSubmit<?> submit : entry.getValue()) {
-                    renderModel(poseStack, submit, buffer);
-                }
-            }
-            renderModelParts(poseStack, ((ModelPartFeatureRenderer$StorageAccessor) collection.getModelPartSubmits()).getSolidModelPartSubmits(), meshCatcher);
-            renderCustomGeometry(((CustomFeatureRenderer$StorageAccessor) collection.getCustomGeometrySubmits()).getSolidCustomGeometrySubmits(), meshCatcher);
-        }
-    }
-
-    /**
-     * @see FeatureRenderDispatcher#renderTranslucentFeatures()
-     */
-    private void renderTranslucentFeatures() {
-        for (SubmitNodeCollection collection : storage.getSubmitsPerOrder().values()) {
-            PoseStack poseStack = new PoseStack();
-            for (var submit : ((ModelFeatureRenderer$StorageAccessor) collection.getModelSubmits()).getTranslucentModelSubmits()) {
-                renderModel(poseStack, submit.modelSubmit(), meshCatcher.getBuffer(submit.renderType()));
-            }
-            renderModelParts(poseStack, ((ModelPartFeatureRenderer$StorageAccessor) collection.getModelPartSubmits()).getTranslucentModelPartSubmits(), meshCatcher);
-            renderCustomGeometry(((CustomFeatureRenderer$StorageAccessor) collection.getCustomGeometrySubmits()).getTranslucentCustomGeometrySubmits(), meshCatcher);
-        }
     }
 
     public SubmitNodeCollector initCollector() {
         meshCatcher.clear();
-        storage.clear();
+        storage.getSubmitsPerOrder().clear();
         return storage;
     }
 
     public void forEachBuffer(Consumer<BuiltIterableBuffer> consumer) {
         if (!storage.getSubmitsPerOrder().isEmpty()) {
-            renderSolidFeatures();
-            renderTranslucentFeatures();
-            storage.clear();
+            storage.drainPhases(phase -> phase.sortInto((submitNode, _) -> renderSubmit(submitNode)));
             meshCatcher.endBatch();
         }
         meshCatcher.forEachBuffer(consumer);
     }
 
-    static final class MeshCatcher extends MultiBufferSource.BufferSource {
+    private void renderSubmit(SubmitNode submitNode) {
+        if (submitNode.featureType() == ModelFeatureRenderer.TYPE) {
+            ModelFeatureRenderer.Submit<?> submit = (ModelFeatureRenderer.Submit<?>) submitNode;
+            VertexConsumer buffer = meshCatcher.getBuffer(submit.renderType());
+            renderModelSubmit(submit, buffer);
+        } else if (submitNode.featureType() == CustomFeatureRenderer.TYPE) {
+            CustomFeatureRenderer.Submit submit = (CustomFeatureRenderer.Submit) submitNode;
+            VertexConsumer buffer = meshCatcher.getBuffer(submit.renderType());
+            submit.customGeometryRenderer().render(submit.pose(), buffer);
+        }
+    }
+
+    static final class MeshCatcher {
         private final SequencedMap<RenderType, ByteBufferBuilderPool> bufferPools = new Object2ObjectLinkedOpenHashMap<>();
+        private final SequencedMap<RenderType, BufferBuilder> activeBuilders = new Object2ObjectLinkedOpenHashMap<>();
         private final SequencedMap<MeshData, RenderType> caughtMeshes = new Object2ObjectLinkedOpenHashMap<>();
 
-        private MeshCatcher() {
-            super(new ByteBufferBuilder(0), Object2ObjectSortedMaps.emptyMap());
-        }
-
-        @Override
-        public @NonNull VertexConsumer getBuffer(@NonNull RenderType renderType) {
-            BufferBuilder bufferBuilder = startedBuilders.get(renderType);
-            if (bufferBuilder != null) {
-                endBatch(renderType, bufferBuilder);
+        public VertexConsumer getBuffer(RenderType renderType) {
+            BufferBuilder existing = activeBuilders.get(renderType);
+            if (existing != null) {
+                endBatch(renderType, existing);
             }
-            ByteBufferBuilderPool bufferPool = bufferPools.computeIfAbsent(renderType, type -> new ByteBufferBuilderPool(type.bufferSize()));
-            bufferBuilder = new BufferBuilder(bufferPool.getBuffer(), renderType.mode(), renderType.format());
-            startedBuilders.put(renderType, bufferBuilder);
+            ByteBufferBuilderPool bufferPool = bufferPools.computeIfAbsent(renderType, _ -> new ByteBufferBuilderPool(RenderType.SMALL_BUFFER_SIZE));
+            BufferBuilder bufferBuilder = new BufferBuilder(bufferPool.getBuffer(), renderType.primitiveTopology(), renderType.format());
+            activeBuilders.put(renderType, bufferBuilder);
             return bufferBuilder;
         }
 
@@ -141,6 +94,7 @@ public final class MultiVertexCatcher {
                 meshData.close();
             }
             caughtMeshes.clear();
+            activeBuilders.clear();
             bufferPools.values().forEach(ByteBufferBuilderPool::release);
         }
 
@@ -150,23 +104,15 @@ public final class MultiVertexCatcher {
             }
         }
 
-        @Override
         public void endBatch() {
-            for (RenderType renderType : bufferPools.keySet()) {
-                endBatch(renderType);
+            for (RenderType renderType : activeBuilders.keySet()) {
+                BufferBuilder builder = activeBuilders.get(renderType);
+                endBatch(renderType, builder);
             }
+            activeBuilders.clear();
         }
 
-        @Override
-        public void endBatch(@NonNull RenderType type) {
-            BufferBuilder builder = this.startedBuilders.remove(type);
-            if (builder != null) {
-                endBatch(type, builder);
-            }
-        }
-
-        @Override
-        protected void endBatch(@NonNull RenderType renderType, BufferBuilder bufferBuilder) {
+        private void endBatch(RenderType renderType, BufferBuilder bufferBuilder) {
             MeshData meshData = bufferBuilder.build();
             if (meshData != null) {
                 caughtMeshes.put(meshData, renderType);

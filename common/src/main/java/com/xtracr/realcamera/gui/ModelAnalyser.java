@@ -1,9 +1,9 @@
 package com.xtracr.realcamera.gui;
 
 import com.google.common.collect.ImmutableSet;
+import com.mojang.blaze3d.PrimitiveTopology;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import com.xtracr.realcamera.api.BindResult;
 import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.BindTarget.TargetConfig;
@@ -240,7 +240,7 @@ public final class ModelAnalyser {
 
     public List<BuiltModelRecord> captureModel(Minecraft client, Entity entity, float partialTicks, PoseStack poseStack, BindTarget target) {
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
-        client.gameRenderer.getLighting().setupFor(Lighting.Entry.ENTITY_IN_UI);
+        client.gameRenderer.lighting().setupFor(Lighting.Entry.ENTITY_IN_UI);
         dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, vertexCatcher.initCollector());
         List<BuiltModelRecord> records = new ArrayList<>();
         vertexCatcher.forEachBuffer(buf -> computeRecord(buf, records, target));
@@ -249,10 +249,10 @@ public final class ModelAnalyser {
 
     private void computeRecord(BuiltIterableBuffer builtBuffer, List<BuiltModelRecord> records, BindTarget target) {
         VertexData[] vertices = builtBuffer.vertexBuffer().stream().map(VertexData::asImmutable).toArray(VertexData[]::new);
-        VertexFormat.Mode drawMode = builtBuffer.renderType().mode();
+        PrimitiveTopology drawMode = builtBuffer.renderType().primitiveTopology();
         final int primitiveLength = drawMode.primitiveLength, primitiveStride = drawMode.primitiveStride;
         final int primitiveCount = (vertices.length - primitiveLength) / primitiveStride + 1;
-        final boolean startWithFirst = drawMode == VertexFormat.Mode.TRIANGLE_FAN;
+        final boolean startWithFirst = drawMode == PrimitiveTopology.TRIANGLE_FAN;
         VertexData[][] primitives = new VertexData[primitiveCount][primitiveLength];
         for (int i = 0, k = 0; i < primitiveCount; i++, k += primitiveStride) {
             primitives[i][0] = vertices[startWithFirst ? 0 : k];

@@ -14,19 +14,19 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Field;
+import java.time.Duration;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public final class RenderTypeCache {
     @Nullable
     private static final Field TEXTURES_FIELD;
     private static final LoadingCache<RenderType, String> TEXTURE_ID_CACHE = CacheBuilder.newBuilder()
             .maximumSize(64)
-            .expireAfterAccess(60, TimeUnit.SECONDS)
+            .expireAfterAccess(Duration.ofSeconds(60))
             .build(new TextureIdCacheLoader());
     private static final LoadingCache<RenderType, Object2IntMap<UV>> PRIMITIVE_CACHE = CacheBuilder.newBuilder()
             .maximumSize(64)
-            .expireAfterAccess(60, TimeUnit.SECONDS)
+            .expireAfterAccess(Duration.ofSeconds(60))
             .build(new PrimitiveCacheLoader());
 
     static {

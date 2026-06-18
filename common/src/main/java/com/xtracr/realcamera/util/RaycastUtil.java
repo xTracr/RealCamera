@@ -13,7 +13,7 @@ public final class RaycastUtil {
      * <li> Square distance from entity's eye to end point ≤ sqDistance
      */
     public static Pair<Vec3, Vec3> getFromAndTo(Entity entity, double sqDistance, float partialTicks) {
-        Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
+        Camera camera = Minecraft.getInstance().gameRenderer.mainCamera();
         Vec3 eyePos = entity.getEyePosition(partialTicks);
         Vec3 from = camera.position();
         Vec3 direction = Vec3.directionFromRotation(camera.xRot(), camera.yRot());

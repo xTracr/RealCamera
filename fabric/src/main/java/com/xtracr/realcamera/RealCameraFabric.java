@@ -25,8 +25,8 @@ public final class RealCameraFabric implements ClientModInitializer, RealCamera 
     }
 
     private void registerPictureInPictureRenderers() {
-        PictureInPictureRendererRegistry.register(ctx -> new GuiCulledModelsRenderer(ctx.bufferSource()));
-        PictureInPictureRendererRegistry.register(ctx -> new GuiFlattenedModelsRenderer(ctx.bufferSource()));
+        PictureInPictureRendererRegistry.register(_ -> new GuiCulledModelsRenderer());
+        PictureInPictureRendererRegistry.register(_ -> new GuiFlattenedModelsRenderer());
     }
 
     @Override

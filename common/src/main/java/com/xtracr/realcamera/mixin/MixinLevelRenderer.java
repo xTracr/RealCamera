@@ -10,7 +10,6 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.chunk.ChunkSectionsToRender;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
@@ -31,21 +30,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinLevelRenderer {
     @Shadow
     @Final
-    private Minecraft minecraft;
-    @Shadow
-    @Final
     private EntityRenderDispatcher entityRenderDispatcher;
 
-    @Inject(method = "renderLevel", at = @At("HEAD"))
-    private void realcamera$atRenderLevelHead(GraphicsResourceAllocator resourceAllocator, DeltaTracker deltaTracker, boolean renderOutline, CameraRenderState cameraState, Matrix4fc modelViewMatrix, GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky, ChunkSectionsToRender chunkSectionsToRender, CallbackInfo ci) {
+    @Inject(method = "render", at = @At("HEAD"))
+    private void realcamera$atRenderLevelHead(GraphicsResourceAllocator resourceAllocator, DeltaTracker deltaTracker, boolean renderOutline, CameraRenderState cameraState, Matrix4fc modelViewMatrix, GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky, CallbackInfo ci) {
         if (ConfigFile.config().dynamicCrosshair && RealCameraCore.isActive()) {
-            CrosshairUtil.update(minecraft, cameraState.pos, modelViewMatrix, cameraState.projectionMatrix);
+            CrosshairUtil.update(Minecraft.getInstance(), cameraState.pos, modelViewMatrix, cameraState.projectionMatrix);
         }
     }
 
     @Inject(method = "submitEntities", at = @At(value = "RETURN"))
     private void realcamera$submitCameraEntity(PoseStack poseStack, LevelRenderState levelRenderState, SubmitNodeCollector output, CallbackInfo ci) {
         if (!RealCameraCore.isRendering()) return;
+        Minecraft minecraft = Minecraft.getInstance();
         Entity entity = minecraft.getCameraEntity();
         TickRateManager tickManager = minecraft.level.tickRateManager();
         float partialTicks = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(!tickManager.isEntityFrozen(entity));

@@ -43,9 +43,9 @@ public final class RealCameraCore {
         return lastResult.target;
     }
 
-    public static void initialize(Minecraft client, boolean renderLevel) {
+    public static void initialize(Minecraft client) {
         Entity entity = client.getCameraEntity();
-        active = renderLevel && ConfigFile.config().enabled && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.MAIN_FEATURE.disabled(entity);
+        active = ConfigFile.config().enabled && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.MAIN_FEATURE.disabled(entity);
         rendering = ConfigFile.config().renderModel && !DisableHelper.RENDER_MODEL.disabled(entity);
     }
 

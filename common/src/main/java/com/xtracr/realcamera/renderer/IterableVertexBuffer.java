@@ -1,5 +1,6 @@
 package com.xtracr.realcamera.renderer;
 
+import com.mojang.blaze3d.PrimitiveTopology;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexFormat;
@@ -33,12 +34,12 @@ public final class IterableVertexBuffer implements Iterable<VertexData> {
         MeshData.DrawState drawState = meshData.drawState();
         VertexFormat format = drawState.format();
         vertexSize = format.getVertexSize();
-        positionOffset = format.getOffset(VertexFormatElement.POSITION);
-        colorOffset = format.getOffset(VertexFormatElement.COLOR);
-        uvOffset = format.getOffset(VertexFormatElement.UV0);
-        overlayOffset = format.getOffset(VertexFormatElement.UV1);
-        lightOffset = format.getOffset(VertexFormatElement.UV2);
-        normalOffset = format.getOffset(VertexFormatElement.NORMAL);
+        positionOffset = getOffset(format, DefaultVertexFormat.POSITION_SEMANTIC_NAME);
+        colorOffset = getOffset(format, DefaultVertexFormat.COLOR_SEMANTIC_NAME);
+        uvOffset = getOffset(format, DefaultVertexFormat.UV0_SEMANTIC_NAME);
+        overlayOffset = getOffset(format, DefaultVertexFormat.UV1_SEMANTIC_NAME);
+        lightOffset = getOffset(format, DefaultVertexFormat.UV2_SEMANTIC_NAME);
+        normalOffset = getOffset(format, DefaultVertexFormat.NORMAL_SEMANTIC_NAME);
         hasPosition = positionOffset != -1;
         hasColor = colorOffset != -1;
         hasUV = uvOffset != -1;
@@ -47,13 +48,18 @@ public final class IterableVertexBuffer implements Iterable<VertexData> {
         hasNormal = normalOffset != -1;
         fullFormat = vertexSize == DefaultVertexFormat.ENTITY.getVertexSize();
         vertexCount = drawState.vertexCount();
-        VertexFormat.Mode drawMode = drawState.mode();
+        PrimitiveTopology drawMode = drawState.primitiveTopology();
         primitiveLength = drawMode.primitiveLength;
         primitiveStride = drawMode.primitiveStride;
         primitiveCount = (vertexCount - primitiveLength) / primitiveStride + 1;
-        startWithFirst = drawMode == VertexFormat.Mode.TRIANGLE_FAN;
-        boolean isQuad = drawMode == VertexFormat.Mode.QUADS;
+        startWithFirst = drawMode == PrimitiveTopology.TRIANGLE_FAN;
+        boolean isQuad = drawMode == PrimitiveTopology.QUADS;
         primitives = fullFormat && isQuad ? new FastQuadReader() : new PrimitiveReader();
+    }
+
+    private static int getOffset(VertexFormat format, String name) {
+        VertexFormatElement element = format.getElement(name);
+        return element != null ? element.offset() : -1;
     }
 
     public Iterable<VertexData[]> primitives() {

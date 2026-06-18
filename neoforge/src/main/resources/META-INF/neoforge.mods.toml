@@ -25,14 +25,14 @@ Make the camera more realistic in the first-person view.
 [[dependencies.realcamera]]
 modId = "neoforge"
 type = "required"
-versionRange = "[26,)"
+versionRange = "[26.2,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.realcamera]]
 modId = "minecraft"
 type = "required"
-versionRange = "[26,27)"
+versionRange = "[26.2,27)"
 ordering = "NONE"
 side = "BOTH"
 

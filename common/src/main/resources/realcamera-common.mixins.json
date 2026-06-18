@@ -9,17 +9,14 @@
     "MixinCamera",
     "MixinFishingHookRenderer",
     "MixinGameRenderer",
-    "MixinGui",
+    "MixinHud",
     "MixinItem",
     "MixinItemInHandRenderer",
     "MixinLevelRenderer",
     "MixinLocalPlayer",
     "MixinStuckInBodyLayer",
     "accessor.AvatarRendererAccessor",
-    "accessor.CustomFeatureRenderer$StorageAccessor",
     "accessor.GuiGraphicsExtractorAccessor",
-    "accessor.ModelFeatureRenderer$StorageAccessor",
-    "accessor.ModelPartFeatureRenderer$StorageAccessor",
     "accessor.RenderTypeAccessor"
   ],
   "server": [

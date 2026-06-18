@@ -41,13 +41,13 @@ public record ColoredFloatLineRenderState(
     ) {
         this(pipeline, textureSetup, pose, x, y, z, vectorX, vectorY, vectorZ, argb, scissorArea,
                 GUIHelper.getBounds((int) MathUtil.floor(x, x + vectorX), (int) MathUtil.floor(y, y + vectorY),
-                        (int) MathUtil.ceil(x, x + vectorX), (int) MathUtil.ceil(x, x + vectorX), pose, scissorArea));
+                        (int) MathUtil.ceil(x, x + vectorX), (int) MathUtil.ceil(y, y + vectorY), pose, scissorArea));
     }
 
     @Override
     public void buildVertices(@NonNull VertexConsumer vertexConsumer) {
         Vector2f vec = pose.transformPosition(vectorX, vectorY, new Vector2f());
-        if (pipeline.getVertexFormatMode().primitiveLength == 2) {
+        if (pipeline.getPrimitiveTopology().primitiveLength == 2) {
             vertexConsumer.addVertexWith2DPose(pose, x, y).setColor(argb).setNormal(vec.x(), vec.y(), vectorZ);
             vertexConsumer.addVertexWith2DPose(pose, x + vectorX, y + vectorY).setColor(argb).setNormal(vec.x(), vec.y(), vectorZ);
         } else {

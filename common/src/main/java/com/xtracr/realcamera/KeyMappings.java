@@ -17,7 +17,7 @@ public final class KeyMappings {
     private static final Map<KeyMapping, Consumer<Minecraft>> KEY_MAPPINGS = new HashMap<>();
 
     static {
-        MODEL_VIEW_SCREEN = createKeyMapping("modelViewScreen", client -> client.setScreen(new ModelViewScreen()));
+        MODEL_VIEW_SCREEN = createKeyMapping("modelViewScreen", client -> client.gui.setScreen(new ModelViewScreen()));
         createKeyMapping("togglePerspective", InputConstants.KEY_F6, _ -> {
             boolean enabled = ConfigFile.config().enabled;
             ConfigFile.load();

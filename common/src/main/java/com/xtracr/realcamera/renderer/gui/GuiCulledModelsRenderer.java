@@ -1,12 +1,11 @@
 package com.xtracr.realcamera.renderer.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.xtracr.realcamera.renderer.state.BuiltModelRecord;
 import com.xtracr.realcamera.renderer.state.VertexData;
 import com.xtracr.realcamera.renderer.state.gui.GuiCulledModelsRenderState;
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.jspecify.annotations.NonNull;
@@ -14,8 +13,7 @@ import org.jspecify.annotations.NonNull;
 public final class GuiCulledModelsRenderer extends PictureInPictureRenderer<GuiCulledModelsRenderState> {
     public static final int MIN_Z = 0, MAX_Z = 200;
 
-    public GuiCulledModelsRenderer(MultiBufferSource.BufferSource bufferSource) {
-        super(bufferSource);
+    public GuiCulledModelsRenderer() {
     }
 
     @Override
@@ -24,7 +22,7 @@ public final class GuiCulledModelsRenderer extends PictureInPictureRenderer<GuiC
     }
 
     @Override
-    protected void renderToTexture(@NonNull GuiCulledModelsRenderState renderState, @NonNull PoseStack poseStack) {
+    protected void renderToTexture(@NonNull GuiCulledModelsRenderState renderState, @NonNull PoseStack poseStack, @NonNull SubmitNodeCollector submitNodeCollector) {
         poseStack.mulPose(renderState.transform());
 
         float minEntityZ = MIN_Z, maxEntityZ = MAX_Z;
@@ -37,14 +35,15 @@ public final class GuiCulledModelsRenderer extends PictureInPictureRenderer<GuiC
         Matrix4f positionMatrix = poseStack.last().pose().scale(1, 1, MAX_Z / (maxEntityZ - minEntityZ)).translate(0, 0, -minEntityZ);
         Matrix3f normalMatrix = new Matrix3f(positionMatrix);
         for (BuiltModelRecord record : renderState.records()) {
-            VertexConsumer buffer = bufferSource.getBuffer(record.renderType());
-            if (!record.renderType().canConsolidateConsecutiveGeometry()) {
-                for (VertexData vertex : record.vertices()) vertex.render(buffer, positionMatrix, normalMatrix);
-                return;
-            }
-            for (VertexData[] primitive : record.primitives()) {
-                for (VertexData vertex : primitive) vertex.render(buffer, positionMatrix, normalMatrix);
-            }
+            submitNodeCollector.submitCustomGeometry(poseStack, record.renderType(), (_, buffer) -> {
+                if (!record.renderType().canConsolidateConsecutiveGeometry()) {
+                    for (VertexData vertex : record.vertices()) vertex.render(buffer, positionMatrix, normalMatrix);
+                    return;
+                }
+                for (VertexData[] primitive : record.primitives()) {
+                    for (VertexData vertex : primitive) vertex.render(buffer, positionMatrix, normalMatrix);
+                }
+            });
         }
     }
 
