@@ -91,7 +91,7 @@
   "screen.tooltip.xtracr_realcamera.modelView_importSucceeded": "Імпорт %s успішний!",
   "screen.tooltip.xtracr_realcamera.modelView_preview": "У режимі попереднього перегляду ви можете налаштувати зміщення та обертання камери",
   "screen.tooltip.xtracr_realcamera.modelView_priority": "Пріоритет при прив'язці: чим більше значення, тим вищий пріоритет і вище сортування на правій стороні",
-  "screen.tooltip.xtracr_realcamera.modelView_saveAs": "Зберегти як\n(При наявності налаштування з тим же ім'ям ви також можете використовувати кнопку збереження зліва)",
+  "screen.tooltip.xtracr_realcamera.modelView_saveAs": "Додати/оновити це налаштування вимкнення\nНатисніть Зберегти ліворуч, щоб зберегти конфігурацію",
   "screen.tooltip.xtracr_realcamera.modelView_scale": "Масштаб, який контролює розмір зміщень",
   "screen.tooltip.xtracr_realcamera.modelView_selecting": "%s+Лівий клік щоб отримати UV-координати в місці вказівника миші\nТри набори UV-координат нижче, зверху вниз, це UV-координати вектора напрямку, вектора вгору та точки прив'язки на цільовій площині\nПримітка: %s+Прокрутка для перемикання між різними шарами моделі. Ручний ввід UV-координат дозволяє точніше прив'язатися до цільової позиції",
   "screen.tooltip.xtracr_realcamera.modelView_selectionMode": "Визначає режим швидкого вибору %s+Лівий клік\n(%s+Прокрутка для зміни діапазону вибору в режимі діапазону)",
