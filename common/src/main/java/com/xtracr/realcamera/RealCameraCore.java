@@ -71,13 +71,16 @@ public final class RealCameraCore {
         Entity entity = client.getCameraEntity();
         boolean invisible = entity.isInvisible();
         entity.setInvisible(false);
-        newResult = RealCameraAPI.computeBindResult(client, partialTicks);
-        if (!newResult.available()) {
-            EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
-            dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, new PoseStack(), vertexCatcher.initCollector());
-            vertexCatcher.forEachBuffer(RealCameraCore::computeBindResult);
+        try {
+            newResult = RealCameraAPI.computeBindResult(client, partialTicks);
+            if (!newResult.available()) {
+                EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
+                dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, new PoseStack(), vertexCatcher.initCollector());
+                vertexCatcher.forEachBuffer(RealCameraCore::computeBindResult);
+            }
+        } finally {
+            entity.setInvisible(invisible);
         }
-        entity.setInvisible(invisible);
         if (newResult.available()) {
             failureFrames = 0;
             lastResult = newResult.computeCamera(false);
@@ -98,7 +101,8 @@ public final class RealCameraCore {
         smoothedCamera.slerpRotation(lastResult.getRotation(), 1 - ConfigFile.config().binding.rotationSmoothFactor);
     }
 
-    public static void renderCameraEntity(Minecraft client, float partialTicks, SubmitNodeCollector submitNodeCollector, Matrix4f modelView) {
+    public static void renderCameraEntity(Minecraft client, float partialTicks, SubmitNodeCollector submitNodeCollector, CameraRenderState cameraState) {
+        Matrix4f modelView = cameraState.viewRotationMatrix;
         Matrix4f invertedCameraPose = new Matrix4f(lastResult.getRotation())
                 .scale(-1f, 1f, -1f)
                 .invert()
@@ -109,7 +113,7 @@ public final class RealCameraCore {
         Entity entity = client.getCameraEntity();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         SubmitNodeCollector collector = new RoutingSubmitCollector(submitNodeCollector, vertexCatcher.initCollector());
-        dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, collector);
+        dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), cameraState, 0, 0, 0, poseStack, collector);
         final float m02 = modelView.m02(), m12 = modelView.m12(), m22 = modelView.m22(), m32 = modelView.m32();
         final float depth = currentTarget().disablingDepth();
         vertexCatcher.forEachBuffer(builtBuffer -> {

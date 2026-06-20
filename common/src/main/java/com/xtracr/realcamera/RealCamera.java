@@ -7,9 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public interface RealCamera extends PlatformHelper {
-    String MODID = "realcamera";
-    String FULL_ID = "xtracr_" + MODID;
-    Logger LOGGER = LoggerFactory.getLogger(MODID);
+    String MOD_ID = "realcamera";
+    String FULL_ID = "xtracr_" + MOD_ID;
+    Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     default void initialize() {
         ConfigFile.load();

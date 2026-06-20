@@ -48,7 +48,7 @@ public abstract class MixinLevelRenderer {
         float partialTicks = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(!tickManager.isEntityFrozen(entity));
         CameraRenderState cameraState = levelRenderState.cameraRenderState;
         if (!ConfigFile.config().isClassic)
-            RealCameraCore.renderCameraEntity(minecraft, partialTicks, output, cameraState.viewRotationMatrix);
+            RealCameraCore.renderCameraEntity(minecraft, partialTicks, output, cameraState);
         else {
             Vec3 cameraPos = cameraState.pos;
             EntityRenderState state = entityRenderDispatcher.extractEntity(entity, partialTicks);

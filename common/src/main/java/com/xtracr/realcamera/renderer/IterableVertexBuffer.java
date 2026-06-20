@@ -48,12 +48,12 @@ public final class IterableVertexBuffer implements Iterable<VertexData> {
         hasNormal = normalOffset != -1;
         fullFormat = vertexSize == DefaultVertexFormat.ENTITY.getVertexSize();
         vertexCount = drawState.vertexCount();
-        PrimitiveTopology drawMode = drawState.primitiveTopology();
-        primitiveLength = drawMode.primitiveLength;
-        primitiveStride = drawMode.primitiveStride;
+        PrimitiveTopology topology = drawState.primitiveTopology();
+        primitiveLength = topology.primitiveLength;
+        primitiveStride = topology.primitiveStride;
         primitiveCount = (vertexCount - primitiveLength) / primitiveStride + 1;
-        startWithFirst = drawMode == PrimitiveTopology.TRIANGLE_FAN;
-        boolean isQuad = drawMode == PrimitiveTopology.QUADS;
+        startWithFirst = topology == PrimitiveTopology.TRIANGLE_FAN;
+        boolean isQuad = topology == PrimitiveTopology.QUADS;
         primitives = fullFormat && isQuad ? new FastQuadReader() : new PrimitiveReader();
     }
 

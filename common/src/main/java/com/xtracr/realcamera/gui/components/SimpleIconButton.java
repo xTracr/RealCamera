@@ -8,7 +8,7 @@ import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.resources.Identifier;
 
 public class SimpleIconButton extends Button {
-    public static final Identifier ICON_TEXTURE = Identifier.fromNamespaceAndPath(RealCamera.MODID, "textures/gui/icon.png");
+    public static final Identifier ICON_TEXTURE = Identifier.fromNamespaceAndPath(RealCamera.MOD_ID, "textures/gui/icon.png");
     protected final Identifier texture;
     protected final int textureWidth, textureHeight, u, v;
 

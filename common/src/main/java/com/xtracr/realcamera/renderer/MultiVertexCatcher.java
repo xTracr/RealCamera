@@ -1,12 +1,6 @@
 package com.xtracr.realcamera.renderer;
 
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.ByteBufferBuilder;
-import com.mojang.blaze3d.vertex.MeshData;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.SheetedDecalTextureGenerator;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.SubmitNodeStorage;
@@ -14,16 +8,29 @@ import net.minecraft.client.renderer.feature.CustomFeatureRenderer;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.feature.submit.SubmitNode;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.SequencedMap;
+import java.util.List;
 import java.util.function.Consumer;
 
 public final class MultiVertexCatcher {
     private final SubmitNodeStorage storage = new SubmitNodeStorage();
-    private final MeshCatcher meshCatcher = new MeshCatcher();
+    private final ByteBufferBuilder stagingBuffer = new ByteBufferBuilder(RenderType.SMALL_BUFFER_SIZE);
+    private final List<CaughtMesh> caughtMeshes = new ArrayList<>();
+    private final Consumer<SubmitNode>[] handlers;
+    @Nullable
+    private BufferBuilder currentBuilder;
+    @Nullable
+    private RenderType currentType;
 
+    @SuppressWarnings("unchecked")
     private MultiVertexCatcher() {
+        int[] featureIds = {ModelFeatureRenderer.TYPE.id(), CustomFeatureRenderer.TYPE.id()};
+        handlers = new Consumer[Arrays.stream(featureIds).max().orElseThrow() + 1];
+        handlers[ModelFeatureRenderer.TYPE.id()] = this::captureModel;
+        handlers[CustomFeatureRenderer.TYPE.id()] = this::captureCustom;
     }
 
     public static MultiVertexCatcher create() {
@@ -48,7 +55,7 @@ public final class MultiVertexCatcher {
     }
 
     public SubmitNodeCollector initCollector() {
-        meshCatcher.clear();
+        discard();
         storage.getSubmitsPerOrder().clear();
         return storage;
     }
@@ -56,92 +63,59 @@ public final class MultiVertexCatcher {
     public void forEachBuffer(Consumer<BuiltIterableBuffer> consumer) {
         if (!storage.getSubmitsPerOrder().isEmpty()) {
             storage.drainPhases(phase -> phase.sortInto((submitNode, _) -> renderSubmit(submitNode)));
-            meshCatcher.endBatch();
+            finishCurrentBuilder();
         }
-        meshCatcher.forEachBuffer(consumer);
+        for (CaughtMesh entry : caughtMeshes) {
+            consumer.accept(BuiltIterableBuffer.buildFrom(entry.renderType, entry.meshData));
+        }
     }
 
     private void renderSubmit(SubmitNode submitNode) {
-        if (submitNode.featureType() == ModelFeatureRenderer.TYPE) {
-            ModelFeatureRenderer.Submit<?> submit = (ModelFeatureRenderer.Submit<?>) submitNode;
-            VertexConsumer buffer = meshCatcher.getBuffer(submit.renderType());
-            renderModelSubmit(submit, buffer);
-        } else if (submitNode.featureType() == CustomFeatureRenderer.TYPE) {
-            CustomFeatureRenderer.Submit submit = (CustomFeatureRenderer.Submit) submitNode;
-            VertexConsumer buffer = meshCatcher.getBuffer(submit.renderType());
-            submit.customGeometryRenderer().render(submit.pose(), buffer);
+        int id = submitNode.featureType().id();
+        if (id < handlers.length) {
+            Consumer<SubmitNode> handler = handlers[id];
+            if (handler != null) handler.accept(submitNode);
         }
     }
 
-    static final class MeshCatcher {
-        private final SequencedMap<RenderType, ByteBufferBuilderPool> bufferPools = new Object2ObjectLinkedOpenHashMap<>();
-        private final SequencedMap<RenderType, BufferBuilder> activeBuilders = new Object2ObjectLinkedOpenHashMap<>();
-        private final SequencedMap<MeshData, RenderType> caughtMeshes = new Object2ObjectLinkedOpenHashMap<>();
+    private void captureModel(SubmitNode submitNode) {
+        ModelFeatureRenderer.Submit<?> submit = (ModelFeatureRenderer.Submit<?>) submitNode;
+        VertexConsumer buffer = prepareBuffer(submit.renderType());
+        renderModelSubmit(submit, buffer);
+    }
 
-        public VertexConsumer getBuffer(RenderType renderType) {
-            BufferBuilder existing = activeBuilders.get(renderType);
-            if (existing != null) {
-                endBatch(renderType, existing);
-            }
-            ByteBufferBuilderPool bufferPool = bufferPools.computeIfAbsent(renderType, _ -> new ByteBufferBuilderPool(RenderType.SMALL_BUFFER_SIZE));
-            BufferBuilder bufferBuilder = new BufferBuilder(bufferPool.getBuffer(), renderType.primitiveTopology(), renderType.format());
-            activeBuilders.put(renderType, bufferBuilder);
-            return bufferBuilder;
+    private void captureCustom(SubmitNode submitNode) {
+        CustomFeatureRenderer.Submit submit = (CustomFeatureRenderer.Submit) submitNode;
+        VertexConsumer buffer = prepareBuffer(submit.renderType());
+        submit.customGeometryRenderer().render(submit.pose(), buffer);
+    }
+
+    private VertexConsumer prepareBuffer(RenderType renderType) {
+        if (currentBuilder != null && currentType == renderType && renderType.canConsolidateConsecutiveGeometry()) {
+            return currentBuilder;
         }
+        finishCurrentBuilder();
+        currentType = renderType;
+        currentBuilder = new BufferBuilder(stagingBuffer, renderType.primitiveTopology(), renderType.format());
+        return currentBuilder;
+    }
 
-        public void clear() {
-            for (MeshData meshData : caughtMeshes.keySet()) {
-                meshData.close();
-            }
-            caughtMeshes.clear();
-            activeBuilders.clear();
-            bufferPools.values().forEach(ByteBufferBuilderPool::release);
+    private void finishCurrentBuilder() {
+        if (currentBuilder != null) {
+            MeshData mesh = currentBuilder.build();
+            if (mesh != null) caughtMeshes.add(new CaughtMesh(currentType, mesh));
+            currentBuilder = null;
+            currentType = null;
         }
+    }
 
-        public void forEachBuffer(Consumer<BuiltIterableBuffer> consumer) {
-            for (var entry : caughtMeshes.entrySet()) {
-                consumer.accept(BuiltIterableBuffer.buildFrom(entry.getValue(), entry.getKey()));
-            }
-        }
+    private void discard() {
+        finishCurrentBuilder();
+        for (CaughtMesh entry : caughtMeshes) entry.meshData.close();
+        caughtMeshes.clear();
+        stagingBuffer.discard();
+    }
 
-        public void endBatch() {
-            for (RenderType renderType : activeBuilders.keySet()) {
-                BufferBuilder builder = activeBuilders.get(renderType);
-                endBatch(renderType, builder);
-            }
-            activeBuilders.clear();
-        }
-
-        private void endBatch(RenderType renderType, BufferBuilder bufferBuilder) {
-            MeshData meshData = bufferBuilder.build();
-            if (meshData != null) {
-                caughtMeshes.put(meshData, renderType);
-            }
-        }
-
-        private static final class ByteBufferBuilderPool {
-            private final int bufferSize;
-            private ByteBufferBuilder[] pool = new ByteBufferBuilder[0];
-            private int next = 0;
-
-            public ByteBufferBuilderPool(int bufferSize) {
-                this.bufferSize = bufferSize;
-            }
-
-            public ByteBufferBuilder getBuffer() {
-                ByteBufferBuilder byteBufferBuilder;
-                if (next < pool.length) {
-                    byteBufferBuilder = pool[next++];
-                } else {
-                    pool = Arrays.copyOf(pool, pool.length + 1);
-                    pool[next++] = byteBufferBuilder = new ByteBufferBuilder(bufferSize);
-                }
-                return byteBufferBuilder;
-            }
-
-            public void release() {
-                next = 0;
-            }
-        }
+    private record CaughtMesh(RenderType renderType, MeshData meshData) {
     }
 }

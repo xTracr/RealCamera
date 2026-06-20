@@ -7,6 +7,7 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -25,7 +26,8 @@ public abstract class MixinGameRenderer {
 
     @Inject(method = "update", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;update(Lnet/minecraft/client/DeltaTracker;)V"))
     private void realcamera$atCameraUpdate(DeltaTracker deltaTracker, CallbackInfo ci) {
-        float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(true);
+        Entity entity = minecraft.getCameraEntity();
+        float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(entity == null || !minecraft.level.tickRateManager().isEntityFrozen(entity));
         CompatibilityHelper.NEA_setDeltaTick(partialTicks);
         RealCameraCore.initialize(minecraft);
         if (RealCameraCore.isActive() && !ConfigFile.config().isClassic) {
