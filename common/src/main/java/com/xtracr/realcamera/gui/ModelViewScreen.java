@@ -45,6 +45,7 @@ public final class ModelViewScreen extends Screen {
     private static final int SELECTION_COLOR = 0x4F3333CC, SELECTION_HOVER_COLOR = 0x2F3333CC, OUTLINE_COLOR = 0xAAFFFFFF;
     private static final int SIDE_PANEL_BG = 0xFF444444, CENTER_PANEL_BG = 0xFF222222;
     private static final int DEFAULT_SCALE = 80, MIN_SCALE = 16, MAX_SCALE = 1024;
+    private static final int CONFIG_NAME_MAX_LENGTH = 20;
     private final int xSize = 450, ySize = 206, middleWidth = xSize - 200, widgetWidth = (xSize - middleWidth) / 4 - 8, widgetHeight = 18, wideWidgetWidth = widgetWidth * 2 + 4, compactWidgetWidth = widgetWidth * 2 - 18;
     private int x, y, page = 0;
     private InputConstants.Key modifierKey = InputConstants.getKey(ConfigFile.config().binding.screenModifierKey);
@@ -60,9 +61,9 @@ public final class ModelViewScreen extends Screen {
     @Nullable
     private UVRectangleWidget focusedRectWidget;
     private final StringWidget rectWidgetsSizeWidget = new StringWidget(widgetWidth - 22, widgetHeight, CommonComponents.EMPTY, font);
-    private final EditBox nameField = createTextField(wideWidgetWidth, 20);
+    private final EditBox nameField = createTextField(wideWidgetWidth, CONFIG_NAME_MAX_LENGTH);
     private final EditBox textureIdField = createTextField(wideWidgetWidth, 1024);
-    private final EditBox disabledNameField = createTextField(compactWidgetWidth, 20);
+    private final EditBox disabledNameField = createTextField(compactWidgetWidth, CONFIG_NAME_MAX_LENGTH);
     private final EditBox disabledIdField = createTextField(wideWidgetWidth, 1024);
     private final NumberField<Integer> priorityField = NumberField.ofInt(font, widgetWidth - 2, widgetHeight - 2, 0, null);
     private final NumberField<Integer> focusedRectWidgetNumberField = NumberField.ofInt(font, widgetWidth - 2, widgetHeight - 2, 0, null).setMin(0);
@@ -255,14 +256,21 @@ public final class ModelViewScreen extends Screen {
                 button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("emptyName").withStyle(ChatFormatting.RED)));
                 return;
             }
+            if (textureIdField.getValue().isBlank()) {
+                button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("emptyTextureId").withStyle(ChatFormatting.RED)));
+                return;
+            }
+            if (toggleCategoryButton.getValue() == Category.DISABLE && !syncDisableDraft(button, true)) return;
             button.setTooltip(null);
             BindTarget bindTarget = genBindTarget();
             ConfigFile.config().putBindTarget(bindTarget);
             ConfigFile.save();
-            loadBindTarget(bindTarget);
             initWidgets(page);
         }));
         rows.addChild(priorityField, smallSettings).setTooltip(createTooltip("priority"));
+        boolean editableName = toggleCategoryButton.getValue() == Category.CONFIGS;
+        nameField.setEditable(editableName);
+        if (!editableName && nameField.isFocused()) nameField.setFocused(false);
         rows.addChild(nameField, 2, smallSettings).setTooltip(createTooltip("targetName"));
         grid.arrangeElements();
         FrameLayout.alignInRectangle(grid, x, y + 2, x + (xSize - middleWidth) / 2 - 4, y + ySize, 0, 0);
@@ -284,22 +292,8 @@ public final class ModelViewScreen extends Screen {
             size = disableConfigs.size();
             rows.addChild(disabledNameField, 3, smallSettings).setTooltip(createTooltip("disabledName"));
             rows.addChild(new SimpleIconButton(64, 0, button -> {
-                String name = disabledNameField.getValue(), textureId = disabledIdField.getValue();
-                if (name.isBlank()) {
-                    button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("emptyName").withStyle(ChatFormatting.RED)));
-                } else if (textureId.isBlank()) {
-                    button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("emptyTextureId").withStyle(ChatFormatting.RED)));
-                } else {
+                if (syncDisableDraft(button, false)) {
                     button.setTooltip(createTooltip("saveAs"));
-                    DisableConfig disableConfig = new DisableConfig(name, textureId, disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toList());
-                    for (int i = 0; i < disableConfigs.size(); i++) {
-                        if (disableConfigs.get(i).name().equals(name)) {
-                            disableConfigs.set(i, disableConfig);
-                            initWidgets(page);
-                            return;
-                        }
-                    }
-                    disableConfigs.add(disableConfig);
                     initWidgets(page);
                 }
             }), smallSettings).setTooltip(createTooltip("saveAs"));
@@ -314,16 +308,13 @@ public final class ModelViewScreen extends Screen {
                         })
                         .setPosition(x + (xSize + middleWidth) / 2 - 20, y + 5 + (widgetHeight + 2) * (2 + i % widgetsPerPage));
                 rows.addChild(createButton(LocUtil.literal(config.name()), compactWidgetWidth, _ -> {
-                    disabledNameField.setValue(config.name());
-                    disabledIdField.setValue(config.textureId());
-                    disableModeButton.setValue(config.disableAll() ? 0 : 1);
-                    rectWidgets.clear();
-                    for (UVRectangle rect : config.rectangles()) rectWidgets.add(createRectWidget(rect));
+                    loadDisableConfig(config);
                     initWidgets(page);
                 }), 3).setTooltip(Tooltip.create(LocUtil.literal(config.name())));
                 rows.addChild(new SimpleIconButton(48, 0, _ -> {
                     disableConfigs.removeIf(disableConfig -> disableConfig.name().equals(config.name()));
-                    if (disabledNameField.getValue().equals(config.name())) rectWidgets.clear();
+                    hiddenNameMap.values().forEach(names -> names.remove(config.name()));
+                    if (disabledNameField.getValue().equals(config.name())) clearDisableDraft();
                     initWidgets(page * widgetsPerPage > size - 2 && size > 1 ? page - 1 : page);
                 }), smallSettings);
             }
@@ -335,6 +326,7 @@ public final class ModelViewScreen extends Screen {
             size = fixedTargetCount + targetList.size();
             for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, size); i++) {
                 BindTarget target = i < fixedTargetCount ? fixedTargetList.get(i) : targetList.get(i - fixedTargetCount);
+                final int targetIndex = i;
                 String name = target.name();
                 rows.addChild(createButton(LocUtil.literal(name), compactWidgetWidth, _ -> loadBindTarget(target)), 3)
                         .setTooltip(Tooltip.create(name.equals(RealCameraCore.currentTarget().name()) ?
@@ -345,6 +337,7 @@ public final class ModelViewScreen extends Screen {
                 rows.addChild(new SimpleIconButton(48, 0, _ -> {
                     targetList.remove(target);
                     ConfigFile.save();
+                    if (nameField.getValue().equals(target.name())) loadAdjacentBindTarget(fixedTargetList, targetList, targetIndex);
                     initWidgets(page * widgetsPerPage > size - 2 && size > 1 ? page - 1 : page);
                 }), smallSettings);
             }
@@ -526,6 +519,123 @@ public final class ModelViewScreen extends Screen {
         }
     }
 
+    private void clearDisableDraft() {
+        disabledNameField.setValue("");
+        disabledIdField.setValue("");
+        focusedRectWidget = null;
+        rectWidgets.clear();
+        focusedRectWidgetNumberField.setMax(0);
+        focusedRectWidgetNumberField.setNumber(0);
+        rectWidgetsSizeWidget.setMessage(LocUtil.literal("0"));
+        uMinField.setNumber(0f);
+        vMinField.setNumber(0f);
+        uMaxField.setNumber(0f);
+        vMaxField.setNumber(0f);
+    }
+
+    private void loadDisableConfig(DisableConfig config) {
+        disabledNameField.setValue(config.name());
+        disabledIdField.setValue(config.textureId());
+        disableModeButton.setValue(config.disableAll() ? 0 : 1);
+        focusedRectWidget = null;
+        rectWidgets.clear();
+        for (UVRectangle rect : config.rectangles()) rectWidgets.add(createRectWidget(rect));
+        focusedRectWidgetNumberField.setMax(rectWidgets.size());
+        focusedRectWidgetNumberField.setNumber(0);
+        rectWidgetsSizeWidget.setMessage(LocUtil.literal(String.valueOf(rectWidgets.size())));
+    }
+
+    private boolean syncDisableDraft(Button button, boolean autoName) {
+        String name = disabledNameField.getValue();
+        String textureId = disabledIdField.getValue();
+        if (name.isBlank()) {
+            if (!autoName) {
+                button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("emptyName").withStyle(ChatFormatting.RED)));
+                return false;
+            }
+            if (!hasMeaningfulDisableDraft()) {
+                if (textureId.isBlank() && !rectWidgets.isEmpty()) {
+                    button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("emptyTextureId").withStyle(ChatFormatting.RED)));
+                    return false;
+                }
+                return true;
+            }
+            name = generateDisableConfigName(textureId);
+            disabledNameField.setValue(name);
+        }
+        if (textureId.isBlank()) {
+            button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("emptyTextureId").withStyle(ChatFormatting.RED)));
+            return false;
+        }
+        DisableConfig disableConfig = new DisableConfig(name, textureId, disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toList());
+        upsertDisableConfig(disableConfig);
+        return true;
+    }
+
+    private boolean hasMeaningfulDisableDraft() {
+        return !disabledIdField.getValue().isBlank() && (disableModeButton.getValue() == 0 || !rectWidgets.isEmpty());
+    }
+
+    private void upsertDisableConfig(DisableConfig disableConfig) {
+        for (int i = 0; i < disableConfigs.size(); i++) {
+            if (disableConfigs.get(i).name().equals(disableConfig.name())) {
+                disableConfigs.set(i, disableConfig);
+                return;
+            }
+        }
+        disableConfigs.add(disableConfig);
+    }
+
+    private String generateDisableConfigName(String textureId) {
+        String base = textureId.trim();
+        int separatorIndex = Math.max(base.lastIndexOf('/'), base.lastIndexOf(':'));
+        if (separatorIndex >= 0 && separatorIndex < base.length() - 1) base = base.substring(separatorIndex + 1);
+        int extensionIndex = base.lastIndexOf('.');
+        if (extensionIndex > 0) base = base.substring(0, extensionIndex);
+        base = sanitizeDisableConfigName(base);
+        if (base.length() > CONFIG_NAME_MAX_LENGTH) base = base.substring(0, CONFIG_NAME_MAX_LENGTH);
+
+        String candidate = base;
+        for (int suffix = 2; disableConfigNameExists(candidate); suffix++) {
+            String suffixText = "_" + suffix;
+            int baseLength = Math.min(base.length(), Math.max(1, CONFIG_NAME_MAX_LENGTH - suffixText.length()));
+            candidate = base.substring(0, baseLength) + suffixText;
+        }
+        return candidate;
+    }
+
+    private String sanitizeDisableConfigName(String name) {
+        StringBuilder builder = new StringBuilder();
+        boolean lastWasSeparator = false;
+        for (int i = 0; i < name.length(); i++) {
+            char c = Character.toLowerCase(name.charAt(i));
+            if (Character.isLetterOrDigit(c)) {
+                builder.append(c);
+                lastWasSeparator = false;
+            } else if ((c == '_' || c == '-') && builder.length() > 0 && !lastWasSeparator) {
+                builder.append(c);
+                lastWasSeparator = true;
+            } else if (builder.length() > 0 && !lastWasSeparator) {
+                builder.append('_');
+                lastWasSeparator = true;
+            }
+        }
+        while (!builder.isEmpty() && (builder.charAt(builder.length() - 1) == '_' || builder.charAt(builder.length() - 1) == '-'))
+            builder.deleteCharAt(builder.length() - 1);
+        return builder.isEmpty() ? "disable" : builder.toString();
+    }
+
+    private boolean disableConfigNameExists(String name) {
+        return disableConfigs.stream().anyMatch(disableConfig -> disableConfig.name().equals(name));
+    }
+
+    private void loadAdjacentBindTarget(List<BindTarget> fixedTargetList, List<BindTarget> targetList, int deletedIndex) {
+        List<BindTarget> targets = new ArrayList<>(fixedTargetList);
+        targets.addAll(targetList);
+        if (targets.isEmpty()) loadBindTarget(BindTarget.blank("", ""));
+        else loadBindTarget(targets.get(Math.min(deletedIndex, targets.size() - 1)));
+    }
+
     private void loadBindTarget(BindTarget target) {
         if (target.isEmpty()) return;
         nameField.setValue(target.name());
@@ -552,19 +662,14 @@ public final class ModelViewScreen extends Screen {
         offsetRollPair.setNumber(offsets.roll);
         disableConfigs.clear();
         disableConfigs.addAll(target.disableConfigs());
+        clearDisableDraft();
     }
 
     private BindTarget genBindTarget() {
         TargetConfig targetConfig = new TargetConfig(forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber());
         BindConfig bindConfig = new BindConfig(bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);
         OffsetConfig offsets = new OffsetConfig(scaleField.getNumber(), offsetXPair.getNumber(), offsetYPair.getNumber(), offsetZPair.getNumber(), offsetPitchPair.getNumber(), offsetYawPair.getNumber(), offsetRollPair.getNumber());
-        DisableConfig currentDisableConfig = new DisableConfig(disabledNameField.getValue(), disabledIdField.getValue(), disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toList());
-        List<DisableConfig> newDisableConfigs = new ArrayList<>(disableConfigs);
-        for (int i = 0; i < newDisableConfigs.size(); i++) {
-            if (newDisableConfigs.get(i).name().equals(currentDisableConfig.name()))
-                newDisableConfigs.set(i, currentDisableConfig);
-        }
-        return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, newDisableConfigs);
+        return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, new ArrayList<>(disableConfigs));
     }
 
     private UVRectangleWidget addRectWidget(UVRectangleWidget rectWidget) {
