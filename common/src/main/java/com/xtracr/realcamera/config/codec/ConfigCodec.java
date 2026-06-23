@@ -16,25 +16,26 @@ import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
-public interface ConfigCodec extends StreamCodec<ByteBuf, BindTarget> {
-    ConfigCodec CODEC_703 = new ConfigCodec703();
-    Short2ReferenceMap<ConfigCodec> CODECS = Short2ReferenceMap.ofEntries(
-            Short2ReferenceMap.entry(CODEC_703.version(), CODEC_703)
+public final class ConfigCodec {
+    static final short CURRENT_VERSION = 703;
+    static final StreamCodec<ByteBuf, BindTarget> CODEC_703 = ConfigCodec703.CODEC;
+    static final Short2ReferenceMap<StreamCodec<ByteBuf, BindTarget>> CODECS = Short2ReferenceMap.ofEntries(
+            Short2ReferenceMap.entry(CURRENT_VERSION, CODEC_703)
     );
 
-    static BindTarget readWithVersion(ByteBuf byteBuf) throws DecoderException, IllegalArgumentException {
+    public static BindTarget readWithVersion(ByteBuf byteBuf) throws DecoderException, IllegalArgumentException {
         short version = byteBuf.readShort();
-        ConfigCodec serializer = CODECS.get(version);
+        StreamCodec<ByteBuf, BindTarget> serializer = CODECS.get(version);
         if (serializer == null) throw new IllegalArgumentException("Incompatible version: " + toSemVer(version));
         return serializer.decode(byteBuf);
     }
 
-    static void writeWithVersion(ByteBuf byteBuf, BindTarget bindTarget) throws EncoderException {
-        byteBuf.writeShort(CODEC_703.version());
+    public static void writeWithVersion(ByteBuf byteBuf, BindTarget bindTarget) throws EncoderException {
+        byteBuf.writeShort(CURRENT_VERSION);
         CODEC_703.encode(byteBuf, bindTarget);
     }
 
-    static DataResult<BindTarget> fromCompressedBase64(String base64) {
+    public static DataResult<BindTarget> fromCompressedBase64(String base64) {
         ByteBuf byteBuf = null;
         try {
             byte[] compressed = Base64.getDecoder().decode(base64);
@@ -61,7 +62,7 @@ public interface ConfigCodec extends StreamCodec<ByteBuf, BindTarget> {
         }
     }
 
-    static DataResult<String> toCompressedBase64(BindTarget bindTarget) {
+    public static DataResult<String> toCompressedBase64(BindTarget bindTarget) {
         ByteBuf byteBuf = Unpooled.buffer();
         try {
             writeWithVersion(byteBuf, bindTarget);
@@ -86,6 +87,4 @@ public interface ConfigCodec extends StreamCodec<ByteBuf, BindTarget> {
         int patch = version % 100;
         return major + "." + minor + "." + patch;
     }
-
-    short version();
 }
