@@ -91,7 +91,7 @@
   "screen.tooltip.xtracr_realcamera.modelView_importSucceeded": "%s 가져오기 성공!",
   "screen.tooltip.xtracr_realcamera.modelView_preview": "미리보기 모드에서 카메라의 다양한 오프셋 조정 가능",
   "screen.tooltip.xtracr_realcamera.modelView_priority": "바인딩 시 우선순위, 값이 클수록 우선순위가 높으며 오른쪽 정렬에서 위쪽에 표시",
-  "screen.tooltip.xtracr_realcamera.modelView_saveAs": "다른 이름으로 저장\n(동일 이름 설정이 있을 때 왼쪽 저장 버튼도 사용 가능)",
+  "screen.tooltip.xtracr_realcamera.modelView_saveAs": "이 비활성화 설정 추가/업데이트\n왼쪽 저장을 눌러 구성을 저장",
   "screen.tooltip.xtracr_realcamera.modelView_scale": "크기 조절, 오프셋 크기 제어",
   "screen.tooltip.xtracr_realcamera.modelView_selecting": "%s+왼쪽 클릭으로 마우스 포인터 위치의 UV 좌표 얻기\n아래 세 가지 UV 좌표는 위에서부터 전방 벡터, 상향 벡터, 대상 평면의 바인딩 지점 UV 좌표입니다\n참고: %s+스크롤로 모델의 다른 레이어 간 전환, 수동 UV 좌표 입력으로 대상 위치에 더 정확하게 바인딩 가능",
   "screen.tooltip.xtracr_realcamera.modelView_selectionMode": "%s+왼쪽 클릭 빠른 선택 모드 결정\n(%s+스크롤로 범위 모드에서 선택 범위 변경)",

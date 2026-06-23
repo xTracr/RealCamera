@@ -91,7 +91,7 @@
   "screen.tooltip.xtracr_realcamera.modelView_importSucceeded": "%sのインポートに成功しました！",
   "screen.tooltip.xtracr_realcamera.modelView_preview": "プレビューモードでカメラの様々なオフセットを調整できます",
   "screen.tooltip.xtracr_realcamera.modelView_priority": "バインディング時の優先度、値が大きいほど優先度が高く右側のソートで上位に表示",
-  "screen.tooltip.xtracr_realcamera.modelView_saveAs": "名前を付けて保存\n（同名設定がある場合も左の保存ボタンを使用できます）",
+  "screen.tooltip.xtracr_realcamera.modelView_saveAs": "この無効化設定を追加/更新\n左の保存を押して設定を保存",
   "screen.tooltip.xtracr_realcamera.modelView_scale": "スケール、オフセットのサイズを制御",
   "screen.tooltip.xtracr_realcamera.modelView_selecting": "%s+左クリックでマウスポインタ位置のUV座標を取得\n下の3組のUV座標は上から順に前方ベクトル、上方ベクトル、ターゲット平面上のバインディング点のUV座標\n注: %s+スクロールでモデルの異なるレイヤー間を切り替えられます。手動でUV座標を入力するとターゲット位置に正確にバインドできます",
   "screen.tooltip.xtracr_realcamera.modelView_selectionMode": "%s+左クリッククイック選択のモードを決定\n（%s+スクロールで範囲モードの選択範囲を変更）",
