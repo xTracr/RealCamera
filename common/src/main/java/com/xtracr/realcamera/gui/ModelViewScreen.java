@@ -287,7 +287,11 @@ public class ModelViewScreen extends Screen {
             initWidgets(page);
         }));
         rows.addChild(priorityField = NumberField.ofInt(font, widgetWidth - 2, widgetHeight - 2, 0, priorityField), smallSettings).setTooltip(createTooltip("priority"));
-        rows.addChild(nameField = createTextField(widgetWidth * 2 + 4, 20, nameField), 2, smallSettings).setTooltip(createTooltip("targetName"));
+        nameField = createTextField(widgetWidth * 2 + 4, 20, nameField);
+        boolean editableName = toggleCategoryButton.getValue() == Category.CONFIGS;
+        nameField.setEditable(editableName);
+        if (!editableName && nameField.isFocused()) nameField.setFocused(false);
+        rows.addChild(nameField, 2, smallSettings).setTooltip(createTooltip("targetName"));
         grid.arrangeElements();
         FrameLayout.alignInRectangle(grid, x, y + 2, x + (xSize - middleWidth) / 2 - 4, y + ySize, 0, 0);
         grid.visitWidgets(this::addRenderableWidget);
