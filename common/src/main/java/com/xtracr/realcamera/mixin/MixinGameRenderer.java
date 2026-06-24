@@ -44,9 +44,8 @@ public abstract class MixinGameRenderer {
             Pair<Vec3, Vec3> fromAndTo = RaycastUtil.getFromAndTo(cameraEntity, interactionRange * interactionRange, partialTicks);
             Vec3 newFrom = fromAndTo.getFirst();
             Vec3 newTo = fromAndTo.getSecond();
-            Minecraft client = Minecraft.getInstance();
-            double sqDistance = client.hitResult != null ? client.hitResult.getLocation().distanceToSqr(newFrom) : newTo.distanceToSqr(newFrom);
-            AABB newBox = cameraEntity.getBoundingBox().expandTowards(cameraEntity.getViewVector(partialTicks).scale(interactionRange)).inflate(1.0, 1.0, 1.0);
+            double sqDistance = newTo.distanceToSqr(newFrom);
+            AABB newBox = cameraEntity.getBoundingBox().expandTowards(newTo.subtract(newFrom)).inflate(1.0, 1.0, 1.0);
             CrosshairUtil.capturedEntityHitResult = ProjectileUtil.getEntityHitResult(entity, newFrom, newTo, newBox, predicate, sqDistance);
             return CrosshairUtil.capturedEntityHitResult;
         }
@@ -57,7 +56,7 @@ public abstract class MixinGameRenderer {
     private void realcamera$atCameraSetup(DeltaTracker deltaTracker, CallbackInfo ci) {
         final float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(true);
         CompatibilityHelper.NEA_setDeltaTick(partialTicks);
-        RealCameraCore.initialize(minecraft, true);
+        RealCameraCore.initialize(minecraft);
         if (RealCameraCore.isActive() && !ConfigFile.config().isClassic) {
             EntityRenderDispatcher dispatcher = minecraft.getEntityRenderDispatcher();
             dispatcher.prepare(minecraft.level, mainCamera,  minecraft.crosshairPickEntity);

@@ -12,13 +12,13 @@ import java.util.stream.IntStream;
 public final class ModConfig {
     public static final double MIN_OFFSET_D = -1.0, MAX_OFFSET_D = 1.0;
     public static final float MIN_OFFSET_F = -1.0f, MAX_OFFSET_F = 1.0f;
+    public final Classic classic = new Classic();
+    public final Binding binding = new Binding();
     public boolean enabled = false;
     public boolean isClassic = false;
     public boolean dynamicCrosshair = false;
     public boolean renderModel = true;
     public double adjustStep = 0.01;
-    public Classic classic = new Classic();
-    public Binding binding = new Binding();
 
     public void clamp() {
         adjustStep = Mth.clamp(adjustStep, 0.0, MAX_OFFSET_D);

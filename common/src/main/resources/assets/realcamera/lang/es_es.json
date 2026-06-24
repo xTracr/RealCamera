@@ -91,7 +91,7 @@
   "screen.tooltip.xtracr_realcamera.modelView_importSucceeded": "¡Importación %s exitosa!",
   "screen.tooltip.xtracr_realcamera.modelView_preview": "En el modo de vista previa, puedes ajustar el desplazamiento y rotación de la cámara",
   "screen.tooltip.xtracr_realcamera.modelView_priority": "Prioridad al vincular, cuanto mayor sea el valor, mayor será la prioridad y más alto será el orden en el lado derecho",
-  "screen.tooltip.xtracr_realcamera.modelView_saveAs": "Guardar como\n(Cuando existe una configuración con el mismo nombre, también puede usar el botón guardar a la izquierda)",
+  "screen.tooltip.xtracr_realcamera.modelView_saveAs": "Añadir/actualizar este ajuste de desactivación\nPulsa Guardar a la izquierda para guardar la configuración",
   "screen.tooltip.xtracr_realcamera.modelView_scale": "Escala, que controla el tamaño de los desplazamientos",
   "screen.tooltip.xtracr_realcamera.modelView_selecting": "%s+Clic izquierdo para obtener las coordenadas UV en el puntero del ratón\nLos tres conjuntos de coordenadas UV a continuación son, de arriba a abajo, las coordenadas UV del vector adelante, el vector arriba y el punto de vinculación en el plano objetivo\nNota: %s+Desplazarse para cambiar entre las diferentes capas del modelo. Ingresar manualmente las coordenadas UV permite vincular con mayor precisión a la posición objetivo",
   "screen.tooltip.xtracr_realcamera.modelView_selectionMode": "Determina el modo de selección rápida %s+Clic izquierdo\n(%s+Desplazarse para cambiar el rango de selección en el modo de rango)",

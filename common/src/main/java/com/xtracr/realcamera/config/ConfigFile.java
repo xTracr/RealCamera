@@ -15,17 +15,11 @@ import java.nio.file.Path;
 import java.util.function.Supplier;
 
 public final class ConfigFile {
-    private static final String FILE_NAME = RealCamera.MODID + ".json";
+    private static final String FILE_NAME = RealCamera.MOD_ID + ".json";
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private final static Supplier<Path> path = Suppliers.memoize(ConfigFile::getPath);
     @Nullable
     private static ModConfig config;
-
-    private static Path getPath() {
-        File configDir = new File(Minecraft.getInstance().gameDirectory, "config");
-        if (!configDir.exists()) configDir.mkdirs();
-        return configDir.toPath().resolve(FILE_NAME);
-    }
 
     public static ModConfig config() {
         if (config == null) load();
@@ -59,5 +53,12 @@ public final class ConfigFile {
         } catch (Exception exception) {
             RealCamera.LOGGER.warn("Failed to reset " + FILE_NAME, exception);
         }
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private static Path getPath() {
+        File configDir = new File(Minecraft.getInstance().gameDirectory, "config");
+        if (!configDir.exists()) configDir.mkdirs();
+        return configDir.toPath().resolve(FILE_NAME);
     }
 }

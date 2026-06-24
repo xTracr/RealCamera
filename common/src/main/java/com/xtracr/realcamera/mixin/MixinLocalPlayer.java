@@ -29,6 +29,7 @@ public abstract class MixinLocalPlayer extends AbstractClientPlayer {
         if (DisableHelper.RENDER_HANDS.disabled(this)) cir.setReturnValue(super.getRopeHoldPosition(f));
     }
 
+    @SuppressWarnings("resource")
     @Override
     public @NotNull HitResult pick(double maxDistance, float partialTicks, boolean includeFluids) {
         if (!ConfigFile.config().dynamicCrosshair && RealCameraCore.isActive()) {

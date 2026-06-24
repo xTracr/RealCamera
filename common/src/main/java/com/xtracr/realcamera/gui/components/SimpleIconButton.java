@@ -7,7 +7,7 @@ import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.resources.ResourceLocation;
 
 public class SimpleIconButton extends Button {
-    public static final ResourceLocation ICON_TEXTURE = ResourceLocation.fromNamespaceAndPath(RealCamera.MODID, "textures/gui/icon.png");
+    public static final ResourceLocation ICON_TEXTURE = ResourceLocation.fromNamespaceAndPath(RealCamera.MOD_ID, "textures/gui/icon.png");
     protected final ResourceLocation texture;
     protected final int textureWidth, textureHeight, u, v;
 

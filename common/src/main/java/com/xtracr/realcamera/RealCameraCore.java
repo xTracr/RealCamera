@@ -43,9 +43,9 @@ public class RealCameraCore {
         return lastResult.target;
     }
 
-    public static void initialize(Minecraft client, boolean renderLevel) {
+    public static void initialize(Minecraft client) {
         Entity entity = client.getCameraEntity();
-        active = renderLevel && ConfigFile.config().enabled && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.MAIN_FEATURE.disabled(entity);
+        active = ConfigFile.config().enabled && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.MAIN_FEATURE.disabled(entity);
         rendering = ConfigFile.config().renderModel && !DisableHelper.RENDER_MODEL.disabled(entity);
     }
 
@@ -100,12 +100,8 @@ public class RealCameraCore {
     }
 
     public static void renderCameraEntity(Minecraft client, float partialTicks, MultiBufferSource bufferSource, Matrix4f modelView) {
-        Vec3 targetEulerAngle = MathUtil.getEulerAngleYXZ(lastResult.getRotation());
-        Matrix4f invertedCameraPose = new Matrix4f()
-                .rotateZ((float) targetEulerAngle.z())
-                .rotateX((float) targetEulerAngle.x())
-                .rotateY((float) (Math.PI - targetEulerAngle.y()))
-                .transpose()
+        Matrix4f invertedCameraPose = new Matrix4f(lastResult.getRotation())
+                .scale(-1f, 1f, -1f)
                 .invert()
                 .translate(Vec3.ZERO.subtract(lastResult.getPosition()).toVector3f());
         PoseStack poseStack = new PoseStack();
