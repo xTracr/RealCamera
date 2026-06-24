@@ -1,4 +1,4 @@
-package com.xtracr.realcamera.util;
+package com.xtracr.realcamera.renderer.state;
 
 public final class MutableVertex implements VertexData {
     public float x, y, z;

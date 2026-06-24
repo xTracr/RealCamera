@@ -1,6 +1,7 @@
-package com.xtracr.realcamera.util;
+package com.xtracr.realcamera.renderer.state;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.xtracr.realcamera.util.MathUtil;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;

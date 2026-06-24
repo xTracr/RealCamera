@@ -6,7 +6,7 @@ import com.google.common.cache.LoadingCache;
 import com.xtracr.realcamera.mixin.accessor.CompositeRenderTypeAccessor;
 import com.xtracr.realcamera.mixin.accessor.CompositeStateAccessor;
 import com.xtracr.realcamera.mixin.accessor.EmptyTextureStateShardAccessor;
-import com.xtracr.realcamera.util.VertexData.UV;
+import com.xtracr.realcamera.renderer.state.VertexData.UV;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.client.renderer.RenderStateShard;

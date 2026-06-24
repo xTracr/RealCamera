@@ -5,9 +5,9 @@ import com.xtracr.realcamera.api.BindResult;
 import com.xtracr.realcamera.api.RealCameraAPI;
 import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.util.BuiltIterableBuffer;
-import com.xtracr.realcamera.util.MultiVertexCatcher;
-import com.xtracr.realcamera.util.VertexData;
+import com.xtracr.realcamera.renderer.BuiltIterableBuffer;
+import com.xtracr.realcamera.renderer.MultiVertexCatcher;
+import com.xtracr.realcamera.renderer.state.VertexData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.util.Mth;
@@ -37,7 +37,7 @@ public class YSMCompat {
     }
 
     private static BindResult createBindResult(BindTarget target) {
-        return new BindResult(target, false);
+        return new BindResult(target);
     }
 
     private static BindResult computeBindResult(Minecraft client, float deltaTick) {

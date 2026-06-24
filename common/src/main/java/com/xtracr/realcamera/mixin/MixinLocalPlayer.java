@@ -1,6 +1,7 @@
 package com.xtracr.realcamera.mixin;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.datafixers.util.Pair;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.ConfigFile;
@@ -31,8 +32,8 @@ public abstract class MixinLocalPlayer extends AbstractClientPlayer {
     @Override
     public @NotNull HitResult pick(double maxDistance, float deltaTick, boolean includeFluids) {
         if (!ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
-            RaycastUtil.update(this, maxDistance * maxDistance, deltaTick);
-            return level().clip(RaycastUtil.getClipContext(ClipContext.Block.OUTLINE,
+            Pair<Vec3, Vec3> fromAndTo = RaycastUtil.getFromAndTo(this, maxDistance * maxDistance, deltaTick);
+            return level().clip(new ClipContext(fromAndTo.getFirst(), fromAndTo.getSecond(), ClipContext.Block.OUTLINE,
                     includeFluids ? ClipContext.Fluid.ANY : ClipContext.Fluid.NONE, this));
         }
         return super.pick(maxDistance, deltaTick, includeFluids);

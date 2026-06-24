@@ -1,5 +1,6 @@
 package com.xtracr.realcamera.gui.components;
 
+import com.xtracr.realcamera.RealCamera;
 import com.xtracr.realcamera.util.LocUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
@@ -8,8 +9,6 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.navigation.CommonInputs;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
-import net.minecraft.util.FormattedCharSequence;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
@@ -38,19 +37,19 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
 
     public T getNumber() {
         try {
-            return getNumberInternal();
+            return getNumberInternal(getValue());
+        } catch (NumberFormatException e) {
+            return defaultValue;
         } catch (Exception e) {
+            RealCamera.LOGGER.warn("Unexpected error parsing number", e);
             return defaultValue;
         }
     }
 
     public void setNumber(T value) {
-        try {
-            if (value.compareTo(minimum) < 0) value = minimum;
-            else if (value.compareTo(maximum) > 0) value = maximum;
-            setValue(value.toString());
-        } catch (Exception ignored) {
-        }
+        if (value.compareTo(minimum) < 0) value = minimum;
+        else if (value.compareTo(maximum) > 0) value = maximum;
+        setValue(value.toString());
     }
 
     public NumberField<T> setMax(T maximum) {
@@ -68,19 +67,20 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
         return this;
     }
 
-    abstract protected T getNumberInternal();
+    abstract protected T getNumberInternal(String str) throws NumberFormatException;
 
     protected void checkText() {
         super.setTooltip(tooltip);
-        setFormatter((string, firstCharacterIndex) -> FormattedCharSequence.forward(string, Style.EMPTY));
-        if (getValue().isEmpty()) return;
+        setTextColor(0xE0E0E0);
+        String str = getValue();
+        if (str.isEmpty()) return;
         try {
-            T value = getNumberInternal();
-            if (value.compareTo(minimum) < 0) throw new Exception("< " + minimum);
-            if (value.compareTo(maximum) > 0) throw new Exception("> " + maximum);
+            T value = getNumberInternal(str);
+            if (value.compareTo(minimum) < 0) throw new RuntimeException("< " + minimum);
+            if (value.compareTo(maximum) > 0) throw new RuntimeException("> " + maximum);
         } catch (Exception e) {
             super.setTooltip(Tooltip.create(LocUtil.literal("Invalid number: " + e.getMessage()).withStyle(s -> s.withColor(ChatFormatting.RED))));
-            setFormatter((string, firstCharacterIndex) -> FormattedCharSequence.forward(string, Style.EMPTY.withColor(ChatFormatting.RED)));
+            setTextColor(0xFFFF5555);
         }
     }
 
@@ -118,8 +118,8 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
         }
 
         @Override
-        protected Float getNumberInternal() {
-            return Float.parseFloat(getValue());
+        protected Float getNumberInternal(String str) throws NumberFormatException {
+            return Float.parseFloat(str);
         }
     }
 
@@ -130,8 +130,8 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
         }
 
         @Override
-        protected Integer getNumberInternal() {
-            return Integer.parseInt(getValue());
+        protected Integer getNumberInternal(String str) throws NumberFormatException {
+            return Integer.parseInt(str);
         }
     }
 }

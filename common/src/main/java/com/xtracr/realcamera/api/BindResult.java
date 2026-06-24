@@ -2,22 +2,20 @@ package com.xtracr.realcamera.api;
 
 import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.ConfigFile;
+import com.xtracr.realcamera.config.OffsetConfig;
+import com.xtracr.realcamera.util.CameraTransform;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix3f;
 import org.joml.Vector3f;
 
 import java.util.List;
 
-public class BindResult {
-    public static final BindResult EMPTY = new BindResult(BindTarget.EMPTY, false);
+public class BindResult extends CameraTransform {
+    public static final BindResult EMPTY = new BindResult(BindTarget.EMPTY);
     public final BindTarget target;
-    protected final Matrix3f rotation = new Matrix3f();
-    protected final boolean mirrored;
-    private Vec3 position = Vec3.ZERO, forward = Vec3.ZERO, upward = Vec3.ZERO;
+    private Vec3 forward = Vec3.ZERO, upward = Vec3.ZERO;
 
-    public BindResult(BindTarget target, boolean mirrored) {
+    public BindResult(BindTarget target) {
         this.target = target;
-        this.mirrored = mirrored;
     }
 
     public static BindResult getOrCreate(String name) {
@@ -30,7 +28,7 @@ public class BindResult {
                     fixedTargets.add(blank);
                     return blank;
                 });
-        return new BindResult(target, false);
+        return new BindResult(target);
     }
 
     public boolean available() {
@@ -39,14 +37,6 @@ public class BindResult {
 
     public boolean weakAvailable() {
         return !target.isEmpty() && (forward != Vec3.ZERO || upward != Vec3.ZERO || position != Vec3.ZERO) && Double.isFinite(position.lengthSqr());
-    }
-
-    public Vec3 getPosition() {
-        return position;
-    }
-
-    public void setPosition(Vec3 vec) {
-        position = vec;
     }
 
     public Vec3 getForward() {
@@ -65,22 +55,18 @@ public class BindResult {
         upward = vec.normalize();
     }
 
-    public Matrix3f getRotation() {
-        return rotation;
-    }
-
-    public BindResult computeCamera() {
+    public BindResult computeCamera(boolean mirrored) {
         if (!available()) return this;
         final int orientation = mirrored ? -1 : 1;
         upward = forward.cross(upward.cross(forward)).normalize();
         Vec3 left = upward.cross(forward).scale(orientation);
         rotation.set(left.toVector3f(), upward.toVector3f(), forward.toVector3f());
-        BindTarget.OffsetConfig offsets = target.offsets();
-        Vector3f offset = new Vector3f(offsets.getZ(), offsets.getY(), offsets.getX()).mul(offsets.getScale()).mul(rotation);
+        OffsetConfig offsets = target.offsets();
+        Vector3f offset = new Vector3f(offsets.z, offsets.y, offsets.x).mul(offsets.scale).mul(rotation);
         position = position.add(offset.x(), offset.y(), offset.z());
-        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.getYaw()), rotation.m10, rotation.m11, rotation.m12);
-        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.getPitch()), rotation.m00, rotation.m01, rotation.m02);
-        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.getRoll()), rotation.m20, rotation.m21, rotation.m22);
+        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.yaw), rotation.m10, rotation.m11, rotation.m12);
+        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.pitch), rotation.m00, rotation.m01, rotation.m02);
+        rotation.rotateLocal(orientation * (float) Math.toRadians(offsets.roll), rotation.m20, rotation.m21, rotation.m22);
         return this;
     }
 }
