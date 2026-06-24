@@ -9,7 +9,6 @@ import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.util.CrosshairUtil;
 import com.xtracr.realcamera.util.RaycastUtil;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
@@ -42,9 +41,8 @@ public abstract class MixinLocalPlayer extends AbstractClientPlayer {
             Pair<Vec3, Vec3> fromAndTo = RaycastUtil.getFromAndTo(cameraEntity, interactionRange * interactionRange, partialTicks);
             Vec3 newFrom = fromAndTo.getFirst();
             Vec3 newTo = fromAndTo.getSecond();
-            Minecraft client = Minecraft.getInstance();
-            double sqDistance = client.hitResult != null ? client.hitResult.getLocation().distanceToSqr(newFrom) : newTo.distanceToSqr(newFrom);
-            AABB newBox = cameraEntity.getBoundingBox().expandTowards(cameraEntity.getViewVector(partialTicks).scale(interactionRange)).inflate(1.0, 1.0, 1.0);
+            double sqDistance = newTo.distanceToSqr(newFrom);
+            AABB newBox = cameraEntity.getBoundingBox().expandTowards(newTo.subtract(newFrom)).inflate(1.0, 1.0, 1.0);
             CrosshairUtil.capturedEntityHitResult = ProjectileUtil.getEntityHitResult(except, newFrom, newTo, newBox, matching, sqDistance);
             return CrosshairUtil.capturedEntityHitResult;
         }
