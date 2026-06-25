@@ -41,7 +41,7 @@ public record ColoredFloatLineRenderState(
     ) {
         this(pipeline, textureSetup, pose, x, y, z, vectorX, vectorY, vectorZ, argb, scissorArea,
                 GUIHelper.getBounds((int) MathUtil.floor(x, x + vectorX), (int) MathUtil.floor(y, y + vectorY),
-                        (int) MathUtil.ceil(x, x + vectorX), (int) MathUtil.ceil(x, x + vectorX), pose, scissorArea));
+                        (int) MathUtil.ceil(x, x + vectorX), (int) MathUtil.ceil(y, y + vectorY), pose, scissorArea));
     }
 
     @Override

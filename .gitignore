@@ -36,6 +36,9 @@ replay_*.log
 *.hprof
 *.jfr
 
+# local docs and resources
+.local/
+
 # agent
 AGENTS.md
 CLAUDE.md

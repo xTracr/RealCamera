@@ -43,9 +43,9 @@ public final class RealCameraCore {
         return lastResult.target;
     }
 
-    public static void initialize(Minecraft client, boolean renderLevel) {
+    public static void initialize(Minecraft client, boolean advanceGameTime) {
         Entity entity = client.getCameraEntity();
-        active = renderLevel && ConfigFile.config().enabled && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.MAIN_FEATURE.disabled(entity);
+        active = advanceGameTime && ConfigFile.config().enabled && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.MAIN_FEATURE.disabled(entity);
         rendering = ConfigFile.config().renderModel && !DisableHelper.RENDER_MODEL.disabled(entity);
     }
 
@@ -71,13 +71,16 @@ public final class RealCameraCore {
         Entity entity = client.getCameraEntity();
         boolean invisible = entity.isInvisible();
         entity.setInvisible(false);
-        newResult = RealCameraAPI.computeBindResult(client, partialTicks);
-        if (!newResult.available()) {
-            EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
-            dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, new PoseStack(), vertexCatcher.initCollector());
-            vertexCatcher.forEachBuffer(RealCameraCore::computeBindResult);
+        try {
+            newResult = RealCameraAPI.computeBindResult(client, partialTicks);
+            if (!newResult.available()) {
+                EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
+                dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, new PoseStack(), vertexCatcher.initCollector());
+                vertexCatcher.forEachBuffer(RealCameraCore::computeBindResult);
+            }
+        } finally {
+            entity.setInvisible(invisible);
         }
-        entity.setInvisible(invisible);
         if (newResult.available()) {
             failureFrames = 0;
             lastResult = newResult.computeCamera(false, entity.getPose());

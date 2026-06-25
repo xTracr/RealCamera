@@ -91,7 +91,7 @@
   "screen.tooltip.xtracr_realcamera.modelView_importSucceeded": "Import %s succeeded!",
   "screen.tooltip.xtracr_realcamera.modelView_preview": "In the preview mode, you can adjust the camera's offset and rotation",
   "screen.tooltip.xtracr_realcamera.modelView_priority": "Priority when binding, the larger the value the higher the priority, and the higher the sorting on the right side",
-  "screen.tooltip.xtracr_realcamera.modelView_saveAs": "Save as\n(When there is a setting with the same name, you can also press the save button on the left)",
+  "screen.tooltip.xtracr_realcamera.modelView_saveAs": "Add/update this disable setting\nPress Save on the left to save the config",
   "screen.tooltip.xtracr_realcamera.modelView_scale": "Scale, which controls the size of the offsets",
   "screen.tooltip.xtracr_realcamera.modelView_selecting": "%s+Left Click to get the UV coordinates at the mouse pointer\nThe three sets of UV coordinates below are, from top to bottom, the UV coordinates of the forward vector, the upward vector, and the binding point on the target plane\nNote: %s+Scroll to switch between the different layers of the model. Manually inputting UV coordinates allows you to bind more accurately to the target position",
   "screen.tooltip.xtracr_realcamera.modelView_selectionMode": "Decide the mode of %s+Left Click quick selection\n(%s+Scroll to change the selection range in the range mode)",

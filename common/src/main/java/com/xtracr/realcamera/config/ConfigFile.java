@@ -15,7 +15,7 @@ import java.nio.file.Path;
 import java.util.function.Supplier;
 
 public final class ConfigFile {
-    private static final String FILE_NAME = RealCamera.MODID + ".json";
+    private static final String FILE_NAME = RealCamera.MOD_ID + ".json";
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private final static Supplier<Path> path = Suppliers.memoize(ConfigFile::getPath);
     @Nullable

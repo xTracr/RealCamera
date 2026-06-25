@@ -17,7 +17,7 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
 import java.util.Map;
 
-@Mod(value = RealCamera.MODID, dist = Dist.CLIENT)
+@Mod(value = RealCamera.MOD_ID, dist = Dist.CLIENT)
 public final class RealCameraNeoForge implements RealCamera {
     private final ModContainer modContainer;
     private final Map<String, String> modIdMap = Map.of("cloth-config", "cloth_config");

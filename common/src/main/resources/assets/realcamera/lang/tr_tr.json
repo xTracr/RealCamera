@@ -91,7 +91,7 @@
   "screen.tooltip.xtracr_realcamera.modelView_importSucceeded": "%s içe aktarma başarılı!",
   "screen.tooltip.xtracr_realcamera.modelView_preview": "Önizleme modunda kameranın çeşitli ofsetlerini ayarlayabilirsiniz",
   "screen.tooltip.xtracr_realcamera.modelView_priority": "Bağlama önceliği, değer ne kadar büyükse öncelik o kadar yüksektir ve sağ taraftaki sıralama da o kadar yukarıdadır",
-  "screen.tooltip.xtracr_realcamera.modelView_saveAs": "Farklı Kaydet\n(Aynı isimde bir ayar olduğunda, soldaki kaydet düğmesini de kullanabilirsiniz)",
+  "screen.tooltip.xtracr_realcamera.modelView_saveAs": "Bu devre dışı bırakma ayarını ekle/güncelle\nYapılandırmayı kaydetmek için soldaki Kaydet'e basın",
   "screen.tooltip.xtracr_realcamera.modelView_scale": "Ölçek, ofsetlerin boyutunu kontrol eder",
   "screen.tooltip.xtracr_realcamera.modelView_selecting": "%s+Sol Tık ile fare işaretçisindeki UV koordinatlarını alın\nAşağıdaki üç UV koordinat seti, yukarıdan aşağıya doğru, ileri vektör, yukarı vektör ve hedef düzlemdeki bağlama noktasının UV koordinatlarıdır\nNot: %s+Kaydırma ile modelin farklı katmanları arasında geçiş yapabilirsiniz. UV koordinatlarını manuel olarak girerek hedef konuma daha hassas bir şekilde bağlanabilirsiniz",
   "screen.tooltip.xtracr_realcamera.modelView_selectionMode": "%s+Sol Tık hızlı seçim modunu belirler\n(%s+Kaydırma ile aralık modundaki seçim aralığını değiştirin)",

@@ -32,17 +32,18 @@ public final class MultiVertexCatcher {
         return new MultiVertexCatcher();
     }
 
+    @SuppressWarnings("resource")
     private static <S> void renderModel(PoseStack poseStack, SubmitNodeStorage.ModelSubmit<S> submit, VertexConsumer buffer) {
         poseStack.pushPose();
         poseStack.last().set(submit.pose());
         Model<? super S> model = submit.model();
-        //noinspection resource
         VertexConsumer wrappedBuffer = submit.sprite() == null ? buffer : submit.sprite().wrap(buffer);
         model.setupAnim(submit.state());
         model.renderToBuffer(poseStack, wrappedBuffer, submit.lightCoords(), submit.overlayCoords(), submit.tintedColor());
         poseStack.popPose();
     }
 
+    @SuppressWarnings("resource")
     private static void renderModelParts(PoseStack poseStack, Map<RenderType, List<SubmitNodeStorage.ModelPartSubmit>> modelPartSubmitsMap, MultiBufferSource.BufferSource bufferSource) {
         poseStack.pushPose();
         for (var entry : modelPartSubmitsMap.entrySet()) {
@@ -51,7 +52,6 @@ public final class MultiVertexCatcher {
             VertexConsumer buffer = bufferSource.getBuffer(renderType);
 
             for (SubmitNodeStorage.ModelPartSubmit submit : modelPartSubmits) {
-                //noinspection resource
                 VertexConsumer wrappedBuffer = submit.sprite() == null ? buffer : submit.sprite().wrap(buffer);
                 poseStack.last().set(submit.pose());
                 submit.modelPart().render(poseStack, wrappedBuffer, submit.lightCoords(), submit.overlayCoords(), submit.tintedColor());

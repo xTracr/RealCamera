@@ -91,7 +91,7 @@
   "screen.tooltip.xtracr_realcamera.modelView_importSucceeded": "Import %s powiódł się!",
   "screen.tooltip.xtracr_realcamera.modelView_preview": "W trybie podglądu możesz dostosować przesunięcie i obrót kamery",
   "screen.tooltip.xtracr_realcamera.modelView_priority": "Priorytet powiązania: im większa wartość, tym wyższy priorytet i wyższe sortowanie po prawej stronie",
-  "screen.tooltip.xtracr_realcamera.modelView_saveAs": "Zapisz jako\n(Gdy istnieje konfiguracja o tej samej nazwie, możesz również użyć przycisku zapisu po lewej stronie)",
+  "screen.tooltip.xtracr_realcamera.modelView_saveAs": "Dodaj/zaktualizuj to ustawienie wyłączenia\nKliknij Zapisz po lewej, aby zapisać konfigurację",
   "screen.tooltip.xtracr_realcamera.modelView_scale": "Skala, która kontroluje rozmiar przesunięć",
   "screen.tooltip.xtracr_realcamera.modelView_selecting": "%s+LKliknij, aby uzyskać współrzędne UV w miejscu wskaźnika myszy\nTrzy zestawy współrzędnych UV poniżej, od góry do dołu, to współrzędne UV wektora do przodu, wektora w górę i punktu wiązania na płaszczyźnie docelowej\nUwaga: %s+Przewiń, aby przełączać się między różnymi warstwami modelu. Ręczne wprowadzanie współrzędnych UV pozwala dokładniej powiązać z pozycją docelową",
   "screen.tooltip.xtracr_realcamera.modelView_selectionMode": "Określa tryb szybkiego wyboru %s+LKliknięcia\n(%s+Przewiń, aby zmienić zakres wyboru w trybie zakresu)",

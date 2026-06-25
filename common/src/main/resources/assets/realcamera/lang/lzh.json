@@ -91,7 +91,7 @@
   "screen.tooltip.xtracr_realcamera.modelView_importSucceeded": "入%s成！",
   "screen.tooltip.xtracr_realcamera.modelView_preview": "於覽式可調鏡觀諸偏移",
   "screen.tooltip.xtracr_realcamera.modelView_priority": "系定之先級，值愈大愈先，且右列愈前",
-  "screen.tooltip.xtracr_realcamera.modelView_saveAs": "存為\n（當有同名設時，亦可用左存鈕）",
+  "screen.tooltip.xtracr_realcamera.modelView_saveAs": "增/更新此禁用設\n再按左存鈕以存目前設",
   "screen.tooltip.xtracr_realcamera.modelView_scale": "縮放之度，控偏移量之大小",
   "screen.tooltip.xtracr_realcamera.modelView_selecting": "%s+左鍵可取光標處UV座標\n下三組UV座標自上而下為前向矢、上向矢與的平面上系點之UV座標\n註：%s鍵+滾輪可易模型之層，手輸UV座標可精系的位",
   "screen.tooltip.xtracr_realcamera.modelView_selectionMode": "定%s+左鍵速擇之法\n（%s鍵+滾輪可易域擇之範）",
