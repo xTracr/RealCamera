@@ -1,17 +1,19 @@
 package com.xtracr.realcamera.config.codec;
 
-import com.xtracr.realcamera.config.*;
+import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.BindTarget.BindConfig;
 import com.xtracr.realcamera.config.BindTarget.TargetConfig;
+import com.xtracr.realcamera.config.DisableConfig;
+import com.xtracr.realcamera.config.OffsetConfig;
+import com.xtracr.realcamera.config.PoseRotation;
+import com.xtracr.realcamera.config.UVRectangle;
 import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.DecoderException;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import org.jspecify.annotations.NonNull;
 
 import java.util.List;
 
-final class ConfigCodec708 implements ConfigCodec {
+final class ConfigCodec708 {
     static final StreamCodec<ByteBuf, TargetConfig> TARGET_CONFIG_CODEC = StreamCodec.composite(
             ByteBufCodecs.FLOAT, TargetConfig::forwardU,
             ByteBufCodecs.FLOAT, TargetConfig::forwardV,
@@ -39,11 +41,11 @@ final class ConfigCodec708 implements ConfigCodec {
                 return new BindConfig(bindX, bindY, bindZ, bindRotation);
             }
     );
-    static final StreamCodec<ByteBuf, Posture> OFFSET_POSTURE_CODEC = StreamCodec.composite(
-            ByteBufCodecs.FLOAT, posture -> posture.pitch,
-            ByteBufCodecs.FLOAT, posture -> posture.yaw,
-            ByteBufCodecs.FLOAT, posture -> posture.roll,
-            Posture::new
+    static final StreamCodec<ByteBuf, PoseRotation> OFFSET_POSTURE_CODEC = StreamCodec.composite(
+            ByteBufCodecs.FLOAT, rotation -> rotation.pitch,
+            ByteBufCodecs.FLOAT, rotation -> rotation.yaw,
+            ByteBufCodecs.FLOAT, rotation -> rotation.roll,
+            PoseRotation::new
     );
     static final StreamCodec<ByteBuf, OffsetConfig> OFFSET_CONFIG_CODEC = StreamCodec.composite(
             ByteBufCodecs.FLOAT, offsets -> offsets.scale,
@@ -70,7 +72,7 @@ final class ConfigCodec708 implements ConfigCodec {
             UV_RECTANGLES_CODEC, DisableConfig::rectangles,
             DisableConfig::new
     ).apply(ByteBufCodecs.list());
-    static final StreamCodec<ByteBuf, BindTarget> BIND_TARGET_CODEC = StreamCodec.composite(
+    static final StreamCodec<ByteBuf, BindTarget> CODEC = StreamCodec.composite(
             ByteBufCodecs.STRING_UTF8, BindTarget::name,
             ByteBufCodecs.STRING_UTF8, BindTarget::textureId,
             ByteBufCodecs.VAR_INT, BindTarget::priority,
@@ -81,19 +83,4 @@ final class ConfigCodec708 implements ConfigCodec {
             DISABLE_CONFIGS_CODEC, BindTarget::disableConfigs,
             BindTarget::new
     );
-
-    @Override
-    public short version() {
-        return 708; // 0.7.8
-    }
-
-    @Override
-    public @NonNull BindTarget decode(@NonNull ByteBuf byteBuf) throws DecoderException {
-        return BIND_TARGET_CODEC.decode(byteBuf);
-    }
-
-    @Override
-    public void encode(@NonNull ByteBuf byteBuf, @NonNull BindTarget bindTarget) {
-        BIND_TARGET_CODEC.encode(byteBuf, bindTarget);
-    }
 }

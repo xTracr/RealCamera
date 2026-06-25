@@ -6,20 +6,20 @@ import net.minecraft.world.entity.Pose;
 public final class OffsetConfig {
     public float scale = 1;
     public float x, y, z;
-    public Posture standing = new Posture();
-    public Posture crouching = new Posture();
-    public Posture swimming = new Posture();
-    public Posture flying = new Posture();
+    public PoseRotation standing = new PoseRotation();
+    public PoseRotation crouching = new PoseRotation();
+    public PoseRotation swimming = new PoseRotation();
+    public PoseRotation flying = new PoseRotation();
 
     public OffsetConfig() {
     }
 
     @Deprecated
     public OffsetConfig(float scale, float x, float y, float z, float pitch, float yaw, float roll) {
-        this(scale, x, y, z, new Posture(pitch, yaw, roll), new Posture(), new Posture(), new Posture());
+        this(scale, x, y, z, new PoseRotation(pitch, yaw, roll), new PoseRotation(), new PoseRotation(), new PoseRotation());
     }
 
-    public OffsetConfig(float scale, float x, float y, float z, Posture standing, Posture crouching, Posture swimming, Posture flying) {
+    public OffsetConfig(float scale, float x, float y, float z, PoseRotation standing, PoseRotation crouching, PoseRotation swimming, PoseRotation flying) {
         this.scale = scale;
         this.x = x;
         this.y = y;

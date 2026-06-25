@@ -12,6 +12,7 @@ import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
 
+@SuppressWarnings("deprecation")
 final class ConfigCodec703 {
     static final StreamCodec<ByteBuf, TargetConfig> TARGET_CONFIG_CODEC = StreamCodec.composite(
             ByteBufCodecs.FLOAT, TargetConfig::forwardU,

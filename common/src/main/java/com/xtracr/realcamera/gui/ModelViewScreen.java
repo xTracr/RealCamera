@@ -710,10 +710,10 @@ public final class ModelViewScreen extends Screen {
         TargetConfig targetConfig = new TargetConfig(forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber());
         BindConfig bindConfig = new BindConfig(bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);
         OffsetConfig offsets = new OffsetConfig(scaleField.getNumber(), offsetXPair.getNumber(), offsetYPair.getNumber(), offsetZPair.getNumber(),
-                new Posture(offsetStandingPitchPair.getNumber(), offsetStandingYawPair.getNumber(), offsetStandingRollPair.getNumber()),
-                new Posture(offsetCrouchingPitchPair.getNumber(), offsetCrouchingYawPair.getNumber(), offsetCrouchingRollPair.getNumber()),
-                new Posture(offsetSwimmingPitchPair.getNumber(), offsetSwimmingYawPair.getNumber(), offsetSwimmingRollPair.getNumber()),
-                new Posture(offsetFlyingPitchPair.getNumber(), offsetFlyingYawPair.getNumber(), offsetFlyingRollPair.getNumber()));
+                new PoseRotation(offsetStandingPitchPair.getNumber(), offsetStandingYawPair.getNumber(), offsetStandingRollPair.getNumber()),
+                new PoseRotation(offsetCrouchingPitchPair.getNumber(), offsetCrouchingYawPair.getNumber(), offsetCrouchingRollPair.getNumber()),
+                new PoseRotation(offsetSwimmingPitchPair.getNumber(), offsetSwimmingYawPair.getNumber(), offsetSwimmingRollPair.getNumber()),
+                new PoseRotation(offsetFlyingPitchPair.getNumber(), offsetFlyingYawPair.getNumber(), offsetFlyingRollPair.getNumber()));
         return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, new ArrayList<>(disableConfigs));
     }
 

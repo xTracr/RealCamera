@@ -2,13 +2,13 @@ package com.xtracr.realcamera.config;
 
 import net.minecraft.util.Mth;
 
-public final class Posture {
+public final class PoseRotation {
     public float pitch, yaw, roll;
 
-    public Posture() {
+    public PoseRotation() {
     }
 
-    public Posture(float pitch, float yaw, float roll) {
+    public PoseRotation(float pitch, float yaw, float roll) {
         this.pitch = pitch;
         this.yaw = yaw;
         this.roll = roll;
