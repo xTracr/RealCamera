@@ -44,9 +44,10 @@ public abstract class MixinLocalPlayer extends AbstractClientPlayer {
             double sqDistance = newTo.distanceToSqr(newFrom);
             AABB newBox = cameraEntity.getBoundingBox().expandTowards(newTo.subtract(newFrom)).inflate(1.0, 1.0, 1.0);
             CrosshairUtil.capturedEntityHitResult = ProjectileUtil.getEntityHitResult(except, newFrom, newTo, newBox, matching, sqDistance);
-            return CrosshairUtil.capturedEntityHitResult;
+        } else {
+            CrosshairUtil.capturedEntityHitResult = original.call(except, from, _to, box, matching, maxValue);
         }
-        return original.call(except, from, _to, box, matching, maxValue);
+        return CrosshairUtil.capturedEntityHitResult;
     }
 
     @Inject(method = "getRopeHoldPosition", at = @At("HEAD"), cancellable = true)
