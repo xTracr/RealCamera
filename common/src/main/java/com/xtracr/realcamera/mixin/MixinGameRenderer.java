@@ -47,9 +47,10 @@ public abstract class MixinGameRenderer {
             double sqDistance = newTo.distanceToSqr(newFrom);
             AABB newBox = cameraEntity.getBoundingBox().expandTowards(newTo.subtract(newFrom)).inflate(1.0, 1.0, 1.0);
             CrosshairUtil.capturedEntityHitResult = ProjectileUtil.getEntityHitResult(entity, newFrom, newTo, newBox, predicate, sqDistance);
-            return CrosshairUtil.capturedEntityHitResult;
+        } else {
+            CrosshairUtil.capturedEntityHitResult = original.call(entity, vec3, vec32, aABB, predicate, d);
         }
-        return original.call(entity, vec3, vec32, aABB, predicate, d);
+        return CrosshairUtil.capturedEntityHitResult;
     }
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setup(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/world/entity/Entity;ZZF)V"))

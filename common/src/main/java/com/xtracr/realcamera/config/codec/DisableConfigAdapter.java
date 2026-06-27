@@ -8,6 +8,7 @@ import com.xtracr.realcamera.config.UVRectangle;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public final class DisableConfigAdapter extends TypeAdapter<DisableConfig> {
     @Override
@@ -32,31 +33,42 @@ public final class DisableConfigAdapter extends TypeAdapter<DisableConfig> {
 
     @Override
     public DisableConfig read(JsonReader in) throws IOException {
+        String name = "";
+        String textureId = "";
+        boolean disableAll = false;
+        List<UVRectangle> rectangles = new ArrayList<>();
+
         in.beginObject();
-        in.nextName();
-        String name = in.nextString();
-        in.nextName();
-        String textureId = in.nextString();
-        in.nextName();
-        boolean disableAll = in.nextBoolean();
-        in.nextName();
-        in.beginArray();
-        ArrayList<UVRectangle> rectangles = new ArrayList<>();
         while (in.hasNext()) {
-            in.beginObject();
-            in.nextName();
-            float uMin = (float) in.nextDouble();
-            in.nextName();
-            float vMin = (float) in.nextDouble();
-            in.nextName();
-            float uMax = (float) in.nextDouble();
-            in.nextName();
-            float vMax = (float) in.nextDouble();
-            in.endObject();
-            rectangles.add(new UVRectangle(uMin, vMin, uMax, vMax));
+            switch (in.nextName()) {
+                case "name" -> name = in.nextString();
+                case "textureId" -> textureId = in.nextString();
+                case "disableAll" -> disableAll = in.nextBoolean();
+                case "rectangles" -> {
+                    in.beginArray();
+                    while (in.hasNext()) rectangles.add(readRectangle(in));
+                    in.endArray();
+                }
+                default -> in.skipValue();
+            }
         }
-        in.endArray();
         in.endObject();
         return new DisableConfig(name, textureId, disableAll, rectangles);
+    }
+
+    private UVRectangle readRectangle(JsonReader in) throws IOException {
+        float uMin = 0, vMin = 0, uMax = 0, vMax = 0;
+        in.beginObject();
+        while (in.hasNext()) {
+            switch (in.nextName()) {
+                case "uMin" -> uMin = (float) in.nextDouble();
+                case "vMin" -> vMin = (float) in.nextDouble();
+                case "uMax" -> uMax = (float) in.nextDouble();
+                case "vMax" -> vMax = (float) in.nextDouble();
+                default -> in.skipValue();
+            }
+        }
+        in.endObject();
+        return new UVRectangle(uMin, vMin, uMax, vMax);
     }
 }
