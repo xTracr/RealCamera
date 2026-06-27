@@ -6,8 +6,11 @@ import com.xtracr.realcamera.api.BindResult;
 import com.xtracr.realcamera.api.RealCameraAPI;
 import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.BindTarget;
-import com.xtracr.realcamera.config.BindTarget.DisableConfig;
 import com.xtracr.realcamera.config.ConfigFile;
+import com.xtracr.realcamera.config.DisableConfig;
+import com.xtracr.realcamera.renderer.BuiltIterableBuffer;
+import com.xtracr.realcamera.renderer.MultiVertexCatcher;
+import com.xtracr.realcamera.renderer.state.VertexData;
 import com.xtracr.realcamera.util.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -19,8 +22,10 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 public class RealCameraCore {
+    private static final MultiVertexCatcher vertexCatcher = MultiVertexCatcher.create();
+    private static final CameraTransform smoothedCamera = new CameraTransform();
     private static BindResult lastResult = BindResult.EMPTY, newResult = BindResult.EMPTY;
-    private static Vec3 cameraPos = Vec3.ZERO, eulerAngle = Vec3.ZERO;
+    private static Vec3 cameraPos = Vec3.ZERO;
     private static boolean active = false, rendering = false;
     private static int failureFrames = 0;
 
@@ -43,28 +48,33 @@ public class RealCameraCore {
     }
 
     public static void reset() {
-        cameraPos = eulerAngle = Vec3.ZERO;
+        cameraPos = Vec3.ZERO;
+        smoothedCamera.setPosition(Vec3.ZERO);
+        smoothedCamera.setRotation(new Matrix3f());
         failureFrames = 0;
     }
 
     public static float getPitch(float f) {
-        if (currentTarget().bindConfig().bindRotation()) return (float) eulerAngle.x();
-        return f;
+        return (float) getEulerAngle(f, 0, 0).x();
     }
 
     public static float getYaw(float f) {
-        if (currentTarget().bindConfig().bindRotation()) return (float) -eulerAngle.y();
-        return f;
+        return (float) getEulerAngle(0, f, 0).y();
     }
 
     public static float getRoll(float f) {
         if (ConfigFile.config().isClassic()) return f + ConfigFile.config().getClassicRoll();
-        if (currentTarget().bindConfig().bindRotation()) return (float) eulerAngle.z();
-        return f;
+        return (float) getEulerAngle(0, 0, f).z();
+    }
+
+    private static Vec3 getEulerAngle(float pitch, float yaw, float roll) {
+        if (!currentTarget().bindConfig().bindRotation()) return new Vec3(pitch, yaw, roll);
+        double scale = Math.toDegrees(1);
+        return MathUtil.getEulerAngleYXZ(smoothedCamera.getRotation()).multiply(scale, -scale, scale);
     }
 
     public static Vec3 getRawPos(Vec3 cameraPos, Vec3 entityPos) {
-        Vec3 rawPos = SmoothUtil.smoothPosition(lastResult.getPosition()).add(entityPos);
+        Vec3 rawPos = smoothedCamera.getPosition().add(entityPos);
         BindTarget.BindConfig bindConfig = currentTarget().bindConfig();
         return new Vec3(bindConfig.bindX() ? rawPos.x() : cameraPos.x(), bindConfig.bindY() ? rawPos.y() : cameraPos.y(), bindConfig.bindZ() ? rawPos.z() : cameraPos.z());
     }
@@ -85,18 +95,17 @@ public class RealCameraCore {
         newResult = RealCameraAPI.computeBindResult(client, deltaTick);
         if (!newResult.available()) {
             EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
-            MultiVertexCatcher catcher = MultiVertexCatcher.defaultImpl();
             try {
-                dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, new PoseStack(), catcher, dispatcher.getPackedLightCoords(entity, deltaTick));
-                catcher.forEachBuffer(RealCameraCore::computeBindResult);
+                dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, new PoseStack(), vertexCatcher, dispatcher.getPackedLightCoords(entity, deltaTick));
+                vertexCatcher.forEachBuffer(RealCameraCore::computeBindResult);
             } finally {
-                catcher.clear();
+                vertexCatcher.clear();
             }
         }
         entity.setInvisible(invisible);
         if (newResult.available()) {
             failureFrames = 0;
-            lastResult = newResult.computeCamera();
+            lastResult = newResult.computeCamera(false);
         } else {
             failureFrames++;
             Entity player = client.player;
@@ -110,7 +119,8 @@ public class RealCameraCore {
                 return;
             }
         }
-        eulerAngle = MathUtil.getEulerAngleYXZ(SmoothUtil.smoothRotation(lastResult.getRotation())).scale(Math.toDegrees(1));
+        smoothedCamera.lerpPosition(lastResult.getPosition(), 1 - ConfigFile.config().getDisplacementSmoothFactor());
+        smoothedCamera.slerpRotation(lastResult.getRotation(), 1 - ConfigFile.config().getRotationSmoothFactor());
     }
 
     public static void renderCameraEntity(Minecraft client, float deltaTick, MultiBufferSource bufferSource) {
@@ -162,7 +172,7 @@ public class RealCameraCore {
         if (newResult.available()) return;
         targetFor:
         for (BindTarget target : ConfigFile.config().getBindTargetList(builtBuffer.textureId())) {
-            BindResult result = new BindResult(target, false);
+            BindResult result = new BindResult(target);
             BindTarget.TargetConfig config = target.targetConfig();
             VertexData.UV[] uvs = {new VertexData.UV(config.posU(), config.posV()), new VertexData.UV(config.forwardU(), config.forwardV()), new VertexData.UV(config.upwardU(), config.upwardV())};
             VertexData[][] primitives = builtBuffer.resolvePrimitives(uvs);

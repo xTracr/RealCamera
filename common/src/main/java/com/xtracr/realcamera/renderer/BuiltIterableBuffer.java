@@ -1,9 +1,11 @@
-package com.xtracr.realcamera.util;
+package com.xtracr.realcamera.renderer;
 
 
 import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.xtracr.realcamera.renderer.state.VertexData;
+import com.xtracr.realcamera.renderer.state.VertexData.UV;
 import com.xtracr.realcamera.util.RenderTypeCache.PrimitiveLayoutKey;
-import com.xtracr.realcamera.util.VertexData.UV;
+import com.xtracr.realcamera.util.RenderTypeCache;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.minecraft.client.renderer.RenderType;
 import org.jetbrains.annotations.Nullable;

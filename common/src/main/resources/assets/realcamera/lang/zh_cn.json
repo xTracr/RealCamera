@@ -91,7 +91,7 @@
   "screen.tooltip.xtracr_realcamera.modelView_importSucceeded": "导入%s成功！",
   "screen.tooltip.xtracr_realcamera.modelView_preview": "在预览模式可以调整相机的各个偏移量",
   "screen.tooltip.xtracr_realcamera.modelView_priority": "绑定时的优先级，值越大优先级越高，并且在右侧排序越靠上",
-  "screen.tooltip.xtracr_realcamera.modelView_saveAs": "保存为\n（当存在同名设置时，也可使用左侧保存按钮）",
+  "screen.tooltip.xtracr_realcamera.modelView_saveAs": "添加/更新此禁用设置\n再点左侧保存以保存到当前配置",
   "screen.tooltip.xtracr_realcamera.modelView_scale": "缩放比例，控制偏移量的大小",
   "screen.tooltip.xtracr_realcamera.modelView_selecting": "%s+左键可获取鼠标指针处的UV坐标\n下方三组UV坐标由上到下依次为向前矢量、向上矢量和目标平面上绑定点的UV坐标\n注：%s键+滚轮可在模型的不同层间切换，手动输入UV坐标可以更加精确地绑定到目标位置",
   "screen.tooltip.xtracr_realcamera.modelView_selectionMode": "决定%s+左键快速选择的模式\n（%s键+滚轮可改变范围模式下的选择范围）",

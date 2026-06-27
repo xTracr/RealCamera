@@ -3,13 +3,18 @@ package com.xtracr.realcamera.gui;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.serialization.DataResult;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.compat.CompatibilityHelper;
 import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.BindTarget.*;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ConfigScreen;
+import com.xtracr.realcamera.config.DisableConfig;
 import com.xtracr.realcamera.config.ModConfig;
+import com.xtracr.realcamera.config.OffsetConfig;
+import com.xtracr.realcamera.config.UVRectangle;
+import com.xtracr.realcamera.config.codec.ConfigCodec;
 import com.xtracr.realcamera.gui.components.CycleIconButton;
 import com.xtracr.realcamera.gui.components.DoubleSlider;
 import com.xtracr.realcamera.gui.components.NumberField;
@@ -17,8 +22,7 @@ import com.xtracr.realcamera.gui.components.NumberWidgetPair;
 import com.xtracr.realcamera.gui.components.SimpleIconButton;
 import com.xtracr.realcamera.util.LocUtil;
 import com.xtracr.realcamera.util.MathUtil;
-import com.xtracr.realcamera.util.VertexData;
-import io.netty.buffer.Unpooled;
+import com.xtracr.realcamera.renderer.state.VertexData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.*;
@@ -30,7 +34,6 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.navigation.CommonInputs;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
@@ -41,14 +44,10 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.util.*;
-import java.util.zip.Deflater;
-import java.util.zip.DeflaterOutputStream;
-import java.util.zip.InflaterInputStream;
 
 public class ModelViewScreen extends Screen {
+    private static final int CONFIG_NAME_MAX_LENGTH = 20;
     public final ModelAnalyser analyser = new ModelAnalyser();
     protected int xSize = 450, ySize = 206, middleWidth = xSize - 200, widgetWidth = (xSize - middleWidth) / 4 - 8, widgetHeight = 18;
     protected int x, y, page = 0;
@@ -130,6 +129,9 @@ public class ModelViewScreen extends Screen {
     @Override
     protected void init() {
         super.init();
+        xSize = Mth.clamp(width - 10, 10, 450);
+        ySize = Mth.clamp(height - 10, 10, 206);
+        middleWidth = Math.max(10, xSize - 200);
         x = (width - xSize) / 2;
         y = (height - ySize) / 2;
         modifierKey = ConfigFile.config().getScreenModifierKey();
@@ -273,15 +275,23 @@ public class ModelViewScreen extends Screen {
                 button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("emptyName").withStyle(ChatFormatting.RED)));
                 return;
             }
+            if (textureIdField.getValue().isBlank()) {
+                button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("emptyTextureId").withStyle(ChatFormatting.RED)));
+                return;
+            }
+            if (toggleCategoryButton.getValue() == Category.DISABLE && !syncDisableDraft(button, true)) return;
             button.setTooltip(null);
             BindTarget bindTarget = genBindTarget();
             ConfigFile.config().putBindTarget(bindTarget);
             ConfigFile.save();
-            loadBindTarget(bindTarget);
             initWidgets(page);
         }));
         rows.addChild(priorityField = NumberField.ofInt(font, widgetWidth - 2, widgetHeight - 2, 0, priorityField), smallSettings).setTooltip(createTooltip("priority"));
-        rows.addChild(nameField = createTextField(widgetWidth * 2 + 4, 20, nameField), 2, smallSettings).setTooltip(createTooltip("targetName"));
+        nameField = createTextField(widgetWidth * 2 + 4, 20, nameField);
+        boolean editableName = toggleCategoryButton.getValue() == Category.CONFIGS;
+        nameField.setEditable(editableName);
+        if (!editableName && nameField.isFocused()) nameField.setFocused(false);
+        rows.addChild(nameField, 2, smallSettings).setTooltip(createTooltip("targetName"));
         grid.arrangeElements();
         FrameLayout.alignInRectangle(grid, x, y + 2, x + (xSize - middleWidth) / 2 - 4, y + ySize, 0, 0);
         grid.visitWidgets(this::addRenderableWidget);
@@ -299,29 +309,15 @@ public class ModelViewScreen extends Screen {
         }), smallSettings).setTooltip(createTooltip("toConfigScreen"));
         final int widgetsPerPage, size;
         if (toggleCategoryButton.getValue() == Category.DISABLE) {
-            widgetsPerPage = 6;
+            widgetsPerPage = 7;
             size = disableConfigs.size();
             rows.addChild(disabledNameField, 3, smallSettings).setTooltip(createTooltip("disabledName"));
             rows.addChild(new SimpleIconButton(64, 0, button -> {
-                String name = disabledNameField.getValue(), textureId = disabledIdField.getValue();
-                if (name.isBlank()) {
-                    button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("emptyName").withStyle(ChatFormatting.RED)));
-                } else if (textureId.isBlank()) {
-                    button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("emptyTextureId").withStyle(ChatFormatting.RED)));
-                } else {
+                if (syncDisableDraft(button, false)) {
                     button.setTooltip(createTooltip("saveAs"));
-                    DisableConfig disableConfig = new DisableConfig(name, textureId, disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toArray(UVRectangle[]::new));
-                    for (int i = 0; i < disableConfigs.size(); i++) {
-                        if (disableConfigs.get(i).name().equals(name)) {
-                            disableConfigs.set(i, disableConfig);
-                            initWidgets(page);
-                            return;
-                        }
-                    }
-                    disableConfigs.add(disableConfig);
                     initWidgets(page);
                 }
-            }), smallSettings).setTooltip(createTooltip("saveAs"));
+                }), smallSettings).setTooltip(createTooltip("saveAs"));
             for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, size); i++) {
                 DisableConfig config = disableConfigs.get(i);
                 String targetName = nameField.getValue();
@@ -333,16 +329,13 @@ public class ModelViewScreen extends Screen {
                         })
                         .setPosition(x + (xSize + middleWidth) / 2 - 20, y + 5 + (widgetHeight + 2) * (3 + i % widgetsPerPage));
                 rows.addChild(createButton(LocUtil.literal(config.name()), widgetWidth * 2 - 18, button -> {
-                    disabledNameField.setValue(config.name());
-                    disabledIdField.setValue(config.textureId());
-                    disableModeButton.setValue(config.disableAll() ? 0 : 1);
-                    rectWidgets.clear();
-                    for (UVRectangle rect : config.rectangles()) rectWidgets.add(createRectWidget(rect));
+                    loadDisableConfig(config);
                     initWidgets(page);
                 }), 3).setTooltip(Tooltip.create(LocUtil.literal(config.name())));
                 rows.addChild(new SimpleIconButton(48, 0, button -> {
                     disableConfigs.removeIf(disableConfig -> disableConfig.name().equals(config.name()));
-                    if (disabledNameField.getValue().equals(config.name())) rectWidgets.clear();
+                    hiddenNameMap.values().forEach(names -> names.remove(config.name()));
+                    if (disabledNameField.getValue().equals(config.name())) clearDisableDraft();
                     initWidgets(page * widgetsPerPage > size - 2 && size > 1 ? page - 1 : page);
                 }), smallSettings);
             }
@@ -354,12 +347,17 @@ public class ModelViewScreen extends Screen {
             size = fixedTargetCount + targetList.size();
             for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, size); i++) {
                 BindTarget target = i < fixedTargetCount ? fixedTargetList.get(i) : targetList.get(i - fixedTargetCount);
+                final int targetIndex = i;
                 String name = target.name();
-                rows.addChild(createButton(LocUtil.literal(name), widgetWidth * 2 - 18, button -> loadBindTarget(target)), 3).setTooltip(Tooltip.create(LocUtil.literal(name)));
+                rows.addChild(createButton(LocUtil.literal(name), widgetWidth * 2 - 18, button -> loadBindTarget(target)), 3)
+                        .setTooltip(Tooltip.create(name.equals(RealCameraCore.currentTarget().name()) ?
+                                LocUtil.literal(name + "\n").append(LocUtil.MODEL_VIEW_WIDGET("currentConfig")) :
+                                LocUtil.literal(name)));
                 if (i < fixedTargetCount) continue;
                 rows.addChild(new SimpleIconButton(48, 0, button -> {
                     targetList.remove(target);
                     ConfigFile.save();
+                    if (nameField.getValue().equals(target.name())) loadAdjacentBindTarget(fixedTargetList, targetList, targetIndex);
                     initWidgets(page * widgetsPerPage > size - 2 && size > 1 ? page - 1 : page);
                 }), smallSettings);
             }
@@ -393,6 +391,110 @@ public class ModelViewScreen extends Screen {
         focusedRectWidgetNumberField.setMax(rectWidgets.size());
         rectWidgetsSizeWidget.setMessage(LocUtil.literal(String.valueOf(rectWidgets.size())));
         return true;
+    }
+
+    private boolean syncDisableDraft(AbstractButton button, boolean allowEmptyName) {
+        String name = disabledNameField.getValue().trim();
+        String textureId = disabledIdField.getValue().trim();
+        if (name.isBlank()) {
+            if (!allowEmptyName) {
+                button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("emptyName").withStyle(ChatFormatting.RED)));
+                return false;
+            }
+            if (!hasMeaningfulDisableDraft()) {
+                if (textureId.isBlank() && !rectWidgets.isEmpty()) {
+                    button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("emptyTextureId").withStyle(ChatFormatting.RED)));
+                    return false;
+                }
+                return true;
+            }
+            name = generateDisableConfigName(textureId);
+            disabledNameField.setValue(name);
+        }
+        if (textureId.isBlank()) {
+            button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("emptyTextureId").withStyle(ChatFormatting.RED)));
+            return false;
+        }
+        DisableConfig disableConfig = new DisableConfig(name, textureId, disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toList());
+        upsertDisableConfig(disableConfig);
+        return true;
+    }
+
+    private boolean hasMeaningfulDisableDraft() {
+        return !disabledIdField.getValue().isBlank() && (disableModeButton.getValue() == 0 || !rectWidgets.isEmpty());
+    }
+
+    private void upsertDisableConfig(DisableConfig disableConfig) {
+        for (int i = 0; i < disableConfigs.size(); i++) {
+            if (disableConfigs.get(i).name().equals(disableConfig.name())) {
+                disableConfigs.set(i, disableConfig);
+                return;
+            }
+        }
+        disableConfigs.add(disableConfig);
+    }
+
+    private String generateDisableConfigName(String textureId) {
+        String base = textureId.trim();
+        int separatorIndex = Math.max(base.lastIndexOf('/'), base.lastIndexOf(':'));
+        if (separatorIndex >= 0 && separatorIndex < base.length() - 1) base = base.substring(separatorIndex + 1);
+        int extensionIndex = base.lastIndexOf('.');
+        if (extensionIndex > 0) base = base.substring(0, extensionIndex);
+        base = sanitizeDisableConfigName(base);
+        if (base.length() > CONFIG_NAME_MAX_LENGTH) base = base.substring(0, CONFIG_NAME_MAX_LENGTH);
+
+        String candidate = base;
+        for (int suffix = 2; disableConfigNameExists(candidate); suffix++) {
+            String suffixText = "_" + suffix;
+            int baseLength = Mth.clamp(CONFIG_NAME_MAX_LENGTH - suffixText.length(), 1, base.length());
+            candidate = base.substring(0, baseLength) + suffixText;
+        }
+        return candidate;
+    }
+
+    private String sanitizeDisableConfigName(String name) {
+        StringBuilder builder = new StringBuilder();
+        boolean lastWasSeparator = false;
+        for (int i = 0; i < name.length(); i++) {
+            char c = Character.toLowerCase(name.charAt(i));
+            if (Character.isLetterOrDigit(c)) {
+                builder.append(c);
+                lastWasSeparator = false;
+            } else if ((c == '_' || c == '-') && builder.length() > 0 && !lastWasSeparator) {
+                builder.append(c);
+                lastWasSeparator = true;
+            } else if (builder.length() > 0 && !lastWasSeparator) {
+                builder.append('_');
+                lastWasSeparator = true;
+            }
+        }
+        while (builder.length() > 0 && (builder.charAt(builder.length() - 1) == '_' || builder.charAt(builder.length() - 1) == '-')) {
+            builder.deleteCharAt(builder.length() - 1);
+        }
+        return builder.length() == 0 ? "disable" : builder.toString();
+    }
+
+    private boolean disableConfigNameExists(String name) {
+        return disableConfigs.stream().anyMatch(disableConfig -> disableConfig.name().equals(name));
+    }
+
+    private void loadAdjacentBindTarget(List<BindTarget> fixedTargetList, List<BindTarget> targetList, int deletedIndex) {
+        List<BindTarget> targets = new ArrayList<>(fixedTargetList);
+        targets.addAll(targetList);
+        if (targets.isEmpty()) loadBindTarget(BindTarget.blank("", ""));
+        else loadBindTarget(targets.get(Math.min(deletedIndex, targets.size() - 1)));
+    }
+
+    private void loadDisableConfig(DisableConfig config) {
+        disabledNameField.setValue(config.name());
+        disabledIdField.setValue(config.textureId());
+        disableModeButton.setValue(config.disableAll() ? 0 : 1);
+        focusedRectWidget = null;
+        rectWidgets.clear();
+        for (UVRectangle rect : config.rectangles()) rectWidgets.add(createRectWidget(rect));
+        focusedRectWidgetNumberField.setMax(rectWidgets.size());
+        focusedRectWidgetNumberField.setNumber(0);
+        rectWidgetsSizeWidget.setMessage(LocUtil.literal(String.valueOf(rectWidgets.size())));
     }
 
     @Override
@@ -459,18 +561,21 @@ public class ModelViewScreen extends Screen {
         float entityPitch = entity.getXRot();
         float entityPrevHeadYaw = entity.yHeadRotO;
         float entityHeadYaw = entity.yHeadRot;
-        entity.yBodyRot = 180.0f;
-        entity.setYRot(180.0f + (float) entityYawSlider.getNumber());
-        entity.setXRot((float) entityPitchSlider.getNumber());
-        entity.yHeadRot = entity.getYRot();
-        entity.yHeadRotO = entity.getYRot();
-        Vector3f offset = new Vector3f((float) modelX, (float) modelY, 0);
-        renderEntityWithAnalyser(graphics, x1, y1, x2, y2, modelScale, offset, quaternionf, entity);
-        entity.yBodyRot = entityBodyYaw;
-        entity.setYRot(entityYaw);
-        entity.setXRot(entityPitch);
-        entity.yHeadRotO = entityPrevHeadYaw;
-        entity.yHeadRot = entityHeadYaw;
+        try {
+            entity.yBodyRot = 180.0f;
+            entity.setYRot(180.0f + (float) entityYawSlider.getNumber());
+            entity.setXRot((float) entityPitchSlider.getNumber());
+            entity.yHeadRot = entity.getYRot();
+            entity.yHeadRotO = entity.getYRot();
+            Vector3f offset = new Vector3f((float) modelX, (float) modelY, 0);
+            renderEntityWithAnalyser(graphics, x1, y1, x2, y2, modelScale, offset, quaternionf, entity);
+        } finally {
+            entity.yBodyRot = entityBodyYaw;
+            entity.setYRot(entityYaw);
+            entity.setXRot(entityPitch);
+            entity.yHeadRotO = entityPrevHeadYaw;
+            entity.yHeadRot = entityHeadYaw;
+        }
     }
 
     protected void renderEntityWithAnalyser(GuiGraphics graphics, int x1, int y1, int x2, int y2, float scale, Vector3f offset, Quaternionf quaternionf, LivingEntity entity) {
@@ -496,51 +601,25 @@ public class ModelViewScreen extends Screen {
     }
 
     protected void importBindTarget(Button button) {
-        FriendlyByteBuf byteBuf = null;
-        try {
-            String base64 = minecraft.keyboardHandler.getClipboard();
-            byte[] compressed = Base64.getDecoder().decode(base64);
-            InflaterInputStream inflaterStream = new InflaterInputStream(new ByteArrayInputStream(compressed));
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            byte[] buffer = new byte[4096];
-            int length;
-            while ((length = inflaterStream.read(buffer)) > 0) {
-                outputStream.write(buffer, 0, length);
-            }
-            byte[] bytes = outputStream.toByteArray();
-            byteBuf = new FriendlyByteBuf(Unpooled.wrappedBuffer(bytes));
-            BindTarget target = BindTarget.read(byteBuf);
-            if (target.isEmpty()) throw new IllegalArgumentException("Invalid config format");
+        DataResult<BindTarget> result = ConfigCodec.fromCompressedBase64(minecraft.keyboardHandler.getClipboard());
+        result.result().ifPresentOrElse(target -> {
             loadBindTarget(target);
             button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("importSucceeded", LocUtil.literal("'" + target.name() + "'").withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GREEN)));
-        } catch (Exception e) {
-            String message = e.getClass().getSimpleName();
-            if (e instanceof IllegalArgumentException) message += ": " + e.getMessage();
+        }, () -> {
+            String message = result.error().map(error -> error.message()).orElse("Unknown error");
             button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("importFailed", message).withStyle(ChatFormatting.RED)));
-        } finally {
-            if (byteBuf != null) byteBuf.release();
-        }
+        });
     }
 
     protected void exportBindTarget(Button button) {
-        FriendlyByteBuf byteBuf = new FriendlyByteBuf(Unpooled.buffer());
-        try {
-            genBindTarget().write(byteBuf);
-            byte[] bytes = new byte[byteBuf.readableBytes()];
-            byteBuf.getBytes(byteBuf.readerIndex(), bytes);
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            try (DeflaterOutputStream deflaterStream = new DeflaterOutputStream(outputStream, new Deflater(Deflater.BEST_COMPRESSION))) {
-                deflaterStream.write(bytes);
-            }
-            String base64 = Base64.getEncoder().encodeToString(outputStream.toByteArray());
+        DataResult<String> result = ConfigCodec.toCompressedBase64(genBindTarget());
+        result.result().ifPresentOrElse(base64 -> {
             minecraft.keyboardHandler.setClipboard(base64);
             button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("exportSucceeded").withStyle(ChatFormatting.GREEN)));
-        } catch (Exception e) {
-            String message = e.getClass().getSimpleName() + ": " + e.getMessage();
+        }, () -> {
+            String message = result.error().map(error -> error.message()).orElse("Unknown error");
             button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("exportFailed", message).withStyle(ChatFormatting.RED)));
-        } finally {
-            byteBuf.release();
-        }
+        });
     }
 
     protected void loadBindTarget(BindTarget target) {
@@ -568,7 +647,8 @@ public class ModelViewScreen extends Screen {
         offsetYawPair.setNumber(target.offsets().getYaw());
         offsetRollPair.setNumber(target.offsets().getRoll());
         disableConfigs.clear();
-        disableConfigs.addAll(List.of(target.disableConfigs()));
+        disableConfigs.addAll(target.disableConfigs());
+        clearDisableDraft();
     }
 
     protected BindTarget genBindTarget() {
@@ -583,12 +663,22 @@ public class ModelViewScreen extends Screen {
                 .setPitch(offsetPitchPair.getNumber())
                 .setYaw(offsetYawPair.getNumber())
                 .setRoll(offsetRollPair.getNumber());
-        DisableConfig currentDisableConfig = new DisableConfig(disabledNameField.getValue(), disabledIdField.getValue(), disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toArray(UVRectangle[]::new));
-        DisableConfig[] disableConfigArray = disableConfigs.toArray(new DisableConfig[0]);
-        for (int i = 0; i < disableConfigArray.length; i++) {
-            if (disableConfigArray[i].name().equals(currentDisableConfig.name())) disableConfigArray[i] = currentDisableConfig;
-        }
-        return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, disableConfigArray);
+        return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, new ArrayList<>(disableConfigs));
+    }
+
+    private void clearDisableDraft() {
+        disabledNameField.setValue("");
+        disabledIdField.setValue("");
+        disableModeButton.setValue(0);
+        rectWidgets.clear();
+        focusedRectWidget = null;
+        focusedRectWidgetNumberField.setMax(0);
+        focusedRectWidgetNumberField.setNumber(0);
+        rectWidgetsSizeWidget.setMessage(LocUtil.literal("0"));
+        uMinField.setNumber(0f);
+        vMinField.setNumber(0f);
+        uMaxField.setNumber(0f);
+        vMaxField.setNumber(0f);
     }
 
     protected Tooltip createTooltip(String key, Object... args) {

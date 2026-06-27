@@ -1,6 +1,7 @@
 package com.xtracr.realcamera.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.datafixers.util.Pair;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.compat.CompatibilityHelper;
 import com.xtracr.realcamera.config.ConfigFile;
@@ -34,12 +35,13 @@ public abstract class MixinGameRenderer {
     private EntityHitResult realcamera$modifyEntityHitResult(EntityHitResult entityHitResult) {
         CrosshairUtil.capturedEntityHitResult = entityHitResult;
         if (!ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
-            Vec3 startVec = RaycastUtil.getStartVec();
-            Vec3 endVec = RaycastUtil.getEndVec();
-            double sqDistance = (minecraft.hitResult != null ? minecraft.hitResult.getLocation().distanceToSqr(startVec) : endVec.distanceToSqr(startVec));
             Entity cameraEntity = minecraft.getCameraEntity();
-            AABB box = cameraEntity.getBoundingBox().expandTowards(cameraEntity.getViewVector(minecraft.getFrameTime()).scale(minecraft.gameMode.getPickRange())).inflate(1.0, 1.0, 1.0);
-            CrosshairUtil.capturedEntityHitResult = ProjectileUtil.getEntityHitResult(cameraEntity, startVec, endVec, box, entity -> !entity.isSpectator() && entity.isPickable(), sqDistance);
+            Pair<Vec3, Vec3> fromAndTo = RaycastUtil.getFromAndTo(cameraEntity, minecraft.gameMode.getPickRange() * minecraft.gameMode.getPickRange(), minecraft.getFrameTime());
+            Vec3 from = fromAndTo.getFirst();
+            Vec3 to = fromAndTo.getSecond();
+            double sqDistance = minecraft.hitResult != null ? minecraft.hitResult.getLocation().distanceToSqr(from) : to.distanceToSqr(from);
+            AABB box = cameraEntity.getBoundingBox().expandTowards(to.subtract(from)).inflate(1.0, 1.0, 1.0);
+            CrosshairUtil.capturedEntityHitResult = ProjectileUtil.getEntityHitResult(cameraEntity, from, to, box, entity -> !entity.isSpectator() && entity.isPickable(), sqDistance);
         }
         return CrosshairUtil.capturedEntityHitResult;
     }
