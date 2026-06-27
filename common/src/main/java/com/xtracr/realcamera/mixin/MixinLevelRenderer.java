@@ -25,7 +25,7 @@ public abstract class MixinLevelRenderer {
     @Shadow
     @Final private RenderBuffers renderBuffers;
 
-    @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;endLastBatch()V", ordinal = 0))
+    @Inject(method = "renderLevel", at = @At(shift = At.Shift.AFTER, value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderBuffers;bufferSource()Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;"))
     private void realcamera$renderCameraEntity(DeltaTracker deltaTracker, boolean bl, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f matrix4f, Matrix4f matrix4f2, CallbackInfo ci) {
         if (!RealCameraCore.isRendering()) return;
         MultiBufferSource.BufferSource bufferSource = renderBuffers.bufferSource();
