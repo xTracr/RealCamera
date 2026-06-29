@@ -12,7 +12,7 @@ import java.util.List;
 public class BindResult extends CameraTransform {
     public static final BindResult EMPTY = new BindResult(BindTarget.EMPTY);
     public final BindTarget target;
-    private final boolean mirrored;
+    protected final boolean mirrored;
     private Vec3 forward = Vec3.ZERO, upward = Vec3.ZERO;
 
     public BindResult(BindTarget target) {

@@ -10,15 +10,15 @@ public class CameraTransform {
     protected final Matrix3f rotation = new Matrix3f();
     protected Vec3 position = Vec3.ZERO;
 
-    public final Vec3 getPosition() {
+    public Vec3 getPosition() {
         return position;
     }
 
-    public final void setPosition(Vec3 vec) {
+    public void setPosition(Vec3 vec) {
         position = vec;
     }
 
-    public final Matrix3f getRotation() {
+    public Matrix3f getRotation() {
         return rotation;
     }
 
