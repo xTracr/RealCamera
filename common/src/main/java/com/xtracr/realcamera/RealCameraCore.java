@@ -67,7 +67,7 @@ public class RealCameraCore {
         return (float) getEulerAngle(0, 0, f).z();
     }
 
-    private static Vec3 getEulerAngle(float pitch, float yaw, float roll) {
+    public static Vec3 getEulerAngle(float pitch, float yaw, float roll) {
         if (!currentTarget().bindConfig().bindRotation()) return new Vec3(pitch, yaw, roll);
         double scale = Math.toDegrees(1);
         return MathUtil.getEulerAngleYXZ(smoothedCamera.getRotation()).multiply(scale, -scale, scale);
@@ -105,7 +105,7 @@ public class RealCameraCore {
         entity.setInvisible(invisible);
         if (newResult.available()) {
             failureFrames = 0;
-            lastResult = newResult.computeCamera(false);
+            lastResult = newResult.computeCamera();
         } else {
             failureFrames++;
             Entity player = client.player;

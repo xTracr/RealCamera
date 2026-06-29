@@ -54,7 +54,8 @@ public abstract class MixinCamera {
             double restrictedY = Mth.clamp(rawPos.y(), box.minY + 0.1D, box.maxY - 0.1D);
             startVec = new Vec3(position.x(), restrictedY, position.z());
             setPosition(rawPos);
-            setRotation(RealCameraCore.getYaw(yRot), RealCameraCore.getPitch(xRot));
+            Vec3 eulerAngle = RealCameraCore.getEulerAngle(xRot, yRot, 0);
+            setRotation((float) eulerAngle.y(), (float) eulerAngle.x());
         }
         realcamera$clipToSpace(startVec, entity, realcamera$getFov(deltaTick));
         RealCameraCore.setCameraPos(position);

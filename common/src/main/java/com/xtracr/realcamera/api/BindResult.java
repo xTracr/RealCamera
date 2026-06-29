@@ -12,10 +12,16 @@ import java.util.List;
 public class BindResult extends CameraTransform {
     public static final BindResult EMPTY = new BindResult(BindTarget.EMPTY);
     public final BindTarget target;
+    private final boolean mirrored;
     private Vec3 forward = Vec3.ZERO, upward = Vec3.ZERO;
 
     public BindResult(BindTarget target) {
+        this(target, false);
+    }
+
+    public BindResult(BindTarget target, boolean mirrored) {
         this.target = target;
+        this.mirrored = mirrored;
     }
 
     public static BindResult getOrCreate(String name) {
@@ -53,6 +59,10 @@ public class BindResult extends CameraTransform {
 
     public void setUpward(Vec3 vec) {
         upward = vec.normalize();
+    }
+
+    public BindResult computeCamera() {
+        return computeCamera(mirrored);
     }
 
     public BindResult computeCamera(boolean mirrored) {
