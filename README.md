@@ -55,8 +55,7 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 * Why can't i open the Config Screen?
   * Please downlowd [Cloth Config API](https://modrinth.com/mod/cloth-config)
 * Why does it show binding failed when use YSM models?
-  * Snapshot 0.6.15 "try" to fix problems, but it didn't fix completely
-  * If Minecraft version is 1.20.1, then bind upward vector to head left (or right) side, and set roll angle to 90 (or -90) in preview section
+  * On Minecraft 1.20.1, use a Real Camera build with the dedicated YSM projection sampler; the old side-face binding and roll workaround is no longer required
 * Why does the head of YSM model disappear when in the Model View Screen?
   * You downloaded Better Combat, just put it away
 
