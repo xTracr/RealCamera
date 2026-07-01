@@ -32,7 +32,7 @@ public final class ConfigCodec {
 
     public static void writeWithVersion(ByteBuf byteBuf, BindTarget bindTarget) throws EncoderException {
         byteBuf.writeShort(CURRENT_VERSION);
-        CODEC_703.encode(byteBuf, bindTarget);
+        CODECS.get(CURRENT_VERSION).encode(byteBuf, bindTarget);
     }
 
     public static DataResult<BindTarget> fromCompressedBase64(String base64) {

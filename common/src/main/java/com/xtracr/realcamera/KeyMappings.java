@@ -26,12 +26,12 @@ public final class KeyMappings {
         });
         createKeyMapping("toggleAdjustMode", _ -> ConfigFile.config().cycleAdjustMode());
         createKeyMapping("toggleCameraMode", _ -> ConfigFile.config().isClassic = !ConfigFile.config().isClassic);
-        createKeyMapping("adjustFRONT", _ -> ConfigFile.config().adjustOffsetX(1));
-        createKeyMapping("adjustBACK", _ -> ConfigFile.config().adjustOffsetX(-1));
         createKeyMapping("adjustUP", _ -> ConfigFile.config().adjustOffsetY(1));
         createKeyMapping("adjustDOWN", _ -> ConfigFile.config().adjustOffsetY(-1));
         createKeyMapping("adjustLEFT", _ -> ConfigFile.config().adjustOffsetZ(1));
         createKeyMapping("adjustRIGHT", _ -> ConfigFile.config().adjustOffsetZ(-1));
+        createKeyMapping("adjustFRONT", _ -> ConfigFile.config().adjustOffsetX(1));
+        createKeyMapping("adjustBACK", _ -> ConfigFile.config().adjustOffsetX(-1));
         createKeyMapping("activeConfigIndexNEXT", _ -> ConfigFile.config().binding.activeConfigIndex += 1);
         createKeyMapping("activeConfigIndexPREV", _ -> ConfigFile.config().binding.activeConfigIndex -= 1);
         createKeyMapping("activeConfigIndexRESET", _ -> ConfigFile.config().binding.activeConfigIndex = 0);
