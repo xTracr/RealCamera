@@ -7,33 +7,47 @@ body:
   - type: markdown
     attributes:
       value: |
-        请确保您使用的是最新版的RC，您反馈的bug很可能已经在更新版本中修复
+        请确保您使用的是最新版的RealCamera，您反馈的bug很可能已经在更新版本中修复
         （查看尾缀是否与最新工件相同）
         在反馈bug前，请先尝试搜索是否已有相似的问题，请不要重复打开相同的issue
 
         所有有关YSM的问题，请您优先寻求他人的帮助，或者观看配置模型教程
-        而不是直接在issue中提问。
+        而不是直接在issue中提问
 
   - type: checkboxes
     id: preliminary
     attributes:
       label: 我已确认 ...
       options:
-        - label: 我正在使用最新版的RC
+        - label: 我正在使用最新版的RealCamera
           required: true
-        - label: 无法在关闭主要功能时复现
+        - label: issues里没有相关的问题
           required: true
 
   - type: input
-    id: minecraft-version-loader
+    id: minecraft-version
     attributes:
-      label: Minecraft版本和加载器
+      label: Minecraft版本
       description: |
-        请填写游戏版本与所使用的加载器.
+        你所使用的Minecraft的版本.
 
         你可以在游戏主界面作下角或者游戏启动时的日志开头等地方找到.
     validations:
       required: true
+
+  - type: checkboxes
+    id: bug-type
+    attributes:
+      label: 问题类型
+      options:
+        - label: 开启时主功能时出现bug
+          required: false
+        - label: 与其他模组的兼容问题
+          required: false
+        - label: 在fabric端出现
+          required: false
+        - label: 在（neo）forge端出现
+          required: false
 
   - type: textarea
     id: incompatible-mods
@@ -41,7 +55,7 @@ body:
       label: 不兼容的mod
       description: >-
         和bug相关的模组
-        <br>请在反馈问题前尝试尽可能移除不相干的模组的情况下复现bug
+        <br>请在反馈问题前移除不相干的模组的情况下复现bug
       placeholder: 'Mods list here'
       render: 'raw'
     validations:

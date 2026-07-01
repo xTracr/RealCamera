@@ -28,9 +28,9 @@ public final class DisableHelper {
         RENDER_HANDS = new Entry("renderHands", _ -> RealCameraCore.isRendering());
         MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().binding.disableWhenSneaking && player.isCrouching());
         MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classic.disableWhenSneaking && player.isCrouching());
-        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().binding.disableWhenSwimming && checkCondition(player, player.isSwimming(), ConfigFile.config().binding.outTick));
-        MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classic.disableWhenSwimming && checkCondition(player, player.isSwimming(), ConfigFile.config().classic.outTick));
-        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().binding.disableWhenCrawling && checkCondition(player, player.isVisuallyCrawling(), ConfigFile.config().binding.outTick));
+        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().binding.disableWhenSwimming && checkCondition(player, player.isVisuallySwimming(), ConfigFile.config().binding.exitTick));
+        MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classic.disableWhenSwimming && checkCondition(player, player.isVisuallySwimming(), ConfigFile.config().classic.exitTick));
+        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().binding.disableWhenFlying && player.isFallFlying());
         MAIN_FEATURE.registerOrInBinding(player -> {
             Item mainHand = player.getMainHandItem().getItem();
             Item offHand = player.getOffhandItem().getItem();
