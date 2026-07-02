@@ -61,6 +61,11 @@ public class RealCameraCore {
         return new Vec3(bindConfig.bindX() ? rawPos.x() : cameraPos.x(), bindConfig.bindY() ? rawPos.y() : cameraPos.y(), bindConfig.bindZ() ? rawPos.z() : cameraPos.z());
     }
 
+    public static float getRoll(float lastRoll) {
+        if (ConfigFile.config().isClassic) return lastRoll + ConfigFile.config().getClassicRoll();
+        return (float) getEulerAngle(0, 0, lastRoll).z();
+    }
+    
     public static Vec3 getEulerAngle(float pitch, float yaw, float roll) {
         if (!currentTarget().bindConfig().bindRotation()) return new Vec3(pitch, yaw, roll);
         double scale = Math.toDegrees(1);
