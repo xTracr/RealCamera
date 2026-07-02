@@ -415,9 +415,13 @@ public class ModelViewScreen extends Screen {
             button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("emptyTextureId").withStyle(ChatFormatting.RED)));
             return false;
         }
-        DisableConfig disableConfig = new DisableConfig(name, textureId, disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toList());
-        upsertDisableConfig(disableConfig);
+        upsertDisableConfig(createDisableDraft());
         return true;
+    }
+
+    private DisableConfig createDisableDraft() {
+        return new DisableConfig(disabledNameField.getValue().trim(), disabledIdField.getValue().trim(), disableModeButton.getValue() == 0,
+                rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toList());
     }
 
     private boolean hasMeaningfulDisableDraft() {
@@ -500,7 +504,7 @@ public class ModelViewScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float deltaTick) {
         renderBackground(graphics);
-        analyser.initialize(genBindTarget(), modelScale);
+        analyser.initialize(toggleCategoryButton.getValue() == Category.DISABLE ? genPreviewBindTarget() : genBindTarget(), modelScale);
         renderModelViewArea(graphics, minecraft.player);
         renderTextureViewArea(graphics);
         applyAnalyser(graphics, mouseX, mouseY);
@@ -652,6 +656,25 @@ public class ModelViewScreen extends Screen {
     }
 
     protected BindTarget genBindTarget() {
+        return genBindTarget(new ArrayList<>(disableConfigs));
+    }
+
+    private BindTarget genPreviewBindTarget() {
+        return genBindTarget(previewDisableConfigs(disableConfigs, createDisableDraft()));
+    }
+
+    static List<DisableConfig> previewDisableConfigs(List<DisableConfig> disableConfigs, DisableConfig draft) {
+        List<DisableConfig> previewConfigs = new ArrayList<>(disableConfigs);
+        for (int i = 0; i < previewConfigs.size(); i++) {
+            if (previewConfigs.get(i).name().equals(draft.name())) {
+                previewConfigs.set(i, draft);
+                break;
+            }
+        }
+        return previewConfigs;
+    }
+
+    private BindTarget genBindTarget(List<DisableConfig> disableConfigs) {
         initOffsetPairs();
         TargetConfig targetConfig = new TargetConfig( forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber());
         BindConfig bindConfig = new BindConfig( bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);
@@ -663,7 +686,7 @@ public class ModelViewScreen extends Screen {
                 .setPitch(offsetPitchPair.getNumber())
                 .setYaw(offsetYawPair.getNumber())
                 .setRoll(offsetRollPair.getNumber());
-        return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, new ArrayList<>(disableConfigs));
+        return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, disableConfigs);
     }
 
     private void clearDisableDraft() {
