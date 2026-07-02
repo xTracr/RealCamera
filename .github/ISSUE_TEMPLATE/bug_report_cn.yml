@@ -31,7 +31,7 @@ body:
       description: |
         你所使用的Minecraft的版本.
 
-        你可以在游戏主界面作下角或者游戏启动时的日志开头等地方找到.
+        你可以在游戏主界面左下角或者游戏启动时的日志开头等地方找到.
     validations:
       required: true
 
@@ -40,7 +40,7 @@ body:
     attributes:
       label: 问题类型
       options:
-        - label: 开启时主功能时出现bug
+        - label: 开启主功能时出现bug
           required: false
         - label: 与其他模组的兼容问题
           required: false
@@ -89,5 +89,5 @@ body:
       description: >-
         你可以在/logs/lastest.log 和 /crash-report 中找到错误报告，或者使用启动器的导出功能
         <br>你可以日志上传到类似 https://paste.ubuntu.com/ 或者 https://mclo.gs/ 的网站并在此贴出链接
-        <br>**请不要在此此处直接粘贴大段的日志文本!!**
+        <br>**请不要在此处直接粘贴大段的日志文本!!**
       placeholder: '把日志文件往这丢或者使用外部链接'

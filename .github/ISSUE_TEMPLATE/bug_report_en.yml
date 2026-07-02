@@ -42,7 +42,7 @@ body:
   - type: checkboxes
     id: bug-type
     attributes:
-      label: 问题类型
+      label: Question Type
       options:
         - label: Bug occurs when enabling main feature
           required: false

@@ -404,6 +404,7 @@ public final class ModelViewScreen extends Screen {
     }
 
     private List<BuiltModelRecord> captureRotatedEntity(ModelAnalyser analyser, BindTarget target, LivingEntity entity) {
+        CompatibilityHelper.isRenderInScreen = true;
         float entityBodyYaw = entity.yBodyRot;
         float entityYaw = entity.getYRot();
         float entityPitch = entity.getXRot();
@@ -425,6 +426,7 @@ public final class ModelViewScreen extends Screen {
             modelPose.translate(0, -entity.getBbHeight() / 2.0f, 0);
             return analyser.captureModel(minecraft, entity, 1.0f, modelPose, target);
         } finally {
+            CompatibilityHelper.isRenderInScreen = false;
             entity.yBodyRot = entityBodyYaw;
             entity.setYRot(entityYaw);
             entity.setXRot(entityPitch);
