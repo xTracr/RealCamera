@@ -391,7 +391,7 @@ public final class ModelViewScreen extends Screen {
         graphics.fill(x + (xSize + middleWidth) / 2 + 4, y, x + xSize, y + ySize, SIDE_PANEL_BG);
 
         ModelAnalyser analyser = new ModelAnalyser();
-        BindTarget target = genBindTarget();
+        BindTarget target = toggleCategoryButton.getValue() == Category.DISABLE ? genPreviewBindTarget() : genBindTarget();
         target.offsets().scale *= modelScale;
         String textureId = toggleCategoryButton.getValue() == Category.DISABLE ? disabledIdField.getValue() : "";
         Set<String> hiddenNames = hiddenNameMap.getOrDefault(nameField.getValue(), Set.of());
@@ -573,9 +573,13 @@ public final class ModelViewScreen extends Screen {
             button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("emptyTextureId").withStyle(ChatFormatting.RED)));
             return false;
         }
-        DisableConfig disableConfig = new DisableConfig(name, textureId, disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toList());
-        upsertDisableConfig(disableConfig);
+        upsertDisableConfig(createDisableDraft());
         return true;
+    }
+
+    private DisableConfig createDisableDraft() {
+        return new DisableConfig(disabledNameField.getValue(), disabledIdField.getValue(), disableModeButton.getValue() == 0,
+                rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toList());
     }
 
     private boolean hasMeaningfulDisableDraft() {
@@ -672,10 +676,29 @@ public final class ModelViewScreen extends Screen {
     }
 
     private BindTarget genBindTarget() {
+        return genBindTarget(new ArrayList<>(disableConfigs));
+    }
+
+    private BindTarget genPreviewBindTarget() {
+        return genBindTarget(previewDisableConfigs(disableConfigs, createDisableDraft()));
+    }
+
+    static List<DisableConfig> previewDisableConfigs(List<DisableConfig> disableConfigs, DisableConfig draft) {
+        List<DisableConfig> previewConfigs = new ArrayList<>(disableConfigs);
+        for (int i = 0; i < previewConfigs.size(); i++) {
+            if (previewConfigs.get(i).name().equals(draft.name())) {
+                previewConfigs.set(i, draft);
+                break;
+            }
+        }
+        return previewConfigs;
+    }
+
+    private BindTarget genBindTarget(List<DisableConfig> disableConfigs) {
         TargetConfig targetConfig = new TargetConfig(forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber());
         BindConfig bindConfig = new BindConfig(bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);
         OffsetConfig offsets = new OffsetConfig(scaleField.getNumber(), offsetXPair.getNumber(), offsetYPair.getNumber(), offsetZPair.getNumber(), offsetPitchPair.getNumber(), offsetYawPair.getNumber(), offsetRollPair.getNumber());
-        return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, new ArrayList<>(disableConfigs));
+        return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, disableConfigs);
     }
 
     private UVRectangleWidget addRectWidget(UVRectangleWidget rectWidget) {
