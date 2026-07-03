@@ -660,18 +660,15 @@ public class ModelViewScreen extends Screen {
     }
 
     private BindTarget genPreviewBindTarget() {
-        return genBindTarget(previewDisableConfigs(disableConfigs, createDisableDraft()));
-    }
-
-    static List<DisableConfig> previewDisableConfigs(List<DisableConfig> disableConfigs, DisableConfig draft) {
         List<DisableConfig> previewConfigs = new ArrayList<>(disableConfigs);
+        DisableConfig draft = createDisableDraft();
         for (int i = 0; i < previewConfigs.size(); i++) {
             if (previewConfigs.get(i).name().equals(draft.name())) {
                 previewConfigs.set(i, draft);
                 break;
             }
         }
-        return previewConfigs;
+        return genBindTarget(previewConfigs);
     }
 
     private BindTarget genBindTarget(List<DisableConfig> disableConfigs) {
