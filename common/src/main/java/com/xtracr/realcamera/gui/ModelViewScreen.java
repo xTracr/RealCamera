@@ -683,7 +683,7 @@ public final class ModelViewScreen extends Screen {
         return genBindTarget(previewDisableConfigs(disableConfigs, createDisableDraft()));
     }
 
-    static List<DisableConfig> previewDisableConfigs(List<DisableConfig> disableConfigs, DisableConfig draft) {
+    private static List<DisableConfig> previewDisableConfigs(List<DisableConfig> disableConfigs, DisableConfig draft) {
         List<DisableConfig> previewConfigs = new ArrayList<>(disableConfigs);
         for (int i = 0; i < previewConfigs.size(); i++) {
             if (previewConfigs.get(i).name().equals(draft.name())) {
