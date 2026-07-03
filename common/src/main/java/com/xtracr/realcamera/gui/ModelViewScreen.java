@@ -574,13 +574,9 @@ public final class ModelViewScreen extends Screen {
             button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("emptyTextureId").withStyle(ChatFormatting.RED)));
             return false;
         }
-        upsertDisableConfig(createDisableDraft());
+        DisableConfig disableConfig = new DisableConfig(name, textureId, disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toList());
+        upsertDisableConfig(disableConfig);
         return true;
-    }
-
-    private DisableConfig createDisableDraft() {
-        return new DisableConfig(disabledNameField.getValue(), disabledIdField.getValue(), disableModeButton.getValue() == 0,
-                rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toList());
     }
 
     private boolean hasMeaningfulDisableDraft() {
@@ -677,13 +673,11 @@ public final class ModelViewScreen extends Screen {
     }
 
     private BindTarget genBindTarget() {
+        DisableConfig currentDisableConfig = new DisableConfig(disabledNameField.getValue(), disabledIdField.getValue(), disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toList());
         List<DisableConfig> newDisableConfigs = new ArrayList<>(disableConfigs);
-        DisableConfig draft = createDisableDraft();
         for (int i = 0; i < newDisableConfigs.size(); i++) {
-            if (newDisableConfigs.get(i).name().equals(draft.name())) {
-                newDisableConfigs.set(i, draft);
-                break;
-            }
+            if (newDisableConfigs.get(i).name().equals(currentDisableConfig.name()))
+                newDisableConfigs.set(i, currentDisableConfig);
         }
         TargetConfig targetConfig = new TargetConfig(forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber());
         BindConfig bindConfig = new BindConfig(bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);
