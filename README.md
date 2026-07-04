@@ -60,8 +60,8 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 * Why does it show binding failed when use YSM models?
     * Snapshot 0.6.15 "try" to fix problems, but it didn't fix completely
     * If Minecraft version is 1.20.1, then bind upward vector to head left (or right) side, and set roll angle to 90 (or -90) in preview section
-* Why does the head of YSM model disappear when in the Model View Screen?
-    * You downloaded Better Combat, just put it away
+* Why does the disabled texture appear when i downloaded Better Combat and attack?
+    * Open settings of Better Combat and change Auto to False in First person player animation
 
 ### Compatibility
 
