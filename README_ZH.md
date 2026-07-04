@@ -3,7 +3,7 @@
 ### [English](README.md)
 
 使第一人称视角下的摄像头更加真实。  
-支持的版本: 1.18.2 - 1.20.4 Forge，1.18.2 - 26.1 Fabric，1.21 - 26.1 NeoForge
+支持的版本: 1.18.2 - 1.20.4 Forge，1.18.2 - 26.2 Fabric，1.21 - 26.2 NeoForge
 从[Releases](https://github.com/xTracr/RealCamera/releases)、[Modrinth](https://modrinth.com/mod/real-camera)或[CurseForge](https://curseforge.com/minecraft/mc-mods/real-camera)下载  
 快照版在[这里](https://github.com/xTracr/RealCamera/actions/workflows/build.yml)
 
@@ -35,7 +35,10 @@
     * 被蓝框包含的部分不会被渲染。
     * 在左侧材质视图中鼠标左键框选，其它键取消选择
     * Alt+左键可快速选中被鼠标指针指向的部分
-    * `全部`模式下，整个材质所对应的模型都不会被渲染（左侧会有一个包含整个材质的蓝框来表示这一点）
+    * 选择模式为范围，蓝框范围内被选中的面会被禁用，使用「Alt+鼠标滚轮」切换选中范围
+    * 选择模式为多选，可以更好禁用原版玩家的部位，穿戴的盔甲等，但部分Mod 模型不一定适用
+    * 禁用模式为部分，可以禁用被选择的贴图
+    * 禁用模式为全部，整个材质所对应的模型都不会被渲染（左侧会有一个包含整个材质的蓝框来表示这一点）
     * ![gui_disable](https://cdn.modrinth.com/data/fYYSAh4R/images/b49ac4da6bf8a59f13c7e93ca1ef76b73e5d23b4.png)
 
 ## 依赖项目
@@ -57,8 +60,8 @@
 * 为什么ysm模型有时候会弹出绑定失败?
     * 快照0.6.15“尝试”修复了ysm问题，但没有修复透彻
     * 如果Minecraft版本为1.20.1，那么需要将向上矢量绑定在头部的左面（或右面），并在预览界面中将翻滚角设置为90度（或-90度）
-* 为什么配置ysm时候，模型视图界面中ysm模型头部消失?
-    * 安装了Better Combat模组，去掉就可以了
+* 为什么装了Better Combat模组后，禁用的材质在挥舞武器时会重新出现?
+    * 前往该模组的设置界面，把First person player animation 的Auto 改为False
 
 ### 兼容性
 
