@@ -18,9 +18,8 @@ import java.util.zip.InflaterInputStream;
 
 public final class ConfigCodec {
     static final short CURRENT_VERSION = 703;
-    static final StreamCodec<ByteBuf, BindTarget> CODEC_703 = ConfigCodec703.CODEC;
     static final Short2ReferenceMap<StreamCodec<ByteBuf, BindTarget>> CODECS = Short2ReferenceMap.ofEntries(
-            Short2ReferenceMap.entry(CURRENT_VERSION, CODEC_703)
+            Short2ReferenceMap.entry(CURRENT_VERSION, ConfigCodec703.CODEC)
     );
 
     public static BindTarget readWithVersion(ByteBuf byteBuf) throws DecoderException, IllegalArgumentException {
