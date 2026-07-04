@@ -1,6 +1,8 @@
 package com.xtracr.realcamera.compat;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexSorting;
 import com.xtracr.realcamera.api.BindResult;
 import com.xtracr.realcamera.api.RealCameraAPI;
 import com.xtracr.realcamera.config.BindTarget;
@@ -13,7 +15,6 @@ import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 import java.util.HashMap;
@@ -21,15 +22,15 @@ import java.util.Map;
 
 public class YSMCompat {
     private static final Map<BindTarget, BindResult> resultMap = new HashMap<>();
-    private static final TransformedVertexRecorder[] transformedRecorders = new TransformedVertexRecorder[4];
+    private static final Map<BindTarget, Integer> resultPassMasks = new HashMap<>();
+    private static final ProbePass[] probePasses = new ProbePass[TetrahedralProbeSet.PASS_COUNT];
     private static BindResult bindResult = BindResult.EMPTY;
+    private static int preferredPassMask;
 
-    static  {
-        final float pitch = 1.9106332f, yaw = 2.0943951f;
-        transformedRecorders[0] = new TransformedVertexRecorder();
-        transformedRecorders[1] = new TransformedVertexRecorder().setRotation(pitch, 0);
-        transformedRecorders[2] = new TransformedVertexRecorder().setRotation(pitch, yaw);
-        transformedRecorders[3] = new TransformedVertexRecorder().setRotation(pitch, 2 * yaw);
+    static {
+        for (int pass = 0; pass < probePasses.length; pass++) {
+            probePasses[pass] = new ProbePass(pass);
+        }
     }
 
     public static void register() {
@@ -42,47 +43,67 @@ public class YSMCompat {
 
     private static BindResult computeBindResult(Minecraft client, float deltaTick) {
         resultMap.clear();
+        resultPassMasks.clear();
         bindResult = BindResult.EMPTY;
         Entity entity = client.getCameraEntity();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         PoseStack poseStack = new PoseStack();
         float yaw = Mth.lerp(deltaTick, entity.yRotO, entity.getYRot());
         int light = dispatcher.getPackedLightCoords(entity, deltaTick);
+        Matrix4f originalProjection = new Matrix4f(RenderSystem.getProjectionMatrix());
+        VertexSorting originalSorting = RenderSystem.getVertexSorting();
+        PoseStack modelViewStack = RenderSystem.getModelViewStack();
+        int[] passOrder = TetrahedralProbeSet.prioritizedOrder(preferredPassMask);
+        modelViewStack.pushPose();
         try {
-            for (TransformedVertexRecorder transformedRecorder : transformedRecorders) {
-                transformedRecorder.vertexCatcher.clear();
+            modelViewStack.setIdentity();
+            RenderSystem.applyModelViewMatrix();
+            for (int passIndex : passOrder) {
+                ProbePass probePass = probePasses[passIndex];
+                probePass.vertexCatcher.clear();
+                RenderSystem.setProjectionMatrix(TetrahedralProbeSet.projection(passIndex), VertexSorting.ORTHOGRAPHIC_Z);
                 poseStack.pushPose();
                 try {
-                    poseStack.last().pose().mul(transformedRecorder.matrix4f.invert(new Matrix4f()));
-                    poseStack.last().normal().mul(transformedRecorder.matrix3f.invert(new Matrix3f()));
-                    dispatcher.render(entity, 0, 0, 0, yaw, deltaTick, poseStack, transformedRecorder.vertexCatcher, light);
-                    transformedRecorder.vertexCatcher.forEachBuffer(transformedRecorder::computeBindResultInCache);
+                    dispatcher.render(entity, 0, 0, 0, yaw, deltaTick, poseStack, probePass.vertexCatcher, light);
+                    probePass.vertexCatcher.forEachBuffer(probePass::computeBindResultInCache);
                 } finally {
                     poseStack.popPose();
                 }
-                if (bindResult.available()) return bindResult;
+                if (bindResult.available()) return rememberPreferredPasses();
             }
-            for (TransformedVertexRecorder transformedRecorder : transformedRecorders) {
-                transformedRecorder.vertexCatcher.forEachBuffer(transformedRecorder::computeBindResult);
-                if (bindResult.available()) return bindResult;
+            for (int passIndex : passOrder) {
+                ProbePass probePass = probePasses[passIndex];
+                probePass.vertexCatcher.forEachBuffer(probePass::computeBindResult);
+                if (bindResult.available()) return rememberPreferredPasses();
             }
             return BindResult.EMPTY;
         } finally {
-            for (TransformedVertexRecorder transformedRecorder : transformedRecorders) {
-                transformedRecorder.vertexCatcher.clear();
+            try {
+                for (ProbePass probePass : probePasses) {
+                    probePass.vertexCatcher.clear();
+                }
+            } finally {
+                try {
+                    modelViewStack.popPose();
+                    RenderSystem.applyModelViewMatrix();
+                } finally {
+                    RenderSystem.setProjectionMatrix(originalProjection, originalSorting);
+                }
             }
         }
     }
 
-    private static final class TransformedVertexRecorder {
-        private final MultiVertexCatcher vertexCatcher = MultiVertexCatcher.create();
-        private final Matrix4f matrix4f = new Matrix4f();
-        private final Matrix3f matrix3f = new Matrix3f();
+    private static BindResult rememberPreferredPasses() {
+        preferredPassMask = resultPassMasks.getOrDefault(bindResult.target, 0);
+        return bindResult;
+    }
 
-        public TransformedVertexRecorder setRotation(float pitch, float yaw) {
-            matrix4f.rotationYXZ(yaw, pitch, 0).invert();
-            matrix3f.rotationYXZ(yaw, pitch, 0).invert();
-            return this;
+    private static final class ProbePass {
+        private final int passMask;
+        private final MultiVertexCatcher vertexCatcher = MultiVertexCatcher.create();
+
+        private ProbePass(int pass) {
+            passMask = 1 << pass;
         }
 
         public void computeBindResultInCache(BuiltIterableBuffer builtBuffer) {
@@ -97,9 +118,7 @@ public class YSMCompat {
                 if (result.getForward() != Vec3.ZERO) forwardUV = null;
                 if (result.getUpward() != Vec3.ZERO) upwardUV = null;
                 VertexData[][] primitives = builtBuffer.findPrimitivesInCache(new VertexData.UV[]{posUV, forwardUV, upwardUV});
-                if (primitives[0] != null) result.setPosition(new Vec3(VertexData.position(primitives[0], config.posU(), config.posV()).toVector3f().mulPosition(matrix4f)));
-                if (primitives[1] != null) result.setForward(new Vec3(VertexData.normal(primitives[1]).toVector3f().mul(matrix3f)));
-                if (primitives[2] != null) result.setUpward(new Vec3(VertexData.normal(primitives[2]).toVector3f().mul(matrix3f)));
+                applyPrimitives(target, result, config, primitives);
                 if (!result.available()) continue;
                 bindResult = result;
                 return;
@@ -115,13 +134,28 @@ public class YSMCompat {
                 VertexData.UV forwardUV = result.getForward() == Vec3.ZERO ? new VertexData.UV(config.forwardU(), config.forwardV()) : null;
                 VertexData.UV upwardUV = result.getUpward() == Vec3.ZERO ? new VertexData.UV(config.upwardU(), config.upwardV()) : null;
                 VertexData[][] primitives = builtBuffer.findPrimitives(new VertexData.UV[]{posUV, forwardUV, upwardUV});
-                if (primitives[0] != null) result.setPosition(new Vec3(VertexData.position(primitives[0], config.posU(), config.posV()).toVector3f().mulPosition(matrix4f)));
-                if (primitives[1] != null) result.setForward(new Vec3(VertexData.normal(primitives[1]).toVector3f().mul(matrix3f)));
-                if (primitives[2] != null) result.setUpward(new Vec3(VertexData.normal(primitives[2]).toVector3f().mul(matrix3f)));
+                applyPrimitives(target, result, config, primitives);
                 if (!result.available()) continue;
                 bindResult = result;
                 return;
             }
+        }
+
+        private void applyPrimitives(BindTarget target, BindResult result, BindTarget.TargetConfig config, VertexData[][] primitives) {
+            boolean contributed = false;
+            if (primitives[0] != null) {
+                result.setPosition(VertexData.position(primitives[0], config.posU(), config.posV()));
+                contributed = true;
+            }
+            if (primitives[1] != null) {
+                result.setForward(VertexData.normal(primitives[1]));
+                contributed = true;
+            }
+            if (primitives[2] != null) {
+                result.setUpward(VertexData.normal(primitives[2]));
+                contributed = true;
+            }
+            if (contributed) resultPassMasks.merge(target, passMask, (left, right) -> left | right);
         }
     }
 }
