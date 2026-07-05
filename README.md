@@ -3,7 +3,7 @@
 ### [中文](README_ZH.md)
 
 Make the camera more realistic in the first-person view.  
-Supported versions: 1.18.2 - 1.20.4 Forge, 1.18.2 - 26.1 Fabric, 1.21 - 26.1 NeoForge.  
+Supported versions: 1.18.2 - 1.20.4 Forge, 1.18.2 - 26.2 Fabric, 1.21 - 26.2 NeoForge.  
 Download the mod from [Releases](https://github.com/xTracr/RealCamera/releases), [Modrinth](https://modrinth.com/mod/real-camera) or [CurseForge](https://curseforge.com/minecraft/mc-mods/real-camera)  
 Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/build.yml)
 
@@ -31,11 +31,14 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 * Configs can have their priority adjusted - higher priority configs appear higher in the right-side list
 * Disable depth in `Preview` section to hide models blocking the view
 * About `Disable` section (current version still rough, complex operations):
-    * When texture ID field is empty, use Left Alt+Left Click to select texture
+    * When texture ID field is empty, use Left Alt+Mouse Left Click to select texture
     * Model parts contained by blue boxes won't be rendered
     * Left-click drag to select in texture view, other keys cancel selection
     * Left Alt+Left Click quickly selects hovered parts
-    * In `All` mode, entire texture's model won't render (blue box containing the texture in left panel indicates this)
+    * When Selection mode is `range` , texture in blue box will be hidden. By using Left Alt+Mouse Wheel, you can change the range of the blue box
+    * When Selection mode is `multiple` , it's better to disable player's part and armor but Mod models can't use it sometimes
+    * When Disable mode is `part` , you can choose the texture you want to hide
+    * When Disable mode is `All` , entire texture's model won't render (blue box containing the texture in left panel indicates this)
     * ![gui_disable](https://cdn.modrinth.com/data/fYYSAh4R/images/b49ac4da6bf8a59f13c7e93ca1ef76b73e5d23b4.png)
 
 ## Dependencies
@@ -57,8 +60,8 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 * Why does it show binding failed when use YSM models?
     * Snapshot 0.6.15 "try" to fix problems, but it didn't fix completely
     * If Minecraft version is 1.20.1, then bind upward vector to head left (or right) side, and set roll angle to 90 (or -90) in preview section
-* Why does the head of YSM model disappear when in the Model View Screen?
-    * You downloaded Better Combat, just put it away
+* Why does the disabled texture appear when i downloaded Better Combat and attack?
+    * Open settings of Better Combat and change Auto to False in First person player animation
 
 ### Compatibility
 
