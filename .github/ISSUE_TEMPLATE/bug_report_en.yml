@@ -55,7 +55,7 @@ body:
       label: Incompatible Mods
       description: >-
         The mods related to the bug
-        <br>Reproduce the bug with unrelated mods removed before reporting
+        <br>Reproduce the bug with all unrelated mods removed before reporting
       placeholder: 'Mods list here'
       render: 'raw'
     validations:
@@ -66,7 +66,8 @@ body:
     attributes:
       label: Bug Description
       description: >-
-        Please describe the issue you encountered in as much detail as possible. 
+        Please describe the issue you encountered in as much detail as possible
+        <br>Please also attach screenshots or reproduction videos, as they help us diagnose the problem effectively
         <br>Clearer and more detailed descriptions will receive higher processing priority
     validations:
       required: true
@@ -87,7 +88,10 @@ body:
     attributes:
       label: Logs & Crash Reports
       description: >-
-        You can find error reports in /logs/latest.log and /crash-reports, or use the launcher's export function
+        If your issue is not a crash, please do not upload log files, as they will hinder our understanding of the problem
+        <br>You can find error reports in /logs/latest.log and /crash-reports, or use the launcher's export function
         <br>You can upload logs to sites like https://paste.ubuntu.com/ or https://mclo.gs/ and post the link here
-        <br>**DO NOT PASTE LARGE LOGS DIRECTLY HERE!!**
+        <br>**DO NOT PASTE LARGE LOGS DIRECTLY HERE!!!**
+        <br>**DO NOT PASTE LARGE LOGS DIRECTLY HERE!!!**
+        <br>**DO NOT PASTE LARGE LOGS DIRECTLY HERE!!!**
       placeholder: 'Drag log file here or use external link'
