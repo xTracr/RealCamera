@@ -114,12 +114,50 @@ public final class ModConfig {
     public float getClassicRoll() {
         return classic.roll;
     }
+    
+    public void adjustActiveConfig(String selector) {
+        if ("RESET".equals(selector)) {
+            binding.activeConfigSelector = "0";
+            return;
+        }
+        if (isParsableInt(binding.activeConfigSelector)) {
+            int activeConfigIndex = Integer.parseInt(binding.activeConfigSelector);
+            switch (selector) {
+                case "NEXT" -> binding.activeConfigSelector = String.valueOf(activeConfigIndex + 1);
+                case "PREV" -> binding.activeConfigSelector = String.valueOf(activeConfigIndex - 1);
+            }
+        } else {
+            List<BindTarget> matchedTargets = binding.targetList;
+            String activeConfigName = binding.activeConfigSelector;
+            int foundIndex = IntStream.range(0, matchedTargets.size())
+                    .filter(i -> matchedTargets.get(i).name().equalsIgnoreCase(activeConfigName)).findFirst()
+                    .orElse(-1);
+            switch (selector){
+                case "NEXT" -> binding.activeConfigSelector = matchedTargets.get(Math.clamp(foundIndex + 1, 0, matchedTargets.size() - 1)).name();
+                case "PREV" -> binding.activeConfigSelector = matchedTargets.get(Math.clamp(foundIndex - 1, 0, matchedTargets.size() - 1)).name();
+            }
+        }
+    }
 
     public List<BindTarget> getBindTargetList(String textureId) {
-        int activeConfigIndex = binding.activeConfigIndex;
         List<BindTarget> matchedTargets = binding.targetList.stream().filter(target -> textureId.contains(target.textureId())).toList();
-        if (activeConfigIndex <= 0 || matchedTargets.isEmpty()) return matchedTargets;
-        return List.of(matchedTargets.get(Math.clamp(activeConfigIndex - 1, 0, matchedTargets.size() - 1)));
+        if (isParsableInt(binding.activeConfigSelector)) {
+            int activeConfigIndex = Integer.parseInt(binding.activeConfigSelector);
+            if (activeConfigIndex <= 0 || matchedTargets.isEmpty()) return matchedTargets;
+            return List.of(matchedTargets.get(Math.clamp(activeConfigIndex - 1, 0, matchedTargets.size() - 1)));
+        } else {
+            String activeConfigName = binding.activeConfigSelector;
+            return matchedTargets.stream().filter(target -> target.name().equalsIgnoreCase(activeConfigName)).toList();
+        }
+    }                                                                                            
+    
+    private boolean isParsableInt(String s){
+        try {
+            Integer.parseInt(s);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     public void putBindTarget(BindTarget target) {
@@ -193,7 +231,7 @@ public final class ModConfig {
         public boolean disableWhenFlying = false;
         public int exitTick = 13;
         public int bindResultRetentionFrames = 2;
-        public int activeConfigIndex = 0;
+        public String activeConfigSelector = "0";
         public double displacementSmoothFactor = 0.4;
         public double rotationSmoothFactor = 0.4;
         public List<String> disableMainFeatureItems = List.of();
@@ -209,7 +247,7 @@ public final class ModConfig {
             }
             exitTick = Mth.clamp(exitTick, 0, 40);
             bindResultRetentionFrames = Math.max(bindResultRetentionFrames, 0);
-            activeConfigIndex = Math.max(activeConfigIndex, 0);
+            if (activeConfigSelector == null || activeConfigSelector.isBlank()) activeConfigSelector = "0";
             displacementSmoothFactor = Mth.clamp(displacementSmoothFactor, 0.0, 1.0);
             rotationSmoothFactor = Mth.clamp(rotationSmoothFactor, 0.0, 1.0);
             if (disableMainFeatureItems == null) disableMainFeatureItems = List.of();
