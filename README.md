@@ -31,7 +31,7 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 #### Tips
 
 * Configs can have their priority adjusted - higher priority configs appear higher in the right-side list
-* In the mod settings, you can manually switch between available configurations by modifying the configuration index. You can also set it to a non-zero value to lock the active configuration
+* In the mod settings, you can manually switch between available configurations by modifying the configuration selector
 * When the main feature is enabled, hover over the configuration entries. The one annotated with `Current Config` is the configuration currently in use
 * Disable depth in `Preview` section to hide models blocking the view
 * About `Disable` section:
