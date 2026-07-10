@@ -171,11 +171,10 @@ public final class ConfigScreen {
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("bindResultRetentionFrames"))
                 .setSaveConsumer(i -> config.binding.bindResultRetentionFrames = i)
                 .build());
-        binding.addEntry(entryBuilder.startIntField(LocUtil.CONFIG_OPTION("activeConfigIndex"), config.binding.activeConfigIndex)
-                .setDefaultValue(0)
-                .setMin(0)
-                .setTooltip(LocUtil.CONFIG_TOOLTIP("activeConfigIndex"))
-                .setSaveConsumer(i -> config.binding.activeConfigIndex = i)
+        binding.addEntry(entryBuilder.startStrField(LocUtil.CONFIG_OPTION("activeConfigSelector"), config.binding.activeConfigSelector)
+                .setDefaultValue("0")
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("activeConfigSelector"))
+                .setSaveConsumer(s -> config.binding.activeConfigSelector = s)
                 .build());
         binding.addEntry(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("displacementSmoothFactor"), config.binding.displacementSmoothFactor)
                 .setDefaultValue(0.4)
