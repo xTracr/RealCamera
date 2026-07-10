@@ -55,8 +55,8 @@ body:
       label: 不兼容的mod
       description: >-
         和bug相关的模组
-        <br>请在反馈问题前移除不相干的模组的情况下复现bug
-      placeholder: 'Mods list here'
+        <br>请在反馈问题前移除所有不相干的模组的情况下复现bug
+      placeholder: '与问题有关的模组列表'
       render: 'raw'
     validations:
       required: true
@@ -66,7 +66,8 @@ body:
     attributes:
       label: 错误描述
       description: >-
-        请尽可能详细的描述遇到的问题. 
+        请尽可能详细的描述遇到的问题
+        <br>同时也请务必携带复现时的视频或截图，这对于我们理解问题非常有帮助
         <br>越清晰和详尽的描述会使该bug的处理优先级更高
     validations:
       required: true
@@ -76,9 +77,9 @@ body:
     attributes:
       label: 复现步骤
       placeholder: |
-        1. Join the game...
+        1. 进入游戏...
 
-        2. Change some settings...
+        2. 做出某些改变...
 
         3. ...
 
@@ -87,7 +88,10 @@ body:
     attributes:
       label: 日志和崩溃报告
       description: >-
-        你可以在/logs/lastest.log 和 /crash-report 中找到错误报告，或者使用启动器的导出功能
+        如果为非崩溃问题，请不要上传日志，这样会不利于我们理解问题
+        <br>你可以在/logs/lastest.log 和 /crash-report 中找到错误报告，或者使用启动器的导出功能
         <br>你可以日志上传到类似 https://paste.ubuntu.com/ 或者 https://mclo.gs/ 的网站并在此贴出链接
-        <br>**请不要在此处直接粘贴大段的日志文本!!**
+        <br>**请不要在此处直接粘贴大段的日志文本!!!**
+        <br>**请不要在此处直接粘贴大段的日志文本!!!**
+        <br>**请不要在此处直接粘贴大段的日志文本!!!**
       placeholder: '把日志文件往这丢或者使用外部链接'

@@ -12,7 +12,7 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 * Bind the camera to a specific part of the body.
 * Customize the position and rotation of the camera.
 * Render player model in first-person perspective.
-* Use F6 to toggle the feature on or off and other hotkeys to adjust the camera.
+* Use 「F6」 to toggle the feature on or off and other hotkeys to adjust the camera.
 * Configure these features in the Config Screen (Cloth Config required) and the Model View Screen (0.6+).
 
 ### Configuration (0.6+)
@@ -25,20 +25,27 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 * From the top right button, enter the `Preview` section, where you can see the relative relationship between the camera and the model and make certain adjustments (you can also adjust through key bindings).
     * ![gui_preview](https://cdn.modrinth.com/data/fYYSAh4R/images/44c87a6f1750f8d1b03422120e6042d1098896cb.png)
 * Enter a name and save.
+* ~~If you have difficulty configuring the settings, you can also enable `Mod Settings > Binding Mode > Legacy Binding Mode`
+<br>Note: This setting is exclusive to vanilla Minecraft.~~
 
 #### Tips
 
 * Configs can have their priority adjusted - higher priority configs appear higher in the right-side list
+* In the mod settings, you can manually switch between available configurations by modifying the configuration index. You can also set it to a non-zero value to lock the active configuration
+* When the main feature is enabled, hover over the configuration entries. The one annotated with `Current Config` is the configuration currently in use
 * Disable depth in `Preview` section to hide models blocking the view
-* About `Disable` section (current version still rough, complex operations):
-    * When texture ID field is empty, use Left Alt+Mouse Left Click to select texture
-    * Model parts contained by blue boxes won't be rendered
-    * Left-click drag to select in texture view, other keys cancel selection
-    * Left Alt+Left Click quickly selects hovered parts
-    * When Selection mode is `range` , texture in blue box will be hidden. By using Left Alt+Mouse Wheel, you can change the range of the blue box
-    * When Selection mode is `multiple` , it's better to disable player's part and armor but Mod models can't use it sometimes
-    * When Disable mode is `part` , you can choose the texture you want to hide
-    * When Disable mode is `All` , entire texture's model won't render (blue box containing the texture in left panel indicates this)
+* About `Disable` section:
+    * When texture ID field is empty, use 「Left Alt + Left Click」 to select a texture
+    * Selection modes:
+        * Single & Multiple selection: Press 「Left Alt + Left Click」 to select the faces to disable
+        * Range selection: Press 「Left Alt + Left Click」 to confirm the selection area, and use 「Alt + Scroll Wheel」 to adjust the size of the selection area
+    * In the left texture view of the player rendering area:
+        * Press 「Left Click」 to start/end drag selection, press any other key to cancel the selection
+        * Faces selected via drag selection have the same effect as faces disabled via Multiple selection
+        * Notably, disabling faces this way is generally more performance-efficient than other methods
+    * Disable modes:
+        * In `part` mode, selected faces will not be rendered (you can preview the effect by toggling off the visibility of the disable configuration on the right pane)
+        * In `All` mode, entire texture's model won't render (blue box containing the texture in left panel indicates this)
     * ![gui_disable](https://cdn.modrinth.com/data/fYYSAh4R/images/b49ac4da6bf8a59f13c7e93ca1ef76b73e5d23b4.png)
 
 ## Dependencies
@@ -58,8 +65,9 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 * Why can't i open the Config Screen?
     * Please downlowd [Cloth Config API](https://modrinth.com/mod/cloth-config)
 * Why does it show binding failed when use YSM models?
-    * Snapshot 0.6.15 "try" to fix problems, but it didn't fix completely
-    * If Minecraft version is 1.20.1, then bind upward vector to head left (or right) side, and set roll angle to 90 (or -90) in preview section
+    * Snapshot 0.6.15 "try" to fix problems, but it didn't fully fix completely
+    * When your model rotates to a specific angle, the position you bound may disappear due to YSM's `face culling feature`, resulting in binding failure
+    * You can alleviate this problem by increasing the `Bind Result Retention Frames`
 * Why does the disabled texture appear when i downloaded Better Combat and attack?
     * Open settings of Better Combat and change Auto to False in First person player animation
 
