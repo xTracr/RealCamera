@@ -23,6 +23,7 @@ import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.layouts.FrameLayout;
 import net.minecraft.client.gui.layouts.GridLayout;
 import net.minecraft.client.gui.layouts.LayoutSettings;
+import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.screens.Screen;
@@ -84,7 +85,9 @@ public final class ModelViewScreen extends Screen {
     private final CycleIconButton bindXButton = new CycleIconButton(16, 16, 1, 2);
     private final CycleIconButton bindYButton = new CycleIconButton(16, 16, 0, 2);
     private final CycleIconButton bindZButton = new CycleIconButton(16, 16, 1, 2);
-    private final CycleIconButton bindRotButton = new CycleIconButton(16, 16, 1, 2);
+    private final CycleIconButton bindPitchButton = new CycleIconButton(16, 16, 1, 2);
+    private final CycleIconButton bindYawButton = new CycleIconButton(16, 16, 1, 2);
+    private final CycleIconButton bindRollButton = new CycleIconButton(16, 16, 1, 2);
     private final DoubleSlider entityPitchSlider = createSlider("pitch", wideWidgetWidth, -90.0, 90.0);
     private final DoubleSlider entityYawSlider = createSlider("yaw", wideWidgetWidth, -60.0, 60.0);
     private final NumberWidgetPair offsetXPair = new NumberWidgetPair(font, "offsetX", compactWidgetWidth, widgetHeight, ModConfig.MIN_OFFSET_F, ModConfig.MAX_OFFSET_F);
@@ -97,6 +100,7 @@ public final class ModelViewScreen extends Screen {
     private final List<UVRectangleWidget> rectWidgets = new ArrayList<>();
     private final Map<String, Set<String>> hiddenNameMap = new HashMap<>();
     private final List<NumberWidgetPair> widgetPairs = List.of(offsetXPair, offsetYPair, offsetZPair, offsetPitchPair, offsetYawPair, offsetRollPair);
+    private final SimpleIconButton resetOffsetsButton = new SimpleIconButton(0, 0, _ -> widgetPairs.forEach(pair -> pair.setNumber(0)));
     private final CycleButton<Integer> selectingButton = createCyclingButtonBuilder(ImmutableSortedMap.of(
             0, LocUtil.MODEL_VIEW_WIDGET("forwardVector").withStyle(ChatFormatting.GREEN),
             1, LocUtil.MODEL_VIEW_WIDGET("upwardVector").withStyle(ChatFormatting.RED),
@@ -133,6 +137,14 @@ public final class ModelViewScreen extends Screen {
 
     public ModelViewScreen() {
         super(LocUtil.MODEL_VIEW_TITLE());
+        configureBindButton(bindXButton, LocUtil.literal("X"), false);
+        configureBindButton(bindYButton, LocUtil.literal("Y"), false);
+        configureBindButton(bindZButton, LocUtil.literal("Z"), false);
+        configureBindButton(bindPitchButton, LocUtil.CONFIG_OPTION("pitch"), true);
+        configureBindButton(bindYawButton, LocUtil.CONFIG_OPTION("yaw"), true);
+        configureBindButton(bindRollButton, LocUtil.CONFIG_OPTION("roll"), true);
+        resetOffsetsButton.setMessage(LocUtil.MODEL_VIEW_WIDGET("resetOffsets"));
+        resetOffsetsButton.setTooltip(createTooltip("resetOffsets"));
     }
 
     @Override
@@ -200,16 +212,20 @@ public final class ModelViewScreen extends Screen {
             case PREVIEW -> {
                 rows.addChild(toggleSliderButton, 2);
                 LayoutSettings numericControlSettings = grid.newCellSettings().padding(-20, 2, 0, 0);
-                rows.addChild(bindXButton, smallSettings).setTooltip(createTooltip("bindButtons"));
+                rows.addChild(bindXButton, smallSettings);
                 rows.addChild(offsetXPair, numericControlSettings);
-                rows.addChild(bindYButton, smallSettings).setTooltip(createTooltip("bindButtons"));
+                rows.addChild(bindYButton, smallSettings);
                 rows.addChild(offsetYPair, numericControlSettings);
-                rows.addChild(bindZButton, smallSettings).setTooltip(createTooltip("bindButtons"));
+                rows.addChild(bindZButton, smallSettings);
                 rows.addChild(offsetZPair, numericControlSettings);
-                rows.addChild(bindRotButton, smallSettings).setTooltip(createTooltip("bindButtons"));
+                rows.addChild(bindPitchButton, smallSettings);
                 rows.addChild(offsetPitchPair, numericControlSettings);
-                rows.addChild(offsetYawPair, 2, grid.newCellSettings().padding(26, 2, 0, 0));
-                rows.addChild(new SimpleIconButton(0, 0, _ -> widgetPairs.forEach(pair -> pair.setNumber(0))), smallSettings);
+                rows.addChild(bindYawButton, smallSettings);
+                rows.addChild(offsetYawPair, numericControlSettings);
+                LinearLayout rollButtons = LinearLayout.horizontal().spacing(2);
+                rollButtons.addChild(bindRollButton);
+                rollButtons.addChild(resetOffsetsButton);
+                rows.addChild(rollButtons, smallSettings);
                 rows.addChild(offsetRollPair, numericControlSettings);
                 rows.addChild(scaleField, smallSettings).setTooltip(createTooltip("scale"));
                 rows.addChild(depthField, smallSettings).setTooltip(createTooltip("depth"));
@@ -658,7 +674,10 @@ public final class ModelViewScreen extends Screen {
         bindXButton.setValue(target.bindConfig().bindX() ? 0 : 1);
         bindYButton.setValue(target.bindConfig().bindY() ? 0 : 1);
         bindZButton.setValue(target.bindConfig().bindZ() ? 0 : 1);
-        bindRotButton.setValue(target.bindConfig().bindRotation() ? 0 : 1);
+        bindPitchButton.setValue(target.bindConfig().bindPitch() ? 0 : 1);
+        bindYawButton.setValue(target.bindConfig().bindYaw() ? 0 : 1);
+        bindRollButton.setValue(target.bindConfig().bindRoll() ? 0 : 1);
+        updateBindButtonMessages();
         OffsetConfig offsets = target.offsets();
         scaleField.setNumber(offsets.scale);
         offsetXPair.setNumber(offsets.x);
@@ -680,7 +699,14 @@ public final class ModelViewScreen extends Screen {
                 newDisableConfigs.set(i, currentDisableConfig);
         }
         TargetConfig targetConfig = new TargetConfig(forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber());
-        BindConfig bindConfig = new BindConfig(bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);
+        BindConfig bindConfig = new BindConfig(
+                bindXButton.getValue() == 0,
+                bindYButton.getValue() == 0,
+                bindZButton.getValue() == 0,
+                bindPitchButton.getValue() == 0,
+                bindYawButton.getValue() == 0,
+                bindRollButton.getValue() == 0
+        );
         OffsetConfig offsets = new OffsetConfig(scaleField.getNumber(), offsetXPair.getNumber(), offsetYPair.getNumber(), offsetZPair.getNumber(), offsetPitchPair.getNumber(), offsetYawPair.getNumber(), offsetRollPair.getNumber());
         return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, newDisableConfigs);
     }
@@ -699,6 +725,26 @@ public final class ModelViewScreen extends Screen {
 
     private Tooltip createTooltip(String key, Object... args) {
         return Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP(key, args));
+    }
+
+    private void configureBindButton(CycleIconButton button, Component axis, boolean rotation) {
+        button.setOnValueChange(_ -> updateBindButtonMessage(button, axis, rotation));
+        updateBindButtonMessage(button, axis, rotation);
+    }
+
+    private void updateBindButtonMessages() {
+        updateBindButtonMessage(bindXButton, LocUtil.literal("X"), false);
+        updateBindButtonMessage(bindYButton, LocUtil.literal("Y"), false);
+        updateBindButtonMessage(bindZButton, LocUtil.literal("Z"), false);
+        updateBindButtonMessage(bindPitchButton, LocUtil.CONFIG_OPTION("pitch"), true);
+        updateBindButtonMessage(bindYawButton, LocUtil.CONFIG_OPTION("yaw"), true);
+        updateBindButtonMessage(bindRollButton, LocUtil.CONFIG_OPTION("roll"), true);
+    }
+
+    private void updateBindButtonMessage(CycleIconButton button, Component axis, boolean rotation) {
+        Component state = LocUtil.MODEL_VIEW_WIDGET(button.getValue() == 0 ? "enabled" : "disabled");
+        button.setMessage(LocUtil.MODEL_VIEW_WIDGET(rotation ? "bindRotationAxis" : "bindPositionAxis", axis, state));
+        button.setTooltip(createTooltip(rotation ? "bindRotationButton" : "bindPositionButton", axis));
     }
 
     private UVRectangleWidget createRectWidget(UVRectangle rect) {

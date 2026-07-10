@@ -1,5 +1,8 @@
 package com.xtracr.realcamera.config;
 
+import com.google.gson.annotations.JsonAdapter;
+import com.xtracr.realcamera.config.codec.BindConfigAdapter;
+
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -50,6 +53,23 @@ public record BindTarget(
     public record TargetConfig(float forwardU, float forwardV, float upwardU, float upwardV, float posU, float posV) {
     }
 
-    public record BindConfig(boolean bindX, boolean bindY, boolean bindZ, boolean bindRotation) {
+    @JsonAdapter(BindConfigAdapter.class)
+    public record BindConfig(boolean bindX, boolean bindY, boolean bindZ, boolean bindPitch, boolean bindYaw, boolean bindRoll) {
+        public BindConfig(boolean bindX, boolean bindY, boolean bindZ, boolean bindRotation) {
+            this(bindX, bindY, bindZ, bindRotation, bindRotation, bindRotation);
+        }
+
+        /** Retains the legacy all-rotation accessor contract. */
+        public boolean bindRotation() {
+            return bindPitch && bindYaw && bindRoll;
+        }
+
+        public boolean bindAnyRotation() {
+            return bindPitch || bindYaw || bindRoll;
+        }
+
+        public boolean bindNoRotation() {
+            return !bindAnyRotation();
+        }
     }
 }
