@@ -135,15 +135,16 @@ public final class DragonSurvivalCompat {
             BindTarget target,
             Matrix4fc viewRotationMatrix) {
         if (!isTarget(target) || viewRotationMatrix == null) return null;
-        DisableConfig[] configs = target.filteredDisableConfigs(config -> target.textureId().contains(config.textureId()));
         float m02 = viewRotationMatrix.m02();
         float m12 = viewRotationMatrix.m12();
         float m22 = viewRotationMatrix.m22();
         float m32 = viewRotationMatrix.m32();
         float depth = target.disablingDepth();
         return (renderType, renderer) -> {
-            if (renderType.mode() != VertexFormat.Mode.QUADS
-                    || !RenderTypeCache.getTextureId(renderType).contains(NAMESPACE)) return renderer;
+            String textureId = RenderTypeCache.getTextureId(renderType);
+            if (renderType.mode() != VertexFormat.Mode.QUADS || !textureId.contains(NAMESPACE)) return renderer;
+            DisableConfig[] configs = target.filteredDisableConfigs(config ->
+                    textureId.contains(config.textureId()) || target.textureId().contains(config.textureId()));
             return (pose, output) -> {
                 FilteringVertexConsumer filtering = new FilteringVertexConsumer(output, configs, m02, m12, m22, m32, depth);
                 try {
@@ -319,18 +320,21 @@ public final class DragonSurvivalCompat {
         }
 
         private void flushQuad() {
-            if (!disableAll) for (MutableVertex vertex : quad) {
+            boolean disabled = disableAll;
+            boolean allTooClose = true;
+            for (MutableVertex vertex : quad) {
                 float cameraZ = Math.fma(m02, vertex.x, Math.fma(m12, vertex.y, Math.fma(m22, vertex.z, m32)));
-                if (cameraZ > -depth) continue;
-                for (DisableConfig config : disableConfigs) {
-                    if (config.disable(vertex)) {
-                        vertexCount = 0;
-                        return;
+                if (cameraZ <= -depth) allTooClose = false;
+                if (!disabled) {
+                    for (DisableConfig config : disableConfigs) {
+                        if (config.disable(vertex)) {
+                            disabled = true;
+                            break;
+                        }
                     }
                 }
-                for (MutableVertex quadVertex : quad) quadVertex.render(output);
-                break;
             }
+            if (!disabled && !allTooClose) for (MutableVertex vertex : quad) vertex.render(output);
             vertexCount = 0;
         }
 
