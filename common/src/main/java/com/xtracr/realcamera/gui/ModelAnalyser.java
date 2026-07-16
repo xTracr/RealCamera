@@ -5,6 +5,7 @@ import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.xtracr.realcamera.api.BindResult;
+import com.xtracr.realcamera.compat.DragonSurvivalCompat;
 import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.BindTarget.TargetConfig;
 import com.xtracr.realcamera.config.DisableConfig;
@@ -17,6 +18,7 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
@@ -44,6 +46,7 @@ public final class ModelAnalyser {
     private BuiltModelRecord focusedRecord;
 
     public static void applyDisableConfigs(List<BuiltModelRecord> modelRecords, BindTarget target, String textureId, Set<String> hiddenNames) {
+        if (DragonSurvivalCompat.applyDisableConfigs(modelRecords, target, hiddenNames)) return;
         for (int i = 0; i < modelRecords.size(); i++) {
             BuiltModelRecord record = modelRecords.get(i);
             List<VertexData[]> primitives = new ArrayList<>();
@@ -241,7 +244,9 @@ public final class ModelAnalyser {
     public List<BuiltModelRecord> captureModel(Minecraft client, Entity entity, float partialTicks, PoseStack poseStack, BindTarget target) {
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         client.gameRenderer.getLighting().setupFor(Lighting.Entry.ENTITY_IN_UI);
-        dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, vertexCatcher.initCollector());
+        EntityRenderState renderState = DragonSurvivalCompat.createUIRenderState(entity, partialTicks);
+        if (renderState == null) renderState = dispatcher.extractEntity(entity, partialTicks);
+        dispatcher.submit(renderState, new CameraRenderState(), 0, 0, 0, poseStack, vertexCatcher.initCollector());
         List<BuiltModelRecord> records = new ArrayList<>();
         vertexCatcher.forEachBuffer(buf -> computeRecord(buf, records, target));
         return records;

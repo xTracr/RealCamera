@@ -7,6 +7,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.serialization.DataResult;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.compat.CompatibilityHelper;
+import com.xtracr.realcamera.compat.DragonSurvivalCompat;
 import com.xtracr.realcamera.config.*;
 import com.xtracr.realcamera.config.BindTarget.BindConfig;
 import com.xtracr.realcamera.config.BindTarget.TargetConfig;
@@ -399,7 +400,8 @@ public final class ModelViewScreen extends Screen {
         List<BuiltModelRecord> modelRecords = captureRotatedEntity(analyser, target, minecraft.player);
         List<BuiltModelRecord> textureRecords = modelRecords.stream().filter(record -> record.containsTextureId(textureId)).toList();
         ModelAnalyser.applyDisableConfigs(modelRecords, target, textureId, hiddenNames);
-        computeFocusedPrimitives(analyser, modelRecords, textureRecords, mouseX, mouseY);
+        List<BuiltModelRecord> focusedModelRecords = DragonSurvivalCompat.focusCandidates(modelRecords, target, textureId);
+        computeFocusedPrimitives(analyser, focusedModelRecords, textureRecords, mouseX, mouseY);
         renderCulledModels(graphics, analyser, target, modelRecords);
         renderFlattenedModels(graphics, analyser, textureRecords);
     }

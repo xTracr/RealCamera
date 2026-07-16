@@ -25,14 +25,25 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.function.BiFunction;
 
 public final class RoutingSubmitCollector implements SubmitNodeCollector {
+    private static final BiFunction<RenderType, CustomGeometryRenderer, CustomGeometryRenderer> IDENTITY_DECORATOR = (_, renderer) -> renderer;
     private final SubmitNodeCollector defaultCollector;
     private final SubmitNodeCollector modelCollector;
+    private final BiFunction<RenderType, CustomGeometryRenderer, CustomGeometryRenderer> customGeometryDecorator;
 
     public RoutingSubmitCollector(SubmitNodeCollector defaultCollector, SubmitNodeCollector modelCollector) {
+        this(defaultCollector, modelCollector, IDENTITY_DECORATOR);
+    }
+
+    public RoutingSubmitCollector(
+            SubmitNodeCollector defaultCollector,
+            SubmitNodeCollector modelCollector,
+            BiFunction<RenderType, CustomGeometryRenderer, CustomGeometryRenderer> customGeometryDecorator) {
         this.defaultCollector = defaultCollector;
         this.modelCollector = modelCollector;
+        this.customGeometryDecorator = customGeometryDecorator;
     }
 
     @Override
@@ -97,7 +108,7 @@ public final class RoutingSubmitCollector implements SubmitNodeCollector {
 
     @Override
     public void submitCustomGeometry(@NonNull PoseStack poseStack, @NonNull RenderType renderType, @NonNull CustomGeometryRenderer customGeometryRenderer) {
-        modelCollector.submitCustomGeometry(poseStack, renderType, customGeometryRenderer);
+        modelCollector.submitCustomGeometry(poseStack, renderType, customGeometryDecorator.apply(renderType, customGeometryRenderer));
     }
 
     @Override
@@ -171,7 +182,7 @@ public final class RoutingSubmitCollector implements SubmitNodeCollector {
 
         @Override
         public void submitCustomGeometry(@NonNull PoseStack poseStack, @NonNull RenderType renderType, @NonNull CustomGeometryRenderer customGeometryRenderer) {
-            modelDelegate.submitCustomGeometry(poseStack, renderType, customGeometryRenderer);
+            modelDelegate.submitCustomGeometry(poseStack, renderType, customGeometryDecorator.apply(renderType, customGeometryRenderer));
         }
 
         @Override
