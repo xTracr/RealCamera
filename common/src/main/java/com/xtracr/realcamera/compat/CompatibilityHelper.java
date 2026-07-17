@@ -6,8 +6,10 @@ import net.minecraft.world.entity.player.Player;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.function.Function;
 
 public final class CompatibilityHelper {
+    public static boolean isRenderInScreen;
     private static PlatformHelper platformHelper;
     private static Method NEA_playerTransformer_setDeltaTick;
     private static Field NEA_NEAnimationsLoader_INSTANCE;
@@ -49,6 +51,18 @@ public final class CompatibilityHelper {
             DisableHelper.MAIN_FEATURE.registerOrInBinding(CompatibilityHelper::SBW_isDrivingVehicle);
         } catch (Exception e) {
             RealCamera.LOGGER.warn("Compatibility with SuperbWarfare is outdated: [{}] {}", e.getClass().getName(), e.getMessage());
+        }
+        if (isModLoaded("entity_model_features")) try {
+            Class<?> EMF_EMFAnimationApi = Class.forName("traben.entity_model_features.EMFAnimationApi");
+            if ((int) EMF_EMFAnimationApi.getMethod("getApiVersion").invoke(null) >= 9) {
+                Function<Object, Boolean> function = object -> isRenderInScreen;
+                Method EMF_registerPauseCondition = EMF_EMFAnimationApi.getMethod("registerPauseCondition", Function.class);
+                EMF_registerPauseCondition.invoke(null, function);
+            } else {
+                throw new IllegalStateException("EntityModelFeatures API is outdated, players‘s heads in the modelView may flicker");
+            }
+        } catch (Exception e) {
+            RealCamera.LOGGER.warn("Compatibility with EntityModelFeatures is outdated: [{}] {}", e.getClass().getName(), e.getMessage());
         }
     }
 
