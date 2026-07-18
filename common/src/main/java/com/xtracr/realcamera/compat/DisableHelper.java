@@ -27,9 +27,11 @@ public class DisableHelper {
     static {
         MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSneaking() && player.isCrouching());
         MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSneaking() && player.isCrouching());
-        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSwimming() && checkCondition(player, player.isSwimming(), ConfigFile.config().getBindingOutTick()));
-        MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSwimming() && checkCondition(player, player.isSwimming(), ConfigFile.config().getClassicOutTick()));
-        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenCrawling() && checkCondition(player, player.isVisuallyCrawling(), ConfigFile.config().getBindingOutTick()));
+        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenSwimming()
+                && checkCondition(player, player.isVisuallySwimming(), ConfigFile.config().getBindingExitTick()));
+        MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classicDisableWhenSwimming()
+                && checkCondition(player, player.isVisuallySwimming(), ConfigFile.config().getClassicExitTick()));
+        MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().bindingDisableWhenFlying() && player.isFallFlying());
         MAIN_FEATURE.registerOrInBinding(player -> {
             Item mainHand = player.getMainHandItem().getItem();
             Item offHand = player.getOffhandItem().getItem();
@@ -48,16 +50,14 @@ public class DisableHelper {
         });
     }
 
-    private static boolean checkCondition(Player player, boolean condition, int outTick) {
+    private static boolean checkCondition(Player player, boolean condition, int exitDelayTicks) {
         if (condition) {
             exitTick = player.tickCount;
             return true;
         }
         if (exitTick > 0) {
             int elapsedTicks = player.tickCount - exitTick;
-            if (elapsedTicks <= outTick) {
-                return true;
-            }
+            if (elapsedTicks <= exitDelayTicks) return true;
             exitTick = 0;
         }
         return false;
