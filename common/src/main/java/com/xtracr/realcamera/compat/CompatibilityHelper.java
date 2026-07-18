@@ -12,8 +12,10 @@ import net.minecraft.world.entity.player.Player;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.function.Function;
 
 public class CompatibilityHelper {
+    public static boolean isRenderInScreen;
     private static PlatformHelper platformHelper;
     private static Method NEA_playerTransformer_setDeltaTick;
     private static Field NEA_NEAnimationsLoader_INSTANCE;
@@ -64,6 +66,18 @@ public class CompatibilityHelper {
             DisableHelper.MAIN_FEATURE.registerOrInBinding(CompatibilityHelper::TACZ_gunsIsAiming);
         } catch (Exception e) {
             RealCamera.LOGGER.warn("Compatibility with TACZ is outdated: [{}] {}", e.getClass().getName(), e.getMessage());
+        }
+        if (isModLoaded("entity_model_features")) try {
+            Class<?> emfAnimationApi = Class.forName("traben.entity_model_features.EMFAnimationApi");
+            if ((int) emfAnimationApi.getMethod("getApiVersion").invoke(null) >= 9) {
+                Function<Object, Boolean> pauseCondition = ignored -> isRenderInScreen;
+                Method registerPauseCondition = emfAnimationApi.getMethod("registerPauseCondition", Function.class);
+                registerPauseCondition.invoke(null, pauseCondition);
+            } else {
+                throw new IllegalStateException("EntityModelFeatures API is outdated; model-view animations may flicker");
+            }
+        } catch (Exception e) {
+            RealCamera.LOGGER.warn("Compatibility with EntityModelFeatures is outdated: [{}] {}", e.getClass().getName(), e.getMessage());
         }
     }
 

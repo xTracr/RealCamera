@@ -561,6 +561,8 @@ public class ModelViewScreen extends Screen {
         float entityPitch = entity.getXRot();
         float entityPrevHeadYaw = entity.yHeadRotO;
         float entityHeadYaw = entity.yHeadRot;
+        boolean previousRenderInScreen = CompatibilityHelper.isRenderInScreen;
+        CompatibilityHelper.isRenderInScreen = true;
         try {
             entity.yBodyRot = 180.0f;
             entity.setYRot(180.0f + (float) entityYawSlider.getNumber());
@@ -570,6 +572,7 @@ public class ModelViewScreen extends Screen {
             Vector3f offset = new Vector3f((float) modelX, (float) modelY, 0);
             renderEntityWithAnalyser(graphics, x1, y1, x2, y2, modelScale, offset, quaternionf, entity);
         } finally {
+            CompatibilityHelper.isRenderInScreen = previousRenderInScreen;
             entity.yBodyRot = entityBodyYaw;
             entity.setYRot(entityYaw);
             entity.setXRot(entityPitch);
