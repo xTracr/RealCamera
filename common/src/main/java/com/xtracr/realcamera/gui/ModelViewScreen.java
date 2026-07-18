@@ -284,6 +284,7 @@ public class ModelViewScreen extends Screen {
             BindTarget bindTarget = genBindTarget();
             ConfigFile.config().putBindTarget(bindTarget);
             ConfigFile.save();
+            if (toggleCategoryButton.getValue() != Category.DISABLE) loadBindTarget(bindTarget);
             initWidgets(page);
         }));
         rows.addChild(priorityField = NumberField.ofInt(font, widgetWidth - 2, widgetHeight - 2, 0, priorityField), smallSettings).setTooltip(createTooltip("priority"));
@@ -561,7 +562,9 @@ public class ModelViewScreen extends Screen {
         float entityPitch = entity.getXRot();
         float entityPrevHeadYaw = entity.yHeadRotO;
         float entityHeadYaw = entity.yHeadRot;
+        boolean wasRenderingInScreen = CompatibilityHelper.isRenderInScreen;
         try {
+            CompatibilityHelper.isRenderInScreen = true;
             entity.yBodyRot = 180.0f;
             entity.setYRot(180.0f + (float) entityYawSlider.getNumber());
             entity.setXRot((float) entityPitchSlider.getNumber());
@@ -570,6 +573,7 @@ public class ModelViewScreen extends Screen {
             Vector3f offset = new Vector3f((float) modelX, (float) modelY, 0);
             renderEntityWithAnalyser(graphics, x1, y1, x2, y2, modelScale, offset, quaternionf, entity);
         } finally {
+            CompatibilityHelper.isRenderInScreen = wasRenderingInScreen;
             entity.yBodyRot = entityBodyYaw;
             entity.setYRot(entityYaw);
             entity.setXRot(entityPitch);
@@ -653,6 +657,13 @@ public class ModelViewScreen extends Screen {
 
     protected BindTarget genBindTarget() {
         initOffsetPairs();
+        DisableConfig currentDisableConfig = new DisableConfig(disabledNameField.getValue(), disabledIdField.getValue(), disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toList());
+        List<DisableConfig> newDisableConfigs = new ArrayList<>(disableConfigs);
+        for (int i = 0; i < newDisableConfigs.size(); i++) {
+            if (newDisableConfigs.get(i).name().equals(currentDisableConfig.name())) {
+                newDisableConfigs.set(i, currentDisableConfig);
+            }
+        }
         TargetConfig targetConfig = new TargetConfig( forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber());
         BindConfig bindConfig = new BindConfig( bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);
         OffsetConfig offsets = new OffsetConfig()
@@ -663,7 +674,7 @@ public class ModelViewScreen extends Screen {
                 .setPitch(offsetPitchPair.getNumber())
                 .setYaw(offsetYawPair.getNumber())
                 .setRoll(offsetRollPair.getNumber());
-        return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, new ArrayList<>(disableConfigs));
+        return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, newDisableConfigs);
     }
 
     private void clearDisableDraft() {

@@ -122,13 +122,18 @@ public class ModConfig {
         return classic.disableWhenSwimming;
     }
 
+    public int getClassicExitTick() {
+        return classic.exitTick;
+    }
+
+    @Deprecated
     public int getClassicOutTick() {
-        return classic.outTick;
+        return getClassicExitTick();
     }
 
     @Deprecated
     public int getClassicSwimOutTick() {
-        return getClassicOutTick();
+        return getClassicExitTick();
     }
 
     public double getClassicX() {
@@ -184,8 +189,9 @@ public class ModConfig {
         return binding.hideFailureMessage;
     }
 
+    @Deprecated
     public boolean bindingDisableWhenCrawling() {
-        return binding.disableWhenCrawling;
+        return binding.disableWhenSwimming;
     }
 
     public boolean bindingDisableWhenSneaking() {
@@ -196,13 +202,22 @@ public class ModConfig {
         return binding.disableWhenSwimming;
     }
 
+    public boolean bindingDisableWhenFlying() {
+        return binding.disableWhenFlying;
+    }
+
+    public int getBindingExitTick() {
+        return binding.exitTick;
+    }
+
+    @Deprecated
     public int getBindingOutTick() {
-        return binding.outTick;
+        return getBindingExitTick();
     }
 
     @Deprecated
     public int getBindingSwimOutTick() {
-        return getBindingOutTick();
+        return getBindingExitTick();
     }
 
     public int getBindResultRetentionFrames() {
@@ -263,7 +278,9 @@ public class ModConfig {
         public AdjustMode adjustMode = AdjustMode.CAMERA;
         public boolean disableWhenSneaking = false;
         public boolean disableWhenSwimming = false;
-        public int outTick = 13;
+        public int exitTick = 13;
+        @Deprecated
+        public Integer outTick = null;
         @Deprecated
         public Integer swimOutTick = null;
         public double scale = 8.0;
@@ -279,11 +296,13 @@ public class ModConfig {
 
         private void clamp() {
             if (adjustMode == null) adjustMode = AdjustMode.CAMERA;
-            if (swimOutTick != null) {
-                if (outTick == 13) outTick = swimOutTick;
-                swimOutTick = null;
+            if (exitTick == 13) {
+                if (outTick != null) exitTick = outTick;
+                else if (swimOutTick != null) exitTick = swimOutTick;
             }
-            outTick = Mth.clamp(outTick, 0, 40);
+            outTick = null;
+            swimOutTick = null;
+            exitTick = Mth.clamp(exitTick, 0, 40);
             scale = Mth.clamp(scale, 0.0, 64.0);
             cameraX = Mth.clamp(cameraX, MIN_OFFSET_D, MAX_OFFSET_D);
             cameraY = Mth.clamp(cameraY, MIN_OFFSET_D, MAX_OFFSET_D);
@@ -316,10 +335,14 @@ public class ModConfig {
         public boolean adjustOffset = true;
         public boolean hideFailureMessage = false;
         public boolean renderStuckObjects = true;
-        public boolean disableWhenCrawling = false;
+        @Deprecated
+        public Boolean disableWhenCrawling = null;
         public boolean disableWhenSneaking = false;
         public boolean disableWhenSwimming = false;
-        public int outTick = 13;
+        public boolean disableWhenFlying = false;
+        public int exitTick = 13;
+        @Deprecated
+        public Integer outTick = null;
         @Deprecated
         public Integer swimOutTick = null;
         public int bindResultRetentionFrames = 2;
@@ -337,15 +360,21 @@ public class ModConfig {
             } catch (Exception e) {
                 screenModifierKey = InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_LALT).getName();
             }
-            if (swimOutTick != null) {
-                if (outTick == 13) outTick = swimOutTick;
-                swimOutTick = null;
+            if (exitTick == 13) {
+                if (outTick != null) exitTick = outTick;
+                else if (swimOutTick != null) exitTick = swimOutTick;
+            }
+            outTick = null;
+            swimOutTick = null;
+            if (disableWhenCrawling != null) {
+                disableWhenSwimming |= disableWhenCrawling;
+                disableWhenCrawling = null;
             }
             if (legacyBindingMode != null) {
                 legacyMode = legacyBindingMode;
                 legacyBindingMode = null;
             }
-            outTick = Mth.clamp(outTick, 0, 40);
+            exitTick = Mth.clamp(exitTick, 0, 40);
             bindResultRetentionFrames = Math.max(bindResultRetentionFrames, 0);
             activeConfigIndex = Math.max(activeConfigIndex, 0);
             displacementSmoothFactor = Mth.clamp(displacementSmoothFactor, 0.0, 1.0);

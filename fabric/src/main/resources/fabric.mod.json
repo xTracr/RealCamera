@@ -15,6 +15,7 @@
   "license": "MIT license",
   "icon": "assets/realcamera/icon.png",
   "environment": "client",
+  "accessWidener": "realcamera.accesswidener",
   "entrypoints": {
     "client": [
       "com.xtracr.realcamera.RealCameraFabric"

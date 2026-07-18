@@ -92,17 +92,20 @@ public class RealCameraCore {
         Entity entity = client.getCameraEntity();
         boolean invisible = entity.isInvisible();
         entity.setInvisible(false);
-        newResult = RealCameraAPI.computeBindResult(client, deltaTick);
-        if (!newResult.available()) {
-            EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
-            try {
-                dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, new PoseStack(), vertexCatcher, dispatcher.getPackedLightCoords(entity, deltaTick));
-                vertexCatcher.forEachBuffer(RealCameraCore::computeBindResult);
-            } finally {
-                vertexCatcher.clear();
+        try {
+            newResult = RealCameraAPI.computeBindResult(client, deltaTick);
+            if (!newResult.available()) {
+                EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
+                try {
+                    dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, new PoseStack(), vertexCatcher, dispatcher.getPackedLightCoords(entity, deltaTick));
+                    vertexCatcher.forEachBuffer(RealCameraCore::computeBindResult);
+                } finally {
+                    vertexCatcher.clear();
+                }
             }
+        } finally {
+            entity.setInvisible(invisible);
         }
-        entity.setInvisible(invisible);
         if (newResult.available()) {
             failureFrames = 0;
             lastResult = newResult.computeCamera(false);
