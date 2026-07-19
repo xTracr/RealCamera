@@ -7,23 +7,20 @@ import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
 import it.unimi.dsi.fastutil.shorts.Short2ReferenceMap;
-import it.unimi.dsi.fastutil.shorts.Short2ReferenceOpenHashMap;
+import it.unimi.dsi.fastutil.shorts.Short2ReferenceMaps;
 import net.minecraft.network.codec.StreamCodec;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Base64;
-import java.util.Map;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
 public final class ConfigCodec {
     static final short CURRENT_VERSION = 703;
-    static final StreamCodec<ByteBuf, BindTarget> CODEC_703 = ConfigCodec703.CODEC;
-    static final Short2ReferenceMap<StreamCodec<ByteBuf, BindTarget>> CODECS = new Short2ReferenceOpenHashMap<>(Map.of(
-            CURRENT_VERSION, CODEC_703
-    ));
+    static final Short2ReferenceMap<StreamCodec<ByteBuf, BindTarget>> CODECS =
+            Short2ReferenceMaps.singleton(CURRENT_VERSION, ConfigCodec703.CODEC);
 
     public static BindTarget readWithVersion(ByteBuf byteBuf) throws DecoderException, IllegalArgumentException {
         short version = byteBuf.readShort();
@@ -34,7 +31,7 @@ public final class ConfigCodec {
 
     public static void writeWithVersion(ByteBuf byteBuf, BindTarget bindTarget) throws EncoderException {
         byteBuf.writeShort(CURRENT_VERSION);
-        CODEC_703.encode(byteBuf, bindTarget);
+        CODECS.get(CURRENT_VERSION).encode(byteBuf, bindTarget);
     }
 
     public static DataResult<BindTarget> fromCompressedBase64(String base64) {

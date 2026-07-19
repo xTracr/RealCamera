@@ -268,6 +268,7 @@ public final class ModelViewScreen extends Screen {
             BindTarget bindTarget = genBindTarget();
             ConfigFile.config().putBindTarget(bindTarget);
             ConfigFile.save();
+            if (toggleCategoryButton.getValue() != Category.DISABLE) loadBindTarget(bindTarget);
             initWidgets(page);
         }));
         rows.addChild(priorityField, smallSettings).setTooltip(createTooltip("priority"));
@@ -404,6 +405,7 @@ public final class ModelViewScreen extends Screen {
     }
 
     private List<BuiltModelRecord> captureRotatedEntity(ModelAnalyser analyser, BindTarget target, LivingEntity entity) {
+        CompatibilityHelper.isRenderInScreen = true;
         float entityBodyYaw = entity.yBodyRot;
         float entityYaw = entity.getYRot();
         float entityPitch = entity.getXRot();
@@ -425,6 +427,7 @@ public final class ModelViewScreen extends Screen {
             modelPose.translate(0, -entity.getBbHeight() / 2.0f, 0);
             return analyser.captureModel(minecraft, entity, 1.0f, modelPose, target);
         } finally {
+            CompatibilityHelper.isRenderInScreen = false;
             entity.yBodyRot = entityBodyYaw;
             entity.setYRot(entityYaw);
             entity.setXRot(entityPitch);
@@ -665,10 +668,16 @@ public final class ModelViewScreen extends Screen {
     }
 
     private BindTarget genBindTarget() {
+        DisableConfig currentDisableConfig = new DisableConfig(disabledNameField.getValue(), disabledIdField.getValue(), disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toList());
+        List<DisableConfig> newDisableConfigs = new ArrayList<>(disableConfigs);
+        for (int i = 0; i < newDisableConfigs.size(); i++) {
+            if (newDisableConfigs.get(i).name().equals(currentDisableConfig.name()))
+                newDisableConfigs.set(i, currentDisableConfig);
+        }
         TargetConfig targetConfig = new TargetConfig(forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber());
         BindConfig bindConfig = new BindConfig(bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);
         OffsetConfig offsets = new OffsetConfig(scaleField.getNumber(), offsetXPair.getNumber(), offsetYPair.getNumber(), offsetZPair.getNumber(), offsetPitchPair.getNumber(), offsetYawPair.getNumber(), offsetRollPair.getNumber());
-        return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, new ArrayList<>(disableConfigs));
+        return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, newDisableConfigs);
     }
 
     private UVRectangleWidget addRectWidget(UVRectangleWidget rectWidget) {
