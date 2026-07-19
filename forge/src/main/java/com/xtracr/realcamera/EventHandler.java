@@ -20,8 +20,8 @@ public class EventHandler {
 
     public static void onRenderLevelStage(RenderLevelStageEvent event) {
         if (RenderLevelStageEvent.Stage.AFTER_SKY.equals(event.getStage())) {
-            if (ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
-                CrosshairUtil.update(Minecraft.getInstance(), event.getCamera(), event.getPoseStack().last().pose(), event.getProjectionMatrix());
+            if (ConfigFile.config().dynamicCrosshair && RealCameraCore.isActive()) {
+                CrosshairUtil.update(Minecraft.getInstance(), event.getCamera().getPosition(), event.getPoseStack().last().pose(), event.getProjectionMatrix());
             }
         }
     }

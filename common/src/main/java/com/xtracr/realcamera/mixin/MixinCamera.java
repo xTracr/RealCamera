@@ -33,12 +33,12 @@ public abstract class MixinCamera {
     private float yRot;
 
     @Inject(method = "setup", at = @At("RETURN"))
-    private void realcamera$setupCamera(BlockGetter area, Entity entity, boolean thirdPerson, boolean inverseView, float deltaTick, CallbackInfo ci) {
+    private void realcamera$setupCamera(BlockGetter blockGetter, Entity entity, boolean bl, boolean bl2, @SuppressWarnings("NameDoesntMatchTargetClass") float deltaTick, CallbackInfo ci) {
         if (!RealCameraCore.isActive()) return;
         ModConfig config = ConfigFile.config();
         Vec3 startVec = position;
         AABB box = entity.getBoundingBox();
-        if (config.isClassic()) {
+        if (config.isClassic) {
             double scale = entity instanceof LivingEntity livingEntity ? livingEntity.getScale() : 1;
             Vec3 offset = new Vec3(config.getClassicX(), config.getClassicY(), config.getClassicZ()).scale(scale);
             Vec3 center = new Vec3(config.getCenterX(), config.getCenterY(), config.getCenterZ()).scale(scale);
@@ -92,5 +92,5 @@ public abstract class MixinCamera {
     protected abstract void setRotation(float yaw, float pitch);
 
     @Shadow
-    protected abstract void setPosition(Vec3 position);
+    protected abstract void setPosition(Vec3 vec3);
 }

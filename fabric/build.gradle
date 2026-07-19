@@ -2,8 +2,6 @@ plugins {
     id "com.github.johnrengelman.shadow" version "8.1.1"
 }
 
-archivesBaseName = rootProject.archives_base_name + "-" + rootProject.minecraft_version + "-fabric"
-
 architectury {
     platformSetupLoomIde()
     fabric()

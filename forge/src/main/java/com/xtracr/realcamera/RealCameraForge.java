@@ -14,7 +14,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 import java.util.Map;
 
-@Mod(RealCamera.MODID)
+@Mod(RealCamera.MOD_ID)
 public class RealCameraForge implements RealCamera {
     private final Map<String, String> modIdMap = Map.of("cloth-config", "cloth_config");
 

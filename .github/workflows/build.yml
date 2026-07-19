@@ -3,6 +3,7 @@ name: Build
 on:
   pull_request:
     paths-ignore:
+      - '**/ISSUE_TEMPLATE/**'
       - '**/lang/**'
       - '**.md'
       - 'LICENSE'

@@ -17,6 +17,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -43,8 +44,8 @@ public class RealCameraCore {
 
     public static void initialize(Minecraft client) {
         Entity entity = client.getCameraEntity();
-        active = ConfigFile.config().enabled() && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.MAIN_FEATURE.disabled(entity);
-        rendering = ConfigFile.config().renderModel() && !DisableHelper.RENDER_MODEL.disabled(entity);
+        active = ConfigFile.config().enabled && client.options.getCameraType().isFirstPerson() && entity != null && !DisableHelper.MAIN_FEATURE.disabled(entity);
+        rendering = ConfigFile.config().renderModel && !DisableHelper.RENDER_MODEL.disabled(entity);
     }
 
     public static void reset() {
@@ -63,7 +64,7 @@ public class RealCameraCore {
     }
 
     public static float getRoll(float f) {
-        if (ConfigFile.config().isClassic()) return f + ConfigFile.config().getClassicRoll();
+        if (ConfigFile.config().isClassic) return f + ConfigFile.config().getClassicRoll();
         return (float) getEulerAngle(0, 0, f).z();
     }
 
@@ -92,25 +93,25 @@ public class RealCameraCore {
         Entity entity = client.getCameraEntity();
         boolean invisible = entity.isInvisible();
         entity.setInvisible(false);
-        newResult = RealCameraAPI.computeBindResult(client, deltaTick);
-        if (!newResult.available()) {
-            EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
-            try {
+        try {
+            newResult = RealCameraAPI.computeBindResult(client, deltaTick);
+            if (!newResult.available()) {
+                EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
                 dispatcher.render(entity, 0, 0, 0, Mth.lerp(deltaTick, entity.yRotO, entity.getYRot()), deltaTick, new PoseStack(), vertexCatcher, dispatcher.getPackedLightCoords(entity, deltaTick));
                 vertexCatcher.forEachBuffer(RealCameraCore::computeBindResult);
-            } finally {
-                vertexCatcher.clear();
             }
+        } finally {
+            vertexCatcher.clear();
+            entity.setInvisible(invisible);
         }
-        entity.setInvisible(invisible);
         if (newResult.available()) {
             failureFrames = 0;
             lastResult = newResult.computeCamera(false);
         } else {
             failureFrames++;
-            Entity player = client.player;
-            int retentionFrames = ConfigFile.config().getBindResultRetentionFrames();
-            if (!ConfigFile.config().hideBindingFailureMessage() && failureFrames == retentionFrames + 1 && player != null) {
+            Player player = client.player;
+            int retentionFrames = ConfigFile.config().binding.bindResultRetentionFrames;
+            if (!ConfigFile.config().binding.hideFailureMessage && failureFrames == retentionFrames + 1 && player != null) {
                 player.sendSystemMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE(), KeyMappings.MODEL_VIEW_SCREEN.getTranslatedKeyMessage()));
             }
             if (!lastResult.available() || failureFrames > retentionFrames) {
@@ -119,8 +120,8 @@ public class RealCameraCore {
                 return;
             }
         }
-        smoothedCamera.lerpPosition(lastResult.getPosition(), 1 - ConfigFile.config().getDisplacementSmoothFactor());
-        smoothedCamera.slerpRotation(lastResult.getRotation(), 1 - ConfigFile.config().getRotationSmoothFactor());
+        smoothedCamera.lerpPosition(lastResult.getPosition(), 1 - ConfigFile.config().binding.displacementSmoothFactor);
+        smoothedCamera.slerpRotation(lastResult.getRotation(), 1 - ConfigFile.config().binding.rotationSmoothFactor);
     }
 
     public static void renderCameraEntity(Minecraft client, float deltaTick, MultiBufferSource bufferSource) {
@@ -175,8 +176,19 @@ public class RealCameraCore {
             BindResult result = new BindResult(target);
             BindTarget.TargetConfig config = target.targetConfig();
             VertexData.UV[] uvs = {new VertexData.UV(config.posU(), config.posV()), new VertexData.UV(config.forwardU(), config.forwardV()), new VertexData.UV(config.upwardU(), config.upwardV())};
-            VertexData[][] primitives = builtBuffer.resolvePrimitives(uvs);
-            for (VertexData[] primitive : primitives) if (primitive == null) continue targetFor;
+            VertexData[][] primitives = builtBuffer.findPrimitivesInCache(uvs);
+            boolean allFound = true;
+            for (int i = 0; i < primitives.length; i++) {
+                if (primitives[i] != null) uvs[i] = null;
+                else allFound = false;
+            }
+            if (!allFound) {
+                VertexData[][] newPrimitives = builtBuffer.findPrimitives(uvs);
+                for (int i = 0; i < primitives.length; i++) {
+                    if (newPrimitives[i] == null && primitives[i] == null) continue targetFor;
+                    else if (newPrimitives[i] != null) primitives[i] = newPrimitives[i];
+                }
+            }
             if (primitives[0] != null) result.setPosition(VertexData.position(primitives[0], config.posU(), config.posV()));
             if (primitives[1] != null) result.setForward(VertexData.normal(primitives[1]));
             if (primitives[2] != null) result.setUpward(VertexData.normal(primitives[2]));

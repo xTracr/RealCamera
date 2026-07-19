@@ -24,10 +24,10 @@ public abstract class MixinLevelRenderer {
     @Final private RenderBuffers renderBuffers;
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;endLastBatch()V", ordinal = 0))
-    private void realcamera$renderCameraEntity(PoseStack poseStack, float deltaTick, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f matrix4f, CallbackInfo ci) {
+    private void realcamera$renderCameraEntity(PoseStack poseStack, @SuppressWarnings("NameDoesntMatchTargetClass") float deltaTick, long l, boolean bl, Camera camera, GameRenderer gameRenderer, LightTexture lightTexture, Matrix4f matrix4f, CallbackInfo ci) {
         if (!RealCameraCore.isRendering()) return;
         MultiBufferSource.BufferSource bufferSource = renderBuffers.bufferSource();
-        if (!ConfigFile.config().isClassic()) {
+        if (!ConfigFile.config().isClassic) {
             RealCameraCore.renderCameraEntity(minecraft, deltaTick, bufferSource);
         } else {
             Vec3 cameraPos = camera.getPosition();
@@ -36,5 +36,5 @@ public abstract class MixinLevelRenderer {
     }
 
     @Shadow
-    protected abstract void renderEntity(Entity entity, double cameraX, double cameraY, double cameraZ, float deltaTick, PoseStack poseStack, MultiBufferSource bufferSource);
+    protected abstract void renderEntity(Entity entity, double d, double e, double f, float g, PoseStack poseStack, MultiBufferSource multiBufferSource);
 }

@@ -23,7 +23,7 @@ public class DoubleSlider extends AbstractSliderButton {
 
     public void setNumber(double value) {
         this.value = Mth.clamp((value - min) / (max - min), 0, 1);
-        updateMessage();
+        applyValue();
     }
 
     @Override

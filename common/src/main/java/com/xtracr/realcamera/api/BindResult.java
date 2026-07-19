@@ -19,7 +19,7 @@ public class BindResult extends CameraTransform {
     }
 
     public static BindResult getOrCreate(String name) {
-        List<BindTarget> fixedTargets = ConfigFile.config().getFixedTargetList();
+        List<BindTarget> fixedTargets = ConfigFile.config().binding.fixedTargetList;
         BindTarget target = fixedTargets.stream()
                 .filter(t -> t.name().equals(name))
                 .findFirst()

@@ -20,23 +20,23 @@ public final class NumberWidgetPair extends AbstractWidget {
         setUseSlider(true);
     }
 
+    public float getNumber() {
+        return isUseSlider() ? (float) slider.getNumber() : field.getNumber();
+    }
+
     public void setNumber(float value) {
         slider.setNumber(value);
         field.setNumber(value);
     }
 
-    public float getNumber() {
-        return isUseSlider() ? (float) slider.getNumber() : field.getNumber();
+    public boolean isUseSlider() {
+        return useSlider;
     }
 
     public void setUseSlider(boolean useSlider) {
         this.useSlider = useSlider;
         slider.active = useSlider;
         field.active = !useSlider;
-    }
-
-    public boolean isUseSlider() {
-        return useSlider;
     }
 
     public void syncAndSwitch(boolean useSlider) {
@@ -101,8 +101,8 @@ public final class NumberWidgetPair extends AbstractWidget {
     }
 
     @Override
-    public boolean charTyped(char chr, int modifiers) {
-        return getActiveWidget().charTyped(chr, modifiers);
+    public boolean charTyped(char codePoint, int modifiers) {
+        return getActiveWidget().charTyped(codePoint, modifiers);
     }
 
     @Override

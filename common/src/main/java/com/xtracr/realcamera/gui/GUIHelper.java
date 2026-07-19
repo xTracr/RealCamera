@@ -1,14 +1,21 @@
 package com.xtracr.realcamera.gui;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.xtracr.realcamera.renderer.state.BuiltModelRecord;
 import com.xtracr.realcamera.renderer.state.VertexData;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix3f;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
-public final class GUIHelper {
+import java.util.List;
+
+public class GUIHelper {
+    public static final int MODEL_MIN_Z = 0, MODEL_MAX_Z = 200;
+
     public static void enableScissor(GuiGraphics graphics, ScreenRectangle rectangle) {
         graphics.enableScissor(rectangle.left(), rectangle.top(), rectangle.right(), rectangle.bottom());
     }
@@ -56,5 +63,43 @@ public final class GUIHelper {
         buffer.vertex((float) start.x, (float) start.y, z).color(argb).normal((float) vector.x, (float) vector.y, 0).endVertex();
         buffer.vertex((float) (start.x + vector.x), (float) (start.y + vector.y), z).color(argb).normal((float) vector.x, (float) vector.y, 0).endVertex();
         graphics.flush();
+    }
+
+    public static void culledModels(GuiGraphics graphics, List<BuiltModelRecord> modelRecords, Matrix4f transform) {
+        float minEntityZ = MODEL_MIN_Z, maxEntityZ = MODEL_MAX_Z;
+        for (BuiltModelRecord record : modelRecords) {
+            for (VertexData vertex : record.vertices()) {
+                if (vertex.z() < minEntityZ) minEntityZ = vertex.z();
+                if (vertex.z() > maxEntityZ) maxEntityZ = vertex.z();
+            }
+        }
+        Matrix4f positionMatrix = new Matrix4f(transform).scale(1, 1, MODEL_MAX_Z / (maxEntityZ - minEntityZ)).translate(0, 0, -minEntityZ);
+        Matrix3f normalMatrix = new Matrix3f(positionMatrix);
+        modelRecords.forEach(record -> {
+            VertexConsumer buffer = graphics.bufferSource().getBuffer(record.renderType());
+            if (!record.renderType().canConsolidateConsecutiveGeometry()) {
+                for (VertexData vertex : record.vertices()) vertex.render(buffer, positionMatrix, normalMatrix);
+                return;
+            }
+            for (VertexData[] primitive : record.primitives()) {
+                for (VertexData vertex : primitive) vertex.render(buffer, positionMatrix, normalMatrix);
+            }
+        });
+        graphics.flush();
+    }
+
+    public static void flattenedModels(GuiGraphics graphics, List<BuiltModelRecord> textureRecords, Matrix4f positionMatrix) {
+        textureRecords.forEach(record -> {
+            VertexConsumer buffer = graphics.bufferSource().getBuffer(record.renderType());
+            Vector3f position = new Vector3f();
+            for (VertexData vertex : record.vertices()) {
+                position.set(vertex.u(), vertex.v(), 0).mulPosition(positionMatrix);
+                int argb = vertex.argb();
+                buffer.vertex(position.x(), position.y(), 0 ,
+                        (float) (argb >> 16 & 0xFF) / 255, (float) (argb >> 8 & 0xFF) / 255, (float) (argb & 0xFF) / 255, (float) (argb >> 24) / 255,
+                        vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
+
+            }
+        });
     }
 }

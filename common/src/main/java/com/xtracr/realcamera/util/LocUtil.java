@@ -6,7 +6,6 @@ import net.minecraft.network.chat.MutableComponent;
 
 public final class LocUtil {
     public static final String KEY_MOD_NAME = "general." + RealCamera.FULL_ID + ".modName";
-    public static final String KEY_CATEGORY_GENERAL = "key.category." + RealCamera.FULL_ID + ".general";
 
     public static MutableComponent MOD_NAME() {
         return Component.translatable(KEY_MOD_NAME);
