@@ -2,6 +2,7 @@ package com.xtracr.realcamera;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.xtracr.realcamera.config.ConfigFile;
+import com.xtracr.realcamera.config.ModConfig.SelectorAction;
 import com.xtracr.realcamera.gui.ModelViewScreen;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -32,9 +33,9 @@ public final class KeyMappings {
         createKeyMapping("adjustRIGHT", _ -> ConfigFile.config().adjustOffsetZ(-1));
         createKeyMapping("adjustFRONT", _ -> ConfigFile.config().adjustOffsetX(1));
         createKeyMapping("adjustBACK", _ -> ConfigFile.config().adjustOffsetX(-1));
-        createKeyMapping("adjustActiveConfigNEXT", _ -> ConfigFile.config().adjustActiveConfig("NEXT"));
-        createKeyMapping("adjustActiveConfigPREV", _ -> ConfigFile.config().adjustActiveConfig("PREV"));
-        createKeyMapping("adjustActiveConfigRESET", _ -> ConfigFile.config().adjustActiveConfig("RESET"));
+        createKeyMapping("adjustActiveConfigNEXT", _ -> ConfigFile.config().adjustActiveConfig(SelectorAction.NEXT));
+        createKeyMapping("adjustActiveConfigPREV", _ -> ConfigFile.config().adjustActiveConfig(SelectorAction.PREV));
+        createKeyMapping("adjustActiveConfigRESET", _ -> ConfigFile.config().adjustActiveConfig(SelectorAction.RESET));
     }
 
     private static KeyMapping createKeyMapping(String id, Consumer<Minecraft> whenPressed) {
