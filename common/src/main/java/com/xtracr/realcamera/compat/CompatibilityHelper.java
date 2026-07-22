@@ -1,6 +1,8 @@
 package com.xtracr.realcamera.compat;
 
 import com.xtracr.realcamera.RealCamera;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 
@@ -14,6 +16,8 @@ public final class CompatibilityHelper {
     private static Method NEA_playerTransformer_setDeltaTick;
     private static Field NEA_NEAnimationsLoader_INSTANCE;
     private static Field NEA_NEAnimationsLoader_playerTransformer;
+    private static Class<?> TACZ_IClientPlayerGunOperator;
+    private static Method TACZ_IClientPlayerGunOperator_fromLocalPlayer;
     private static Field SBW_ClientEventHandler_zoomTime;
     private static Class<?> SBW_VehicleEntity;
 
@@ -52,6 +56,13 @@ public final class CompatibilityHelper {
         } catch (Exception e) {
             RealCamera.LOGGER.warn("Compatibility with SuperbWarfare is outdated: [{}] {}", e.getClass().getName(), e.getMessage());
         }
+        if (isModLoaded("tacz")) try {
+            TACZ_IClientPlayerGunOperator = Class.forName("com.tacz.guns.api.client.gameplay.IClientPlayerGunOperator");
+            TACZ_IClientPlayerGunOperator_fromLocalPlayer = TACZ_IClientPlayerGunOperator.getMethod("fromLocalPlayer", LocalPlayer.class);
+            DisableHelper.MAIN_FEATURE.registerOrInBinding(CompatibilityHelper::TACZ_gunsIsAiming);
+        } catch (Exception e) {
+            RealCamera.LOGGER.warn("Compatibility with TACZ is outdated: [{}] {}", e.getClass().getName(), e.getMessage());
+        }
         if (isModLoaded("entity_model_features")) try {
             Class<?> EMF_EMFAnimationApi = Class.forName("traben.entity_model_features.EMFAnimationApi");
             if ((int) EMF_EMFAnimationApi.getMethod("getApiVersion").invoke(null) >= 9) {
@@ -79,6 +90,19 @@ public final class CompatibilityHelper {
             Entity vehicle = player.getVehicle();
             return vehicle != null && SBW_VehicleEntity.isAssignableFrom(vehicle.getClass());
         } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    private static boolean TACZ_gunsIsAiming(Player player) {
+        if (!(player instanceof LocalPlayer localPlayer)) return false;
+        try {
+            Object operator = TACZ_IClientPlayerGunOperator_fromLocalPlayer.invoke(null, localPlayer);
+            Method getProgressMethod = TACZ_IClientPlayerGunOperator.getMethod("getClientAimingProgress", float.class);
+            float aimingProgress = (float) getProgressMethod.invoke(operator, Minecraft.getInstance().getFrameTimeNs());
+            return aimingProgress > 0;
+        } catch (Exception e) {
+            RealCamera.LOGGER.error("Failed to access TaCZ's getClientAimingProgress method", e);
             return false;
         }
     }
