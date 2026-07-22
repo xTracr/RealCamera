@@ -41,7 +41,7 @@ dependencies {
     // Cloth Config
     runtimeOnly("me.shedaniel.cloth:cloth-config-fabric:$clothConfigVersion")
     // Modmenu
-    implementation("com.terraformersmc:modmenu:$modMenuVersion") {
+    implementation("maven.modrinth:mOgUt4GM:$modMenuVersion") {
         exclude(group = "net.fabricmc.fabric-api")
     }
 
