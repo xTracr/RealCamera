@@ -115,16 +115,16 @@ public final class ModConfig {
         return classic.roll;
     }
     
-    public void adjustActiveConfig(String selector) {
-        if ("RESET".equals(selector)) {
+    public void adjustActiveConfig(SelectorAction selector) {
+        if (selector == SelectorAction.RESET){
             binding.activeConfigSelector = "0";
             return;
         }
         if (isParsableInt(binding.activeConfigSelector)) {
             int activeConfigIndex = Integer.parseInt(binding.activeConfigSelector);
             switch (selector) {
-                case "NEXT" -> binding.activeConfigSelector = String.valueOf(activeConfigIndex + 1);
-                case "PREV" -> binding.activeConfigSelector = String.valueOf(activeConfigIndex - 1);
+                case NEXT -> binding.activeConfigSelector = String.valueOf(activeConfigIndex + 1);
+                case PREV -> binding.activeConfigSelector = String.valueOf(activeConfigIndex - 1);
             }
         } else {
             List<BindTarget> matchedTargets = binding.targetList;
@@ -133,24 +133,26 @@ public final class ModConfig {
                     .filter(i -> matchedTargets.get(i).name().equalsIgnoreCase(activeConfigName)).findFirst()
                     .orElse(-1);
             switch (selector){
-                case "NEXT" -> binding.activeConfigSelector = matchedTargets.get(Math.clamp(foundIndex + 1, 0, matchedTargets.size() - 1)).name();
-                case "PREV" -> binding.activeConfigSelector = matchedTargets.get(Math.clamp(foundIndex - 1, 0, matchedTargets.size() - 1)).name();
+                case NEXT -> binding.activeConfigSelector = matchedTargets.get(Math.clamp(foundIndex + 1, 0, matchedTargets.size() - 1)).name();
+                case PREV -> binding.activeConfigSelector = matchedTargets.get(Math.clamp(foundIndex - 1, 0, matchedTargets.size() - 1)).name();
             }
         }
     }
 
     public List<BindTarget> getBindTargetList(String textureId) {
         List<BindTarget> matchedTargets = binding.targetList.stream().filter(target -> textureId.contains(target.textureId())).toList();
+        if ("0".equals(binding.activeConfigSelector)) return matchedTargets;
+        List<BindTarget> filteredTargets = matchedTargets.stream()
+                .filter(target -> target.name().equalsIgnoreCase(binding.activeConfigSelector))
+                .toList();
+        if (!filteredTargets.isEmpty())
+            return filteredTargets;
         if (isParsableInt(binding.activeConfigSelector)) {
             int activeConfigIndex = Integer.parseInt(binding.activeConfigSelector);
-            if (activeConfigIndex <= 0 || matchedTargets.isEmpty()) return matchedTargets;
             return List.of(matchedTargets.get(Math.clamp(activeConfigIndex - 1, 0, matchedTargets.size() - 1)));
-        } else {
-            String activeConfigName = binding.activeConfigSelector;
-            return matchedTargets.stream().filter(target -> target.name().equalsIgnoreCase(activeConfigName)).toList();
-        }
-    }                                                                                            
-    
+        } else return matchedTargets;
+    }                                                                          
+
     private boolean isParsableInt(String s){
         try {
             Integer.parseInt(s);
@@ -260,5 +262,9 @@ public final class ModConfig {
                 if (targetList.isEmpty()) targetList = new ArrayList<>(BindTarget.DEFAULT_TARGETS);
             }
         }
+    }
+
+    public enum SelectorAction {
+        NEXT, PREV, RESET
     }
 }
