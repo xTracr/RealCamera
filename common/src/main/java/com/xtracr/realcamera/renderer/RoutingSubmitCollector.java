@@ -7,18 +7,18 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.OrderedSubmitNodeCollector;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.block.MovingBlockRenderState;
-import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
-import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 import org.jspecify.annotations.NonNull;
@@ -81,18 +81,18 @@ public final class RoutingSubmitCollector implements SubmitNodeCollector {
     }
 
     @Override
-    public void submitBlockModel(@NonNull PoseStack poseStack, @NonNull RenderType renderType, @NonNull List<BlockStateModelPart> parts, int @NonNull [] tintLayers, int lightCoords, int overlayCoords, int outlineColor) {
-        defaultCollector.submitBlockModel(poseStack, renderType, parts, tintLayers, lightCoords, overlayCoords, outlineColor);
+    public void submitBlock(@NonNull PoseStack poseStack, @NonNull BlockState blockState, int lightCoords, int overlayCoords, int outlineColor) {
+        defaultCollector.submitBlock(poseStack, blockState, lightCoords, overlayCoords, outlineColor);
     }
 
     @Override
-    public void submitBreakingBlockModel(@NonNull PoseStack poseStack, @NonNull BlockStateModel model, long seed, int progress) {
-        defaultCollector.submitBreakingBlockModel(poseStack, model, seed, progress);
+    public void submitBlockModel(@NonNull PoseStack poseStack, @NonNull RenderType renderType, @NonNull BlockStateModel model, float red, float green, float blue, int lightCoords, int overlayCoords, int outlineColor) {
+        defaultCollector.submitBlockModel(poseStack, renderType, model, red, green, blue, lightCoords, overlayCoords, outlineColor);
     }
 
     @Override
-    public void submitItem(@NonNull PoseStack poseStack, @NonNull ItemDisplayContext displayContext, int lightCoords, int overlayCoords, int outlineColor, int @NonNull [] tintLayers, @NonNull List<BakedQuad> quads, ItemStackRenderState.@NonNull FoilType foilType) {
-        defaultCollector.submitItem(poseStack, displayContext, lightCoords, overlayCoords, outlineColor, tintLayers, quads, foilType);
+    public void submitItem(@NonNull PoseStack poseStack, @NonNull ItemDisplayContext displayContext, int lightCoords, int overlayCoords, int outlineColor, int @NonNull [] tintLayers, @NonNull List<BakedQuad> quads, @NonNull RenderType renderType, ItemStackRenderState.@NonNull FoilType foilType) {
+        defaultCollector.submitItem(poseStack, displayContext, lightCoords, overlayCoords, outlineColor, tintLayers, quads, renderType, foilType);
     }
 
     @Override
@@ -155,18 +155,18 @@ public final class RoutingSubmitCollector implements SubmitNodeCollector {
         }
 
         @Override
-        public void submitBlockModel(@NonNull PoseStack poseStack, @NonNull RenderType renderType, @NonNull List<BlockStateModelPart> parts, int @NonNull [] tintLayers, int lightCoords, int overlayCoords, int outlineColor) {
-            defaultDelegate.submitBlockModel(poseStack, renderType, parts, tintLayers, lightCoords, overlayCoords, outlineColor);
+        public void submitBlock(@NonNull PoseStack poseStack, @NonNull BlockState blockState, int lightCoords, int overlayCoords, int outlineColor) {
+            defaultDelegate.submitBlock(poseStack, blockState, lightCoords, overlayCoords, outlineColor);
         }
 
         @Override
-        public void submitBreakingBlockModel(@NonNull PoseStack poseStack, @NonNull BlockStateModel model, long seed, int progress) {
-            defaultDelegate.submitBreakingBlockModel(poseStack, model, seed, progress);
+        public void submitBlockModel(@NonNull PoseStack poseStack, @NonNull RenderType renderType, @NonNull BlockStateModel model, float red, float green, float blue, int lightCoords, int overlayCoords, int outlineColor) {
+            defaultDelegate.submitBlockModel(poseStack, renderType, model, red, green, blue, lightCoords, overlayCoords, outlineColor);
         }
 
         @Override
-        public void submitItem(@NonNull PoseStack poseStack, @NonNull ItemDisplayContext displayContext, int lightCoords, int overlayCoords, int outlineColor, int @NonNull [] tintLayers, @NonNull List<BakedQuad> quads, ItemStackRenderState.@NonNull FoilType foilType) {
-            defaultDelegate.submitItem(poseStack, displayContext, lightCoords, overlayCoords, outlineColor, tintLayers, quads, foilType);
+        public void submitItem(@NonNull PoseStack poseStack, @NonNull ItemDisplayContext displayContext, int lightCoords, int overlayCoords, int outlineColor, int @NonNull [] tintLayers, @NonNull List<BakedQuad> quads, @NonNull RenderType renderType, ItemStackRenderState.@NonNull FoilType foilType) {
+            defaultDelegate.submitItem(poseStack, displayContext, lightCoords, overlayCoords, outlineColor, tintLayers, quads, renderType, foilType);
         }
 
         @Override

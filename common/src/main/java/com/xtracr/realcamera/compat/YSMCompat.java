@@ -11,7 +11,7 @@ import com.xtracr.realcamera.renderer.state.VertexData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
-import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;

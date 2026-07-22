@@ -18,14 +18,14 @@ import java.util.regex.Pattern;
 public final class DisableHelper {
     public static final Entry MAIN_FEATURE, RENDER_MODEL, RENDER_HANDS;
     private static final Pattern MULTI_STAR = Pattern.compile("\\*+");
-    private static final Predicate<Player> FALSE = _ -> false;
+    private static final Predicate<Player> FALSE = ignoredPlayer -> false;
     private static final Map<String, Entry> ENTRIES = new HashMap<>();
     private static int exitTick = 0;
 
     static {
         MAIN_FEATURE = new Entry("mainFeature", player -> player.isSleeping() || player.isSpectator());
         RENDER_MODEL = new Entry("renderModel", FALSE, Player::isScoping);
-        RENDER_HANDS = new Entry("renderHands", _ -> RealCameraCore.isRendering());
+        RENDER_HANDS = new Entry("renderHands", ignoredPlayer -> RealCameraCore.isRendering());
         MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().binding.disableWhenSneaking && player.isCrouching());
         MAIN_FEATURE.registerOrInClassic(player -> ConfigFile.config().classic.disableWhenSneaking && player.isCrouching());
         MAIN_FEATURE.registerOrInBinding(player -> ConfigFile.config().binding.disableWhenSwimming && checkCondition(player, player.isVisuallySwimming(), ConfigFile.config().binding.exitTick));

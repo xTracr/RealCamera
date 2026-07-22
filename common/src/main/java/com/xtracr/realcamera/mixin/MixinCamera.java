@@ -3,7 +3,9 @@ package com.xtracr.realcamera.mixin;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.ModConfig;
+import com.xtracr.realcamera.mixin.accessor.GameRendererAccessor;
 import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -56,8 +58,8 @@ public abstract class MixinCamera {
     @Final
     private Quaternionf rotation;
 
-    @Inject(method = "alignWithEntity", at = @At("RETURN"))
-    private void realcamera$setupCamera(float partialTicks, CallbackInfo ci) {
+    @Inject(method = "setup", at = @At("RETURN"))
+    private void realcamera$setupCamera(Level setupLevel, Entity setupEntity, boolean detached, boolean mirrored, float partialTicks, CallbackInfo ci) {
         if (!RealCameraCore.isActive()) return;
         ModConfig config = ConfigFile.config();
         Vec3 startVec = position;
@@ -82,7 +84,9 @@ public abstract class MixinCamera {
             Vec3 eulerAngle = RealCameraCore.getEulerAngle(xRot, yRot, 0);
             realcamera$setRotation((float) eulerAngle.y(), (float) eulerAngle.x(), (float) eulerAngle.z());
         }
-        realcamera$clipToSpace(startVec, entity, calculateFov(partialTicks));
+        float fov = ((GameRendererAccessor) Minecraft.getInstance().gameRenderer)
+                .invokeGetFov((Camera) (Object) this, partialTicks, true);
+        realcamera$clipToSpace(startVec, entity, fov);
     }
 
     @Unique
@@ -114,9 +118,6 @@ public abstract class MixinCamera {
         }
         setPosition(startVec.add(offset));
     }
-
-    @Shadow
-    protected abstract float calculateFov(float partialTicks);
 
     @Shadow
     protected abstract void move(float forwards, float up, float right);

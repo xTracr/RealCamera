@@ -75,14 +75,12 @@ public final class MultiVertexCatcher {
     private void renderSolidFeatures() {
         for (SubmitNodeCollection collection : storage.getSubmitsPerOrder().values()) {
             PoseStack poseStack = new PoseStack();
-            for (var entry : ((ModelFeatureRenderer$StorageAccessor) collection.getModelSubmits()).getSolidModelSubmits().entrySet()) {
+            for (var entry : ((ModelFeatureRenderer$StorageAccessor) collection.getModelSubmits()).getOpaqueModelSubmits().entrySet()) {
                 VertexConsumer buffer = meshCatcher.getBuffer(entry.getKey());
                 for (SubmitNodeStorage.ModelSubmit<?> submit : entry.getValue()) {
                     renderModel(poseStack, submit, buffer);
                 }
             }
-            renderModelParts(poseStack, ((ModelPartFeatureRenderer$StorageAccessor) collection.getModelPartSubmits()).getSolidModelPartSubmits(), meshCatcher);
-            renderCustomGeometry(((CustomFeatureRenderer$StorageAccessor) collection.getCustomGeometrySubmits()).getSolidCustomGeometrySubmits(), meshCatcher);
         }
     }
 
@@ -95,8 +93,8 @@ public final class MultiVertexCatcher {
             for (var submit : ((ModelFeatureRenderer$StorageAccessor) collection.getModelSubmits()).getTranslucentModelSubmits()) {
                 renderModel(poseStack, submit.modelSubmit(), meshCatcher.getBuffer(submit.renderType()));
             }
-            renderModelParts(poseStack, ((ModelPartFeatureRenderer$StorageAccessor) collection.getModelPartSubmits()).getTranslucentModelPartSubmits(), meshCatcher);
-            renderCustomGeometry(((CustomFeatureRenderer$StorageAccessor) collection.getCustomGeometrySubmits()).getTranslucentCustomGeometrySubmits(), meshCatcher);
+            renderModelParts(poseStack, ((ModelPartFeatureRenderer$StorageAccessor) collection.getModelPartSubmits()).getModelPartSubmits(), meshCatcher);
+            renderCustomGeometry(((CustomFeatureRenderer$StorageAccessor) collection.getCustomGeometrySubmits()).getCustomGeometrySubmits(), meshCatcher);
         }
     }
 

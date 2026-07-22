@@ -35,7 +35,7 @@ public final class RealCameraNeoForge implements RealCamera {
         EventHandler.addListeners();
 
         if (isModLoaded("cloth-config")) {
-            modContainer.registerExtensionPoint(IConfigScreenFactory.class, (_, modListScreen) -> ConfigScreen.create(modListScreen));
+            modContainer.registerExtensionPoint(IConfigScreenFactory.class, (ignoredContainer, modListScreen) -> ConfigScreen.create(modListScreen));
         }
     }
 

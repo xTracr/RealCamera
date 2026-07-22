@@ -24,7 +24,7 @@ public final class CompatibilityHelper {
         if (isModLoaded("freecam")) try {
             Class<?> FC_Freecam = Class.forName("net.xolt.freecam.Freecam");
             Method FC_Freecam_isEnabled = FC_Freecam.getDeclaredMethod("isEnabled");
-            DisableHelper.MAIN_FEATURE.registerOr(_ -> {
+            DisableHelper.MAIN_FEATURE.registerOr(ignoredPlayer -> {
                 try {
                     return (boolean) FC_Freecam_isEnabled.invoke(null);
                 } catch (Exception ignored) {
@@ -47,7 +47,7 @@ public final class CompatibilityHelper {
             Class<?> SBW_ClientEventHandler = Class.forName("com.atsuishio.superbwarfare.event.ClientEventHandler");
             SBW_ClientEventHandler_zoomTime = SBW_ClientEventHandler.getDeclaredField("zoomTime");
             SBW_VehicleEntity = Class.forName("com.atsuishio.superbwarfare.entity.vehicle.base.VehicleEntity");
-            DisableHelper.MAIN_FEATURE.registerOrInBinding(_ -> CompatibilityHelper.SBW_gunsIsZooming());
+            DisableHelper.MAIN_FEATURE.registerOrInBinding(ignoredPlayer -> CompatibilityHelper.SBW_gunsIsZooming());
             DisableHelper.MAIN_FEATURE.registerOrInBinding(CompatibilityHelper::SBW_isDrivingVehicle);
         } catch (Exception e) {
             RealCamera.LOGGER.warn("Compatibility with SuperbWarfare is outdated: [{}] {}", e.getClass().getName(), e.getMessage());
@@ -55,7 +55,7 @@ public final class CompatibilityHelper {
         if (isModLoaded("entity_model_features")) try {
             Class<?> EMF_EMFAnimationApi = Class.forName("traben.entity_model_features.EMFAnimationApi");
             if ((int) EMF_EMFAnimationApi.getMethod("getApiVersion").invoke(null) >= 9) {
-                Function<Object, Boolean> function = _ -> isRenderInScreen;
+                Function<Object, Boolean> function = ignoredContext -> isRenderInScreen;
                 Method EMF_registerPauseCondition = EMF_EMFAnimationApi.getMethod("registerPauseCondition", Function.class);
                 EMF_registerPauseCondition.invoke(null, function);
             } else {

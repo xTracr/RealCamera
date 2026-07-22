@@ -18,23 +18,23 @@ public final class KeyMappings {
 
     static {
         MODEL_VIEW_SCREEN = createKeyMapping("modelViewScreen", client -> client.setScreen(new ModelViewScreen()));
-        createKeyMapping("togglePerspective", InputConstants.KEY_F6, _ -> {
+        createKeyMapping("togglePerspective", InputConstants.KEY_F6, ignoredClient -> {
             boolean enabled = ConfigFile.config().enabled;
             ConfigFile.load();
             ConfigFile.config().enabled = !enabled;
             RealCameraCore.reset();
         });
-        createKeyMapping("toggleAdjustMode", _ -> ConfigFile.config().cycleAdjustMode());
-        createKeyMapping("toggleCameraMode", _ -> ConfigFile.config().isClassic = !ConfigFile.config().isClassic);
-        createKeyMapping("adjustUP", _ -> ConfigFile.config().adjustOffsetY(1));
-        createKeyMapping("adjustDOWN", _ -> ConfigFile.config().adjustOffsetY(-1));
-        createKeyMapping("adjustLEFT", _ -> ConfigFile.config().adjustOffsetZ(1));
-        createKeyMapping("adjustRIGHT", _ -> ConfigFile.config().adjustOffsetZ(-1));
-        createKeyMapping("adjustFRONT", _ -> ConfigFile.config().adjustOffsetX(1));
-        createKeyMapping("adjustBACK", _ -> ConfigFile.config().adjustOffsetX(-1));
-        createKeyMapping("activeConfigIndexNEXT", _ -> ConfigFile.config().binding.activeConfigIndex += 1);
-        createKeyMapping("activeConfigIndexPREV", _ -> ConfigFile.config().binding.activeConfigIndex -= 1);
-        createKeyMapping("activeConfigIndexRESET", _ -> ConfigFile.config().binding.activeConfigIndex = 0);
+        createKeyMapping("toggleAdjustMode", ignoredClient -> ConfigFile.config().cycleAdjustMode());
+        createKeyMapping("toggleCameraMode", ignoredClient -> ConfigFile.config().isClassic = !ConfigFile.config().isClassic);
+        createKeyMapping("adjustUP", ignoredClient -> ConfigFile.config().adjustOffsetY(1));
+        createKeyMapping("adjustDOWN", ignoredClient -> ConfigFile.config().adjustOffsetY(-1));
+        createKeyMapping("adjustLEFT", ignoredClient -> ConfigFile.config().adjustOffsetZ(1));
+        createKeyMapping("adjustRIGHT", ignoredClient -> ConfigFile.config().adjustOffsetZ(-1));
+        createKeyMapping("adjustFRONT", ignoredClient -> ConfigFile.config().adjustOffsetX(1));
+        createKeyMapping("adjustBACK", ignoredClient -> ConfigFile.config().adjustOffsetX(-1));
+        createKeyMapping("activeConfigIndexNEXT", ignoredClient -> ConfigFile.config().binding.activeConfigIndex += 1);
+        createKeyMapping("activeConfigIndexPREV", ignoredClient -> ConfigFile.config().binding.activeConfigIndex -= 1);
+        createKeyMapping("activeConfigIndexRESET", ignoredClient -> ConfigFile.config().binding.activeConfigIndex = 0);
     }
 
     private static KeyMapping createKeyMapping(String id, Consumer<Minecraft> whenPressed) {

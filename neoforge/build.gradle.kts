@@ -35,7 +35,7 @@ dependencies {
     // Cloth Config
     runtimeOnly("me.shedaniel.cloth:cloth-config-neoforge:$clothConfigVersion")
 
-    implementation(commonProject)
+    implementation(commonProject.sourceSets.main.get().output)
 }
 
 neoForge {

@@ -12,8 +12,5 @@ import java.util.Map;
 @Mixin(ModelPartFeatureRenderer.Storage.class)
 public interface ModelPartFeatureRenderer$StorageAccessor {
     @Accessor
-    Map<RenderType, List<SubmitNodeStorage.ModelPartSubmit>> getSolidModelPartSubmits();
-
-    @Accessor
-    Map<RenderType, List<SubmitNodeStorage.ModelPartSubmit>> getTranslucentModelPartSubmits();
+    Map<RenderType, List<SubmitNodeStorage.ModelPartSubmit>> getModelPartSubmits();
 }

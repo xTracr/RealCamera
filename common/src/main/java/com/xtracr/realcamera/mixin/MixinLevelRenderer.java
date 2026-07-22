@@ -8,17 +8,18 @@ import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.util.CrosshairUtil;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.chunk.ChunkSectionsToRender;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
-import net.minecraft.client.renderer.state.level.CameraRenderState;
-import net.minecraft.client.renderer.state.level.LevelRenderState;
+import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.state.LevelRenderState;
 import net.minecraft.world.TickRateManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix4fc;
+import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector4f;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -37,9 +38,9 @@ public abstract class MixinLevelRenderer {
     private EntityRenderDispatcher entityRenderDispatcher;
 
     @Inject(method = "renderLevel", at = @At("HEAD"))
-    private void realcamera$atRenderLevelHead(GraphicsResourceAllocator resourceAllocator, DeltaTracker deltaTracker, boolean renderOutline, CameraRenderState cameraState, Matrix4fc modelViewMatrix, GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky, ChunkSectionsToRender chunkSectionsToRender, CallbackInfo ci) {
+    private void realcamera$atRenderLevelHead(GraphicsResourceAllocator resourceAllocator, DeltaTracker deltaTracker, boolean renderOutline, Camera camera, Matrix4f modelViewMatrix, Matrix4f projectionMatrix, Matrix4f cullingProjectionMatrix, GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky, CallbackInfo ci) {
         if (ConfigFile.config().dynamicCrosshair && RealCameraCore.isActive()) {
-            CrosshairUtil.update(minecraft, cameraState.pos, modelViewMatrix, cameraState.projectionMatrix);
+            CrosshairUtil.update(minecraft, camera.position(), modelViewMatrix, projectionMatrix);
         }
     }
 
@@ -51,7 +52,7 @@ public abstract class MixinLevelRenderer {
         float partialTicks = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(!tickManager.isEntityFrozen(entity));
         CameraRenderState cameraState = levelRenderState.cameraRenderState;
         if (!ConfigFile.config().isClassic)
-            RealCameraCore.renderCameraEntity(minecraft, partialTicks, output, cameraState.viewRotationMatrix);
+            RealCameraCore.renderCameraEntity(minecraft, partialTicks, output, new Matrix4f().rotation(new Quaternionf(cameraState.orientation).conjugate()));
         else {
             Vec3 cameraPos = cameraState.pos;
             EntityRenderState state = entityRenderDispatcher.extractEntity(entity, partialTicks);

@@ -45,7 +45,7 @@ public final class IterableVertexBuffer implements Iterable<VertexData> {
         hasOverlay = overlayOffset != -1;
         hasLight = lightOffset != -1;
         hasNormal = normalOffset != -1;
-        fullFormat = vertexSize == DefaultVertexFormat.ENTITY.getVertexSize();
+        fullFormat = vertexSize == DefaultVertexFormat.NEW_ENTITY.getVertexSize();
         vertexCount = drawState.vertexCount();
         VertexFormat.Mode drawMode = drawState.mode();
         primitiveLength = drawMode.primitiveLength;
