@@ -4,7 +4,7 @@ import com.xtracr.realcamera.RealCamera;
 import com.xtracr.realcamera.util.LocUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.input.CharacterEvent;
@@ -65,7 +65,7 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
     }
 
     public NumberField<T> setOnValueChange(Consumer<T> consumer) {
-        super.setResponder(_ -> consumer.accept(getNumber()));
+        super.setResponder(ignoredText -> consumer.accept(getNumber()));
         return this;
     }
 
@@ -109,9 +109,9 @@ public abstract class NumberField<T extends Comparable<T>> extends EditBox {
     }
 
     @Override
-    public void extractWidgetRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
+    public void renderWidget(@NonNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         checkText();
-        super.extractWidgetRenderState(graphics, mouseX, mouseY, partialTicks);
+        super.renderWidget(graphics, mouseX, mouseY, partialTicks);
     }
 
     private static final class IntField extends NumberField<Integer> {

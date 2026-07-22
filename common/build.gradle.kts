@@ -1,5 +1,5 @@
 plugins {
-    id("net.fabricmc.fabric-loom")
+    id("net.fabricmc.fabric-loom-remap")
     id("maven-publish")
 }
 
@@ -28,13 +28,15 @@ tasks.withType<JavaCompile> {
 
 dependencies {
     minecraft("com.mojang:minecraft:$minecraftVersion")
+    mappings(loom.officialMojangMappings())
 
+    compileOnly("io.github.llamalad7:mixinextras-common:0.5.3")
+    annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.3")
     // We depend on Fabric Loader here to use mixin and the Fabric @Environment annotations,
-    // compileOnly so it doesn't leak into neoforge's runtime classpath
-    compileOnly("net.fabricmc:fabric-loader:$fabricLoaderVersion")
+    modCompileOnly("net.fabricmc:fabric-loader:$fabricLoaderVersion")
 
     // Cloth Config
-    compileOnly("me.shedaniel.cloth:cloth-config:$clothConfigVersion") {
+    modCompileOnly("me.shedaniel.cloth:cloth-config-fabric:$clothConfigVersion") {
         exclude(group = "net.fabricmc.fabric-api")
     }
 }

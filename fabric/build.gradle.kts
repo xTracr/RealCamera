@@ -1,5 +1,5 @@
 plugins {
-    id("net.fabricmc.fabric-loom")
+    id("net.fabricmc.fabric-loom-remap")
     id("maven-publish")
 }
 
@@ -34,18 +34,19 @@ tasks.withType<JavaCompile> {
 
 dependencies {
     minecraft("com.mojang:minecraft:$minecraftVersion")
+    mappings(loom.officialMojangMappings())
 
-    implementation("net.fabricmc:fabric-loader:$fabricLoaderVersion")
-    implementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
+    modImplementation("net.fabricmc:fabric-loader:$fabricLoaderVersion")
+    modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricApiVersion")
 
     // Cloth Config
-    runtimeOnly("me.shedaniel.cloth:cloth-config-fabric:$clothConfigVersion")
+    modRuntimeOnly("me.shedaniel.cloth:cloth-config-fabric:$clothConfigVersion")
     // Modmenu
-    implementation("com.terraformersmc:modmenu:$modMenuVersion") {
+    modImplementation("com.terraformersmc:modmenu:$modMenuVersion") {
         exclude(group = "net.fabricmc.fabric-api")
     }
 
-    implementation(commonProject)
+    implementation(commonProject.sourceSets.main.get().output)
 }
 
 loom {

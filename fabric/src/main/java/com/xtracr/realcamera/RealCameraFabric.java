@@ -6,8 +6,8 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
-import net.fabricmc.fabric.api.client.rendering.v1.PictureInPictureRendererRegistry;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.rendering.v1.SpecialGuiElementRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.KeyMapping;
 
@@ -18,15 +18,15 @@ public final class RealCameraFabric implements ClientModInitializer, RealCamera 
         initialize();
 
         KeyMapping.Category.register(KeyMappings.GENERAL.id());
-        KeyMappings.register(KeyMappingHelper::registerKeyMapping);
+        KeyMappings.register(KeyBindingHelper::registerKeyBinding);
         registerPictureInPictureRenderers();
 
         ClientTickEvents.END_CLIENT_TICK.register(KeyMappings::handle);
     }
 
     private void registerPictureInPictureRenderers() {
-        PictureInPictureRendererRegistry.register(ctx -> new GuiCulledModelsRenderer(ctx.bufferSource()));
-        PictureInPictureRendererRegistry.register(ctx -> new GuiFlattenedModelsRenderer(ctx.bufferSource()));
+        SpecialGuiElementRegistry.register(ctx -> new GuiCulledModelsRenderer(ctx.vertexConsumers()));
+        SpecialGuiElementRegistry.register(ctx -> new GuiFlattenedModelsRenderer(ctx.vertexConsumers()));
     }
 
     @Override

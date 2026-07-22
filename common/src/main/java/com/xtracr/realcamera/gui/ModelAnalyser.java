@@ -15,11 +15,11 @@ import com.xtracr.realcamera.renderer.state.BuiltModelRecord;
 import com.xtracr.realcamera.renderer.state.VertexData;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
-import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
@@ -192,7 +192,7 @@ public final class ModelAnalyser {
         focusedPolyhedron.add(focused);
     }
 
-    public void drawCameraDirections(GuiGraphicsExtractor graphics, double modelScale) {
+    public void drawCameraDirections(GuiGraphics graphics, double modelScale) {
         if (targetPrimitives[0] == null || targetPrimitives[1] == null || targetPrimitives[2] == null) return;
         Vec3 start = bindResult.getPosition();
         Matrix3f normal = bindResult.getRotation();
@@ -202,14 +202,14 @@ public final class ModelAnalyser {
         GUIHelper.vector(graphics, start, new Vec3(normal.m00(), normal.m01(), normal.m02()).scale(modelScale / 6), Z_LINE, LEFT_ARGB);
     }
 
-    public void drawBindTarget(GuiGraphicsExtractor graphics, BindTarget target, double modelScale) {
+    public void drawBindTarget(GuiGraphics graphics, BindTarget target, double modelScale) {
         TargetConfig config = target.targetConfig();
         if (targetPrimitives[0] != null) GUIHelper.triangleOrQuad(graphics, targetPrimitives[0], Z_QUAD, PLANE_ARGB);
         if (targetPrimitives[1] != null) GUIHelper.vector(graphics, VertexData.position(targetPrimitives[1], config.forwardU(), config.forwardV()), VertexData.normal(targetPrimitives[1]).scale(-modelScale / 2), Z_LINE, FORWARD_ARGB);
         if (targetPrimitives[2] != null) GUIHelper.vector(graphics, VertexData.position(targetPrimitives[2], config.upwardU(), config.upwardV()), VertexData.normal(targetPrimitives[2]).scale(-modelScale / 2), Z_LINE, UPWARD_ARGB);
     }
 
-    public void drawFocusedInModelArea(GuiGraphicsExtractor graphics) {
+    public void drawFocusedInModelArea(GuiGraphics graphics) {
         if (focusedPolyhedron.isEmpty() || focusedRecord == null) return;
         VertexData[] focused = focusedPolyhedron.getFirst();
         VertexData[] reversed = new VertexData[focused.length];
@@ -218,7 +218,7 @@ public final class ModelAnalyser {
         for (VertexData[] primitive : focusedPolyhedron) GUIHelper.triangleOrQuad(graphics, primitive, Z_QUAD, FOCUSED_ARGB);
     }
 
-    public void drawFocusedInTextureArea(GuiGraphicsExtractor graphics, Matrix4f texturePose) {
+    public void drawFocusedInTextureArea(GuiGraphics graphics, Matrix4f texturePose) {
         int length = 0;
         VertexData[] transformed = new VertexData[0], reversed = new VertexData[0];
         Vector3f position = new Vector3f();

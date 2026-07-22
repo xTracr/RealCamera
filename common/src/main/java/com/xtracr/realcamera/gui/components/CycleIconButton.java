@@ -1,6 +1,6 @@
 package com.xtracr.realcamera.gui.components;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.InputWithModifiers;
@@ -60,10 +60,10 @@ public class CycleIconButton extends AbstractButton {
     }
 
     @Override
-    public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
+    protected void renderContents(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
         graphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), 0xFF646464);
         graphics.blit(RenderPipelines.GUI_TEXTURED, texture, getX(), getY(), u, v + value * vOffset, width, height, textureWidth, textureHeight);
-        if (isHoveredOrFocused()) graphics.outline(getX(), getY(), getWidth(), getHeight(), 0xFFFFFFFF);
+        if (isHoveredOrFocused()) graphics.renderOutline(getX(), getY(), getWidth(), getHeight(), 0xFFFFFFFF);
     }
 
     @Override

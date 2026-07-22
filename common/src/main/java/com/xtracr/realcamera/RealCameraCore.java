@@ -17,7 +17,7 @@ import com.xtracr.realcamera.util.MathUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
@@ -89,7 +89,7 @@ public final class RealCameraCore {
             Player player = client.player;
             int retentionFrames = ConfigFile.config().binding.bindResultRetentionFrames;
             if (!ConfigFile.config().binding.hideFailureMessage && failureFrames == retentionFrames + 1 && player != null) {
-                player.sendSystemMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE(), KeyMappings.MODEL_VIEW_SCREEN.getTranslatedKeyMessage()));
+                player.displayClientMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE(), KeyMappings.MODEL_VIEW_SCREEN.getTranslatedKeyMessage()), false);
             }
             if (!lastResult.available() || failureFrames > retentionFrames) {
                 lastResult = BindResult.EMPTY;
@@ -118,7 +118,7 @@ public final class RealCameraCore {
         vertexCatcher.forEachBuffer(builtBuffer -> {
             DisableConfig[] disableConfigs = currentTarget().filteredDisableConfigs(config -> builtBuffer.textureId().contains(config.textureId()));
             for (DisableConfig config : disableConfigs) if (config.disableAll()) return;
-            submitNodeCollector.submitCustomGeometry(poseStack, builtBuffer.renderType(), (_, buffer) -> {
+            submitNodeCollector.submitCustomGeometry(poseStack, builtBuffer.renderType(), (ignoredPose, buffer) -> {
                 if (!builtBuffer.renderType().canConsolidateConsecutiveGeometry()) {
                     for (VertexData vertex : builtBuffer.vertexBuffer()) vertex.render(buffer);
                     return;

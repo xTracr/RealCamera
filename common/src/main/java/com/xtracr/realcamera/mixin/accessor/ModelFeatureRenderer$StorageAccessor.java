@@ -12,7 +12,7 @@ import java.util.Map;
 @Mixin(ModelFeatureRenderer.Storage.class)
 public interface ModelFeatureRenderer$StorageAccessor {
     @Accessor
-    Map<RenderType, List<SubmitNodeStorage.ModelSubmit<?>>> getSolidModelSubmits();
+    Map<RenderType, List<SubmitNodeStorage.ModelSubmit<?>>> getOpaqueModelSubmits();
 
     @Accessor
     List<SubmitNodeStorage.TranslucentModelSubmit<?>> getTranslucentModelSubmits();

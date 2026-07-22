@@ -23,7 +23,7 @@ public abstract class MixinGameRenderer {
     @Final
     private Camera mainCamera;
 
-    @Inject(method = "update", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;update(Lnet/minecraft/client/DeltaTracker;)V"))
+    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GameRenderer;updateCamera(Lnet/minecraft/client/DeltaTracker;)V"))
     private void realcamera$atCameraUpdate(DeltaTracker deltaTracker, boolean advanceGameTime, CallbackInfo ci) {
         float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(true);
         CompatibilityHelper.NEA_setDeltaTick(partialTicks);

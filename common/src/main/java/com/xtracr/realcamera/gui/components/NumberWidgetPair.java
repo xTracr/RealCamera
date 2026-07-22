@@ -3,7 +3,7 @@ package com.xtracr.realcamera.gui.components;
 import com.xtracr.realcamera.util.LocUtil;
 import com.xtracr.realcamera.util.MathUtil;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.CharacterEvent;
@@ -82,8 +82,8 @@ public final class NumberWidgetPair extends AbstractWidget {
     }
 
     @Override
-    public void extractWidgetRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
-        getActiveWidget().extractRenderState(graphics, mouseX, mouseY, partialTicks);
+    protected void renderWidget(@NonNull GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        getActiveWidget().render(graphics, mouseX, mouseY, partialTicks);
     }
 
     @Override

@@ -2,7 +2,7 @@
   "required": true,
   "minVersion": "0.8.5",
   "package": "com.xtracr.realcamera.mixin",
-  "compatibilityLevel": "JAVA_25",
+  "compatibilityLevel": "JAVA_21",
   "mixins": [
   ],
   "client": [
@@ -17,9 +17,11 @@
     "MixinStuckInBodyLayer",
     "accessor.AvatarRendererAccessor",
     "accessor.CustomFeatureRenderer$StorageAccessor",
+    "accessor.GameRendererAccessor",
     "accessor.GuiGraphicsExtractorAccessor",
     "accessor.ModelFeatureRenderer$StorageAccessor",
     "accessor.ModelPartFeatureRenderer$StorageAccessor",
+    "accessor.RenderSetupAccessor",
     "accessor.RenderTypeAccessor"
   ],
   "server": [

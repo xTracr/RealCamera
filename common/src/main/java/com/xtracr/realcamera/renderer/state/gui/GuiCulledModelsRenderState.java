@@ -2,7 +2,7 @@ package com.xtracr.realcamera.renderer.state.gui;
 
 import com.xtracr.realcamera.renderer.state.BuiltModelRecord;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
-import net.minecraft.client.renderer.state.gui.pip.PictureInPictureRenderState;
+import net.minecraft.client.gui.render.state.pip.PictureInPictureRenderState;
 import org.joml.Matrix4f;
 import org.jspecify.annotations.Nullable;
 

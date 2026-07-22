@@ -1,4 +1,4 @@
-accessWidener   v2  official
-accessible class net/minecraft/client/gui/GuiGraphicsExtractor$ScissorStack
+accessWidener   v2  named
+accessible class net/minecraft/client/gui/GuiGraphics$ScissorStack
 accessible class net/minecraft/client/renderer/rendertype/RenderSetup$TextureBinding
 extendable method net/minecraft/client/renderer/MultiBufferSource$BufferSource endBatch (Lnet/minecraft/client/renderer/rendertype/RenderType;Lcom/mojang/blaze3d/vertex/BufferBuilder;)V
