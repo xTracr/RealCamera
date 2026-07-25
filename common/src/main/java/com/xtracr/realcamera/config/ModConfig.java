@@ -151,7 +151,7 @@ public final class ModConfig {
             int activeConfigIndex = Integer.parseInt(binding.activeConfigSelector);
             return List.of(matchedTargets.get(Math.clamp(activeConfigIndex - 1, 0, matchedTargets.size() - 1)));
         } else return matchedTargets;
-    }                                                                          
+    }
 
     private boolean isParsableInt(String s){
         try {
