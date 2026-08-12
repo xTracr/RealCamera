@@ -59,7 +59,7 @@ public final class CompatibilityHelper {
                 Method EMF_registerPauseCondition = EMF_EMFAnimationApi.getMethod("registerPauseCondition", Function.class);
                 EMF_registerPauseCondition.invoke(null, function);
             } else {
-                throw new IllegalStateException("EntityModelFeatures API is outdated, players‘s heads in the modelView may flicker");
+                throw new IllegalStateException("EntityModelFeatures API is outdated, players in the modelView may flicker");
             }
         } catch (Exception e) {
             RealCamera.LOGGER.warn("Compatibility with EntityModelFeatures is outdated: [{}] {}", e.getClass().getName(), e.getMessage());

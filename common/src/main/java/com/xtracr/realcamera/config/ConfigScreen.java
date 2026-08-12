@@ -179,14 +179,14 @@ public final class ConfigScreen {
         binding.addEntry(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("displacementSmoothFactor"), config.binding.displacementSmoothFactor)
                 .setDefaultValue(0.4)
                 .setMin(0.0)
-                .setMax(1.0)
+                .setMax(0.9)
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("displacementSmoothFactor"))
                 .setSaveConsumer(d -> config.binding.displacementSmoothFactor = d)
                 .build());
         binding.addEntry(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("rotationSmoothFactor"), config.binding.rotationSmoothFactor)
                 .setDefaultValue(0.4)
                 .setMin(0.0)
-                .setMax(1.0)
+                .setMax(0.9)
                 .setTooltip(LocUtil.CONFIG_TOOLTIP("rotationSmoothFactor"))
                 .setSaveConsumer(d -> config.binding.rotationSmoothFactor = d)
                 .build());

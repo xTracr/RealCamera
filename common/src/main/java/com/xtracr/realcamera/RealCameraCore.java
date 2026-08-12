@@ -78,6 +78,12 @@ public final class RealCameraCore {
                 dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, new PoseStack(), vertexCatcher.initCollector());
                 vertexCatcher.forEachBuffer(RealCameraCore::computeBindResult);
             }
+        } catch (Exception e) {
+            failureFrames++;
+            if (failureFrames < 60) {
+                return;
+            }
+            throw e;
         } finally {
             entity.setInvisible(invisible);
         }
