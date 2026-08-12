@@ -12,7 +12,7 @@ body:
         Before reporting a bug, please search for similar issues first and avoid opening duplicate issues
 
         For all YSM-related questions, please seek help from others or watch configuration model tutorials first
-        instead of asking directly in the issue.
+        instead of asking directly in the issue
 
   - type: checkboxes
     id: preliminary
@@ -21,27 +21,41 @@ body:
       options:
         - label: I am using the latest version of RealCamera
           required: true
-        - label: Unable to reproduce when main feature is disabled
+        - label: No related issues found in the issue tracker.
           required: true
+        - label: Appears on Fabric
+          required: false
+        - label: Appears on （Neo）Forge
+          required: false
 
   - type: input
-    id: minecraft-version-loader
+    id: minecraft-version
     attributes:
-      label: Minecraft Version and Loader
+      label: Minecraft Version
       description: |
-        Please specify the game version and your mod loader.
+        The Minecraft version you are using.
 
         You can find them at the corner of main menu or in the log while startup.
     validations:
       required: true
+
+  - type: checkboxes
+    id: bug-type
+    attributes:
+      label: Question Type
+      options:
+        - label: Bug occurs when enabling main feature
+          required: false
+        - label: Incompatibility with other mods
+          required: false
 
   - type: textarea
     id: incompatible-mods
     attributes:
       label: Incompatible Mods
       description: >-
-        The mods related to the bug.
-        <br>Try to remove unrelated plugins and mods before reporting
+        The mods related to the bug
+        <br>Reproduce the bug with all unrelated mods removed before reporting
       placeholder: 'Mods list here'
       render: 'raw'
     validations:
@@ -52,7 +66,8 @@ body:
     attributes:
       label: Bug Description
       description: >-
-        Please describe the issue you encountered in as much detail as possible.
+        Please describe the issue you encountered in as much detail as possible
+        <br>Please also attach screenshots or reproduction videos, as they help us diagnose the problem effectively
         <br>Clearer and more detailed descriptions will receive higher processing priority
     validations:
       required: true
@@ -73,7 +88,10 @@ body:
     attributes:
       label: Logs & Crash Reports
       description: >-
-        You can find error reports in /logs/latest.log and /crash-reports, or use the launcher's export function
+        If your issue is not a crash, please do not upload log files, as they will hinder our understanding of the problem
+        <br>You can find error reports in /logs/latest.log and /crash-reports, or use the launcher's export function
         <br>You can upload logs to sites like https://paste.ubuntu.com/ or https://mclo.gs/ and post the link here
-        <br>**DO NOT PASTE LARGE LOGS DIRECTLY HERE!!**
+        <br>**DO NOT PASTE LARGE LOGS DIRECTLY HERE!!!**
+        <br>**DO NOT PASTE LARGE LOGS DIRECTLY HERE!!!**
+        <br>**DO NOT PASTE LARGE LOGS DIRECTLY HERE!!!**
       placeholder: 'Drag log file here or use external link'

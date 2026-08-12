@@ -31,7 +31,7 @@ public abstract class MixinGameRenderer {
     @Shadow
     @Final private Camera mainCamera;
 
-    @ModifyVariable(method = "pick", at = @At("STORE"), name = "entityHitResult")
+    @ModifyVariable(method = "pick", at = @At("STORE"), ordinal = 0)
     private EntityHitResult realcamera$modifyEntityHitResult(EntityHitResult entityHitResult) {
         CrosshairUtil.capturedEntityHitResult = entityHitResult;
         if (!ConfigFile.config().dynamicCrosshair && RealCameraCore.isActive()) {
