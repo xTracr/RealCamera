@@ -26,8 +26,8 @@ public class CameraTransform {
         rotation.set(mat);
     }
 
-    public final void lerpPosition(Vec3 vec, double alpha) {
-        position = position.lerp(vec, alpha);
+    public final void lerpPosition(Vec3 vec, double a) {
+        position = position.lerp(vec, a);
     }
 
     public final void slerpRotation(Matrix3fc mat, double alpha) {

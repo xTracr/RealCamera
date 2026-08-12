@@ -3,6 +3,7 @@ name: Build
 on:
   pull_request:
     paths-ignore:
+      - '**/ISSUE_TEMPLATE/**'
       - '**/lang/**'
       - '**.md'
       - 'LICENSE'
@@ -27,7 +28,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
-          java-version: 17
+          java-version: 21
 
       - name: Make Gradle Wrapper Executable
         if: ${{ runner.os != 'Windows' }}

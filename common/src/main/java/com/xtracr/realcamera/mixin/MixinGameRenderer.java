@@ -34,7 +34,7 @@ public abstract class MixinGameRenderer {
     @ModifyVariable(method = "pick", at = @At("STORE"), ordinal = 0)
     private EntityHitResult realcamera$modifyEntityHitResult(EntityHitResult entityHitResult) {
         CrosshairUtil.capturedEntityHitResult = entityHitResult;
-        if (!ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
+        if (!ConfigFile.config().dynamicCrosshair && RealCameraCore.isActive()) {
             Entity cameraEntity = minecraft.getCameraEntity();
             Pair<Vec3, Vec3> fromAndTo = RaycastUtil.getFromAndTo(cameraEntity, minecraft.gameMode.getPickRange() * minecraft.gameMode.getPickRange(), minecraft.getFrameTime());
             Vec3 from = fromAndTo.getFirst();
@@ -47,10 +47,10 @@ public abstract class MixinGameRenderer {
     }
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setup(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/world/entity/Entity;ZZF)V"))
-    private void realcamera$atBeforeCameraSetup(float deltaTick, long limitTime, PoseStack poseStack, CallbackInfo ci) {
+    private void realcamera$atBeforeCameraSetup(float deltaTick, long l, PoseStack poseStack, CallbackInfo ci) {
         CompatibilityHelper.NEA_setDeltaTick(deltaTick);
         RealCameraCore.initialize(minecraft);
-        if (RealCameraCore.isActive() && !ConfigFile.config().isClassic()) {
+        if (RealCameraCore.isActive() && !ConfigFile.config().isClassic) {
             EntityRenderDispatcher dispatcher = minecraft.getEntityRenderDispatcher();
             dispatcher.prepare(minecraft.level, mainCamera,  minecraft.crosshairPickEntity);
             RealCameraCore.computeCamera(minecraft, deltaTick);

@@ -12,25 +12,25 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public final class KeyMappings {
-    private static final Map<KeyMapping, Consumer<Minecraft>> KEY_MAPPINGS = new HashMap<>();
     public static final KeyMapping MODEL_VIEW_SCREEN;
+    private static final Map<KeyMapping, Consumer<Minecraft>> KEY_MAPPINGS = new HashMap<>();
 
     static {
         MODEL_VIEW_SCREEN = createKeyMapping("modelViewScreen", client -> client.setScreen(new ModelViewScreen()));
         createKeyMapping("togglePerspective", InputConstants.KEY_F6, client -> {
-            boolean enabled = ConfigFile.config().enabled();
+            boolean enabled = ConfigFile.config().enabled;
             ConfigFile.load();
-            ConfigFile.config().setEnabled(!enabled);
+            ConfigFile.config().enabled = !enabled;
             RealCameraCore.reset();
         });
         createKeyMapping("toggleAdjustMode", client -> ConfigFile.config().cycleAdjustMode());
-        createKeyMapping("toggleCameraMode", client -> ConfigFile.config().setClassic(!ConfigFile.config().isClassic()));
-        createKeyMapping("adjustFRONT", client -> ConfigFile.config().adjustOffsetX(1));
-        createKeyMapping("adjustBACK", client -> ConfigFile.config().adjustOffsetX(-1));
+        createKeyMapping("toggleCameraMode", client -> ConfigFile.config().isClassic = !ConfigFile.config().isClassic);
         createKeyMapping("adjustUP", client -> ConfigFile.config().adjustOffsetY(1));
         createKeyMapping("adjustDOWN", client -> ConfigFile.config().adjustOffsetY(-1));
         createKeyMapping("adjustLEFT", client -> ConfigFile.config().adjustOffsetZ(1));
         createKeyMapping("adjustRIGHT", client -> ConfigFile.config().adjustOffsetZ(-1));
+        createKeyMapping("adjustFRONT", client -> ConfigFile.config().adjustOffsetX(1));
+        createKeyMapping("adjustBACK", client -> ConfigFile.config().adjustOffsetX(-1));
         createKeyMapping("activeConfigIndexNEXT", client -> ConfigFile.config().binding.activeConfigIndex += 1);
         createKeyMapping("activeConfigIndexPREV", client -> ConfigFile.config().binding.activeConfigIndex -= 1);
         createKeyMapping("activeConfigIndexRESET", client -> ConfigFile.config().binding.activeConfigIndex = 0);
@@ -41,7 +41,7 @@ public final class KeyMappings {
     }
 
     private static KeyMapping createKeyMapping(String id, int code, Consumer<Minecraft> whenPressed) {
-        KeyMapping keyMapping = new KeyMapping("key." + RealCamera.FULL_ID + "." + id, code, LocUtil.KEY_CATEGORY_GENERAL);
+        KeyMapping keyMapping = new KeyMapping("key." + RealCamera.FULL_ID + "." + id, code, LocUtil.KEY_MOD_NAME);
         KEY_MAPPINGS.put(keyMapping, whenPressed);
         return keyMapping;
     }

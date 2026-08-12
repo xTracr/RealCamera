@@ -41,17 +41,13 @@ public final class RenderTypeCache {
         PRIMITIVE_CACHE.getUnchecked(layoutKey).put(uv, primitiveIndex);
     }
 
-    public static void invalidatePrimitiveCache(PrimitiveLayoutKey layoutKey) {
-        PRIMITIVE_CACHE.invalidate(layoutKey);
-    }
-
     private static class TextureIdCacheLoader extends CacheLoader<RenderType, String> {
         @Override
         public @NotNull String load(@NotNull RenderType renderType) {
             try {
-                RenderType.CompositeState state = ((CompositeRenderTypeAccessor) (Object) renderType).invokeState();
-                RenderStateShard.EmptyTextureStateShard textureState = ((CompositeStateAccessor) (Object) state).getTextureState();
-                Optional<ResourceLocation> textureId = ((EmptyTextureStateShardAccessor) (Object) textureState).invokeCutoutTexture();
+                RenderType.CompositeState state = ((CompositeRenderTypeAccessor) renderType).invokeState();
+                @SuppressWarnings("DataFlowIssue") RenderStateShard.EmptyTextureStateShard textureState = ((CompositeStateAccessor) (Object) state).getTextureState();
+                Optional<ResourceLocation> textureId = ((EmptyTextureStateShardAccessor) textureState).invokeCutoutTexture();
                 if (textureId.isPresent()) return textureId.get().toString();
             } catch (ClassCastException | NullPointerException ignored) {
             }

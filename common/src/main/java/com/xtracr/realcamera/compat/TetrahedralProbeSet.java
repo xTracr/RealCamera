@@ -1,7 +1,6 @@
 package com.xtracr.realcamera.compat;
 
 import org.joml.Matrix4f;
-import org.joml.Matrix4fc;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -23,10 +22,6 @@ final class TetrahedralProbeSet {
     };
 
     private TetrahedralProbeSet() {
-    }
-
-    static Vector3fc direction(int pass) {
-        return DIRECTIONS[pass];
     }
 
     static Matrix4f projection(int pass) {

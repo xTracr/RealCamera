@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class MixinItem {
     @Inject(method = "getPlayerPOVHitResult", at = @At("HEAD"), cancellable = true)
     private static void realcamera$coverHitResult(Level level, Player player, ClipContext.Fluid fluid, CallbackInfoReturnable<BlockHitResult> cir) {
-        if (!ConfigFile.config().dynamicCrosshair() && RealCameraCore.isActive()) {
+        if (!ConfigFile.config().dynamicCrosshair && RealCameraCore.isActive()) {
             Pair<Vec3, Vec3> fromAndTo = RaycastUtil.getFromAndTo(player, 25.0d, 1.0f);
             cir.setReturnValue(level.clip(new ClipContext(fromAndTo.getFirst(), fromAndTo.getSecond(), ClipContext.Block.OUTLINE, fluid, player)));
         }

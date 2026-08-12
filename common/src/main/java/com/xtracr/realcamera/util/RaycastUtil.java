@@ -7,6 +7,11 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 
 public final class RaycastUtil {
+    /**
+     * Updates raycast start and end points ensuring:
+     * <li> End point is on camera's viewing direction
+     * <li> Square distance from entity's eye to end point ≤ sqDistance
+     */
     public static Pair<Vec3, Vec3> getFromAndTo(Entity entity, double sqDistance, float deltaTick) {
         Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
         Vec3 eyePos = entity.getEyePosition(deltaTick);

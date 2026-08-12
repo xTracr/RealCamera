@@ -9,8 +9,9 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.function.Consumer;
 
+@SuppressWarnings("removal")
 public class SimpleIconButton extends AbstractButton {
-    public static final ResourceLocation ICON_TEXTURE = new ResourceLocation(RealCamera.MODID, "textures/gui/icon.png");
+    public static final ResourceLocation ICON_TEXTURE = new ResourceLocation(RealCamera.MOD_ID, "textures/gui/icon.png");
     protected final ResourceLocation texture;
     protected final int textureWidth, textureHeight, u, v;
     private final Consumer<SimpleIconButton> onPress;

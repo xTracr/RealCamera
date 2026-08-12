@@ -57,7 +57,7 @@ public interface MultiVertexCatcher extends MultiBufferSource {
         }
 
         @Override
-        protected @NotNull BufferBuilder getBuilderRaw(RenderType renderType) {
+        public @NotNull BufferBuilder getBuilderRaw(RenderType renderType) {
             return bufferPools.computeIfAbsent(renderType, type -> new BufferBuilderPool(type.bufferSize())).getBuffer();
         }
 

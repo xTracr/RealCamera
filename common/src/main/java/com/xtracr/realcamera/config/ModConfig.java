@@ -9,55 +9,21 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.IntStream;
 
-public class ModConfig {
+public final class ModConfig {
     public static final double MIN_OFFSET_D = -1.0, MAX_OFFSET_D = 1.0;
     public static final float MIN_OFFSET_F = -1.0f, MAX_OFFSET_F = 1.0f;
+    public final Classic classic = new Classic();
+    public final Binding binding = new Binding();
     public boolean enabled = false;
     public boolean isClassic = false;
     public boolean dynamicCrosshair = false;
     public boolean renderModel = true;
     public double adjustStep = 0.01;
-    public Classic classic = new Classic();
-    public Binding binding = new Binding();
-
-    public void set(ModConfig modConfig) {
-        enabled = modConfig.enabled;
-        isClassic = modConfig.isClassic;
-        dynamicCrosshair = modConfig.dynamicCrosshair;
-        renderModel = modConfig.renderModel;
-        adjustStep = modConfig.adjustStep;
-        classic = modConfig.classic;
-        binding = modConfig.binding;
-    }
 
     public void clamp() {
         adjustStep = Mth.clamp(adjustStep, 0.0, MAX_OFFSET_D);
         classic.clamp();
         binding.clamp();
-    }
-
-    public boolean enabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean value) {
-        enabled = value;
-    }
-
-    public boolean isClassic() {
-        return isClassic;
-    }
-
-    public void setClassic(boolean value) {
-        isClassic = value;
-    }
-
-    public boolean dynamicCrosshair() {
-        return dynamicCrosshair;
-    }
-
-    public boolean renderModel() {
-        return renderModel;
     }
 
     public void cycleAdjustMode() {
@@ -113,24 +79,6 @@ public class ModConfig {
         }
     }
 
-    // classic
-    public boolean classicDisableWhenSneaking() {
-        return classic.disableWhenSneaking;
-    }
-
-    public boolean classicDisableWhenSwimming() {
-        return classic.disableWhenSwimming;
-    }
-
-    public int getClassicOutTick() {
-        return classic.outTick;
-    }
-
-    @Deprecated
-    public int getClassicSwimOutTick() {
-        return getClassicOutTick();
-    }
-
     public double getClassicX() {
         return classic.cameraX * classic.scale;
     }
@@ -167,75 +115,7 @@ public class ModConfig {
         return classic.roll;
     }
 
-    // binding
-    public InputConstants.Key getScreenModifierKey() {
-        return InputConstants.getKey(binding.screenModifierKey);
-    }
-
-    public boolean legacyBindingMode() {
-        return binding.legacyMode;
-    }
-
-    public boolean renderStuckObjects() {
-        return binding.renderStuckObjects;
-    }
-
-    public boolean hideBindingFailureMessage() {
-        return binding.hideFailureMessage;
-    }
-
-    public boolean bindingDisableWhenCrawling() {
-        return binding.disableWhenCrawling;
-    }
-
-    public boolean bindingDisableWhenSneaking() {
-        return binding.disableWhenSneaking;
-    }
-
-    public boolean bindingDisableWhenSwimming() {
-        return binding.disableWhenSwimming;
-    }
-
-    public int getBindingOutTick() {
-        return binding.outTick;
-    }
-
-    @Deprecated
-    public int getBindingSwimOutTick() {
-        return getBindingOutTick();
-    }
-
-    public int getBindResultRetentionFrames() {
-        return binding.bindResultRetentionFrames;
-    }
-
-    public double getDisplacementSmoothFactor() {
-        return binding.displacementSmoothFactor;
-    }
-
-    public double getRotationSmoothFactor() {
-        return binding.rotationSmoothFactor;
-    }
-
-    public List<String> getDisableMainFeatureItems() {
-        return binding.disableMainFeatureItems;
-    }
-
-    public List<String> getDisableRenderItems() {
-        return binding.disableRenderItems;
-    }
-
-    public List<BindTarget> getFixedTargetList() {
-        return binding.fixedTargetList;
-    }
-
-    public List<BindTarget> getBindTargetList() {
-        binding.clamp();
-        return binding.targetList;
-    }
-
     public List<BindTarget> getBindTargetList(String textureId) {
-        binding.clamp();
         int activeConfigIndex = binding.activeConfigIndex;
         List<BindTarget> matchedTargets = binding.targetList.stream().filter(target -> textureId.contains(target.textureId())).toList();
         if (activeConfigIndex <= 0 || matchedTargets.isEmpty()) return matchedTargets;
@@ -263,9 +143,7 @@ public class ModConfig {
         public AdjustMode adjustMode = AdjustMode.CAMERA;
         public boolean disableWhenSneaking = false;
         public boolean disableWhenSwimming = false;
-        public int outTick = 13;
-        @Deprecated
-        public Integer swimOutTick = null;
+        public int exitTick = 13;
         public double scale = 8.0;
         public double cameraX = -0.5;
         public double cameraY = 0.04;
@@ -279,11 +157,7 @@ public class ModConfig {
 
         private void clamp() {
             if (adjustMode == null) adjustMode = AdjustMode.CAMERA;
-            if (swimOutTick != null) {
-                if (outTick == 13) outTick = swimOutTick;
-                swimOutTick = null;
-            }
-            outTick = Mth.clamp(outTick, 0, 40);
+            exitTick = Mth.clamp(exitTick, 0, 40);
             scale = Mth.clamp(scale, 0.0, 64.0);
             cameraX = Mth.clamp(cameraX, MIN_OFFSET_D, MAX_OFFSET_D);
             cameraY = Mth.clamp(cameraY, MIN_OFFSET_D, MAX_OFFSET_D);
@@ -311,17 +185,13 @@ public class ModConfig {
         protected static final List<String> DEFAULT_DISABLE_RENDER_ITEMS = List.of("minecraft:filled_map");
         public String screenModifierKey = InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_LALT).getName();
         public boolean legacyMode = false;
-        @Deprecated
-        public Boolean legacyBindingMode = null;
         public boolean adjustOffset = true;
         public boolean hideFailureMessage = false;
         public boolean renderStuckObjects = true;
-        public boolean disableWhenCrawling = false;
         public boolean disableWhenSneaking = false;
         public boolean disableWhenSwimming = false;
-        public int outTick = 13;
-        @Deprecated
-        public Integer swimOutTick = null;
+        public boolean disableWhenFlying = false;
+        public int exitTick = 13;
         public int bindResultRetentionFrames = 2;
         public int activeConfigIndex = 0;
         public double displacementSmoothFactor = 0.4;
@@ -337,15 +207,7 @@ public class ModConfig {
             } catch (Exception e) {
                 screenModifierKey = InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_LALT).getName();
             }
-            if (swimOutTick != null) {
-                if (outTick == 13) outTick = swimOutTick;
-                swimOutTick = null;
-            }
-            if (legacyBindingMode != null) {
-                legacyMode = legacyBindingMode;
-                legacyBindingMode = null;
-            }
-            outTick = Mth.clamp(outTick, 0, 40);
+            exitTick = Mth.clamp(exitTick, 0, 40);
             bindResultRetentionFrames = Math.max(bindResultRetentionFrames, 0);
             activeConfigIndex = Math.max(activeConfigIndex, 0);
             displacementSmoothFactor = Mth.clamp(displacementSmoothFactor, 0.0, 1.0);

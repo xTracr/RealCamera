@@ -27,5 +27,6 @@
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "refmap": "realcamera-common.refmap.json"
 }

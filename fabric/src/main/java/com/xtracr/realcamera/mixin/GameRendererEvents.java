@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(GameRenderer.class)
 public abstract class GameRendererEvents {
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Camera;setup(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/world/entity/Entity;ZZF)V", shift = At.Shift.AFTER))
-    private void realcamera$onAfterCameraUpdate(float tickDelta, long limitTime, PoseStack poseStack, CallbackInfo cInfo) {
+    private void realcamera$onAfterCameraUpdate(float f, long l, PoseStack poseStack, CallbackInfo cInfo) {
         if (RealCameraCore.isActive()) {
             poseStack.mulPose(Axis.ZP.rotationDegrees(RealCameraCore.getRoll(0)));
         }

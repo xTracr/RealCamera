@@ -11,7 +11,7 @@ import net.minecraft.client.gui.screens.Screen;
 
 import java.util.List;
 
-public class ConfigScreen {
+public final class ConfigScreen {
     public static Screen create(Screen parent) {
         ConfigFile.load();
         ModConfig config = ConfigFile.config();
@@ -60,12 +60,12 @@ public class ConfigScreen {
                 .setDefaultValue(false)
                 .setSaveConsumer(b -> config.classic.disableWhenSwimming = b)
                 .build());
-        classic.addEntry(entryBuilder.startIntField(LocUtil.CONFIG_OPTION("outTick"), config.classic.outTick)
+        classic.addEntry(entryBuilder.startIntField(LocUtil.CONFIG_OPTION("exitTick"), config.classic.exitTick)
                 .setDefaultValue(13)
                 .setMin(0)
                 .setMax(40)
-                .setTooltip(LocUtil.CONFIG_TOOLTIP("outTick"))
-                .setSaveConsumer(i -> config.classic.outTick = i)
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("exitTick"))
+                .setSaveConsumer(i -> config.classic.exitTick = i)
                 .build());
         classic.addEntry(entryBuilder.startDoubleField(LocUtil.CONFIG_OPTION("scale"), config.classic.scale)
                 .setDefaultValue(8.0)
@@ -140,7 +140,7 @@ public class ConfigScreen {
         binding.addEntry(entryBuilder.startTextDescription(LocUtil.CONFIG_OPTION("toModelViewScreen",
                         LocUtil.MODEL_VIEW_TITLE().withStyle(ChatFormatting.BLUE)))
                 .build());
-        binding.addEntry(entryBuilder.startKeyCodeField(LocUtil.CONFIG_OPTION("screenModifierKey", LocUtil.MODEL_VIEW_TITLE()), config.getScreenModifierKey())
+        binding.addEntry(entryBuilder.startKeyCodeField(LocUtil.CONFIG_OPTION("screenModifierKey", LocUtil.MODEL_VIEW_TITLE()), InputConstants.getKey(config.binding.screenModifierKey))
                 .setDefaultValue(InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_LALT))
                 .setAllowMouse(false)
                 .setAllowModifiers(false)
@@ -196,20 +196,20 @@ public class ConfigScreen {
                 .setDefaultValue(false)
                 .setSaveConsumer(b -> config.binding.disableWhenSneaking = b)
                 .build());
-        disableConfig.add(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("disableWhenCrawling"), config.binding.disableWhenCrawling)
-                .setDefaultValue(false)
-                .setSaveConsumer(b -> config.binding.disableWhenCrawling = b)
-                .build());
         disableConfig.add(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("disableWhenSwimming"), config.binding.disableWhenSwimming)
                 .setDefaultValue(false)
                 .setSaveConsumer(b -> config.binding.disableWhenSwimming = b)
                 .build());
-        disableConfig.add(entryBuilder.startIntField(LocUtil.CONFIG_OPTION("outTick"), config.binding.outTick)
+        disableConfig.add(entryBuilder.startBooleanToggle(LocUtil.CONFIG_OPTION("disableWhenFlying"), config.binding.disableWhenFlying)
+                .setDefaultValue(false)
+                .setSaveConsumer(b -> config.binding.disableWhenFlying = b)
+                .build());
+        disableConfig.add(entryBuilder.startIntField(LocUtil.CONFIG_OPTION("exitTick"), config.binding.exitTick)
                 .setDefaultValue(13)
                 .setMin(0)
                 .setMax(40)
-                .setTooltip(LocUtil.CONFIG_TOOLTIP("outTick"))
-                .setSaveConsumer(i -> config.binding.outTick = i)
+                .setTooltip(LocUtil.CONFIG_TOOLTIP("exitTick"))
+                .setSaveConsumer(i -> config.binding.exitTick = i)
                 .build());
         disableConfig.add(entryBuilder.startStrList(LocUtil.CONFIG_OPTION("disableMainFeatureItems"), config.binding.disableMainFeatureItems)
                 .setDefaultValue(List.of())
