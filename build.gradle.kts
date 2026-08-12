@@ -11,7 +11,7 @@ allprojects {
     repositories {
         mavenCentral()
         maven("https://maven.shedaniel.me/")
-        maven("https://maven.terraformersmc.com/releases/")
+        maven("https://maven.terraformersmc.com")
         maven("https://maven.fabricmc.net/")
         maven("https://maven.neoforged.net/releases/")
         maven("https://api.modrinth.com/maven")

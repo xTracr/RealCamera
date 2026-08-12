@@ -143,7 +143,7 @@ public final class ModConfig {
         public AdjustMode adjustMode = AdjustMode.CAMERA;
         public boolean disableWhenSneaking = false;
         public boolean disableWhenSwimming = false;
-        public int outTick = 13;
+        public int exitTick = 13;
         public double scale = 8.0;
         public double cameraX = -0.5;
         public double cameraY = 0.04;
@@ -157,7 +157,7 @@ public final class ModConfig {
 
         private void clamp() {
             if (adjustMode == null) adjustMode = AdjustMode.CAMERA;
-            outTick = Mth.clamp(outTick, 0, 40);
+            exitTick = Mth.clamp(exitTick, 0, 40);
             scale = Mth.clamp(scale, 0.0, 64.0);
             cameraX = Mth.clamp(cameraX, MIN_OFFSET_D, MAX_OFFSET_D);
             cameraY = Mth.clamp(cameraY, MIN_OFFSET_D, MAX_OFFSET_D);
@@ -188,10 +188,10 @@ public final class ModConfig {
         public boolean adjustOffset = true;
         public boolean hideFailureMessage = false;
         public boolean renderStuckObjects = true;
-        public boolean disableWhenCrawling = false;
         public boolean disableWhenSneaking = false;
         public boolean disableWhenSwimming = false;
-        public int outTick = 13;
+        public boolean disableWhenFlying = false;
+        public int exitTick = 13;
         public int bindResultRetentionFrames = 2;
         public int activeConfigIndex = 0;
         public double displacementSmoothFactor = 0.4;
@@ -207,7 +207,7 @@ public final class ModConfig {
             } catch (Exception e) {
                 screenModifierKey = InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_LALT).getName();
             }
-            outTick = Mth.clamp(outTick, 0, 40);
+            exitTick = Mth.clamp(exitTick, 0, 40);
             bindResultRetentionFrames = Math.max(bindResultRetentionFrames, 0);
             activeConfigIndex = Math.max(activeConfigIndex, 0);
             displacementSmoothFactor = Mth.clamp(displacementSmoothFactor, 0.0, 1.0);

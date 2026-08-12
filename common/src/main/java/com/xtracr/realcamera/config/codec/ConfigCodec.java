@@ -20,9 +20,8 @@ import java.util.zip.InflaterInputStream;
 
 public final class ConfigCodec {
     static final short CURRENT_VERSION = 703;
-    static final StreamCodec<ByteBuf, BindTarget> CODEC_703 = ConfigCodec703.CODEC;
     static final Short2ReferenceMap<StreamCodec<ByteBuf, BindTarget>> CODECS = new Short2ReferenceOpenHashMap<>(Map.of(
-            CURRENT_VERSION, CODEC_703
+        CURRENT_VERSION, ConfigCodec703.CODEC
     ));
 
     public static BindTarget readWithVersion(ByteBuf byteBuf) throws DecoderException, IllegalArgumentException {
@@ -34,7 +33,7 @@ public final class ConfigCodec {
 
     public static void writeWithVersion(ByteBuf byteBuf, BindTarget bindTarget) throws EncoderException {
         byteBuf.writeShort(CURRENT_VERSION);
-        CODEC_703.encode(byteBuf, bindTarget);
+        CODECS.get(CURRENT_VERSION).encode(byteBuf, bindTarget);
     }
 
     public static DataResult<BindTarget> fromCompressedBase64(String base64) {
