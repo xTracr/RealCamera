@@ -35,10 +35,6 @@ dependencies {
     // Cloth Config
     runtimeOnly("me.shedaniel.cloth:cloth-config-neoforge:$clothConfigVersion")
 
-//    runtimeOnly("maven.modrinth:sodium:mc1.21.1-0.6.13-neoforge")
-//    runtimeOnly("maven.modrinth:create:6.0.10+mc1.21.1")
-//    runtimeOnly("maven.modrinth:sable:g8CObHcP")
-
     implementation(commonProject.sourceSets.main.get().output)
 }
 
