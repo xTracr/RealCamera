@@ -250,8 +250,8 @@ public final class ModConfig {
             exitTick = Mth.clamp(exitTick, 0, 40);
             bindResultRetentionFrames = Math.max(bindResultRetentionFrames, 0);
             if (activeConfigSelector == null || activeConfigSelector.isBlank()) activeConfigSelector = "0";
-            displacementSmoothFactor = Mth.clamp(displacementSmoothFactor, 0.0, 1.0);
-            rotationSmoothFactor = Mth.clamp(rotationSmoothFactor, 0.0, 1.0);
+            displacementSmoothFactor = Mth.clamp(displacementSmoothFactor, 0.0, 0.9);
+            rotationSmoothFactor = Mth.clamp(rotationSmoothFactor, 0.0, 0.9);
             if (disableMainFeatureItems == null) disableMainFeatureItems = List.of();
             if (disableRenderItems == null) disableRenderItems = List.of();
             if (fixedTargetList == null) fixedTargetList = new ArrayList<>();
