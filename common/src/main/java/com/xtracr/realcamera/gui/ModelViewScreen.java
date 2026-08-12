@@ -495,7 +495,7 @@ public final class ModelViewScreen extends Screen {
     }
 
     private void importBindTarget(Button button) {
-        String base64 = minecraft.keyboardHandler.getClipboard();
+        String base64 = minecraft.keyboardHandler.getClipboard().strip();
         DataResult<BindTarget> result = ConfigCodec.fromCompressedBase64(base64);
         switch (result) {
             case DataResult.Success<BindTarget> success -> {
