@@ -21,22 +21,13 @@ public class UVRectangleWidget extends AbstractWidget {
     private TextureViewport viewport;
     private Runnable onDelete = () -> {};
     private Runnable onFocusUpdate = () -> {};
-    
+
     public UVRectangleWidget(float uMin, float vMin, float uMax, float vMax) {
         super(0, 0, 16, 16, CommonComponents.EMPTY);
         this.uMin = uMin;
         this.vMin = vMin;
         this.uMax = uMax;
         this.vMax = vMax;
-    }
-
-    public UVRectangleWidget(float uMin, float vMin, float uMax, float vMax, @Nullable TextureViewport viewport) {
-        super(0, 0, 16, 16, CommonComponents.EMPTY);
-        this.uMin = uMin;
-        this.vMin = vMin;
-        this.uMax = uMax;
-        this.vMax = vMax;
-        this.viewport = viewport;
     }
 
     public void setOnDelete(@NonNull Runnable onDelete) {
@@ -47,8 +38,9 @@ public class UVRectangleWidget extends AbstractWidget {
         this.onFocusUpdate = onFocusUpdate;
     }
 
-    public void setViewport(@Nullable TextureViewport viewport) {
+    public UVRectangleWidget setViewport(@NonNull TextureViewport viewport) {
         this.viewport = viewport;
+        return this;
     }
 
     public UVRectangle toUVRectangle() {

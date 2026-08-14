@@ -2,9 +2,8 @@ package com.xtracr.realcamera.gui.util;
 
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.world.phys.Vec2;
-import org.jspecify.annotations.NonNull;
 
-public record TextureViewport(@NonNull ScreenRectangle area, int textureScale, float textureX, float textureY) {
+public record TextureViewport(ScreenRectangle area, int textureScale, float textureX, float textureY) {
     private static final int DEFAULT_SCALE = 80;
 
     public Vec2 uvToXY(float u, float v) {

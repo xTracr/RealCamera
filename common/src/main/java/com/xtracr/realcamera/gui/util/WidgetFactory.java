@@ -26,8 +26,8 @@ public final class WidgetFactory {
         return Button.builder(message, onPress).size(width, height).build();
     }
     
-    public static UVRectangleWidget rectWidget(UVRectangle rect, TextureViewport view) {
-        return new UVRectangleWidget(rect.uMin(), rect.vMin(), rect.uMax(), rect.vMax(), view);
+    public static UVRectangleWidget rectWidget(UVRectangle rect) {
+        return new UVRectangleWidget(rect.uMin(), rect.vMin(), rect.uMax(), rect.vMax());
     }
 
     public static <T> CycleButton.Builder<T> cyclingButton(Map<T, Component> messages, T defaultValue) {
