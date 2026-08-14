@@ -38,7 +38,9 @@ public final class ConfigFile {
     }
 
     public static void save() {
+        if (config == null) load();
         try (BufferedWriter writer = Files.newBufferedWriter(path.get())) {
+            config.clamp();
             GSON.toJson(config, writer);
         } catch (Exception exception) {
             RealCamera.LOGGER.warn("Failed to save " + FILE_NAME, exception);

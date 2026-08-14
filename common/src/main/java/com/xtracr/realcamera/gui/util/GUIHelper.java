@@ -1,4 +1,4 @@
-package com.xtracr.realcamera.gui;
+package com.xtracr.realcamera.gui.util;
 
 import com.xtracr.realcamera.mixin.accessor.GuiGraphicsExtractorAccessor;
 import com.xtracr.realcamera.renderer.state.BuiltModelRecord;

@@ -12,10 +12,10 @@ import com.xtracr.realcamera.config.BindTarget.BindConfig;
 import com.xtracr.realcamera.config.BindTarget.TargetConfig;
 import com.xtracr.realcamera.config.codec.ConfigCodec;
 import com.xtracr.realcamera.gui.components.*;
+import com.xtracr.realcamera.gui.util.*;
 import com.xtracr.realcamera.renderer.state.BuiltModelRecord;
 import com.xtracr.realcamera.renderer.state.VertexData;
 import com.xtracr.realcamera.util.LocUtil;
-import com.xtracr.realcamera.util.MathUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.*;
@@ -23,7 +23,6 @@ import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.layouts.FrameLayout;
 import net.minecraft.client.gui.layouts.GridLayout;
 import net.minecraft.client.gui.layouts.LayoutSettings;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
@@ -42,13 +41,15 @@ import org.jspecify.annotations.Nullable;
 import java.util.*;
 
 public final class ModelViewScreen extends Screen {
-    private static final int SELECTION_COLOR = 0x4F3333CC, SELECTION_HOVER_COLOR = 0x2F3333CC, OUTLINE_COLOR = 0xAAFFFFFF;
+    private static final int SELECTION_COLOR = 0x4F3333CC;
     private static final int SIDE_PANEL_BG = 0xFF444444, CENTER_PANEL_BG = 0xFF222222;
     private static final int DEFAULT_SCALE = 80, MIN_SCALE = 16, MAX_SCALE = 1024;
     private static final int CONFIG_NAME_MAX_LENGTH = 20;
-    private final int widgetWidth = 42, widgetHeight = 18, wideWidgetWidth = widgetWidth * 2 + 4, compactWidgetWidth = widgetWidth * 2 - 18;
+    private LayoutConstants layoutConstants = LayoutConstants.create(0, 0);
+    private final int widgetWidth = layoutConstants.widgetWidth(), widgetHeight = layoutConstants.widgetHeight(),
+            wideWidgetWidth = layoutConstants.wideWidgetWidth(), compactWidgetWidth = layoutConstants.compactWidgetWidth();
     private int x, y, xSize, ySize, middleWidth, page = 0;
-    private InputConstants.Key modifierKey = InputConstants.getKey(ConfigFile.config().binding.screenModifierKey);
+    private InputConstants.Key modifierKey = layoutConstants.modifierKey();
     private boolean initialized;
     private int modelScale = DEFAULT_SCALE, textureScale = DEFAULT_SCALE, layers = 0, selectionRadius = 10;
     private double modelX, modelY, textureX, textureY, clickedX = -1, clickedY = -1;
@@ -138,12 +139,13 @@ public final class ModelViewScreen extends Screen {
     @Override
     protected void init() {
         super.init();
-        xSize = Math.clamp(width - 10, 10, 450);
-        ySize = Math.clamp(height - 10, 10, 206);
-        middleWidth = Math.max(10, xSize - 200);
-        x = (width - xSize) / 2;
-        y = (height - ySize) / 2;
-        modifierKey = InputConstants.getKey(ConfigFile.config().binding.screenModifierKey);
+        layoutConstants = LayoutConstants.create(width, height);
+        xSize = layoutConstants.xSize();
+        ySize = layoutConstants.ySize();
+        middleWidth = layoutConstants.middleWidth();
+        x = layoutConstants.x();
+        y = layoutConstants.y();
+        modifierKey = layoutConstants.modifierKey();
         initWidgets(page);
         if (!initialized) loadBindTarget(RealCameraCore.currentTarget());
         initialized = true;
@@ -356,14 +358,17 @@ public final class ModelViewScreen extends Screen {
         addRenderableWidget(new SimpleIconButton(x + xSize - 21, y + ySize - 20, 16, 16, 32, 0, _ -> initWidgets((page + 1) % pages)));
     }
 
-    public boolean deleteFocusedRectWidget() {
-        if (focusedRectWidget == null) return false;
+    public void deleteFocusedRectWidget() {
+        if (focusedRectWidget == null) return;
         rectWidgets.remove(focusedRectWidget);
         removeWidget(focusedRectWidget);
+        uMinField.setNumber(0F);
+        vMinField.setNumber(0F);
+        uMaxField.setNumber(0F);
+        vMaxField.setNumber(0F);
         focusedRectWidgetNumberField.setNumber(0);
         focusedRectWidgetNumberField.setMax(rectWidgets.size());
         rectWidgetsSizeWidget.setMessage(LocUtil.literal(String.valueOf(rectWidgets.size())));
-        return true;
     }
 
     @Override
@@ -379,7 +384,8 @@ public final class ModelViewScreen extends Screen {
             if (clickedX >= 0 && clickedY >= 0)
                 graphics.fill(Math.min((int) clickedX, mouseX), Math.min((int) clickedY, mouseY), Math.max((int) clickedX, mouseX), Math.max((int) clickedY, mouseY), SELECTION_COLOR);
             if (disableModeButton.getValue() == 0)
-                new UVRectangleWidget(0f, 0f, 1f, 1f).extractWidgetRenderState(graphics, mouseX, mouseY, partialTicks);
+               new UVRectangleWidget(0f, 0f, 1f, 1f).setViewport(getNewTextureViewport())
+                        .extractWidgetRenderState(graphics, mouseX, mouseY, partialTicks);
             graphics.disableScissor();
         }
     }
@@ -396,6 +402,7 @@ public final class ModelViewScreen extends Screen {
         target.offsets().scale *= modelScale;
         String textureId = toggleCategoryButton.getValue() == Category.DISABLE ? disabledIdField.getValue() : "";
         Set<String> hiddenNames = hiddenNameMap.getOrDefault(nameField.getValue(), Set.of());
+        assert minecraft.player != null;
         List<BuiltModelRecord> modelRecords = captureRotatedEntity(analyser, target, minecraft.player);
         List<BuiltModelRecord> textureRecords = modelRecords.stream().filter(record -> record.containsTextureId(textureId)).toList();
         ModelAnalyser.applyDisableConfigs(modelRecords, target, textureId, hiddenNames);
@@ -440,7 +447,7 @@ public final class ModelViewScreen extends Screen {
         if (toggleCategoryButton.getValue() == Category.DISABLE && selectionModeButton.getValue() == 2 && inModelViewArea(mouseX, mouseY))
             analyser.computeFocusedOnModel(modelRecords, mouseX - selectionRadius, mouseY - selectionRadius, mouseX + selectionRadius, mouseY + selectionRadius);
         if (inTextureViewArea(mouseX, mouseY)) {
-            Vec2 mouseUV = translateXYToUV(mouseX, mouseY, textureViewArea);
+            Vec2 mouseUV = getNewTextureViewport().xyToUV(mouseX, mouseY);
             analyser.computeFocusedOnTexture(textureRecords, mouseUV.x, mouseUV.y);
         }
         if (inModelViewArea(mouseX, mouseY)) analyser.computeFocusedOnModel(modelRecords, mouseX, mouseY, layers);
@@ -478,21 +485,6 @@ public final class ModelViewScreen extends Screen {
         graphics.disableScissor();
     }
 
-    private Vec2 translateUVToXY(float u, float v, ScreenRectangle screenArea) {
-        int left = screenArea.left(), width = screenArea.width(), top = screenArea.top(), height = screenArea.height();
-        float scale = (textureScale * width) / (float) DEFAULT_SCALE;
-        float x = (u + (float) textureX - 0.5f) * scale + left + width / 2.0f;
-        float y = (v + (float) textureY - 0.5f) * scale + top + height / 2.0f;
-        return new Vec2(x, y);
-    }
-
-    private Vec2 translateXYToUV(float x, float y, ScreenRectangle screenArea) {
-        int left = screenArea.left(), width = screenArea.width(), top = screenArea.top(), height = screenArea.height();
-        float invScale = (float) DEFAULT_SCALE / (textureScale * width);
-        float u = (x - left - width / 2.0f) * invScale - (float) textureX + 0.5f;
-        float v = (y - top - height / 2.0f) * invScale - (float) textureY + 0.5f;
-        return new Vec2(u, v);
-    }
 
     private void importBindTarget(Button button) {
         String base64 = minecraft.keyboardHandler.getClipboard();
@@ -546,7 +538,7 @@ public final class ModelViewScreen extends Screen {
         disableModeButton.setValue(config.disableAll() ? 0 : 1);
         focusedRectWidget = null;
         rectWidgets.clear();
-        for (UVRectangle rect : config.rectangles()) rectWidgets.add(createRectWidget(rect));
+        config.rectangles().forEach(r -> addRectWidget(WidgetFactory.rectWidget(r)));
         focusedRectWidgetNumberField.setMax(rectWidgets.size());
         focusedRectWidgetNumberField.setNumber(0);
         rectWidgetsSizeWidget.setMessage(LocUtil.literal(String.valueOf(rectWidgets.size())));
@@ -691,40 +683,44 @@ public final class ModelViewScreen extends Screen {
             rectWidgets.add(rectWidget);
             focusedRectWidgetNumberField.setMax(rectWidgets.size());
             rectWidgetsSizeWidget.setMessage(LocUtil.literal(String.valueOf(rectWidgets.size())));
-            if (textureViewArea != null) addRenderableWidget(rectWidget);
+            rectWidget.setOnDelete(this::deleteFocusedRectWidget);
+            rectWidget.setOnFocusUpdate(() -> {
+                int idx = rectWidgets.indexOf(rectWidget);
+                focusedRectWidgetNumberField.setNumber(idx + 1);
+                uMinField.setNumber(rectWidget.uMin);
+                vMinField.setNumber(rectWidget.vMin);
+                uMaxField.setNumber(rectWidget.uMax);
+                vMaxField.setNumber(rectWidget.vMax);
+            });
+            if (textureViewArea != null) 
+                rectWidget.setViewport(getNewTextureViewport());
             return rectWidget;
         }
         return foundRectWidget;
     }
 
     private Tooltip createTooltip(String key, Object... args) {
-        return Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP(key, args));
-    }
-
-    private UVRectangleWidget createRectWidget(UVRectangle rect) {
-        return new UVRectangleWidget(rect.uMin(), rect.vMin(), rect.uMax(), rect.vMax());
+        return WidgetFactory.tooltip(key, args);
     }
 
     private Button createButton(Component message, int width, Button.OnPress onPress) {
-        return Button.builder(message, onPress).size(width, widgetHeight).build();
+        return WidgetFactory.button(message, width, widgetHeight, onPress);
     }
 
     private <T> CycleButton.Builder<T> createCyclingButtonBuilder(Map<T, Component> messages, T defaultValue) {
-        return new CycleButton.Builder<>(messages::get, () -> defaultValue).withValues(messages.keySet());
+        return WidgetFactory.cyclingButton(messages, defaultValue);
     }
 
     private DoubleSlider createSlider(String key, int width, double min, double max) {
-        return new DoubleSlider(width, widgetHeight, 0, min, max, d -> LocUtil.MODEL_VIEW_WIDGET(key, MathUtil.round(d, 2)));
+        return WidgetFactory.slider(key, width, widgetHeight, min, max);
     }
 
     private NumberField<Float> createFloatField(int width, float defaultValue) {
-        return NumberField.ofFloat(font, width - 2, widgetHeight - 2, defaultValue, null).setMax(1.0f).setMin(0f);
+        return WidgetFactory.floatField(font, width, widgetHeight, defaultValue);
     }
 
     private EditBox createTextField(int width, int maxLength) {
-        EditBox editBox = new EditBox(font, 0, 0, width - 2, widgetHeight - 2, CommonComponents.EMPTY);
-        editBox.setMaxLength(maxLength);
-        return editBox;
+        return WidgetFactory.textField(font, width, widgetHeight, maxLength);
     }
 
     private boolean inModelViewArea(double x, double y) {
@@ -819,7 +815,10 @@ public final class ModelViewScreen extends Screen {
                 if (super.mouseClicked(event, doubleClick)) return true;
                 if (storedX >= 0 && storedY >= 0) {
                     float xMin = (float) Math.min(storedX, event.x()), yMin = (float) Math.min(storedY, event.y()), xMax = (float) Math.max(storedX, event.x()), yMax = (float) Math.max(storedY, event.y());
-                    setFocused(addRectWidget(new UVRectangleWidget(xMin, yMin, xMax, yMax, textureViewArea)));
+                    TextureViewport viewport = getNewTextureViewport();
+                    Vec2 minUV = viewport.xyToUV(xMin, yMin);
+                    Vec2 maxUV = viewport.xyToUV(xMax, yMax);
+                    setFocused(addRectWidget(new UVRectangleWidget(minUV.x, minUV.y, maxUV.x, maxUV.y)));
                     return true;
                 }
                 clickedX = (int) event.x();
@@ -847,6 +846,7 @@ public final class ModelViewScreen extends Screen {
             if (inTextureViewArea(event.x(), event.y())) {
                 textureX += dx / textureScale;
                 textureY += dy / textureScale;
+                rectWidgets.forEach(r -> r.setViewport(getNewTextureViewport()));
                 return true;
             }
         }
@@ -866,6 +866,7 @@ public final class ModelViewScreen extends Screen {
             return true;
         } else if (inTextureViewArea(mouseX, mouseY)) {
             textureScale = Mth.clamp(textureScale + (int) verticalAmount * textureScale / 16, MIN_SCALE, MAX_SCALE);
+            rectWidgets.forEach(r -> r.setViewport(getNewTextureViewport()));
         }
         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
@@ -884,104 +885,7 @@ public final class ModelViewScreen extends Screen {
         return pauseButton.getValue() == 1;
     }
 
-    private enum Category {
-        CONFIGS,
-        PREVIEW,
-        DISABLE;
-
-        public final String id = name().toLowerCase();
-
-        public Category next() {
-            return values()[(ordinal() + 1) % values().length];
-        }
-    }
-
-    private final class UVRectangleWidget extends AbstractWidget {
-        private float uMin, vMin, uMax, vMax;
-
-        public UVRectangleWidget(float uMin, float vMin, float uMax, float vMax) {
-            super(0, 0, 16, 16, CommonComponents.EMPTY);
-            this.uMin = uMin;
-            this.vMin = vMin;
-            this.uMax = uMax;
-            this.vMax = vMax;
-        }
-
-        public UVRectangleWidget(float xMin, float yMin, float xMax, float yMax, @NonNull ScreenRectangle screenArea) {
-            super((int) xMin, (int) yMin, (int) (xMax - xMin), (int) (yMax - yMin), CommonComponents.EMPTY);
-            Vec2 minUV = translateXYToUV(xMin, yMin, screenArea), maxUV = translateXYToUV(xMax, yMax, screenArea);
-            this.uMin = minUV.x;
-            this.vMin = minUV.y;
-            this.uMax = maxUV.x;
-            this.vMax = maxUV.y;
-        }
-
-        public UVRectangle toUVRectangle() {
-            return new UVRectangle(uMin, vMin, uMax, vMax);
-        }
-
-        public boolean contains(UVRectangleWidget other) {
-            return uMin <= other.uMin && vMin <= other.vMin && uMax >= other.uMax && vMax >= other.vMax;
-        }
-
-        public boolean mergeWith(UVRectangleWidget other) {
-            if (uMin == other.uMin && uMax == other.uMax && vMin <= other.vMax && vMax >= other.vMin) {
-                vMin = Math.min(vMin, other.vMin);
-                vMax = Math.max(vMax, other.vMax);
-                return true;
-            }
-            if (vMin == other.vMin && vMax == other.vMax && uMin <= other.uMax && uMax >= other.uMin) {
-                uMin = Math.min(uMin, other.uMin);
-                uMax = Math.max(uMax, other.uMax);
-                return true;
-            }
-            return false;
-        }
-
-        @Override
-        protected void extractWidgetRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
-            Vec2 minXY = translateUVToXY(uMin, vMin, textureViewArea), maxXY = translateUVToXY(uMax, vMax, textureViewArea);
-            float x1 = minXY.x, y1 = minXY.y, x2 = maxXY.x, y2 = maxXY.y, width = x2 - x1, height = y2 - y1;
-            setX((int) x1);
-            setY((int) y1);
-            setWidth((int) width);
-            setHeight((int) height);
-            GUIHelper.enableScissor(graphics, textureViewArea);
-            GUIHelper.fill(graphics, x1, y1, x2, y2, SELECTION_COLOR);
-            if (isHoveredOrFocused()) GUIHelper.fill(graphics, x1, y1, x2, y2, SELECTION_HOVER_COLOR);
-            if (isFocused() || this == focusedRectWidget)
-                GUIHelper.outline(graphics, x1, y1, width, height, OUTLINE_COLOR);
-            graphics.disableScissor();
-        }
-
-        @Override
-        public boolean keyPressed(@NonNull KeyEvent event) {
-            if (textureViewArea == null) return false;
-            if (event.input() == InputConstants.KEY_DELETE && deleteFocusedRectWidget()) return true;
-            if (event.isSelection() && uMin < uMax && vMin < vMax) {
-                textureX = 0.5 * (1 - uMin - uMax);
-                textureY = 0.5 * (1 - vMin - vMax);
-                textureScale = (int) Mth.clamp(32d * DEFAULT_SCALE / (textureViewArea.width() * Math.sqrt((uMax - uMin) * (vMax - vMin))), MIN_SCALE, MAX_SCALE);
-                return true;
-            }
-            return super.keyPressed(event);
-        }
-
-        @Override
-        public void setFocused(boolean focused) {
-            super.setFocused(focused);
-            if (focused) {
-                focusedRectWidget = this;
-                focusedRectWidgetNumberField.setNumber(rectWidgets.indexOf(this) + 1);
-                uMinField.setNumber(uMin);
-                vMinField.setNumber(vMin);
-                uMaxField.setNumber(uMax);
-                vMaxField.setNumber(vMax);
-            }
-        }
-
-        @Override
-        protected void updateWidgetNarration(@NonNull NarrationElementOutput narrationElementOutput) {
-        }
+    public TextureViewport getNewTextureViewport() {
+        return new TextureViewport(textureViewArea, textureScale, (float) textureX, (float) textureY);
     }
 }
