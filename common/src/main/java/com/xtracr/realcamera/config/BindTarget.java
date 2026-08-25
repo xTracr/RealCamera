@@ -33,8 +33,8 @@ public record BindTarget(
         BindConfig bindConfig = new BindConfig(shouldBind, true, shouldBind, shouldBind);
         OffsetConfig offsets = new OffsetConfig();
         offsets.x = -0.1f;
-        DisableConfig playerHead = new DisableConfig("player_head", textureId, false, List.of(new UVRectangle(0, 0, 1.0f, 0.25f)));
-        DisableConfig dragonHead = new DisableConfig("dragon_head", "minecraft:textures/entity/enderdragon/dragon.png", true, List.of());
+        DisableConfig playerHead = new DisableConfig("player_head", textureId, true, false, List.of(new UVRectangle(0, 0, 1.0f, 0.25f)));
+        DisableConfig dragonHead = new DisableConfig("dragon_head", "minecraft:textures/entity/enderdragon/dragon.png", true, true, List.of());
         List<DisableConfig> disableConfigs = List.of(playerHead, dragonHead);
         return new BindTarget(name, textureId, priority, 0.2f, targetConfig, bindConfig, offsets, disableConfigs);
     }

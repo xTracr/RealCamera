@@ -43,11 +43,11 @@ public final class ModelAnalyser {
     @Nullable
     private BuiltModelRecord focusedRecord;
 
-    public static void applyDisableConfigs(List<BuiltModelRecord> modelRecords, BindTarget target, String textureId, Set<String> hiddenNames) {
+    public static void applyDisableConfigs(List<BuiltModelRecord> modelRecords, BindTarget target, String textureId, Set<String> disableActiveNameMap) {
         for (int i = 0; i < modelRecords.size(); i++) {
             BuiltModelRecord record = modelRecords.get(i);
             List<VertexData[]> primitives = new ArrayList<>();
-            DisableConfig[] disableConfigs = target.filteredDisableConfigs(config -> record.containsTextureId(config.textureId()) && hiddenNames.contains(config.name()));
+            DisableConfig[] disableConfigs = target.filteredDisableConfigs(config -> record.containsTextureId(config.textureId()) && disableActiveNameMap.contains(config.name()));
             boolean disableAll = !record.containsTextureId(textureId);
             for (DisableConfig config : disableConfigs) {
                 if (config.disableAll()) {
