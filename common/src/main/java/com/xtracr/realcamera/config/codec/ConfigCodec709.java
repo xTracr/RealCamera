@@ -12,7 +12,7 @@ import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
 
-final class ConfigCodec703 {
+final class ConfigCodec709 {
     static final StreamCodec<ByteBuf, TargetConfig> TARGET_CONFIG_CODEC = StreamCodec.composite(
             ByteBufCodecs.FLOAT, TargetConfig::forwardU,
             ByteBufCodecs.FLOAT, TargetConfig::forwardV,
@@ -57,13 +57,12 @@ final class ConfigCodec703 {
             ByteBufCodecs.FLOAT, UVRectangle::vMax,
             UVRectangle::new
     ).apply(ByteBufCodecs.list());
-
-    @SuppressWarnings("deprecation")
     static final StreamCodec<ByteBuf, List<DisableConfig>> DISABLE_CONFIGS_CODEC = StreamCodec.composite(
             ByteBufCodecs.STRING_UTF8, DisableConfig::name,
             ByteBufCodecs.STRING_UTF8, DisableConfig::textureId,
             ByteBufCodecs.BOOL, DisableConfig::disableAll,
             UV_RECTANGLES_CODEC, DisableConfig::rectangles,
+            ByteBufCodecs.BOOL, DisableConfig::active,
             DisableConfig::new
     ).apply(ByteBufCodecs.list());
     static final StreamCodec<ByteBuf, BindTarget> CODEC = StreamCodec.composite(

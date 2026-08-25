@@ -59,7 +59,7 @@ public final class ModelAnalyser {
                 primitiveFor:
                 for (VertexData vertex : primitive) {
                     for (DisableConfig config : disableConfigs) {
-                        if (config.disable(vertex)) continue primitiveFor;
+                        if (config.disable(vertex, true)) continue primitiveFor;
                     }
                     primitives.add(primitive);
                     break;

@@ -17,6 +17,7 @@ public final class DisableConfigAdapter extends TypeAdapter<DisableConfig> {
         out.name("name").value(value.name());
         out.name("textureId").value(value.textureId());
         out.name("disableAll").value(value.disableAll());
+        out.name("active").value(value.active);
         out.name("rectangles");
         out.beginArray();
         for (UVRectangle rect : value.rectangles()) {
@@ -36,6 +37,7 @@ public final class DisableConfigAdapter extends TypeAdapter<DisableConfig> {
         String name = "";
         String textureId = "";
         boolean disableAll = false;
+        boolean active = false;
         List<UVRectangle> rectangles = new ArrayList<>();
 
         in.beginObject();
@@ -49,11 +51,12 @@ public final class DisableConfigAdapter extends TypeAdapter<DisableConfig> {
                     while (in.hasNext()) rectangles.add(readRectangle(in));
                     in.endArray();
                 }
+                case "active" -> active = in.nextBoolean();
                 default -> in.skipValue();
             }
         }
         in.endObject();
-        return new DisableConfig(name, textureId, disableAll, rectangles);
+        return new DisableConfig(name, textureId, disableAll, rectangles, active);
     }
 
     private UVRectangle readRectangle(JsonReader in) throws IOException {
