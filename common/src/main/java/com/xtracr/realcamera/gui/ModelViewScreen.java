@@ -95,7 +95,7 @@ public final class ModelViewScreen extends Screen {
     private final NumberWidgetPair offsetRollPair = new NumberWidgetPair(font, "roll", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
     private final List<DisableConfig> disableConfigs = new ArrayList<>();
     private final List<UVRectangleWidget> rectWidgets = new ArrayList<>();
-    private final Map<String, Set<String>> hiddenNameMap = new HashMap<>();
+    private final Set<String> disableActiveNameMap = new HashSet<>();
     private final List<NumberWidgetPair> widgetPairs = List.of(offsetXPair, offsetYPair, offsetZPair, offsetPitchPair, offsetYawPair, offsetRollPair);
     private final CycleButton<Integer> selectingButton = createCyclingButtonBuilder(ImmutableSortedMap.of(
             0, LocUtil.MODEL_VIEW_WIDGET("forwardVector").withStyle(ChatFormatting.GREEN),
@@ -266,15 +266,8 @@ public final class ModelViewScreen extends Screen {
             if (toggleCategoryButton.getValue() == Category.DISABLE && !syncDisableDraft(button, true)) return;
             button.setTooltip(null);
             BindTarget bindTarget = genBindTarget();
-            Set<String> hiddenNames = this.hiddenNameMap.get(this.nameField.getValue());
-            if (hiddenNames != null)
-            {
-                for (DisableConfig config : bindTarget.disableConfigs())
-                    config.active = hiddenNames.contains(config.name());
-            }
             ConfigFile.config().putBindTarget(bindTarget);
             ConfigFile.save();
-            if (toggleCategoryButton.getValue() != Category.DISABLE) loadBindTarget(bindTarget);
             initWidgets(page);
         }));
         rows.addChild(priorityField, smallSettings).setTooltip(createTooltip("priority"));
@@ -309,33 +302,25 @@ public final class ModelViewScreen extends Screen {
             }), smallSettings).setTooltip(createTooltip("saveAs"));
             for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, size); i++) {
                 DisableConfig config = disableConfigs.get(i);
-                String targetName = nameField.getValue();
-                Set<String> hiddenNames = hiddenNameMap.computeIfAbsent(targetName, str -> new HashSet<>());
-                CycleIconButton iconButton = new CycleIconButton(32, 16, hiddenNames.contains(config.name()) ? 1 : 0, 2);
-                addRenderableWidget(iconButton)
+                addRenderableWidget(new CycleIconButton(32, 16, disableActiveNameMap.contains(config.name()) ? 1 : 0,
+                        2))
                         .setOnValueChange(value -> {
-                            if (value == 0) hiddenNames.remove(config.name());
-                            else hiddenNames.add(config.name());
+                            if (value == 0) disableActiveNameMap.remove(config.name());
+                            else disableActiveNameMap.add(config.name());
                         })
                         .setPosition(x + (xSize + middleWidth) / 2 - 20, y + 5 + (widgetHeight + 2) * (2 + i % widgetsPerPage));
-                iconButton.setValue(config.active ? 1 : 0);
-                if (config.active)
-                    hiddenNames.add(config.name());
-                rows.addChild(createButton(LocUtil.literal(config.name()), compactWidgetWidth, button -> {
+                rows.addChild(createButton(LocUtil.literal(config.name()), compactWidgetWidth, _ -> {
                     loadDisableConfig(config);
                     initWidgets(page);
                 }), 3).setTooltip(Tooltip.create(LocUtil.literal(config.name())));
                 rows.addChild(new SimpleIconButton(48, 0, _ -> {
                     disableConfigs.removeIf(disableConfig -> disableConfig.name().equals(config.name()));
-                    hiddenNameMap.values().forEach(names -> names.remove(config.name()));
+                    disableActiveNameMap.remove(config.name());
                     if (disabledNameField.getValue().equals(config.name())) clearDisableDraft();
                     initWidgets(page * widgetsPerPage > size - 2 && size > 1 ? page - 1 : page);
                 }), smallSettings);
             }
         } else {
-            Set<String> hiddenNames = hiddenNameMap.get(nameField.getValue());
-            if (hiddenNames != null)
-                hiddenNames.clear();
             widgetsPerPage = 8;
             List<BindTarget> fixedTargetList = ConfigFile.config().binding.fixedTargetList.stream().filter(target -> target.name().equals(RealCameraCore.currentTarget().name())).toList();
             List<BindTarget> targetList = ConfigFile.config().binding.targetList;
@@ -408,10 +393,10 @@ public final class ModelViewScreen extends Screen {
         BindTarget target = genBindTarget();
         target.offsets().scale *= modelScale;
         String textureId = toggleCategoryButton.getValue() == Category.DISABLE ? disabledIdField.getValue() : "";
-        Set<String> hiddenNames = hiddenNameMap.getOrDefault(nameField.getValue(), Set.of());
         List<BuiltModelRecord> modelRecords = captureRotatedEntity(analyser, target, minecraft.player);
         List<BuiltModelRecord> textureRecords = modelRecords.stream().filter(record -> record.containsTextureId(textureId)).toList();
-        ModelAnalyser.applyDisableConfigs(modelRecords, target, textureId, hiddenNames);
+        if (toggleCategoryButton.getValue() == Category.DISABLE) 
+            ModelAnalyser.applyDisableConfigs(modelRecords, target, textureId, disableActiveNameMap);
         computeFocusedPrimitives(analyser, modelRecords, textureRecords, mouseX, mouseY);
         renderCulledModels(graphics, analyser, target, modelRecords);
         renderFlattenedModels(graphics, analyser, textureRecords);
@@ -587,11 +572,8 @@ public final class ModelViewScreen extends Screen {
             button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("emptyTextureId").withStyle(ChatFormatting.RED)));
             return false;
         }
-        boolean active = false;
-        Set<String> hiddenNames = this.hiddenNameMap.get(this.nameField.getValue());
-        if (hiddenNames != null)
-            active = hiddenNames.contains(name);
-        DisableConfig disableConfig = new DisableConfig(name, textureId, disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toList(), active);
+        DisableConfig disableConfig = new DisableConfig(name, textureId, disableActiveNameMap.contains(name),
+                disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toList());
         upsertDisableConfig(disableConfig);
         return true;
     }
@@ -600,15 +582,14 @@ public final class ModelViewScreen extends Screen {
         return !disabledIdField.getValue().isBlank() && (disableModeButton.getValue() == 0 || !rectWidgets.isEmpty());
     }
 
-    private boolean upsertDisableConfig(DisableConfig disableConfig) {
+    private void upsertDisableConfig(DisableConfig disableConfig) {
         for (int i = 0; i < disableConfigs.size(); i++) {
             if (disableConfigs.get(i).name().equals(disableConfig.name())) {
                 disableConfigs.set(i, disableConfig);
-                return false;
+                return;
             }
         }
         disableConfigs.add(disableConfig);
-        return true;
     }
 
     private String generateDisableConfigName(String textureId) {
@@ -687,15 +668,24 @@ public final class ModelViewScreen extends Screen {
         offsetRollPair.setNumber(offsets.roll);
         disableConfigs.clear();
         disableConfigs.addAll(target.disableConfigs());
+        disableConfigs.forEach(config -> {
+            if (config.active()) disableActiveNameMap.add(config.name());
+        });
         clearDisableDraft();
     }
 
     private BindTarget genBindTarget() {
-        DisableConfig currentDisableConfig = new DisableConfig(disabledNameField.getValue(), disabledIdField.getValue(), disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toList(), false);
         List<DisableConfig> newDisableConfigs = new ArrayList<>(disableConfigs);
         for (int i = 0; i < newDisableConfigs.size(); i++) {
-            if (newDisableConfigs.get(i).name().equals(currentDisableConfig.name()))
-                newDisableConfigs.set(i, currentDisableConfig);
+            DisableConfig newDisableConfig = newDisableConfigs.get(i);
+            boolean active = disableActiveNameMap.contains(newDisableConfig.name());
+            if (newDisableConfig.name().equals(disabledNameField.getValue()))
+                newDisableConfigs.set(i, new DisableConfig(disabledNameField.getValue(), disabledIdField.getValue(), active, 
+                        disableModeButton.getValue() == 0, rectWidgets.stream().map(UVRectangleWidget::toUVRectangle).toList()));
+            else if (newDisableConfig.active() != active) {
+                newDisableConfigs.set(i, new DisableConfig(newDisableConfig.name(), newDisableConfig.textureId(), active,
+                        newDisableConfig.disableAll(), newDisableConfig.rectangles()));
+            }
         }
         TargetConfig targetConfig = new TargetConfig(forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber());
         BindConfig bindConfig = new BindConfig(bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);

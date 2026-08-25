@@ -12,22 +12,21 @@ public final class DisableConfig {
     private final LongOpenHashSet disabledUVs = new LongOpenHashSet(), enabledUVs = new LongOpenHashSet();
     private final String name;
     private final String textureId;
+    private final boolean active;
     private final boolean disableAll;
     private final List<UVRectangle> rectangles;
-    public boolean active;
 
-    public DisableConfig(String name, String textureId, boolean disableAll, List<UVRectangle> rectangles, boolean active) {
+    public DisableConfig(String name, String textureId, boolean active, boolean disableAll, List<UVRectangle> rectangles) {
         this.name = name;
         this.textureId = textureId;
+        this.active = active;
         this.disableAll = disableAll;
         this.rectangles = rectangles;
-        this.active = active;
     }
 
 	@Deprecated
-    public DisableConfig(String name, String textureId, boolean disableAll, List<UVRectangle> rectangles)
-    {
-        this(name, textureId, disableAll, rectangles, true);
+    public DisableConfig(String name, String textureId, boolean disableAll, List<UVRectangle> rectangles) {
+        this(name, textureId, true, disableAll, rectangles);
     }
 
     public String name() {
@@ -46,19 +45,12 @@ public final class DisableConfig {
         return rectangles;
     }
 
-    public boolean active()
-    {
+    public boolean active() {
         return this.active;
     }
 
     public boolean disable(VertexData vertex) {
-        return this.disable(vertex, false);
-    }
-
-    public boolean disable(VertexData vertex, boolean forceActive)
-    {
-        if (!this.active && !forceActive)
-            return false;
+        if (!this.active) return false;
         final float u = vertex.u(), v = vertex.v();
         final long packed = (long) Float.floatToIntBits(u) << 32 | Float.floatToIntBits(v);
         if (enabledUVs.contains(packed)) return false;

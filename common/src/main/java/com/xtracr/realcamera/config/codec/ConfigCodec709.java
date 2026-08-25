@@ -60,9 +60,9 @@ final class ConfigCodec709 {
     static final StreamCodec<ByteBuf, List<DisableConfig>> DISABLE_CONFIGS_CODEC = StreamCodec.composite(
             ByteBufCodecs.STRING_UTF8, DisableConfig::name,
             ByteBufCodecs.STRING_UTF8, DisableConfig::textureId,
+            ByteBufCodecs.BOOL, DisableConfig::active,
             ByteBufCodecs.BOOL, DisableConfig::disableAll,
             UV_RECTANGLES_CODEC, DisableConfig::rectangles,
-            ByteBufCodecs.BOOL, DisableConfig::active,
             DisableConfig::new
     ).apply(ByteBufCodecs.list());
     static final StreamCodec<ByteBuf, BindTarget> CODEC = StreamCodec.composite(

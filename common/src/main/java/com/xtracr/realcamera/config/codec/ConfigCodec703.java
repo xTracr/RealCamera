@@ -12,6 +12,7 @@ import net.minecraft.network.codec.StreamCodec;
 
 import java.util.List;
 
+@SuppressWarnings("deprecation")
 final class ConfigCodec703 {
     static final StreamCodec<ByteBuf, TargetConfig> TARGET_CONFIG_CODEC = StreamCodec.composite(
             ByteBufCodecs.FLOAT, TargetConfig::forwardU,
@@ -57,8 +58,6 @@ final class ConfigCodec703 {
             ByteBufCodecs.FLOAT, UVRectangle::vMax,
             UVRectangle::new
     ).apply(ByteBufCodecs.list());
-
-    @SuppressWarnings("deprecation")
     static final StreamCodec<ByteBuf, List<DisableConfig>> DISABLE_CONFIGS_CODEC = StreamCodec.composite(
             ByteBufCodecs.STRING_UTF8, DisableConfig::name,
             ByteBufCodecs.STRING_UTF8, DisableConfig::textureId,
