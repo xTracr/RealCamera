@@ -1,9 +1,8 @@
 package com.xtracr.realcamera.gui;
 
-import com.google.common.collect.ImmutableSet;
-import com.mojang.blaze3d.PrimitiveTopology;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
 import com.xtracr.realcamera.api.BindResult;
 import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.BindTarget.TargetConfig;
@@ -18,8 +17,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
@@ -34,7 +33,6 @@ import java.util.Set;
 
 public final class ModelAnalyser {
     private static final MultiVertexCatcher vertexCatcher = MultiVertexCatcher.create();
-    private static final Set<RenderType> UNFOCUSABLE_RENDER_TYPES = ImmutableSet.of(RenderTypes.armorEntityGlint(), RenderTypes.glintTranslucent(), RenderTypes.glint(), RenderTypes.entityGlint());
     private static final int PLANE_ARGB = 0x6F3333CC, FORWARD_ARGB = 0xFF00CC00, UPWARD_ARGB = 0xFFCC0000, LEFT_ARGB = 0xFF0000CC, FOCUSED_ARGB = 0x4FFFFFFF;
     private static final int Z_QUAD = GuiCulledModelsRenderer.MAX_Z + 10, Z_LINE = Z_QUAD + 10;
     private final List<VertexData[]> focusedPolyhedron = new ArrayList<>();
@@ -69,6 +67,11 @@ public final class ModelAnalyser {
         }
     }
 
+    private static boolean isUnfocusableRenderType(RenderType renderType) {
+        Identifier location = renderType.pipeline().getLocation();
+        return "renderpearl".equals(location.getNamespace()) && location.getPath().contains("glint");
+    }
+
     private static long quantizedKey(VertexData vertex) {
         int x = Math.round(vertex.x() * 1e5f);
         int y = Math.round(vertex.y() * 1e5f);
@@ -101,7 +104,7 @@ public final class ModelAnalyser {
         if (focusedRecord != null && !focusedPolyhedron.isEmpty()) return;
         List<ZEntry> sortByZ = new ArrayList<>();
         for (BuiltModelRecord record : modelRecords) {
-            if (UNFOCUSABLE_RENDER_TYPES.contains(record.renderType())) continue;
+            if (isUnfocusableRenderType(record.renderType())) continue;
             VertexData[][] primitives = record.primitives();
             for (VertexData[] primitive : primitives) {
                 if (!VertexData.containsXY(primitive, mouseX, mouseY)) continue;
@@ -121,7 +124,7 @@ public final class ModelAnalyser {
         if (focusedRecord != null && !focusedPolyhedron.isEmpty()) return;
         List<ZEntry> sortByZ = new ArrayList<>();
         for (BuiltModelRecord record : modelRecords) {
-            if (UNFOCUSABLE_RENDER_TYPES.contains(record.renderType())) continue;
+            if (isUnfocusableRenderType(record.renderType())) continue;
             VertexData[][] primitives = record.primitives();
             primitiveFor:
             for (VertexData[] primitive : primitives) {

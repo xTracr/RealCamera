@@ -1,12 +1,11 @@
 package com.xtracr.realcamera.mixin;
 
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.util.CrosshairUtil;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -17,7 +16,6 @@ import net.minecraft.client.renderer.state.level.LevelRenderState;
 import net.minecraft.world.TickRateManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix4fc;
 import org.joml.Vector4f;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -33,9 +31,9 @@ public abstract class MixinLevelRenderer {
     private EntityRenderDispatcher entityRenderDispatcher;
 
     @Inject(method = "render", at = @At("HEAD"))
-    private void realcamera$atRenderLevelHead(GraphicsResourceAllocator resourceAllocator, DeltaTracker deltaTracker, boolean renderOutline, CameraRenderState cameraState, Matrix4fc modelViewMatrix, GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky, CallbackInfo ci) {
+    private void realcamera$atRenderLevelHead(GraphicsResourceAllocator resourceAllocator, boolean renderOutline, CameraRenderState cameraState, GpuBufferSlice terrainFog, Vector4f fogColor, boolean shouldRenderSky, boolean consistentDepthRequired, CallbackInfo ci) {
         if (ConfigFile.config().dynamicCrosshair && RealCameraCore.isActive()) {
-            CrosshairUtil.update(Minecraft.getInstance(), cameraState.pos, modelViewMatrix, cameraState.projectionMatrix);
+            CrosshairUtil.update(Minecraft.getInstance(), cameraState.pos, cameraState.viewRotationMatrix, cameraState.projectionMatrix);
         }
     }
 

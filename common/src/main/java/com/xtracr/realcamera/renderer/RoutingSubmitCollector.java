@@ -14,8 +14,8 @@ import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.state.level.QuadParticleRenderState;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.client.renderer.texture.UvMapping;
+import net.minecraft.client.resources.model.geometry.ItemQuads;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -57,6 +57,11 @@ public final class RoutingSubmitCollector implements SubmitNodeCollector {
     }
 
     @Override
+    public void submitTextBackground(@NonNull PoseStack poseStack, float x, float y, float width, float height, int color, Font.@NonNull DisplayMode displayMode, int backgroundColor) {
+        defaultCollector.submitTextBackground(poseStack, x, y, width, height, color, displayMode, backgroundColor);
+    }
+
+    @Override
     public void submitFlame(@NonNull PoseStack poseStack, @NonNull EntityRenderState renderState, @NonNull Quaternionf rotation) {
         defaultCollector.submitFlame(poseStack, renderState, rotation);
     }
@@ -67,8 +72,13 @@ public final class RoutingSubmitCollector implements SubmitNodeCollector {
     }
 
     @Override
-    public <S> void submitModel(@NonNull Model<? super S> model, @NonNull S state, @NonNull PoseStack poseStack, @NonNull RenderType renderType, int lightCoords, int overlayCoords, int tintedColor, @Nullable TextureAtlasSprite sprite, int outlineColor, ModelFeatureRenderer.@Nullable CrumblingOverlay crumblingOverlay) {
-        modelCollector.submitModel(model, state, poseStack, renderType, lightCoords, overlayCoords, tintedColor, sprite, outlineColor, crumblingOverlay);
+    public <S> void submitModel(@NonNull Model<? super S> model, @NonNull S state, @NonNull PoseStack poseStack, @NonNull RenderType renderType, int lightCoords, int overlayCoords, int tintedColor, @Nullable UvMapping uvMapping, int outlineColor) {
+        modelCollector.submitModel(model, state, poseStack, renderType, lightCoords, overlayCoords, tintedColor, uvMapping, outlineColor);
+    }
+
+    @Override
+    public <S> void submitCrumblingOverlay(@NonNull Model<? super S> model, @NonNull S state, @NonNull PoseStack poseStack, @NonNull RenderType renderType, int lightCoords, int overlayCoords, int tintedColor, ModelFeatureRenderer.@NonNull CrumblingOverlay crumblingOverlay) {
+        modelCollector.submitCrumblingOverlay(model, state, poseStack, renderType, lightCoords, overlayCoords, tintedColor, crumblingOverlay);
     }
 
     @Override
@@ -82,8 +92,8 @@ public final class RoutingSubmitCollector implements SubmitNodeCollector {
     }
 
     @Override
-    public void submitBreakingBlockModel(@NonNull PoseStack poseStack, @NonNull List<BlockStateModelPart> parts, int progress) {
-        defaultCollector.submitBreakingBlockModel(poseStack, parts, progress);
+    public void submitBreakingBlockModel(@NonNull PoseStack poseStack, @NonNull List<BlockStateModelPart> parts, int progress, boolean randomize) {
+        defaultCollector.submitBreakingBlockModel(poseStack, parts, progress, randomize);
     }
 
     @Override
@@ -92,7 +102,7 @@ public final class RoutingSubmitCollector implements SubmitNodeCollector {
     }
 
     @Override
-    public void submitItem(@NonNull PoseStack poseStack, @NonNull ItemDisplayContext displayContext, int lightCoords, int overlayCoords, int outlineColor, int @NonNull [] tintLayers, @NonNull List<BakedQuad> quads, ItemStackRenderState.@NonNull FoilType foilType) {
+    public void submitItem(@NonNull PoseStack poseStack, @NonNull ItemDisplayContext displayContext, int lightCoords, int overlayCoords, int outlineColor, int @NonNull [] tintLayers, @NonNull ItemQuads quads, ItemStackRenderState.@NonNull FoilType foilType) {
         defaultCollector.submitItem(poseStack, displayContext, lightCoords, overlayCoords, outlineColor, tintLayers, quads, foilType);
     }
 
@@ -136,6 +146,11 @@ public final class RoutingSubmitCollector implements SubmitNodeCollector {
         }
 
         @Override
+        public void submitTextBackground(@NonNull PoseStack poseStack, float x, float y, float width, float height, int color, Font.@NonNull DisplayMode displayMode, int backgroundColor) {
+            defaultDelegate.submitTextBackground(poseStack, x, y, width, height, color, displayMode, backgroundColor);
+        }
+
+        @Override
         public void submitFlame(@NonNull PoseStack poseStack, @NonNull EntityRenderState renderState, @NonNull Quaternionf rotation) {
             defaultDelegate.submitFlame(poseStack, renderState, rotation);
         }
@@ -146,8 +161,13 @@ public final class RoutingSubmitCollector implements SubmitNodeCollector {
         }
 
         @Override
-        public <S> void submitModel(@NonNull Model<? super S> model, @NonNull S state, @NonNull PoseStack poseStack, @NonNull RenderType renderType, int lightCoords, int overlayCoords, int tintedColor, @Nullable TextureAtlasSprite sprite, int outlineColor, ModelFeatureRenderer.@Nullable CrumblingOverlay crumblingOverlay) {
-            modelDelegate.submitModel(model, state, poseStack, renderType, lightCoords, overlayCoords, tintedColor, sprite, outlineColor, crumblingOverlay);
+        public <S> void submitModel(@NonNull Model<? super S> model, @NonNull S state, @NonNull PoseStack poseStack, @NonNull RenderType renderType, int lightCoords, int overlayCoords, int tintedColor, @Nullable UvMapping uvMapping, int outlineColor) {
+            modelDelegate.submitModel(model, state, poseStack, renderType, lightCoords, overlayCoords, tintedColor, uvMapping, outlineColor);
+        }
+
+        @Override
+        public <S> void submitCrumblingOverlay(@NonNull Model<? super S> model, @NonNull S state, @NonNull PoseStack poseStack, @NonNull RenderType renderType, int lightCoords, int overlayCoords, int tintedColor, ModelFeatureRenderer.@NonNull CrumblingOverlay crumblingOverlay) {
+            modelDelegate.submitCrumblingOverlay(model, state, poseStack, renderType, lightCoords, overlayCoords, tintedColor, crumblingOverlay);
         }
 
         @Override
@@ -161,8 +181,8 @@ public final class RoutingSubmitCollector implements SubmitNodeCollector {
         }
 
         @Override
-        public void submitBreakingBlockModel(@NonNull PoseStack poseStack, @NonNull List<BlockStateModelPart> parts, int progress) {
-            defaultDelegate.submitBreakingBlockModel(poseStack, parts, progress);
+        public void submitBreakingBlockModel(@NonNull PoseStack poseStack, @NonNull List<BlockStateModelPart> parts, int progress, boolean randomize) {
+            defaultDelegate.submitBreakingBlockModel(poseStack, parts, progress, randomize);
         }
 
         @Override
@@ -171,7 +191,7 @@ public final class RoutingSubmitCollector implements SubmitNodeCollector {
         }
 
         @Override
-        public void submitItem(@NonNull PoseStack poseStack, @NonNull ItemDisplayContext displayContext, int lightCoords, int overlayCoords, int outlineColor, int @NonNull [] tintLayers, @NonNull List<BakedQuad> quads, ItemStackRenderState.@NonNull FoilType foilType) {
+        public void submitItem(@NonNull PoseStack poseStack, @NonNull ItemDisplayContext displayContext, int lightCoords, int overlayCoords, int outlineColor, int @NonNull [] tintLayers, @NonNull ItemQuads quads, ItemStackRenderState.@NonNull FoilType foilType) {
             defaultDelegate.submitItem(poseStack, displayContext, lightCoords, overlayCoords, outlineColor, tintLayers, quads, foilType);
         }
 

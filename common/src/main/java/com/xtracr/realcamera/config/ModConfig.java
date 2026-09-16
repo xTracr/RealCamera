@@ -183,7 +183,7 @@ public final class ModConfig {
 
     public static class Binding {
         protected static final List<String> DEFAULT_DISABLE_RENDER_ITEMS = List.of("minecraft:filled_map");
-        public String screenModifierKey = InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_LALT).getName();
+        public String screenModifierKey = InputConstants.Type.KEYBOARD.getOrCreate(InputConstants.KEY_LALT).getName();
         public boolean legacyMode = false;
         public boolean adjustOffset = true;
         public boolean hideFailureMessage = false;
@@ -205,7 +205,7 @@ public final class ModConfig {
             try {
                 InputConstants.getKey(screenModifierKey);
             } catch (Exception e) {
-                screenModifierKey = InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_LALT).getName();
+                screenModifierKey = InputConstants.Type.KEYBOARD.getOrCreate(InputConstants.KEY_LALT).getName();
             }
             outTick = Mth.clamp(outTick, 0, 40);
             bindResultRetentionFrames = Math.max(bindResultRetentionFrames, 0);

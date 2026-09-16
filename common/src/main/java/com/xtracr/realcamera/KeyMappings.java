@@ -38,7 +38,7 @@ public final class KeyMappings {
     }
 
     private static KeyMapping createKeyMapping(String id, Consumer<Minecraft> whenPressed) {
-        return createKeyMapping(id, -1, whenPressed);
+        return createKeyMapping(id, InputConstants.UNKNOWN.getValue(), whenPressed);
     }
 
     private static KeyMapping createKeyMapping(String id, int code, Consumer<Minecraft> whenPressed) {

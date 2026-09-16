@@ -37,17 +37,14 @@ public final class MultiVertexCatcher {
         return new MultiVertexCatcher();
     }
 
-    @SuppressWarnings("resource")
     private static <S> void renderModelSubmit(ModelFeatureRenderer.Submit<S> submit, VertexConsumer buffer) {
         PoseStack poseStack = new PoseStack();
         poseStack.last().set(submit.pose());
-        VertexConsumer wrappedBuffer;
+        VertexConsumer wrappedBuffer = buffer;
         if (submit.sheetedDecalPose() != null) {
             wrappedBuffer = new SheetedDecalTextureGenerator(buffer, submit.sheetedDecalPose(), 1.0F);
-        } else if (submit.sprite() != null) {
-            wrappedBuffer = submit.sprite().wrap(buffer);
-        } else {
-            wrappedBuffer = buffer;
+        } else if (submit.uvMapping() != null) {
+            wrappedBuffer = submit.uvMapping().wrap(buffer);
         }
         Model<? super S> model = submit.model();
         model.setupAnim(submit.state());

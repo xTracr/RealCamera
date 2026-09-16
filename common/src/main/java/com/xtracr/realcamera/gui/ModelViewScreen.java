@@ -421,7 +421,7 @@ public final class ModelViewScreen extends Screen {
             modelPose.translate((x1 + x2) / 2.0f, (y1 + y2) / 2.0f, 0);
             modelPose.scale(modelScale, modelScale, -modelScale);
             modelPose.translate(modelX, modelY, 0);
-            modelPose.mulPose(rotation);
+            modelPose.rotate(rotation);
             modelPose.translate(0, -entity.getBbHeight() / 2.0f, 0);
             return analyser.captureModel(minecraft, entity, 1.0f, modelPose, target);
         } finally {
@@ -804,7 +804,7 @@ public final class ModelViewScreen extends Screen {
         double storedX = clickedX, storedY = clickedY;
         clickedX = clickedY = -1;
         if (event.input() == InputConstants.MOUSE_BUTTON_LEFT && toggleCategoryButton.getValue() != Category.PREVIEW) {
-            if (InputConstants.isKeyDown(minecraft.getWindow(), modifierKey.getValue())) {
+            if (InputConstants.isKeyDown(modifierKey.getValue())) {
                 if (leftClickedWithModifier(event.x(), event.y())) return true;
             } else if (inTextureViewArea(event.x(), event.y())) {
                 if (super.mouseClicked(event, doubleClick)) return true;
@@ -823,7 +823,7 @@ public final class ModelViewScreen extends Screen {
 
     @Override
     public boolean mouseDragged(@NonNull MouseButtonEvent event, double dx, double dy) {
-        if (event.input() == InputConstants.MOUSE_BUTTON_LEFT && !InputConstants.isKeyDown(minecraft.getWindow(), modifierKey.getValue())) {
+        if (event.input() == InputConstants.MOUSE_BUTTON_LEFT && !InputConstants.isKeyDown(modifierKey.getValue())) {
             if (inModelViewArea(event.x(), event.y())) {
                 xRot += (float) (Math.PI * dy / ySize);
                 yRot -= (float) (Math.PI * dx / middleWidth);
@@ -847,7 +847,7 @@ public final class ModelViewScreen extends Screen {
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         if (inModelViewArea(mouseX, mouseY)) {
-            if (InputConstants.isKeyDown(minecraft.getWindow(), modifierKey.getValue())) {
+            if (InputConstants.isKeyDown(modifierKey.getValue())) {
                 if (toggleCategoryButton.getValue() == Category.DISABLE && selectionModeButton.getValue() == 2)
                     selectionRadius = Mth.clamp(selectionRadius + (int) verticalAmount * 2, 2, 48);
                 else layers = Math.max(0, layers + (int) verticalAmount);

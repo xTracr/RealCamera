@@ -141,7 +141,7 @@ public final class ConfigScreen {
                         LocUtil.MODEL_VIEW_TITLE().withStyle(ChatFormatting.BLUE)))
                 .build());
         binding.addEntry(entryBuilder.startKeyCodeField(LocUtil.CONFIG_OPTION("screenModifierKey", LocUtil.MODEL_VIEW_TITLE()), InputConstants.getKey(config.binding.screenModifierKey))
-                .setDefaultValue(InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_LALT))
+                .setDefaultValue(InputConstants.Type.KEYBOARD.getOrCreate(InputConstants.KEY_LALT))
                 .setAllowMouse(false)
                 .setAllowModifiers(false)
                 .setKeySaveConsumer(k -> config.binding.screenModifierKey = k.getName())
