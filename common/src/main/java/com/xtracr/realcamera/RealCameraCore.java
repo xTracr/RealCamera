@@ -7,10 +7,12 @@ import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.DisableConfig;
-import com.xtracr.realcamera.renderer.BuiltIterableBuffer;
+import com.xtracr.realcamera.renderer.IdentifiedVertexBuffer;
 import com.xtracr.realcamera.renderer.MultiVertexCatcher;
 import com.xtracr.realcamera.renderer.RoutingSubmitCollector;
+import com.xtracr.realcamera.renderer.state.Primitive;
 import com.xtracr.realcamera.renderer.state.VertexData;
+import com.xtracr.realcamera.util.PrimitiveLookup;
 import com.xtracr.realcamera.util.CameraTransform;
 import com.xtracr.realcamera.util.LocUtil;
 import com.xtracr.realcamera.util.MathUtil;
@@ -120,10 +122,10 @@ public final class RealCameraCore {
             for (DisableConfig config : disableConfigs) if (config.disableAll()) return;
             submitNodeCollector.submitCustomGeometry(poseStack, builtBuffer.renderType(), (_, buffer) -> {
                 if (!builtBuffer.renderType().canConsolidateConsecutiveGeometry()) {
-                    for (VertexData vertex : builtBuffer.vertexBuffer()) vertex.render(buffer);
+                    for (VertexData vertex : builtBuffer) vertex.render(buffer);
                     return;
                 }
-                builtBuffer.vertexBuffer().primitiveStream().forEach(primitive -> {
+                builtBuffer.primitiveStream().forEach(primitive -> {
                     primitiveFor:
                     for (VertexData vertex : primitive) {
                         if (Math.fma(m02, vertex.x(), Math.fma(m12, vertex.y(), Math.fma(m22, vertex.z(), m32))) > -depth) continue;
@@ -138,29 +140,18 @@ public final class RealCameraCore {
         });
     }
 
-    private static void computeBindResult(BuiltIterableBuffer builtBuffer) {
+    private static void computeBindResult(IdentifiedVertexBuffer builtBuffer) {
         if (newResult.available()) return;
         targetFor:
         for (BindTarget target : ConfigFile.config().getBindTargetList(builtBuffer.textureId())) {
             BindResult result = new BindResult(target);
             BindTarget.TargetConfig config = target.targetConfig();
             VertexData.UV[] uvs = {new VertexData.UV(config.posU(), config.posV()), new VertexData.UV(config.forwardU(), config.forwardV()), new VertexData.UV(config.upwardU(), config.upwardV())};
-            VertexData[][] primitives = builtBuffer.findPrimitivesInCache(uvs);
-            boolean allFound = true;
-            for (int i = 0; i < primitives.length; i++) {
-                if (primitives[i] != null) uvs[i] = null;
-                else allFound = false;
-            }
-            if (!allFound) {
-                VertexData[][] newPrimitives = builtBuffer.findPrimitives(uvs);
-                for (int i = 0; i < primitives.length; i++) {
-                    if (newPrimitives[i] == null && primitives[i] == null) continue targetFor;
-                    else if (newPrimitives[i] != null) primitives[i] = newPrimitives[i];
-                }
-            }
-            if (primitives[0] != null) result.setPosition(VertexData.position(primitives[0], config.posU(), config.posV()));
-            if (primitives[1] != null) result.setForward(VertexData.normal(primitives[1]));
-            if (primitives[2] != null) result.setUpward(VertexData.normal(primitives[2]));
+            Primitive[] primitives = PrimitiveLookup.findPrimitives(builtBuffer, uvs);
+            for (Primitive primitive : primitives) if (primitive == null) continue targetFor;
+            if (primitives[0] != null) result.setPosition(primitives[0].positionAtUV(config.posU(), config.posV()));
+            if (primitives[1] != null) result.setForward(primitives[1].faceNormal());
+            if (primitives[2] != null) result.setUpward(primitives[2].faceNormal());
             if (!result.available()) continue;
             newResult = result;
             return;

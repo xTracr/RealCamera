@@ -5,9 +5,12 @@ import com.xtracr.realcamera.api.BindResult;
 import com.xtracr.realcamera.api.RealCameraAPI;
 import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.renderer.BuiltIterableBuffer;
+import com.xtracr.realcamera.renderer.IdentifiedVertexBuffer;
 import com.xtracr.realcamera.renderer.MultiVertexCatcher;
+import com.xtracr.realcamera.renderer.state.Primitive;
 import com.xtracr.realcamera.renderer.state.VertexData;
+import com.xtracr.realcamera.util.PrimitiveLookup;
+import com.xtracr.realcamera.util.PrimitiveLookup.LookupMode;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
@@ -68,7 +71,7 @@ public final class YSMCompat {
             return this;
         }
 
-        public void computeBindResultInCache(BuiltIterableBuffer builtBuffer) {
+        public void computeBindResultInCache(IdentifiedVertexBuffer builtBuffer) {
             if (bindResult.available()) return;
             for (BindTarget target : ConfigFile.config().getBindTargetList(builtBuffer.textureId())) {
                 BindResult result = RESULT_MAP.computeIfAbsent(target, BindResult::new);
@@ -79,20 +82,20 @@ public final class YSMCompat {
                 if (result.getPosition() != Vec3.ZERO) posUV = null;
                 if (result.getForward() != Vec3.ZERO) forwardUV = null;
                 if (result.getUpward() != Vec3.ZERO) upwardUV = null;
-                VertexData[][] primitives = builtBuffer.findPrimitivesInCache(new VertexData.UV[]{posUV, forwardUV, upwardUV});
+                Primitive[] primitives = PrimitiveLookup.findPrimitives(builtBuffer, new VertexData.UV[]{posUV, forwardUV, upwardUV}, LookupMode.CACHE_ONLY);
                 if (primitives[0] != null)
-                    result.setPosition(new Vec3(VertexData.position(primitives[0], config.posU(), config.posV()).toVector3f().mulPosition(matrix4f)));
+                    result.setPosition(new Vec3(primitives[0].positionAtUV(config.posU(), config.posV()).toVector3f().mulPosition(matrix4f)));
                 if (primitives[1] != null)
-                    result.setForward(new Vec3(VertexData.normal(primitives[1]).toVector3f().mul(matrix3f)));
+                    result.setForward(new Vec3(primitives[1].faceNormal().toVector3f().mul(matrix3f)));
                 if (primitives[2] != null)
-                    result.setUpward(new Vec3(VertexData.normal(primitives[2]).toVector3f().mul(matrix3f)));
+                    result.setUpward(new Vec3(primitives[2].faceNormal().toVector3f().mul(matrix3f)));
                 if (!result.available()) continue;
                 bindResult = result;
                 return;
             }
         }
 
-        public void computeBindResult(BuiltIterableBuffer builtBuffer) {
+        public void computeBindResult(IdentifiedVertexBuffer builtBuffer) {
             if (bindResult.available()) return;
             for (BindTarget target : ConfigFile.config().getBindTargetList(builtBuffer.textureId())) {
                 BindResult result = RESULT_MAP.computeIfAbsent(target, BindResult::new);
@@ -100,13 +103,13 @@ public final class YSMCompat {
                 VertexData.UV posUV = result.getPosition() == Vec3.ZERO ? new VertexData.UV(config.posU(), config.posV()) : null;
                 VertexData.UV forwardUV = result.getForward() == Vec3.ZERO ? new VertexData.UV(config.forwardU(), config.forwardV()) : null;
                 VertexData.UV upwardUV = result.getUpward() == Vec3.ZERO ? new VertexData.UV(config.upwardU(), config.upwardV()) : null;
-                VertexData[][] primitives = builtBuffer.findPrimitives(new VertexData.UV[]{posUV, forwardUV, upwardUV});
+                Primitive[] primitives = PrimitiveLookup.findPrimitives(builtBuffer, new VertexData.UV[]{posUV, forwardUV, upwardUV}, LookupMode.SCAN_ONLY);
                 if (primitives[0] != null)
-                    result.setPosition(new Vec3(VertexData.position(primitives[0], config.posU(), config.posV()).toVector3f().mulPosition(matrix4f)));
+                    result.setPosition(new Vec3(primitives[0].positionAtUV(config.posU(), config.posV()).toVector3f().mulPosition(matrix4f)));
                 if (primitives[1] != null)
-                    result.setForward(new Vec3(VertexData.normal(primitives[1]).toVector3f().mul(matrix3f)));
+                    result.setForward(new Vec3(primitives[1].faceNormal().toVector3f().mul(matrix3f)));
                 if (primitives[2] != null)
-                    result.setUpward(new Vec3(VertexData.normal(primitives[2]).toVector3f().mul(matrix3f)));
+                    result.setUpward(new Vec3(primitives[2].faceNormal().toVector3f().mul(matrix3f)));
                 if (!result.available()) continue;
                 bindResult = result;
                 return;

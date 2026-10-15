@@ -106,7 +106,7 @@ public final class MultiVertexCatcher {
         return storage;
     }
 
-    public void forEachBuffer(Consumer<BuiltIterableBuffer> consumer) {
+    public void forEachBuffer(Consumer<IdentifiedVertexBuffer> consumer) {
         if (!storage.getSubmitsPerOrder().isEmpty()) {
             renderSolidFeatures();
             renderTranslucentFeatures();
@@ -144,9 +144,9 @@ public final class MultiVertexCatcher {
             bufferPools.values().forEach(ByteBufferBuilderPool::release);
         }
 
-        public void forEachBuffer(Consumer<BuiltIterableBuffer> consumer) {
+        public void forEachBuffer(Consumer<IdentifiedVertexBuffer> consumer) {
             for (var entry : caughtMeshes.entrySet()) {
-                consumer.accept(BuiltIterableBuffer.buildFrom(entry.getValue(), entry.getKey()));
+                consumer.accept(IdentifiedVertexBuffer.create(entry.getValue(), entry.getKey()));
             }
         }
 

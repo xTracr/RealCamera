@@ -12,7 +12,8 @@ import com.xtracr.realcamera.config.BindTarget.BindConfig;
 import com.xtracr.realcamera.config.BindTarget.TargetConfig;
 import com.xtracr.realcamera.config.codec.ConfigCodec;
 import com.xtracr.realcamera.gui.components.*;
-import com.xtracr.realcamera.renderer.state.BuiltModelRecord;
+import com.xtracr.realcamera.renderer.state.ModelSnapshot;
+import com.xtracr.realcamera.renderer.state.Primitive;
 import com.xtracr.realcamera.renderer.state.VertexData;
 import com.xtracr.realcamera.util.LocUtil;
 import com.xtracr.realcamera.util.MathUtil;
@@ -57,7 +58,7 @@ public final class ModelViewScreen extends Screen {
     private ScreenRectangle modelViewArea;
     @Nullable
     private ScreenRectangle textureViewArea;
-    private VertexData[][] focusedPolyhedron = new VertexData[0][];
+    private Primitive[] focusedPolyhedron = new Primitive[0];
     @Nullable
     private UVRectangleWidget focusedRectWidget;
     private final StringWidget rectWidgetsSizeWidget = new StringWidget(widgetWidth - 22, widgetHeight, CommonComponents.EMPTY, font);
@@ -396,15 +397,15 @@ public final class ModelViewScreen extends Screen {
         target.offsets().scale *= modelScale;
         String textureId = toggleCategoryButton.getValue() == Category.DISABLE ? disabledIdField.getValue() : "";
         Set<String> hiddenNames = hiddenNameMap.getOrDefault(nameField.getValue(), Set.of());
-        List<BuiltModelRecord> modelRecords = captureRotatedEntity(analyser, target, minecraft.player);
-        List<BuiltModelRecord> textureRecords = modelRecords.stream().filter(record -> record.containsTextureId(textureId)).toList();
+        List<ModelSnapshot> modelRecords = captureRotatedEntity(analyser, target, minecraft.player);
+        List<ModelSnapshot> textureRecords = modelRecords.stream().filter(record -> record.containsTextureId(textureId)).toList();
         ModelAnalyser.applyDisableConfigs(modelRecords, target, textureId, hiddenNames);
         computeFocusedPrimitives(analyser, modelRecords, textureRecords, mouseX, mouseY);
         renderCulledModels(graphics, analyser, target, modelRecords);
         renderFlattenedModels(graphics, analyser, textureRecords);
     }
 
-    private List<BuiltModelRecord> captureRotatedEntity(ModelAnalyser analyser, BindTarget target, LivingEntity entity) {
+    private List<ModelSnapshot> captureRotatedEntity(ModelAnalyser analyser, BindTarget target, LivingEntity entity) {
         CompatibilityHelper.isRenderInScreen = true;
         float entityBodyYaw = entity.yBodyRot;
         float entityYaw = entity.getYRot();
@@ -436,7 +437,7 @@ public final class ModelViewScreen extends Screen {
         }
     }
 
-    private void computeFocusedPrimitives(ModelAnalyser analyser, List<BuiltModelRecord> modelRecords, List<BuiltModelRecord> textureRecords, int mouseX, int mouseY) {
+    private void computeFocusedPrimitives(ModelAnalyser analyser, List<ModelSnapshot> modelRecords, List<ModelSnapshot> textureRecords, int mouseX, int mouseY) {
         if (toggleCategoryButton.getValue() == Category.DISABLE && selectionModeButton.getValue() == 2 && inModelViewArea(mouseX, mouseY))
             analyser.computeFocusedOnModel(modelRecords, mouseX - selectionRadius, mouseY - selectionRadius, mouseX + selectionRadius, mouseY + selectionRadius);
         if (inTextureViewArea(mouseX, mouseY)) {
@@ -449,7 +450,7 @@ public final class ModelViewScreen extends Screen {
         focusedTextureId = analyser.getFocusedTextureId();
     }
 
-    private void renderCulledModels(GuiGraphicsExtractor graphics, ModelAnalyser analyser, BindTarget target, List<BuiltModelRecord> modelRecords) {
+    private void renderCulledModels(GuiGraphicsExtractor graphics, ModelAnalyser analyser, BindTarget target, List<ModelSnapshot> modelRecords) {
         int x1 = modelViewArea.left(), y1 = modelViewArea.top(), x2 = modelViewArea.right(), y2 = modelViewArea.bottom();
         GUIHelper.enableScissor(graphics, modelViewArea);
         float invScale = 1.0f / modelScale;
@@ -463,7 +464,7 @@ public final class ModelViewScreen extends Screen {
         graphics.disableScissor();
     }
 
-    private void renderFlattenedModels(GuiGraphicsExtractor graphics, ModelAnalyser analyser, List<BuiltModelRecord> textureRecords) {
+    private void renderFlattenedModels(GuiGraphicsExtractor graphics, ModelAnalyser analyser, List<ModelSnapshot> textureRecords) {
         if (textureViewArea == null) return;
         int x1 = textureViewArea.left(), y1 = textureViewArea.top(), x2 = textureViewArea.right(), y2 = textureViewArea.bottom();
         GUIHelper.enableScissor(graphics, textureViewArea);
@@ -743,8 +744,8 @@ public final class ModelViewScreen extends Screen {
                 u += vertex.u();
                 v += vertex.v();
             }
-            u /= focusedPolyhedron[0].length;
-            v /= focusedPolyhedron[0].length;
+            u /= focusedPolyhedron[0].vertexCount();
+            v /= focusedPolyhedron[0].vertexCount();
             if (selectingButton.getValue() == 0) {
                 forwardUField.setNumber(u);
                 forwardVField.setNumber(v);
@@ -765,7 +766,7 @@ public final class ModelViewScreen extends Screen {
             }
             if (selectionModeButton.getValue() == 2) {
                 List<UVRectangleWidget> rectWidgets = new ArrayList<>();
-                for (VertexData[] primitive : focusedPolyhedron) {
+                for (Primitive primitive : focusedPolyhedron) {
                     float uMin = 1f, vMin = 1f, uMax = 0, vMax = 0;
                     for (VertexData vertex : primitive) {
                         if (vertex.u() < uMin) uMin = vertex.u();
@@ -793,7 +794,7 @@ public final class ModelViewScreen extends Screen {
                 rectWidgets.forEach(this::addRectWidget);
             } else {
                 float uMin = 1f, vMin = 1f, uMax = 0, vMax = 0;
-                for (VertexData[] primitive : focusedPolyhedron) {
+                for (Primitive primitive : focusedPolyhedron) {
                     for (VertexData vertex : primitive) {
                         if (vertex.u() < uMin) uMin = vertex.u();
                         if (vertex.v() < vMin) vMin = vertex.v();

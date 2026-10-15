@@ -2,13 +2,13 @@ package com.xtracr.realcamera.renderer.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.xtracr.realcamera.renderer.state.BuiltModelRecord;
+import com.xtracr.realcamera.renderer.state.ModelSnapshot;
 import com.xtracr.realcamera.renderer.state.VertexData;
 import com.xtracr.realcamera.renderer.state.gui.GuiFlattenedModelsRenderState;
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Matrix4f;
 import org.jspecify.annotations.NonNull;
 
 public final class GuiFlattenedModelsRenderer extends PictureInPictureRenderer<GuiFlattenedModelsRenderState> {
@@ -27,12 +27,12 @@ public final class GuiFlattenedModelsRenderer extends PictureInPictureRenderer<G
         poseStack.translate(translation.x, translation.y, translation.z);
 
         Matrix4f positionMatrix = poseStack.last().pose();
-        for (BuiltModelRecord record : renderState.records()) {
-            VertexConsumer buffer = bufferSource.getBuffer(record.renderType());
-            Vector3f position = new Vector3f();
-            for (VertexData vertex : record.vertices()) {
+        Vector3f position = new Vector3f();
+        for (ModelSnapshot snapshot : renderState.snapshots()) {
+            VertexConsumer buffer = bufferSource.getBuffer(snapshot.renderType());
+            for (VertexData vertex : snapshot) {
                 position.set(vertex.u(), vertex.v(), 0).mulPosition(positionMatrix);
-                buffer.addVertex(position.x(), position.y(), 0, vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
+                buffer.addVertex(position.x, position.y, 0, vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
             }
         }
     }
