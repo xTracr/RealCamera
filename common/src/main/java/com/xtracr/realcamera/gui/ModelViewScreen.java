@@ -5,12 +5,15 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.serialization.DataResult;
+import com.xtracr.realcamera.RealCamera;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.compat.CompatibilityHelper;
 import com.xtracr.realcamera.config.*;
-import com.xtracr.realcamera.config.BindTarget.BindConfig;
-import com.xtracr.realcamera.config.BindTarget.TargetConfig;
-import com.xtracr.realcamera.config.codec.ConfigCodec;
+import com.xtracr.realcamera.config.binding.TargetConfig;
+import com.xtracr.realcamera.config.binding.RenderConfig;
+import com.xtracr.realcamera.config.binding.RenderConfig.DisableConfig;
+import com.xtracr.realcamera.config.binding.OffsetConfig;
+import com.xtracr.realcamera.config.codec.CodecDispatcher;
 import com.xtracr.realcamera.gui.components.*;
 import com.xtracr.realcamera.renderer.state.ModelSnapshot;
 import com.xtracr.realcamera.renderer.state.Primitive;
@@ -31,6 +34,7 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec2;
@@ -47,10 +51,13 @@ public final class ModelViewScreen extends Screen {
     private static final int SIDE_PANEL_BG = 0xFF444444, CENTER_PANEL_BG = 0xFF222222;
     private static final int DEFAULT_SCALE = 80, MIN_SCALE = 16, MAX_SCALE = 1024;
     private static final int CONFIG_NAME_MAX_LENGTH = 20;
+    private static final Identifier LEGACY_TARGET = Identifier.fromNamespaceAndPath("legacy", "head");
     private final int widgetWidth = 42, widgetHeight = 18, wideWidgetWidth = widgetWidth * 2 + 4, compactWidgetWidth = widgetWidth * 2 - 18;
     private int x, y, xSize, ySize, middleWidth, page = 0;
     private InputConstants.Key modifierKey = InputConstants.getKey(ConfigFile.config().binding.screenModifierKey);
     private boolean initialized;
+    private boolean hasTargetDefinition = true;
+    private String targetNamespace = RealCamera.MOD_ID;
     private int modelScale = DEFAULT_SCALE, textureScale = DEFAULT_SCALE, layers = 0, selectionRadius = 10;
     private double modelX, modelY, textureX, textureY, clickedX = -1, clickedY = -1;
     private float xRot, yRot;
@@ -62,11 +69,10 @@ public final class ModelViewScreen extends Screen {
     @Nullable
     private UVRectangleWidget focusedRectWidget;
     private final StringWidget rectWidgetsSizeWidget = new StringWidget(widgetWidth - 22, widgetHeight, CommonComponents.EMPTY, font);
-    private final EditBox nameField = createTextField(wideWidgetWidth, CONFIG_NAME_MAX_LENGTH);
+    private final EditBox pathField = createTextField(wideWidgetWidth, 1024);
     private final EditBox textureIdField = createTextField(wideWidgetWidth, 1024);
     private final EditBox disabledNameField = createTextField(compactWidgetWidth, CONFIG_NAME_MAX_LENGTH);
     private final EditBox disabledIdField = createTextField(wideWidgetWidth, 1024);
-    private final NumberField<Integer> priorityField = NumberField.ofInt(font, widgetWidth - 2, widgetHeight - 2, 0, null);
     private final NumberField<Integer> focusedRectWidgetNumberField = NumberField.ofInt(font, widgetWidth - 2, widgetHeight - 2, 0, null).setMin(0);
     private final NumberField<Float> forwardUField = createFloatField(widgetWidth, 0);
     private final NumberField<Float> forwardVField = createFloatField(widgetWidth, 0);
@@ -146,7 +152,12 @@ public final class ModelViewScreen extends Screen {
         y = (height - ySize) / 2;
         modifierKey = InputConstants.getKey(ConfigFile.config().binding.screenModifierKey);
         initWidgets(page);
-        if (!initialized) loadBindTarget(RealCameraCore.currentTarget());
+        if (!initialized) {
+            Identifier id = RealCameraCore.currentTarget();
+            List<BindTarget> targets = visibleTargets();
+            loadBindTarget(targets.stream().filter(target -> Objects.equals(target.id(), id)).findFirst()
+                    .orElseGet(() -> targets.isEmpty() ? BindTarget.blank(Identifier.fromNamespaceAndPath(RealCamera.MOD_ID, "new")) : targets.getFirst()));
+        }
         initialized = true;
     }
 
@@ -256,11 +267,15 @@ public final class ModelViewScreen extends Screen {
             default -> throw new IllegalStateException("Unexpected value: " + toggleCategoryButton.getValue());
         }
         rows.addChild(createButton(LocUtil.MODEL_VIEW_WIDGET("save"), widgetWidth, button -> {
-            if (nameField.getValue().isBlank()) {
+            if (pathField.getValue().isBlank()) {
                 button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("emptyName").withStyle(ChatFormatting.RED)));
                 return;
             }
-            if (textureIdField.getValue().isBlank()) {
+            if (draftId() == null) {
+                button.setTooltip(createTooltip("invalidIdentifier"));
+                return;
+            }
+            if (hasTargetDefinition && textureIdField.getValue().isBlank()) {
                 button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("emptyTextureId").withStyle(ChatFormatting.RED)));
                 return;
             }
@@ -272,11 +287,10 @@ public final class ModelViewScreen extends Screen {
             if (toggleCategoryButton.getValue() != Category.DISABLE) loadBindTarget(bindTarget);
             initWidgets(page);
         }));
-        rows.addChild(priorityField, smallSettings).setTooltip(createTooltip("priority"));
-        boolean editableName = toggleCategoryButton.getValue() == Category.CONFIGS;
-        nameField.setEditable(editableName);
-        if (!editableName && nameField.isFocused()) nameField.setFocused(false);
-        rows.addChild(nameField, 2, smallSettings).setTooltip(createTooltip("targetName"));
+        boolean editablePath = toggleCategoryButton.getValue() == Category.CONFIGS && hasTargetDefinition;
+        pathField.setEditable(editablePath);
+        if (!editablePath && pathField.isFocused()) pathField.setFocused(false);
+        rows.addChild(pathField, 2, smallSettings).setTooltip(createTooltip("targetPath"));
         grid.arrangeElements();
         FrameLayout.alignInRectangle(grid, x, y + 2, x + (xSize - middleWidth) / 2 - 4, y + ySize, 0, 0);
         grid.visitWidgets(this::addRenderableWidget);
@@ -304,7 +318,7 @@ public final class ModelViewScreen extends Screen {
             }), smallSettings).setTooltip(createTooltip("saveAs"));
             for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, size); i++) {
                 DisableConfig config = disableConfigs.get(i);
-                String targetName = nameField.getValue();
+                String targetName = targetNamespace + ":" + pathField.getValue();
                 Set<String> hiddenNames = hiddenNameMap.computeIfAbsent(targetName, _ -> new HashSet<>());
                 addRenderableWidget(new CycleIconButton(32, 16, hiddenNames.contains(config.name()) ? 1 : 0, 2))
                         .setOnValueChange(value -> {
@@ -325,24 +339,21 @@ public final class ModelViewScreen extends Screen {
             }
         } else {
             widgetsPerPage = 8;
-            List<BindTarget> fixedTargetList = ConfigFile.config().binding.fixedTargetList.stream().filter(target -> target.name().equals(RealCameraCore.currentTarget().name())).toList();
-            List<BindTarget> targetList = ConfigFile.config().binding.targetList;
-            final int fixedTargetCount = fixedTargetList.size();
-            size = fixedTargetCount + targetList.size();
+            List<BindTarget> targets = visibleTargets();
+            size = targets.size();
             for (int i = page * widgetsPerPage; i < Math.min((page + 1) * widgetsPerPage, size); i++) {
-                BindTarget target = i < fixedTargetCount ? fixedTargetList.get(i) : targetList.get(i - fixedTargetCount);
+                BindTarget target = targets.get(i);
                 final int targetIndex = i;
-                String name = target.name();
+                String name = target.id().getPath();
                 rows.addChild(createButton(LocUtil.literal(name), compactWidgetWidth, _ -> loadBindTarget(target)), 3)
-                        .setTooltip(Tooltip.create(name.equals(RealCameraCore.currentTarget().name()) ?
+                        .setTooltip(Tooltip.create(Objects.equals(target.id(), RealCameraCore.currentTarget()) ?
                                 LocUtil.literal(name + "\n").append(LocUtil.MODEL_VIEW_WIDGET("currentConfig")) :
-                                LocUtil.literal(name))
-                        );
-                if (i < fixedTargetCount) continue;
+                                LocUtil.literal(name)));
+                if (target.targetConfig() == null) continue;
                 rows.addChild(new SimpleIconButton(48, 0, _ -> {
-                    targetList.remove(target);
+                    ConfigFile.config().removeBindTarget(target.id());
                     ConfigFile.save();
-                    if (nameField.getValue().equals(target.name())) loadAdjacentBindTarget(fixedTargetList, targetList, targetIndex);
+                    if (Objects.equals(draftId(), target.id())) loadAdjacentBindTarget(targetIndex);
                     initWidgets(page * widgetsPerPage > size - 2 && size > 1 ? page - 1 : page);
                 }), smallSettings);
             }
@@ -396,12 +407,12 @@ public final class ModelViewScreen extends Screen {
         BindTarget target = genBindTarget();
         target.offsets().scale *= modelScale;
         String textureId = toggleCategoryButton.getValue() == Category.DISABLE ? disabledIdField.getValue() : "";
-        Set<String> hiddenNames = hiddenNameMap.getOrDefault(nameField.getValue(), Set.of());
+        Set<String> hiddenNames = hiddenNameMap.getOrDefault(targetNamespace + ":" + pathField.getValue(), Set.of());
         List<ModelSnapshot> modelRecords = captureRotatedEntity(analyser, target, minecraft.player);
         List<ModelSnapshot> textureRecords = modelRecords.stream().filter(record -> record.containsTextureId(textureId)).toList();
-        ModelAnalyser.applyDisableConfigs(modelRecords, target, textureId, hiddenNames);
+        ModelAnalyser.applyDisableConfigs(modelRecords, target.renderConfig().disableConfigs, textureId, hiddenNames);
         computeFocusedPrimitives(analyser, modelRecords, textureRecords, mouseX, mouseY);
-        renderCulledModels(graphics, analyser, target, modelRecords);
+        renderCulledModels(graphics, analyser, target.targetConfig(), modelRecords);
         renderFlattenedModels(graphics, analyser, textureRecords);
     }
 
@@ -426,7 +437,7 @@ public final class ModelViewScreen extends Screen {
             modelPose.translate(modelX, modelY, 0);
             modelPose.mulPose(rotation);
             modelPose.translate(0, -entity.getBbHeight() / 2.0f, 0);
-            return analyser.captureModel(minecraft, entity, 1.0f, modelPose, target);
+            return analyser.captureModel(minecraft, entity, 1.0f, modelPose, target.targetConfig(), target.offsets());
         } finally {
             CompatibilityHelper.isRenderInScreen = false;
             entity.yBodyRot = entityBodyYaw;
@@ -450,7 +461,7 @@ public final class ModelViewScreen extends Screen {
         focusedTextureId = analyser.getFocusedTextureId();
     }
 
-    private void renderCulledModels(GuiGraphicsExtractor graphics, ModelAnalyser analyser, BindTarget target, List<ModelSnapshot> modelRecords) {
+    private void renderCulledModels(GuiGraphicsExtractor graphics, ModelAnalyser analyser, @Nullable TargetConfig config, List<ModelSnapshot> modelRecords) {
         int x1 = modelViewArea.left(), y1 = modelViewArea.top(), x2 = modelViewArea.right(), y2 = modelViewArea.bottom();
         GUIHelper.enableScissor(graphics, modelViewArea);
         float invScale = 1.0f / modelScale;
@@ -459,7 +470,7 @@ public final class ModelViewScreen extends Screen {
         modelTransform.translate(-(x1 + x2) / 2.0f, -(y1 + y2) / 2.0f, 0);
         GUIHelper.culledModels(graphics, modelRecords, modelScale, modelTransform, x1, y1, x2, y2);
         if (toggleCategoryButton.getValue() != Category.PREVIEW) analyser.drawFocusedInModelArea(graphics);
-        if (toggleCategoryButton.getValue() == Category.CONFIGS) analyser.drawBindTarget(graphics, target, modelScale);
+        if (toggleCategoryButton.getValue() == Category.CONFIGS) analyser.drawBindTarget(graphics, config, modelScale);
         else analyser.drawCameraDirections(graphics, modelScale);
         graphics.disableScissor();
     }
@@ -497,12 +508,12 @@ public final class ModelViewScreen extends Screen {
 
     private void importBindTarget(Button button) {
         String base64 = minecraft.keyboardHandler.getClipboard();
-        DataResult<BindTarget> result = ConfigCodec.fromCompressedBase64(base64);
+        DataResult<BindTarget> result = CodecDispatcher.fromCompressedBase64(base64);
         switch (result) {
             case DataResult.Success<BindTarget> success -> {
                 BindTarget target = success.value();
                 loadBindTarget(target);
-                button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("importSucceeded", LocUtil.literal("'" + target.name() + "'").withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GREEN)));
+                button.setTooltip(Tooltip.create(LocUtil.MODEL_VIEW_TOOLTIP("importSucceeded", LocUtil.literal("'" + target.id().getPath() + "'").withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GREEN)));
             }
             case DataResult.Error<BindTarget> error -> {
                 String message = error.message();
@@ -513,7 +524,7 @@ public final class ModelViewScreen extends Screen {
 
     private void exportBindTarget(Button button) {
         BindTarget target = genBindTarget();
-        DataResult<String> result = ConfigCodec.toCompressedBase64(target);
+        DataResult<String> result = CodecDispatcher.toCompressedBase64(target);
         switch (result) {
             case DataResult.Success<String> success -> {
                 String base64 = success.value();
@@ -637,30 +648,46 @@ public final class ModelViewScreen extends Screen {
         return disableConfigs.stream().anyMatch(disableConfig -> disableConfig.name().equals(name));
     }
 
-    private void loadAdjacentBindTarget(List<BindTarget> fixedTargetList, List<BindTarget> targetList, int deletedIndex) {
-        List<BindTarget> targets = new ArrayList<>(fixedTargetList);
-        targets.addAll(targetList);
-        if (targets.isEmpty()) loadBindTarget(BindTarget.blank("", ""));
-        else loadBindTarget(targets.get(Math.min(deletedIndex, targets.size() - 1)));
+    private List<BindTarget> visibleTargets() {
+        List<BindTarget> targets = new ArrayList<>();
+        for (BindTarget target : ConfigFile.config().getBindTargets()) {
+            if (target.id().getNamespace().equals(LEGACY_TARGET.getNamespace())
+                    && (!ConfigFile.config().binding.legacyMode || !target.id().equals(LEGACY_TARGET))) continue;
+            if (target.targetConfig() != null) targets.add(target);
+            else if (Objects.equals(target.id(), RealCameraCore.currentTarget())) targets.addFirst(target);
+        }
+        return targets;
+    }
+
+    private void loadAdjacentBindTarget(int deletedIndex) {
+        List<BindTarget> targets = visibleTargets();
+        loadBindTarget(targets.isEmpty() ? BindTarget.blank(Identifier.fromNamespaceAndPath(RealCamera.MOD_ID, "new"))
+                : targets.get(Math.min(deletedIndex, targets.size() - 1)));
     }
 
     private void loadBindTarget(BindTarget target) {
-        if (target.isEmpty()) return;
-        nameField.setValue(target.name());
-        textureIdField.setValue(target.textureId());
-        priorityField.setNumber(target.priority());
-        depthField.setNumber(target.disablingDepth());
-        forwardUField.setNumber(target.targetConfig().forwardU());
-        forwardVField.setNumber(target.targetConfig().forwardV());
-        upwardUField.setNumber(target.targetConfig().upwardU());
-        upwardVField.setNumber(target.targetConfig().upwardV());
-        posUField.setNumber(target.targetConfig().posU());
-        posVField.setNumber(target.targetConfig().posV());
-        bindXButton.setValue(target.bindConfig().bindX() ? 0 : 1);
-        bindYButton.setValue(target.bindConfig().bindY() ? 0 : 1);
-        bindZButton.setValue(target.bindConfig().bindZ() ? 0 : 1);
-        bindRotButton.setValue(target.bindConfig().bindRotation() ? 0 : 1);
+        targetNamespace = target.id().getNamespace();
+        pathField.setValue(target.id().getPath());
+        TargetConfig config = target.targetConfig();
+        hasTargetDefinition = config != null;
+        pathField.setEditable(toggleCategoryButton.getValue() == Category.CONFIGS && hasTargetDefinition);
+        textureIdField.setValue(config == null ? "" : config.textureId());
+        textureIdField.setEditable(hasTargetDefinition);
+        for (var field : List.of(forwardUField, forwardVField, upwardUField, upwardVField, posUField, posVField)) {
+            field.active = hasTargetDefinition;
+        }
+        depthField.setNumber(target.renderConfig().disablingDepth);
+        forwardUField.setNumber(config == null ? 0 : config.forwardU());
+        forwardVField.setNumber(config == null ? 0 : config.forwardV());
+        upwardUField.setNumber(config == null ? 0 : config.upwardU());
+        upwardVField.setNumber(config == null ? 0 : config.upwardV());
+        posUField.setNumber(config == null ? 0 : config.posU());
+        posVField.setNumber(config == null ? 0 : config.posV());
         OffsetConfig offsets = target.offsets();
+        bindXButton.setValue(offsets.bindX ? 0 : 1);
+        bindYButton.setValue(offsets.bindY ? 0 : 1);
+        bindZButton.setValue(offsets.bindZ ? 0 : 1);
+        bindRotButton.setValue(offsets.bindRotation ? 0 : 1);
         scaleField.setNumber(offsets.scale);
         offsetXPair.setNumber(offsets.x);
         offsetYPair.setNumber(offsets.y);
@@ -669,7 +696,7 @@ public final class ModelViewScreen extends Screen {
         offsetYawPair.setNumber(offsets.yaw);
         offsetRollPair.setNumber(offsets.roll);
         disableConfigs.clear();
-        disableConfigs.addAll(target.disableConfigs());
+        disableConfigs.addAll(target.renderConfig().disableConfigs);
         clearDisableDraft();
     }
 
@@ -680,10 +707,20 @@ public final class ModelViewScreen extends Screen {
             if (newDisableConfigs.get(i).name().equals(currentDisableConfig.name()))
                 newDisableConfigs.set(i, currentDisableConfig);
         }
-        TargetConfig targetConfig = new TargetConfig(forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber());
-        BindConfig bindConfig = new BindConfig(bindXButton.getValue() == 0, bindYButton.getValue() == 0, bindZButton.getValue() == 0, bindRotButton.getValue() == 0);
+        TargetConfig targetConfig = hasTargetDefinition ? new TargetConfig(textureIdField.getValue(), forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber()) : null;
         OffsetConfig offsets = new OffsetConfig(scaleField.getNumber(), offsetXPair.getNumber(), offsetYPair.getNumber(), offsetZPair.getNumber(), offsetPitchPair.getNumber(), offsetYawPair.getNumber(), offsetRollPair.getNumber());
-        return new BindTarget(nameField.getValue(), textureIdField.getValue(), priorityField.getNumber(), depthField.getNumber(), targetConfig, bindConfig, offsets, newDisableConfigs);
+        offsets.bindX = bindXButton.getValue() == 0;
+        offsets.bindY = bindYButton.getValue() == 0;
+        offsets.bindZ = bindZButton.getValue() == 0;
+        offsets.bindRotation = bindRotButton.getValue() == 0;
+        Identifier id = draftId();
+        if (id == null) id = Identifier.fromNamespaceAndPath(targetNamespace, "new");
+        return new BindTarget(id, targetConfig, new RenderConfig(depthField.getNumber(), newDisableConfigs), offsets);
+    }
+
+    private @Nullable Identifier draftId() {
+        String path = pathField.getValue();
+        return Identifier.tryParse(targetNamespace + ":" + path);
     }
 
     private UVRectangleWidget addRectWidget(UVRectangleWidget rectWidget) {

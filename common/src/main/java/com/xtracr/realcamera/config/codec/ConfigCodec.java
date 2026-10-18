@@ -1,89 +1,71 @@
 package com.xtracr.realcamera.config.codec;
 
-import com.mojang.serialization.DataResult;
 import com.xtracr.realcamera.config.BindTarget;
+import com.xtracr.realcamera.config.UVRectangle;
+import com.xtracr.realcamera.config.binding.OffsetConfig;
+import com.xtracr.realcamera.config.binding.RenderConfig;
+import com.xtracr.realcamera.config.binding.TargetConfig;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.DecoderException;
-import io.netty.handler.codec.EncoderException;
-import it.unimi.dsi.fastutil.shorts.Short2ReferenceMap;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.Identifier;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.util.Base64;
-import java.util.zip.Deflater;
-import java.util.zip.DeflaterOutputStream;
-import java.util.zip.InflaterInputStream;
+import java.util.List;
+import java.util.Optional;
 
 public final class ConfigCodec {
-    static final short CURRENT_VERSION = 703;
-    static final Short2ReferenceMap<StreamCodec<ByteBuf, BindTarget>> CODECS = Short2ReferenceMap.ofEntries(
-            Short2ReferenceMap.entry(CURRENT_VERSION, ConfigCodec703.CODEC)
-    );
-
-    public static BindTarget readWithVersion(ByteBuf byteBuf) throws DecoderException, IllegalArgumentException {
-        short version = byteBuf.readShort();
-        StreamCodec<ByteBuf, BindTarget> serializer = CODECS.get(version);
-        if (serializer == null) throw new IllegalArgumentException("Incompatible version: " + toSemVer(version));
-        return serializer.decode(byteBuf);
-    }
-
-    public static void writeWithVersion(ByteBuf byteBuf, BindTarget bindTarget) throws EncoderException {
-        byteBuf.writeShort(CURRENT_VERSION);
-        CODECS.get(CURRENT_VERSION).encode(byteBuf, bindTarget);
-    }
-
-    public static DataResult<BindTarget> fromCompressedBase64(String base64) {
-        ByteBuf byteBuf = null;
-        try {
-            byte[] compressed = Base64.getDecoder().decode(base64);
-            InflaterInputStream inflaterStream = new InflaterInputStream(new ByteArrayInputStream(compressed));
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            byte[] buffer = new byte[4096];
-            int length;
-            while ((length = inflaterStream.read(buffer)) > 0) {
-                outputStream.write(buffer, 0, length);
-            }
-            byte[] bytes = outputStream.toByteArray();
-            byteBuf = Unpooled.wrappedBuffer(bytes);
-            BindTarget target = readWithVersion(byteBuf);
-            if (target.isEmpty()) return DataResult.error(() -> "Invalid config format");
-            return DataResult.success(target);
-        } catch (Exception e) {
-            return DataResult.error(() -> {
-                String message = e.getClass().getSimpleName();
-                if (e instanceof IllegalArgumentException) message += ": " + e.getMessage();
-                return message;
+    static final StreamCodec<ByteBuf, TargetConfig> TARGET_CONFIG_CODEC = StreamCodec.composite(
+            ByteBufCodecs.STRING_UTF8, TargetConfig::textureId,
+            ByteBufCodecs.FLOAT, TargetConfig::forwardU,
+            ByteBufCodecs.FLOAT, TargetConfig::forwardV,
+            ByteBufCodecs.FLOAT, TargetConfig::upwardU,
+            ByteBufCodecs.FLOAT, TargetConfig::upwardV,
+            ByteBufCodecs.FLOAT, TargetConfig::posU,
+            ByteBufCodecs.FLOAT, TargetConfig::posV,
+            TargetConfig::new);
+    static final StreamCodec<ByteBuf, OffsetConfig> OFFSET_CONFIG_CODEC = StreamCodec.composite(
+            ByteBufCodecs.BYTE, offsets -> {
+                byte bindFlags = 0;
+                if (offsets.bindX) bindFlags |= 0x01;
+                if (offsets.bindY) bindFlags |= 0x02;
+                if (offsets.bindZ) bindFlags |= 0x04;
+                if (offsets.bindRotation) bindFlags |= 0x08;
+                return bindFlags;
+            },
+            ByteBufCodecs.FLOAT, offsets -> offsets.scale,
+            ByteBufCodecs.FLOAT, offsets -> offsets.x,
+            ByteBufCodecs.FLOAT, offsets -> offsets.y,
+            ByteBufCodecs.FLOAT, offsets -> offsets.z,
+            ByteBufCodecs.FLOAT, offsets -> offsets.pitch,
+            ByteBufCodecs.FLOAT, offsets -> offsets.yaw,
+            ByteBufCodecs.FLOAT, offsets -> offsets.roll,
+            (flags, scale, x, y, z, pitch, yaw, roll) -> {
+                OffsetConfig offsets = new OffsetConfig(scale, x, y, z, pitch, yaw, roll);
+                offsets.bindX = (flags & 0x01) != 0;
+                offsets.bindY = (flags & 0x02) != 0;
+                offsets.bindZ = (flags & 0x04) != 0;
+                offsets.bindRotation = (flags & 0x08) != 0;
+                return offsets;
             });
-        } finally {
-            if (byteBuf != null) byteBuf.release();
-        }
-    }
-
-    public static DataResult<String> toCompressedBase64(BindTarget bindTarget) {
-        ByteBuf byteBuf = Unpooled.buffer();
-        try {
-            writeWithVersion(byteBuf, bindTarget);
-            byte[] bytes = new byte[byteBuf.readableBytes()];
-            byteBuf.getBytes(byteBuf.readerIndex(), bytes);
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            try (DeflaterOutputStream deflaterStream = new DeflaterOutputStream(outputStream, new Deflater(Deflater.BEST_COMPRESSION))) {
-                deflaterStream.write(bytes);
-            }
-            String base64 = Base64.getEncoder().encodeToString(outputStream.toByteArray());
-            return DataResult.success(base64);
-        } catch (Exception e) {
-            return DataResult.error(() -> e.getClass().getSimpleName() + ": " + e.getMessage());
-        } finally {
-            byteBuf.release();
-        }
-    }
-
-    private static String toSemVer(short version) {
-        int major = version / 10000;
-        int minor = version % 10000 / 100;
-        int patch = version % 100;
-        return major + "." + minor + "." + patch;
-    }
+    static final StreamCodec<ByteBuf, List<RenderConfig.DisableConfig>> DISABLE_CONFIGS = StreamCodec.composite(
+            ByteBufCodecs.STRING_UTF8, RenderConfig.DisableConfig::name,
+            ByteBufCodecs.STRING_UTF8, RenderConfig.DisableConfig::textureId,
+            ByteBufCodecs.BOOL, RenderConfig.DisableConfig::disableAll,
+            StreamCodec.composite(
+                    ByteBufCodecs.FLOAT, UVRectangle::uMin,
+                    ByteBufCodecs.FLOAT, UVRectangle::vMin,
+                    ByteBufCodecs.FLOAT, UVRectangle::uMax,
+                    ByteBufCodecs.FLOAT, UVRectangle::vMax,
+                    UVRectangle::new).apply(ByteBufCodecs.list()), RenderConfig.DisableConfig::rectangles,
+            RenderConfig.DisableConfig::new).apply(ByteBufCodecs.list());
+    static final StreamCodec<ByteBuf, RenderConfig> RENDER_CONFIG_CODEC = StreamCodec.composite(
+            ByteBufCodecs.FLOAT, config -> config.disablingDepth,
+            DISABLE_CONFIGS, config -> config.disableConfigs,
+            RenderConfig::new);
+    static final StreamCodec<ByteBuf, BindTarget> CODEC = StreamCodec.composite(
+            ByteBufCodecs.STRING_UTF8.map(Identifier::parse, Identifier::toString), BindTarget::id,
+            ByteBufCodecs.optional(TARGET_CONFIG_CODEC), target -> Optional.ofNullable(target.targetConfig()),
+            OFFSET_CONFIG_CODEC, BindTarget::offsets,
+            RENDER_CONFIG_CODEC, BindTarget::renderConfig,
+            (id, target, offsets, render) -> new BindTarget(id, target.orElse(null), render, offsets));
 }

@@ -3,10 +3,9 @@ package com.xtracr.realcamera.gui;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.xtracr.realcamera.api.BindResult;
-import com.xtracr.realcamera.config.BindTarget;
-import com.xtracr.realcamera.config.BindTarget.TargetConfig;
-import com.xtracr.realcamera.config.DisableConfig;
+import com.xtracr.realcamera.config.binding.TargetConfig;
+import com.xtracr.realcamera.config.binding.RenderConfig.DisableConfig;
+import com.xtracr.realcamera.config.binding.OffsetConfig;
 import com.xtracr.realcamera.renderer.IdentifiedVertexBuffer;
 import com.xtracr.realcamera.renderer.MultiVertexCatcher;
 import com.xtracr.realcamera.renderer.gui.GuiCulledModelsRenderer;
@@ -14,6 +13,7 @@ import com.xtracr.realcamera.renderer.state.ModelSnapshot;
 import com.xtracr.realcamera.renderer.state.Primitive;
 import com.xtracr.realcamera.renderer.state.VertexData;
 import com.xtracr.realcamera.util.PrimitiveLookup;
+import com.xtracr.realcamera.util.ReferenceFrame;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -23,7 +23,6 @@ import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix3f;
 import org.joml.Matrix4fc;
 import org.joml.Vector3f;
 import org.jspecify.annotations.Nullable;
@@ -40,15 +39,17 @@ public final class ModelAnalyser {
     private static final int Z_QUAD = GuiCulledModelsRenderer.MAX_Z + 10, Z_LINE = Z_QUAD + 10;
     private final List<Primitive> focusedPolyhedron = new ArrayList<>();
     private Primitive[] targetPrimitives = new Primitive[3];
-    private BindResult bindResult = BindResult.EMPTY;
+    private @Nullable ReferenceFrame cameraFrame;
     @Nullable
     private ModelSnapshot focusedRecord;
 
-    public static void applyDisableConfigs(List<ModelSnapshot> modelRecords, BindTarget target, String textureId, Set<String> hiddenNames) {
+    public static void applyDisableConfigs(List<ModelSnapshot> modelRecords, List<DisableConfig> configuredDisables, String textureId, Set<String> hiddenNames) {
         for (int i = 0; i < modelRecords.size(); i++) {
             ModelSnapshot record = modelRecords.get(i);
             List<Primitive> primitives = new ArrayList<>();
-            DisableConfig[] disableConfigs = target.filteredDisableConfigs(config -> record.containsTextureId(config.textureId()) && hiddenNames.contains(config.name()));
+            DisableConfig[] disableConfigs = configuredDisables.stream()
+                    .filter(config -> record.containsTextureId(config.textureId()) && hiddenNames.contains(config.name()))
+                    .toArray(DisableConfig[]::new);
             boolean disableAll = !record.containsTextureId(textureId);
             for (DisableConfig config : disableConfigs) {
                 if (config.disableAll()) {
@@ -194,17 +195,16 @@ public final class ModelAnalyser {
     }
 
     public void drawCameraDirections(GuiGraphicsExtractor graphics, double modelScale) {
-        if (targetPrimitives[0] == null || targetPrimitives[1] == null || targetPrimitives[2] == null) return;
-        Vec3 start = bindResult.getPosition();
-        Matrix3f normal = bindResult.getRotation();
-        if (normal.m00() == 0 && normal.m11() == 0 && normal.m22() == 0) return;
-        GUIHelper.vector(graphics, start, new Vec3(normal.m20(), normal.m21(), normal.m22()).scale(modelScale / 3), Z_LINE, FORWARD_ARGB);
-        GUIHelper.vector(graphics, start, new Vec3(normal.m10(), normal.m11(), normal.m12()).scale(modelScale / 6), Z_LINE, UPWARD_ARGB);
-        GUIHelper.vector(graphics, start, new Vec3(normal.m00(), normal.m01(), normal.m02()).scale(modelScale / 6), Z_LINE, LEFT_ARGB);
+        if (cameraFrame == null) return;
+        Vec3 start = cameraFrame.origin();
+        GUIHelper.vector(graphics, start, cameraFrame.forward().scale(modelScale / 3), Z_LINE, FORWARD_ARGB);
+        GUIHelper.vector(graphics, start, cameraFrame.upward().scale(modelScale / 6), Z_LINE, UPWARD_ARGB);
+        // Reflection belongs to the viewport; the frame itself remains right-handed.
+        GUIHelper.vector(graphics, start, cameraFrame.left().scale(-modelScale / 6), Z_LINE, LEFT_ARGB);
     }
 
-    public void drawBindTarget(GuiGraphicsExtractor graphics, BindTarget target, double modelScale) {
-        TargetConfig config = target.targetConfig();
+    public void drawBindTarget(GuiGraphicsExtractor graphics, @Nullable TargetConfig config, double modelScale) {
+        if (config == null) return;
         if (targetPrimitives[0] != null) GUIHelper.triangleOrQuad(graphics, targetPrimitives[0], Z_QUAD, PLANE_ARGB);
         if (targetPrimitives[1] != null) GUIHelper.vector(graphics, targetPrimitives[1].positionAtUV(config.forwardU(), config.forwardV()), targetPrimitives[1].faceNormal().scale(-modelScale / 2), Z_LINE, FORWARD_ARGB);
         if (targetPrimitives[2] != null) GUIHelper.vector(graphics, targetPrimitives[2].positionAtUV(config.upwardU(), config.upwardV()), targetPrimitives[2].faceNormal().scale(-modelScale / 2), Z_LINE, UPWARD_ARGB);
@@ -229,27 +229,30 @@ public final class ModelAnalyser {
         }
     }
 
-    public List<ModelSnapshot> captureModel(Minecraft client, Entity entity, float partialTicks, PoseStack poseStack, BindTarget target) {
+    public List<ModelSnapshot> captureModel(Minecraft client, Entity entity, float partialTicks, PoseStack poseStack, @Nullable TargetConfig config, OffsetConfig offsets) {
+        cameraFrame = null;
+        targetPrimitives = new Primitive[3];
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         client.gameRenderer.getLighting().setupFor(Lighting.Entry.ENTITY_IN_UI);
         dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, vertexCatcher.initCollector());
         List<ModelSnapshot> records = new ArrayList<>();
-        vertexCatcher.forEachBuffer(buf -> computeRecord(buf, records, target));
+        for (IdentifiedVertexBuffer buffer : vertexCatcher.collectBuffers()) {
+            records.add(buffer.snapshot());
+            if (config != null) computeBinding(buffer, config, offsets);
+        }
         return records;
     }
 
-    private void computeRecord(IdentifiedVertexBuffer builtBuffer, List<ModelSnapshot> records, BindTarget target) {
-        ModelSnapshot record = builtBuffer.snapshot();
-        records.add(record);
-        if (!builtBuffer.textureId().contains(target.textureId()) || !bindResult.target.isEmpty()) return;
-        BindResult result = new BindResult(target);
-        BindTarget.TargetConfig config = target.targetConfig();
+    private void computeBinding(IdentifiedVertexBuffer builtBuffer, TargetConfig config, OffsetConfig offsets) {
+        if (!builtBuffer.textureId().contains(config.textureId())) return;
+        // Preserve the first partial match so its found primitives remain visible in the editor.
+        if (targetPrimitives[0] != null || targetPrimitives[1] != null || targetPrimitives[2] != null) return;
         VertexData.UV[] uvs = {new VertexData.UV(config.posU(), config.posV()), new VertexData.UV(config.forwardU(), config.forwardV()), new VertexData.UV(config.upwardU(), config.upwardV())};
         targetPrimitives = PrimitiveLookup.findPrimitives(builtBuffer, uvs, PrimitiveLookup.LookupMode.SCAN_ONLY);
-        if (targetPrimitives[0] != null) result.setPosition(targetPrimitives[0].positionAtUV(config.posU(), config.posV()));
-        if (targetPrimitives[1] != null) result.setForward(targetPrimitives[1].faceNormal().scale(-1));
-        if (targetPrimitives[2] != null) result.setUpward(targetPrimitives[2].faceNormal().scale(-1));
-        if (result.weakAvailable()) bindResult = result.computeCamera(true);
+        if (targetPrimitives[0] == null || targetPrimitives[1] == null || targetPrimitives[2] == null) return;
+        ReferenceFrame frame = ReferenceFrame.tryFromForwardUp(targetPrimitives[0].positionAtUV(config.posU(), config.posV()),
+                targetPrimitives[1].faceNormal().scale(-1), targetPrimitives[2].faceNormal().scale(-1));
+        if (frame != null) cameraFrame = offsets.applyTo(frame, true);
     }
 
     private record ZEntry(ModelSnapshot record, Primitive primitive, float z) {

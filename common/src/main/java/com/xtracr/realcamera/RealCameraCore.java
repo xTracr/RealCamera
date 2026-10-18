@@ -1,35 +1,44 @@
 package com.xtracr.realcamera;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.xtracr.realcamera.api.BindResult;
+import com.xtracr.realcamera.api.BindingContext;
+import com.xtracr.realcamera.api.BindingResult;
 import com.xtracr.realcamera.api.RealCameraAPI;
 import com.xtracr.realcamera.compat.DisableHelper;
-import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.ConfigFile;
-import com.xtracr.realcamera.config.DisableConfig;
+import com.xtracr.realcamera.config.binding.OffsetConfig;
+import com.xtracr.realcamera.config.binding.RenderConfig;
+import com.xtracr.realcamera.config.binding.RenderConfig.DisableConfig;
+import com.xtracr.realcamera.config.binding.TargetConfig;
 import com.xtracr.realcamera.renderer.IdentifiedVertexBuffer;
 import com.xtracr.realcamera.renderer.MultiVertexCatcher;
 import com.xtracr.realcamera.renderer.RoutingSubmitCollector;
 import com.xtracr.realcamera.renderer.state.Primitive;
 import com.xtracr.realcamera.renderer.state.VertexData;
-import com.xtracr.realcamera.util.PrimitiveLookup;
-import com.xtracr.realcamera.util.CameraTransform;
 import com.xtracr.realcamera.util.LocUtil;
 import com.xtracr.realcamera.util.MathUtil;
+import com.xtracr.realcamera.util.PrimitiveLookup;
+import com.xtracr.realcamera.util.ReferenceFrame;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
+import org.jspecify.annotations.Nullable;
+
+import java.util.List;
 
 public final class RealCameraCore {
     private static final MultiVertexCatcher vertexCatcher = MultiVertexCatcher.create();
-    private static final CameraTransform smoothedCamera = new CameraTransform();
-    private static BindResult lastResult = BindResult.EMPTY, newResult = BindResult.EMPTY;
+    private static ReferenceFrame smoothedCameraState = ReferenceFrame.IDENTITY;
+    private static ReferenceFrame lastCameraState = ReferenceFrame.IDENTITY;
+    @Nullable
+    private static Identifier currentTarget = null;
     private static boolean active = false, rendering = false;
     private static int failureFrames = 0;
 
@@ -41,8 +50,12 @@ public final class RealCameraCore {
         return isActive() && rendering;
     }
 
-    public static BindTarget currentTarget() {
-        return lastResult.target;
+    public static @Nullable Identifier currentTarget() {
+        return currentTarget;
+    }
+
+    public static @Nullable OffsetConfig currentOffsets() {
+        return currentTarget == null ? null : ConfigFile.config().binding.offsetConfigs.get(currentTarget);
     }
 
     public static void initialize(Minecraft client, boolean advanceGameTime) {
@@ -51,41 +64,49 @@ public final class RealCameraCore {
         rendering = ConfigFile.config().renderModel && !DisableHelper.RENDER_MODEL.disabled(entity);
     }
 
+    public static void register() {
+        // Ordinary UV capture is the fallback after external and YSM approaches.
+        RealCameraAPI.register(RealCamera.MOD_ID, Integer.MIN_VALUE, RealCameraCore::computeResult);
+    }
+
     public static void reset() {
-        smoothedCamera.setPosition(Vec3.ZERO);
-        smoothedCamera.setRotation(new Matrix3f());
+        active = false;
+        lastCameraState = ReferenceFrame.IDENTITY;
+        smoothedCameraState = ReferenceFrame.IDENTITY;
+        currentTarget = null;
         failureFrames = 0;
     }
 
     public static Vec3 getRawPos(Vec3 cameraPos, Vec3 entityPos) {
-        Vec3 rawPos = smoothedCamera.getPosition().add(entityPos);
-        BindTarget.BindConfig bindConfig = currentTarget().bindConfig();
-        return new Vec3(bindConfig.bindX() ? rawPos.x() : cameraPos.x(), bindConfig.bindY() ? rawPos.y() : cameraPos.y(), bindConfig.bindZ() ? rawPos.z() : cameraPos.z());
+        OffsetConfig offsets = currentOffsets();
+        if (offsets == null) return cameraPos;
+        Vec3 rawPos = smoothedCameraState.origin().add(entityPos);
+        return new Vec3(offsets.bindX ? rawPos.x() : cameraPos.x(), offsets.bindY ? rawPos.y() : cameraPos.y(), offsets.bindZ ? rawPos.z() : cameraPos.z());
     }
 
     public static Vec3 getEulerAngle(float pitch, float yaw, float roll) {
-        if (!currentTarget().bindConfig().bindRotation()) return new Vec3(pitch, yaw, roll);
+        OffsetConfig offsets = currentOffsets();
+        if (offsets == null || !offsets.bindRotation) return new Vec3(pitch, yaw, roll);
         double scale = Math.toDegrees(1);
-        return MathUtil.getEulerAngleYXZ(smoothedCamera.getRotation()).multiply(scale, -scale, scale);
+        return MathUtil.getEulerAngleYXZ(smoothedCameraState.toRotationMatrix(new Matrix3f())).multiply(scale, -scale, scale);
     }
 
     public static void computeCamera(Minecraft client, float partialTicks) {
         Entity entity = client.getCameraEntity();
         boolean invisible = entity.isInvisible();
         entity.setInvisible(false);
+        BindingResult result;
         try {
-            newResult = RealCameraAPI.computeBindResult(client, partialTicks);
-            if (!newResult.available()) {
-                EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
-                dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, new PoseStack(), vertexCatcher.initCollector());
-                vertexCatcher.forEachBuffer(RealCameraCore::computeBindResult);
-            }
+            result = RealCameraAPI.computeResult(client, partialTicks);
         } finally {
             entity.setInvisible(invisible);
         }
-        if (newResult.available()) {
+        if (result != null) {
+            ReferenceFrame camera = ConfigFile.config().binding.offsets(result.id()).applyTo(result.referenceFrame(), false);
+            ConfigFile.config().binding.renderConfig(result.id());
+            lastCameraState = camera;
+            currentTarget = result.id();
             failureFrames = 0;
-            lastResult = newResult.computeCamera(false);
         } else {
             failureFrames++;
             Player player = client.player;
@@ -93,21 +114,25 @@ public final class RealCameraCore {
             if (!ConfigFile.config().binding.hideFailureMessage && failureFrames == retentionFrames + 1 && player != null) {
                 player.sendSystemMessage(LocUtil.MESSAGE("bindingFailed", LocUtil.MOD_NAME(), LocUtil.MODEL_VIEW_TITLE(), KeyMappings.MODEL_VIEW_SCREEN.getTranslatedKeyMessage()));
             }
-            if (!lastResult.available() || failureFrames > retentionFrames) {
-                lastResult = BindResult.EMPTY;
+            if (currentTarget == null || failureFrames > retentionFrames) {
+                currentTarget = null;
+                lastCameraState = ReferenceFrame.IDENTITY;
                 active = false;
                 return;
             }
         }
-        smoothedCamera.lerpPosition(lastResult.getPosition(), 1 - ConfigFile.config().binding.displacementSmoothFactor);
-        smoothedCamera.slerpRotation(lastResult.getRotation(), 1 - ConfigFile.config().binding.rotationSmoothFactor);
+        smoothedCameraState = smoothedCameraState.interpolate(lastCameraState,
+                1 - ConfigFile.config().binding.displacementSmoothFactor,
+                1 - ConfigFile.config().binding.rotationSmoothFactor);
     }
 
     public static void renderCameraEntity(Minecraft client, float partialTicks, SubmitNodeCollector submitNodeCollector, Matrix4f modelView) {
-        Matrix4f invertedCameraPose = new Matrix4f(lastResult.getRotation())
+        if (currentTarget == null) return;
+        RenderConfig renderConfig = ConfigFile.config().binding.renderConfig(currentTarget);
+        Matrix4f invertedCameraPose = new Matrix4f(lastCameraState.toRotationMatrix(new Matrix3f()))
                 .scale(-1f, 1f, -1f)
                 .invert()
-                .translate(Vec3.ZERO.subtract(lastResult.getPosition()).toVector3f());
+                .translate(Vec3.ZERO.subtract(lastCameraState.origin()).toVector3f());
         PoseStack poseStack = new PoseStack();
         poseStack.mulPose(modelView.invert(new Matrix4f()));
         poseStack.mulPose(invertedCameraPose);
@@ -116,9 +141,12 @@ public final class RealCameraCore {
         SubmitNodeCollector collector = new RoutingSubmitCollector(submitNodeCollector, vertexCatcher.initCollector());
         dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, collector);
         final float m02 = modelView.m02(), m12 = modelView.m12(), m22 = modelView.m22(), m32 = modelView.m32();
-        final float depth = currentTarget().disablingDepth();
-        vertexCatcher.forEachBuffer(builtBuffer -> {
-            DisableConfig[] disableConfigs = currentTarget().filteredDisableConfigs(config -> builtBuffer.textureId().contains(config.textureId()));
+        final float depth = renderConfig.disablingDepth;
+        List<DisableConfig> configuredDisables = renderConfig.disableConfigs;
+        vertexCatcher.collectBuffers().forEach(builtBuffer -> {
+            DisableConfig[] disableConfigs = configuredDisables.stream()
+                    .filter(config -> builtBuffer.textureId().contains(config.textureId()))
+                    .toArray(DisableConfig[]::new);
             for (DisableConfig config : disableConfigs) if (config.disableAll()) return;
             submitNodeCollector.submitCustomGeometry(poseStack, builtBuffer.renderType(), (_, buffer) -> {
                 if (!builtBuffer.renderType().canConsolidateConsecutiveGeometry()) {
@@ -128,7 +156,8 @@ public final class RealCameraCore {
                 builtBuffer.primitiveStream().forEach(primitive -> {
                     primitiveFor:
                     for (VertexData vertex : primitive) {
-                        if (Math.fma(m02, vertex.x(), Math.fma(m12, vertex.y(), Math.fma(m22, vertex.z(), m32))) > -depth) continue;
+                        if (Math.fma(m02, vertex.x(), Math.fma(m12, vertex.y(), Math.fma(m22, vertex.z(), m32))) > -depth)
+                            continue;
                         for (DisableConfig config : disableConfigs) {
                             if (config.disable(vertex)) continue primitiveFor;
                         }
@@ -140,21 +169,24 @@ public final class RealCameraCore {
         });
     }
 
-    private static void computeBindResult(IdentifiedVertexBuffer builtBuffer) {
-        if (newResult.available()) return;
-        targetFor:
-        for (BindTarget target : ConfigFile.config().getBindTargetList(builtBuffer.textureId())) {
-            BindResult result = new BindResult(target);
-            BindTarget.TargetConfig config = target.targetConfig();
-            VertexData.UV[] uvs = {new VertexData.UV(config.posU(), config.posV()), new VertexData.UV(config.forwardU(), config.forwardV()), new VertexData.UV(config.upwardU(), config.upwardV())};
-            Primitive[] primitives = PrimitiveLookup.findPrimitives(builtBuffer, uvs);
-            for (Primitive primitive : primitives) if (primitive == null) continue targetFor;
-            if (primitives[0] != null) result.setPosition(primitives[0].positionAtUV(config.posU(), config.posV()));
-            if (primitives[1] != null) result.setForward(primitives[1].faceNormal());
-            if (primitives[2] != null) result.setUpward(primitives[2].faceNormal());
-            if (!result.available()) continue;
-            newResult = result;
-            return;
+    private static BindingResult computeResult(BindingContext context) {
+        Minecraft client = context.client();
+        Entity entity = client.getCameraEntity();
+        EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
+        dispatcher.submit(dispatcher.extractEntity(entity, context.partialTicks()), new CameraRenderState(), 0, 0, 0, new PoseStack(), vertexCatcher.initCollector());
+        for (IdentifiedVertexBuffer buffer : vertexCatcher.collectBuffers()) {
+            for (var target : context.targets(buffer.textureId())) {
+                ReferenceFrame frame = computeSurfaceFrame(buffer, target.config());
+                if (frame != null) return context.result(target.path(), frame);
+            }
         }
+        return null;
+    }
+
+    private static @Nullable ReferenceFrame computeSurfaceFrame(IdentifiedVertexBuffer geometry, TargetConfig config) {
+        VertexData.UV[] uvs = {new VertexData.UV(config.posU(), config.posV()), new VertexData.UV(config.forwardU(), config.forwardV()), new VertexData.UV(config.upwardU(), config.upwardV())};
+        Primitive[] primitives = PrimitiveLookup.findPrimitives(geometry, uvs);
+        if (primitives[0] == null || primitives[1] == null || primitives[2] == null) return null;
+        return ReferenceFrame.tryFromForwardUp(primitives[0].positionAtUV(config.posU(), config.posV()), primitives[1].faceNormal(), primitives[2].faceNormal());
     }
 }
