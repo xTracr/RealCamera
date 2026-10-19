@@ -1,13 +1,14 @@
 package com.xtracr.realcamera.config;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.xtracr.realcamera.RealCameraCore;
+import com.xtracr.realcamera.config.binding.OffsetConfig;
+import com.xtracr.realcamera.config.binding.RenderConfig;
+import com.xtracr.realcamera.config.binding.TargetConfig;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
+import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.IntStream;
+import java.util.*;
 
 public final class ModConfig {
     public static final double MIN_OFFSET_D = -1.0, MAX_OFFSET_D = 1.0;
@@ -31,7 +32,7 @@ public final class ModConfig {
         else binding.adjustOffset = !binding.adjustOffset;
     }
 
-    public void adjustOffsetX(int count) {
+    public void adjustOffsetX(int count, @Nullable OffsetConfig offsets) {
         if (isClassic) {
             switch (classic.adjustMode) {
                 case CENTER -> classic.centerX += count * adjustStep;
@@ -39,15 +40,14 @@ public final class ModConfig {
                 default -> classic.cameraX += count * adjustStep;
             }
             classic.clamp();
-        } else {
-            BindTarget target = RealCameraCore.currentTarget();
-            if (binding.adjustOffset) target.offsets().x += count * (float) adjustStep;
-            else target.offsets().roll += count * 100 * (float) adjustStep;
-            target.offsets().clamp();
+        } else if (offsets != null) {
+            if (binding.adjustOffset) offsets.x += count * (float) adjustStep;
+            else offsets.roll += count * 100 * (float) adjustStep;
+            offsets.clamp();
         }
     }
 
-    public void adjustOffsetY(int count) {
+    public void adjustOffsetY(int count, @Nullable OffsetConfig offsets) {
         if (isClassic) {
             switch (classic.adjustMode) {
                 case CENTER -> classic.centerY += count * adjustStep;
@@ -55,15 +55,14 @@ public final class ModConfig {
                 default -> classic.cameraY += count * adjustStep;
             }
             classic.clamp();
-        } else {
-            BindTarget target = RealCameraCore.currentTarget();
-            if (binding.adjustOffset) target.offsets().y += count * (float) adjustStep;
-            else target.offsets().yaw += count * 100 * (float) adjustStep;
-            target.offsets().clamp();
+        } else if (offsets != null) {
+            if (binding.adjustOffset) offsets.y += count * (float) adjustStep;
+            else offsets.yaw += count * 100 * (float) adjustStep;
+            offsets.clamp();
         }
     }
 
-    public void adjustOffsetZ(int count) {
+    public void adjustOffsetZ(int count, @Nullable OffsetConfig offsets) {
         if (isClassic) {
             switch (classic.adjustMode) {
                 case CENTER -> classic.centerZ += count * adjustStep;
@@ -71,11 +70,10 @@ public final class ModConfig {
                 default -> classic.cameraZ += count * adjustStep;
             }
             classic.clamp();
-        } else {
-            BindTarget target = RealCameraCore.currentTarget();
-            if (binding.adjustOffset) target.offsets().z += count * (float) adjustStep;
-            else target.offsets().pitch += count * 100 * (float) adjustStep;
-            target.offsets().clamp();
+        } else if (offsets != null) {
+            if (binding.adjustOffset) offsets.z += count * (float) adjustStep;
+            else offsets.pitch += count * 100 * (float) adjustStep;
+            offsets.clamp();
         }
     }
 
@@ -115,28 +113,28 @@ public final class ModConfig {
         return classic.roll;
     }
 
-    public List<BindTarget> getBindTargetList(String textureId) {
-        int activeConfigIndex = binding.activeConfigIndex;
-        List<BindTarget> matchedTargets = binding.targetList.stream().filter(target -> textureId.contains(target.textureId())).toList();
-        if (activeConfigIndex <= 0 || matchedTargets.isEmpty()) return matchedTargets;
-        return List.of(matchedTargets.get(Math.clamp(activeConfigIndex - 1, 0, matchedTargets.size() - 1)));
+    public BindTarget getBindTarget(Identifier id) {
+        return new BindTarget(id, binding.targetConfigs.get(id), binding.renderConfig(id), binding.offsets(id));
+    }
+
+    public List<BindTarget> getBindTargets() {
+        Set<Identifier> ids = new LinkedHashSet<>(binding.targetConfigs.keySet());
+        ids.addAll(binding.offsetConfigs.keySet());
+        ids.addAll(binding.renderConfigs.keySet());
+        return ids.stream().map(this::getBindTarget).toList();
     }
 
     public void putBindTarget(BindTarget target) {
-        if (target.isEmpty()) return;
-        List<BindTarget> fixedList = binding.fixedTargetList;
-        for (int i = 0, size = fixedList.size(); i < size; i++) {
-            if (fixedList.get(i).name().equals(target.name())) {
-                fixedList.set(i, target);
-                return;
-            }
-        }
-        List<BindTarget> list = binding.targetList;
-        IntStream.range(0, list.size())
-                .filter(i -> list.get(i).name().equals(target.name()))
-                .findAny()
-                .ifPresentOrElse(i -> list.set(i, target), () -> list.add(target));
-        list.sort(Comparator.comparingInt(t -> -t.priority()));
+        if (target.targetConfig() == null) binding.targetConfigs.remove(target.id());
+        else binding.targetConfigs.put(target.id(), target.targetConfig());
+        binding.offsetConfigs.put(target.id(), target.offsets());
+        binding.renderConfigs.put(target.id(), target.renderConfig());
+    }
+
+    public void removeBindTarget(Identifier id) {
+        binding.targetConfigs.remove(id);
+        binding.offsetConfigs.remove(id);
+        binding.renderConfigs.remove(id);
     }
 
     public static class Classic {
@@ -198,8 +196,29 @@ public final class ModConfig {
         public double rotationSmoothFactor = 0.4;
         public List<String> disableMainFeatureItems = List.of();
         public List<String> disableRenderItems = DEFAULT_DISABLE_RENDER_ITEMS;
-        public List<BindTarget> fixedTargetList = new ArrayList<>();
-        public List<BindTarget> targetList = new ArrayList<>(BindTarget.DEFAULT_TARGETS);
+        public Map<Identifier, TargetConfig> targetConfigs = new LinkedHashMap<>();
+        public Map<Identifier, OffsetConfig> offsetConfigs = new LinkedHashMap<>();
+        public Map<Identifier, RenderConfig> renderConfigs = new LinkedHashMap<>();
+
+        public Binding() {
+            for (BindTarget target : List.of(
+                    BindTarget.vanillaTarget("minecraft_head", false),
+                    BindTarget.vanillaTarget("skin_head", false),
+                    BindTarget.vanillaTarget("minecraft_head_2", true),
+                    BindTarget.vanillaTarget("skin_head_2", true))) {
+                targetConfigs.put(target.id(), target.targetConfig());
+                offsetConfigs.put(target.id(), target.offsets());
+                renderConfigs.put(target.id(), target.renderConfig());
+            }
+        }
+
+        public OffsetConfig offsets(Identifier id) {
+            return offsetConfigs.computeIfAbsent(id, _ -> new OffsetConfig());
+        }
+
+        public RenderConfig renderConfig(Identifier id) {
+            return renderConfigs.computeIfAbsent(id, _ -> new RenderConfig());
+        }
 
         private void clamp() {
             try {
@@ -214,13 +233,13 @@ public final class ModConfig {
             rotationSmoothFactor = Mth.clamp(rotationSmoothFactor, 0.0, 1.0);
             if (disableMainFeatureItems == null) disableMainFeatureItems = List.of();
             if (disableRenderItems == null) disableRenderItems = List.of();
-            if (fixedTargetList == null) fixedTargetList = new ArrayList<>();
-            else fixedTargetList.removeIf(BindTarget::isEmpty);
-            if (targetList == null) targetList = new ArrayList<>(BindTarget.DEFAULT_TARGETS);
-            else {
-                targetList.removeIf(BindTarget::isEmpty);
-                if (targetList.isEmpty()) targetList = new ArrayList<>(BindTarget.DEFAULT_TARGETS);
-            }
+            if (targetConfigs == null) targetConfigs = new LinkedHashMap<>();
+            if (offsetConfigs == null) offsetConfigs = new LinkedHashMap<>();
+            if (renderConfigs == null) renderConfigs = new LinkedHashMap<>();
+            targetConfigs.entrySet().removeIf(entry -> entry.getValue() == null || entry.getValue().textureId() == null);
+            offsetConfigs.values().removeIf(Objects::isNull);
+            renderConfigs.values().removeIf(Objects::isNull);
+            offsetConfigs.values().forEach(OffsetConfig::clamp);
         }
     }
 }

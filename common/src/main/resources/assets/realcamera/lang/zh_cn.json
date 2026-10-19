@@ -94,6 +94,8 @@
   "screen.tooltip.xtracr_realcamera.modelView_selecting": "%s+左键可获取鼠标指针处的UV坐标\n下方三组UV坐标由上到下依次为向前矢量、向上矢量和目标平面上绑定点的UV坐标\n注：%s键+滚轮可在模型的不同层间切换，手动输入UV坐标可以更加精确地绑定到目标位置",
   "screen.tooltip.xtracr_realcamera.modelView_selectionMode": "决定%s+左键快速选择的模式\n（%s键+滚轮可改变范围模式下的选择范围）",
   "screen.tooltip.xtracr_realcamera.modelView_targetName": "配置的名称",
+  "screen.tooltip.xtracr_realcamera.modelView_targetPath": "绑定路径，例如 head。",
+  "screen.tooltip.xtracr_realcamera.modelView_invalidIdentifier": "绑定路径无效。请使用小写字母、数字、下划线、连字符、点或斜杠。",
   "screen.tooltip.xtracr_realcamera.modelView_textureId": "被选中的模型的纹理的id（不是完整的id也可以识别），保存时可以缩短一部分以便于程序识别\n比如将minecraft:textures/entity/player/slim/alex.png缩短为minecraft:textures/entity/player/",
   "screen.tooltip.xtracr_realcamera.modelView_toConfigScreen": "打开全局配置屏幕\n（需要安装Cloth Config API）",
   "screen.widget.xtracr_realcamera.modelView_all": "全部",

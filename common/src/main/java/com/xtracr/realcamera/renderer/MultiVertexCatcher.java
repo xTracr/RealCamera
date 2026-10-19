@@ -13,13 +13,10 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.SequencedMap;
-import java.util.function.Consumer;
+import java.util.*;
 
 public final class MultiVertexCatcher {
     private final SubmitNodeStorage storage = new SubmitNodeStorage();
@@ -106,14 +103,19 @@ public final class MultiVertexCatcher {
         return storage;
     }
 
-    public void forEachBuffer(Consumer<BuiltIterableBuffer> consumer) {
+    public @NonNull Iterable<IdentifiedVertexBuffer> collectBuffers() {
         if (!storage.getSubmitsPerOrder().isEmpty()) {
             renderSolidFeatures();
             renderTranslucentFeatures();
             storage.clear();
             meshCatcher.endBatch();
         }
-        meshCatcher.forEachBuffer(consumer);
+        return new Iterable<>() {
+            @Override
+            public @NotNull Iterator<IdentifiedVertexBuffer> iterator() {
+                return meshCatcher.collectBuffers();
+            }
+        };
     }
 
     static final class MeshCatcher extends MultiBufferSource.BufferSource {
@@ -144,10 +146,9 @@ public final class MultiVertexCatcher {
             bufferPools.values().forEach(ByteBufferBuilderPool::release);
         }
 
-        public void forEachBuffer(Consumer<BuiltIterableBuffer> consumer) {
-            for (var entry : caughtMeshes.entrySet()) {
-                consumer.accept(BuiltIterableBuffer.buildFrom(entry.getValue(), entry.getKey()));
-            }
+        @NonNull
+        private Iterator<IdentifiedVertexBuffer> collectBuffers() {
+            return caughtMeshes.entrySet().stream().map(entry -> IdentifiedVertexBuffer.create(entry.getValue(), entry.getKey())).iterator();
         }
 
         @Override

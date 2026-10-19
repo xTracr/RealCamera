@@ -1,10 +1,12 @@
 package com.xtracr.realcamera.compat;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.xtracr.realcamera.api.BindResult;
+import com.xtracr.realcamera.api.BindingContext;
+import com.xtracr.realcamera.api.BindingResult;
 import com.xtracr.realcamera.api.RealCameraAPI;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.mixin.accessor.AvatarRendererAccessor;
+import com.xtracr.realcamera.util.ReferenceFrame;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.player.AvatarRenderer;
@@ -14,15 +16,18 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
+import org.jspecify.annotations.Nullable;
 
 public final class LegacyBindingMode {
     public static void register() {
-        RealCameraAPI.registerFunction(100, LegacyBindingMode::computeBindResult);
+        RealCameraAPI.register("legacy", 100, LegacyBindingMode::computeResult);
     }
 
     @SuppressWarnings("unchecked")
-    private static BindResult computeBindResult(Minecraft client, float partialTicks) {
-        if (!ConfigFile.config().binding.legacyMode) return BindResult.EMPTY;
+    private static @Nullable BindingResult computeResult(BindingContext context) {
+        Minecraft client = context.client();
+        float partialTicks = context.partialTicks();
+        if (!ConfigFile.config().binding.legacyMode) return null;
         PoseStack poseStack = new PoseStack();
         AbstractClientPlayer player = client.player;
         // WorldRenderer.render
@@ -51,11 +56,12 @@ public final class LegacyBindingMode {
         playerRenderer.getModel().head.translateAndRotate(poseStack);
 
         Vector4f offset = poseStack.last().pose().transform(new Vector4f(0, -0.125f, -0.2f, 1.0f));
-        BindResult result = BindResult.getOrCreate("LEGACY_MODE");
-        result.setPosition(new Vec3(offset.x(), offset.y(), offset.z()));
         poseStack.scale(1f, -1f, -1f);
-        result.setForward(new Vec3(poseStack.last().normal().getColumn(2, new Vector3f())));
-        result.setUpward(new Vec3(poseStack.last().normal().getColumn(1, new Vector3f())));
-        return result;
+        ReferenceFrame frame = ReferenceFrame.tryFromForwardUp(
+                new Vec3(offset.x(), offset.y(), offset.z()),
+                new Vec3(poseStack.last().normal().getColumn(2, new Vector3f())),
+                new Vec3(poseStack.last().normal().getColumn(1, new Vector3f())));
+        if (frame == null) return null;
+        return context.result("head", frame);
     }
 }

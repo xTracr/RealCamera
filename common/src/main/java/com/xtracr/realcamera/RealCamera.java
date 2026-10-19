@@ -13,6 +13,7 @@ public interface RealCamera extends PlatformHelper {
 
     default void initialize() {
         ConfigFile.load();
+        RealCameraCore.register();
         CompatibilityHelper.initialize(this);
     }
 }

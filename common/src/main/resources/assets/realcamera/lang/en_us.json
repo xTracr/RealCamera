@@ -94,6 +94,8 @@
   "screen.tooltip.xtracr_realcamera.modelView_selecting": "%s+Left Click to get the UV coordinates at the mouse pointer\nThe three sets of UV coordinates below are, from top to bottom, the UV coordinates of the forward vector, the upward vector, and the binding point on the target plane\nNote: %s+Scroll to switch between the different layers of the model. Manually inputting UV coordinates allows you to bind more accurately to the target position",
   "screen.tooltip.xtracr_realcamera.modelView_selectionMode": "Decide the mode of %s+Left Click quick selection\n(%s+Scroll to change the selection range in the range mode)",
   "screen.tooltip.xtracr_realcamera.modelView_targetName": "Name of the config",
+  "screen.tooltip.xtracr_realcamera.modelView_targetPath": "Binding path, e.g. head.",
+  "screen.tooltip.xtracr_realcamera.modelView_invalidIdentifier": "Invalid binding path. Use lowercase letters, digits, underscores, hyphens, dots or slashes.",
   "screen.tooltip.xtracr_realcamera.modelView_textureId": "The texture id of the selected model (not necessary to be the full id), can be shortened when saving to make it easier to recognize.\nFor example, shorten minecraft:textures/entity/player/slim/alex.png to minecraft:textures/entity/player/.",
   "screen.tooltip.xtracr_realcamera.modelView_toConfigScreen": "Open Global Config Screen\n(Cloth Config API required)",
   "screen.widget.xtracr_realcamera.modelView_all": "All",
