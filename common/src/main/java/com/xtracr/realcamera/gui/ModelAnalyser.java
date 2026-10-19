@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.xtracr.realcamera.config.binding.TargetConfig;
-import com.xtracr.realcamera.config.binding.RenderConfig.DisableConfig;
+import com.xtracr.realcamera.config.binding.RenderConfig;
 import com.xtracr.realcamera.config.binding.OffsetConfig;
 import com.xtracr.realcamera.renderer.IdentifiedVertexBuffer;
 import com.xtracr.realcamera.renderer.MultiVertexCatcher;
@@ -43,28 +43,18 @@ public final class ModelAnalyser {
     @Nullable
     private ModelSnapshot focusedRecord;
 
-    public static void applyDisableConfigs(List<ModelSnapshot> modelRecords, List<DisableConfig> configuredDisables, String textureId, Set<String> hiddenNames) {
+    public static void applyDisableConfigs(List<ModelSnapshot> modelRecords, RenderConfig renderConfig, String textureId) {
         for (int i = 0; i < modelRecords.size(); i++) {
             ModelSnapshot record = modelRecords.get(i);
             List<Primitive> primitives = new ArrayList<>();
-            DisableConfig[] disableConfigs = configuredDisables.stream()
-                    .filter(config -> record.containsTextureId(config.textureId()) && hiddenNames.contains(config.name()))
-                    .toArray(DisableConfig[]::new);
-            boolean disableAll = !record.containsTextureId(textureId);
-            for (DisableConfig config : disableConfigs) {
-                if (config.disableAll()) {
-                    disableAll = true;
-                    break;
-                }
-            }
-            if (!disableAll) for (Primitive primitive : record.primitives()) {
-                primitiveFor:
-                for (VertexData vertex : primitive) {
-                    for (DisableConfig config : disableConfigs) {
-                        if (config.disable(vertex)) continue primitiveFor;
+            if (record.containsTextureId(textureId)) {
+                RenderConfig.DisableCache disables = renderConfig.disableCache(record.textureId());
+                if (!disables.disableAll()) for (Primitive primitive : record.primitives()) {
+                    for (VertexData vertex : primitive) {
+                        if (disables.disable(vertex.u(), vertex.v())) continue;
+                        primitives.add(primitive);
+                        break;
                     }
-                    primitives.add(primitive);
-                    break;
                 }
             }
             modelRecords.set(i, new ModelSnapshot(record.renderType(), record.textureId(), record.vertexArray(), primitives.toArray(new Primitive[0])));

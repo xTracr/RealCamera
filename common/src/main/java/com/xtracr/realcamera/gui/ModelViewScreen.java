@@ -13,6 +13,7 @@ import com.xtracr.realcamera.config.binding.TargetConfig;
 import com.xtracr.realcamera.config.binding.RenderConfig;
 import com.xtracr.realcamera.config.binding.RenderConfig.DisableConfig;
 import com.xtracr.realcamera.config.binding.OffsetConfig;
+import com.xtracr.realcamera.config.binding.UVRectangle;
 import com.xtracr.realcamera.config.codec.CodecDispatcher;
 import com.xtracr.realcamera.gui.components.*;
 import com.xtracr.realcamera.renderer.state.ModelSnapshot;
@@ -101,6 +102,7 @@ public final class ModelViewScreen extends Screen {
     private final NumberWidgetPair offsetYawPair = new NumberWidgetPair(font, "yaw", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
     private final NumberWidgetPair offsetRollPair = new NumberWidgetPair(font, "roll", compactWidgetWidth, widgetHeight, -180.0f, 180.0f);
     private final List<DisableConfig> disableConfigs = new ArrayList<>();
+    private final RenderConfig previewRenderConfig = new RenderConfig();
     private final List<UVRectangleWidget> rectWidgets = new ArrayList<>();
     private final Map<String, Set<String>> hiddenNameMap = new HashMap<>();
     private final List<NumberWidgetPair> widgetPairs = List.of(offsetXPair, offsetYPair, offsetZPair, offsetPitchPair, offsetYawPair, offsetRollPair);
@@ -410,7 +412,9 @@ public final class ModelViewScreen extends Screen {
         Set<String> hiddenNames = hiddenNameMap.getOrDefault(targetNamespace + ":" + pathField.getValue(), Set.of());
         List<ModelSnapshot> modelRecords = captureRotatedEntity(analyser, target, minecraft.player);
         List<ModelSnapshot> textureRecords = modelRecords.stream().filter(record -> record.containsTextureId(textureId)).toList();
-        ModelAnalyser.applyDisableConfigs(modelRecords, target.renderConfig().disableConfigs, textureId, hiddenNames);
+        previewRenderConfig.setDisableConfigs(target.renderConfig().disableConfigs().stream()
+                .filter(config -> hiddenNames.contains(config.name())).toList());
+        ModelAnalyser.applyDisableConfigs(modelRecords, previewRenderConfig, textureId);
         computeFocusedPrimitives(analyser, modelRecords, textureRecords, mouseX, mouseY);
         renderCulledModels(graphics, analyser, target.targetConfig(), modelRecords);
         renderFlattenedModels(graphics, analyser, textureRecords);
@@ -696,7 +700,7 @@ public final class ModelViewScreen extends Screen {
         offsetYawPair.setNumber(offsets.yaw);
         offsetRollPair.setNumber(offsets.roll);
         disableConfigs.clear();
-        disableConfigs.addAll(target.renderConfig().disableConfigs);
+        disableConfigs.addAll(target.renderConfig().disableConfigs());
         clearDisableDraft();
     }
 

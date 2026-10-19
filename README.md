@@ -77,7 +77,6 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
     * OptiFine
     * Armourer's Workshop (Mod version 0.6+)
     * Armors based on GeckoLib
-    * Customizable Player Models
     * Epic Fight (Mod version 0.6-)
     * Timeless and Classics Zero,version 1.1.4+
 

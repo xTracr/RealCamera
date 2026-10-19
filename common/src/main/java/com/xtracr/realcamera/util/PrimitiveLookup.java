@@ -9,21 +9,13 @@ import org.jspecify.annotations.Nullable;
 public final class PrimitiveLookup {
     private PrimitiveLookup() {}
 
-    public static @Nullable Primitive[] findPrimitives(IdentifiedGeometry geometry, @Nullable UV[] uvs) {
-        return findPrimitives(geometry, uvs, LookupMode.CACHE_THEN_SCAN);
-    }
-
     public static @Nullable Primitive[] findPrimitives(IdentifiedGeometry geometry, @Nullable UV[] uvs, LookupMode mode) {
-        return findPrimitives(geometry, uvs, mode, geometry.renderType());
-    }
-
-    private static @Nullable Primitive[] findPrimitives(IdentifiedGeometry geometry, @Nullable UV[] uvs, LookupMode mode, RenderType cacheRenderType) {
         Primitive[] found = new Primitive[uvs.length];
         if (mode != LookupMode.SCAN_ONLY) {
             readCached(geometry, uvs, found);
         }
         if (mode != LookupMode.CACHE_ONLY && !allFound(uvs, found)) {
-            scan(geometry.primitives(), uvs, found, cacheRenderType);
+            scan(geometry.primitives(), uvs, found, geometry.renderType());
         }
         return found;
     }

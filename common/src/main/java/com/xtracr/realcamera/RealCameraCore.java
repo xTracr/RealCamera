@@ -8,7 +8,6 @@ import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.binding.OffsetConfig;
 import com.xtracr.realcamera.config.binding.RenderConfig;
-import com.xtracr.realcamera.config.binding.RenderConfig.DisableConfig;
 import com.xtracr.realcamera.config.binding.TargetConfig;
 import com.xtracr.realcamera.renderer.IdentifiedVertexBuffer;
 import com.xtracr.realcamera.renderer.MultiVertexCatcher;
@@ -30,8 +29,6 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.jspecify.annotations.Nullable;
-
-import java.util.List;
 
 public final class RealCameraCore {
     private static final MultiVertexCatcher vertexCatcher = MultiVertexCatcher.create();
@@ -142,25 +139,19 @@ public final class RealCameraCore {
         dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, collector);
         final float m02 = modelView.m02(), m12 = modelView.m12(), m22 = modelView.m22(), m32 = modelView.m32();
         final float depth = renderConfig.disablingDepth;
-        List<DisableConfig> configuredDisables = renderConfig.disableConfigs;
         vertexCatcher.collectBuffers().forEach(builtBuffer -> {
-            DisableConfig[] disableConfigs = configuredDisables.stream()
-                    .filter(config -> builtBuffer.textureId().contains(config.textureId()))
-                    .toArray(DisableConfig[]::new);
-            for (DisableConfig config : disableConfigs) if (config.disableAll()) return;
+            RenderConfig.DisableCache disables = renderConfig.disableCache(builtBuffer.textureId());
+            if (disables.disableAll()) return;
             submitNodeCollector.submitCustomGeometry(poseStack, builtBuffer.renderType(), (_, buffer) -> {
                 if (!builtBuffer.renderType().canConsolidateConsecutiveGeometry()) {
                     for (VertexData vertex : builtBuffer) vertex.render(buffer);
                     return;
                 }
                 builtBuffer.primitiveStream().forEach(primitive -> {
-                    primitiveFor:
                     for (VertexData vertex : primitive) {
                         if (Math.fma(m02, vertex.x(), Math.fma(m12, vertex.y(), Math.fma(m22, vertex.z(), m32))) > -depth)
                             continue;
-                        for (DisableConfig config : disableConfigs) {
-                            if (config.disable(vertex)) continue primitiveFor;
-                        }
+                        if (disables.disable(vertex.u(), vertex.v())) continue;
                         for (VertexData vertexData : primitive) vertexData.render(buffer);
                         break;
                     }
@@ -185,7 +176,7 @@ public final class RealCameraCore {
 
     private static @Nullable ReferenceFrame computeSurfaceFrame(IdentifiedVertexBuffer geometry, TargetConfig config) {
         VertexData.UV[] uvs = {new VertexData.UV(config.posU(), config.posV()), new VertexData.UV(config.forwardU(), config.forwardV()), new VertexData.UV(config.upwardU(), config.upwardV())};
-        Primitive[] primitives = PrimitiveLookup.findPrimitives(geometry, uvs);
+        Primitive[] primitives = PrimitiveLookup.findPrimitives(geometry, uvs, PrimitiveLookup.LookupMode.CACHE_THEN_SCAN);
         if (primitives[0] == null || primitives[1] == null || primitives[2] == null) return null;
         return ReferenceFrame.tryFromForwardUp(primitives[0].positionAtUV(config.posU(), config.posV()), primitives[1].faceNormal(), primitives[2].faceNormal());
     }

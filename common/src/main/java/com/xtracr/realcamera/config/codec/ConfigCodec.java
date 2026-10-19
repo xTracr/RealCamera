@@ -1,7 +1,7 @@
 package com.xtracr.realcamera.config.codec;
 
 import com.xtracr.realcamera.config.BindTarget;
-import com.xtracr.realcamera.config.UVRectangle;
+import com.xtracr.realcamera.config.binding.UVRectangle;
 import com.xtracr.realcamera.config.binding.OffsetConfig;
 import com.xtracr.realcamera.config.binding.RenderConfig;
 import com.xtracr.realcamera.config.binding.TargetConfig;
@@ -60,7 +60,7 @@ public final class ConfigCodec {
             RenderConfig.DisableConfig::new).apply(ByteBufCodecs.list());
     static final StreamCodec<ByteBuf, RenderConfig> RENDER_CONFIG_CODEC = StreamCodec.composite(
             ByteBufCodecs.FLOAT, config -> config.disablingDepth,
-            DISABLE_CONFIGS, config -> config.disableConfigs,
+            DISABLE_CONFIGS, RenderConfig::disableConfigs,
             RenderConfig::new);
     static final StreamCodec<ByteBuf, BindTarget> CODEC = StreamCodec.composite(
             ByteBufCodecs.STRING_UTF8.map(Identifier::parse, Identifier::toString), BindTarget::id,

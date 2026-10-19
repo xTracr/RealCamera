@@ -77,7 +77,6 @@
     * OptiFine
     * Armourer's Workshop（时装工坊）（真实相机0.6版本以上）
     * 基于GeckoLib的盔甲
-    * Customizable Player Models（自定义玩家模型）
     * Epic Fight（史诗战斗）（真实相机0.6版本以下）
     * [TaCZ]永恒枪械工坊：零 1.1.4版本及以上
 * 兼容:
