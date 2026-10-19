@@ -7,7 +7,6 @@ import com.xtracr.realcamera.api.RealCameraAPI;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.mixin.accessor.AvatarRendererAccessor;
 import com.xtracr.realcamera.util.ReferenceFrame;
-import org.jspecify.annotations.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.entity.player.AvatarRenderer;
@@ -17,6 +16,7 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
+import org.jspecify.annotations.Nullable;
 
 public final class LegacyBindingMode {
     public static void register() {

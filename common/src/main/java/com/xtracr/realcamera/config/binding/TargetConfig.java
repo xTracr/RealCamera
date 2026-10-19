@@ -2,7 +2,10 @@ package com.xtracr.realcamera.config.binding;
 
 import com.xtracr.realcamera.renderer.state.VertexData.UV;
 
-public record TargetConfig(String textureId, float forwardU, float forwardV, float upwardU, float upwardV, float posU, float posV) {
+public record TargetConfig(String textureId,
+                           float forwardU, float forwardV,
+                           float upwardU, float upwardV,
+                           float posU, float posV) {
     public UV positionUV() {
         return new UV(posU, posV);
     }

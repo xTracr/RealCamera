@@ -8,7 +8,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Spliterator;
 
-/** Primitives reference immutable vertices from vertexArray. */
+/**
+ * Primitives reference immutable vertices from vertexArray.
+ */
 public record ModelSnapshot(
         RenderType renderType,
         String textureId,

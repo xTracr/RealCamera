@@ -17,42 +17,52 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 
 public final class RealCameraAPI {
-    private static final List<Provider> PROVIDERS = new ArrayList<>();
+    private static final List<Registration> REGISTRATIONS = new ArrayList<>();
 
-    /** Construct a frame from a finite origin and nonparallel forward/up directions. */
+    /**
+     * Construct a frame from a finite origin and nonparallel forward/up directions.
+     */
     @ApiStatus.Experimental
     public static ReferenceFrame createReferenceFrame(Vec3 origin, Vec3 forward, Vec3 upward) {
         return ReferenceFrame.fromForwardUp(origin, forward, upward);
     }
 
-    /** Return null when the origin or directions cannot define a valid frame. */
+    /**
+     * Return null when the origin or directions cannot define a valid frame.
+     */
     @ApiStatus.Experimental
     public static @Nullable ReferenceFrame tryCreateReferenceFrame(Vec3 origin, Vec3 forward, Vec3 upward) {
         return ReferenceFrame.tryFromForwardUp(origin, forward, upward);
     }
 
-    /** Construct a frame from a finite origin and a right-handed orthonormal rotation. */
+    /**
+     * Construct a frame from a finite origin and a right-handed orthonormal rotation.
+     */
     @ApiStatus.Experimental
     public static ReferenceFrame createReferenceFrame(Vec3 origin, Matrix3fc rotation) {
         return ReferenceFrame.fromRotation(origin, rotation);
     }
 
-    /** Construct a frame from a finite origin and a finite nonzero quaternion; the quaternion is normalized and copied. */
+    /**
+     * Construct a frame from a finite origin and a finite nonzero quaternion; the quaternion is normalized and copied.
+     */
     @ApiStatus.Experimental
     public static ReferenceFrame createReferenceFrame(Vec3 origin, Quaterniondc orientation) {
         return ReferenceFrame.fromOrientation(origin, orientation);
     }
 
-    public static void register(String namespace, BindingApproach approach) {
-        register(namespace, 0, approach);
+    @ApiStatus.Experimental
+    public static void register(String namespace, BindingProvider provider) {
+        register(namespace, 0, provider);
     }
 
-    public static void register(String namespace, int priority, BindingApproach approach) {
+    @ApiStatus.Experimental
+    public static void register(String namespace, int priority, BindingProvider provider) {
         // Validate the namespace using Minecraft's own error messages; "head" is only a valid placeholder path.
         Identifier.fromNamespaceAndPath(namespace, "head");
-        Objects.requireNonNull(approach);
+        Objects.requireNonNull(provider);
         register(priority, (client, partialTicks) -> {
-            BindingResult result = approach.compute(new BindingContext(namespace, client, partialTicks));
+            BindingResult result = provider.compute(new BindingContext(namespace, client, partialTicks));
             if (result != null && !result.id().getNamespace().equals(namespace)) {
                 throw new IllegalArgumentException("Binding result belongs to another namespace: " + result.id());
             }
@@ -61,25 +71,29 @@ public final class RealCameraAPI {
     }
 
     private static void register(int priority, BiFunction<Minecraft, Float, @Nullable BindingResult> function) {
-        PROVIDERS.add(new Provider(priority, function));
-        PROVIDERS.sort(Comparator.comparingInt(Provider::priority).reversed());
+        REGISTRATIONS.add(new Registration(priority, function));
+        REGISTRATIONS.sort(Comparator.comparingInt(Registration::priority).reversed());
     }
 
     public static @Nullable BindingResult computeResult(Minecraft client, float partialTicks) {
-        for (Provider provider : PROVIDERS) {
-            BindingResult result = provider.function.apply(client, partialTicks);
+        for (Registration registration : REGISTRATIONS) {
+            BindingResult result = registration.function.apply(client, partialTicks);
             if (result != null) return result;
         }
         return null;
     }
 
-    /** @deprecated Use {@link #register(String, BindingApproach)}. */
+    /**
+     * @deprecated Use {@link #register(String, BindingProvider)}.
+     */
     @Deprecated
     public static void registerFunction(BiFunction<Minecraft, Float, BindResult> function) {
         registerFunction(0, function);
     }
 
-    /** @deprecated Use {@link #register(String, int, BindingApproach)}. */
+    /**
+     * @deprecated Use {@link #register(String, int, BindingProvider)}.
+     */
     @Deprecated
     public static void registerFunction(int priority, BiFunction<Minecraft, Float, BindResult> function) {
         Objects.requireNonNull(function);
@@ -89,7 +103,9 @@ public final class RealCameraAPI {
         });
     }
 
-    /** @deprecated Use {@link #computeResult(Minecraft, float)}. */
+    /**
+     * @deprecated Use {@link #computeResult(Minecraft, float)}.
+     */
     @Deprecated
     public static BindResult computeBindResult(Minecraft client, float partialTicks) {
         BindingResult result = computeResult(client, partialTicks);
@@ -102,11 +118,13 @@ public final class RealCameraAPI {
     }
 
     @FunctionalInterface
-    public interface BindingApproach {
-        /** Return an applicable path and a valid raw frame, or null when no binding was found. */
+    public interface BindingProvider {
+        /**
+         * Return an applicable path and a valid raw frame, or null when no binding was found.
+         */
         @Nullable BindingResult compute(BindingContext context);
     }
 
-    private record Provider(int priority, BiFunction<Minecraft, Float, @Nullable BindingResult> function) {
+    private record Registration(int priority, BiFunction<Minecraft, Float, @Nullable BindingResult> function) {
     }
 }

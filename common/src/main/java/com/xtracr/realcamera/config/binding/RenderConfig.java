@@ -8,8 +8,8 @@ import org.jspecify.annotations.Nullable;
 import java.util.*;
 
 public final class RenderConfig {
-    private transient @Nullable Map<String, DisableCache> disableCaches;
     public float disablingDepth = 0.2f;
+    private transient @Nullable Map<String, DisableCache> disableCaches;
     private List<DisableConfig> disableConfigs = List.of();
 
     public RenderConfig() {

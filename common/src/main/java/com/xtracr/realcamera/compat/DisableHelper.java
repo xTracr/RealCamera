@@ -64,7 +64,9 @@ public final class DisableHelper {
         return false;
     }
 
-    /** @deprecated Use {@link Entry#registerOr(Predicate)}. */
+    /**
+     * @deprecated Use {@link Entry#registerOr(Predicate)}.
+     */
     @Deprecated
     public static void registerOr(String name, Predicate<LivingEntity> predicate) {
         ENTRIES.get(name).registerOrInBinding(predicate::test);

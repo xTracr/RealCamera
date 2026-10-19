@@ -84,7 +84,9 @@ public class BindResult {
         upward = vec.normalize();
     }
 
-    /** The registration adapter consumes raw vectors; Core applies offsets after selecting a result. */
+    /**
+     * The registration adapter consumes raw vectors; Core applies offsets after selecting a result.
+     */
     @Nullable BindingResult toBindingResult() {
         if (target == null) return null;
         ReferenceFrame frame = frame();

@@ -1,10 +1,10 @@
 package com.xtracr.realcamera.config.codec;
 
 import com.xtracr.realcamera.config.BindTarget;
-import com.xtracr.realcamera.config.binding.UVRectangle;
 import com.xtracr.realcamera.config.binding.OffsetConfig;
 import com.xtracr.realcamera.config.binding.RenderConfig;
 import com.xtracr.realcamera.config.binding.TargetConfig;
+import com.xtracr.realcamera.config.binding.UVRectangle;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;

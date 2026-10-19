@@ -16,11 +16,7 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.SequencedMap;
+import java.util.*;
 
 public final class MultiVertexCatcher {
     private final SubmitNodeStorage storage = new SubmitNodeStorage();

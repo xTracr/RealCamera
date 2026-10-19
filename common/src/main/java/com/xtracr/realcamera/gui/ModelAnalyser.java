@@ -3,9 +3,9 @@ package com.xtracr.realcamera.gui;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.xtracr.realcamera.config.binding.TargetConfig;
-import com.xtracr.realcamera.config.binding.RenderConfig;
 import com.xtracr.realcamera.config.binding.OffsetConfig;
+import com.xtracr.realcamera.config.binding.RenderConfig;
+import com.xtracr.realcamera.config.binding.TargetConfig;
 import com.xtracr.realcamera.renderer.IdentifiedVertexBuffer;
 import com.xtracr.realcamera.renderer.MultiVertexCatcher;
 import com.xtracr.realcamera.renderer.gui.GuiCulledModelsRenderer;
@@ -196,16 +196,20 @@ public final class ModelAnalyser {
     public void drawBindTarget(GuiGraphicsExtractor graphics, @Nullable TargetConfig config, double modelScale) {
         if (config == null || targetLookup == null) return;
         Primitive position = targetLookup.positionPrimitive(), forward = targetLookup.forwardPrimitive(), upward = targetLookup.upwardPrimitive();
-        if (position != null) GUIHelper.triangleOrQuad(graphics, position, Z_QUAD, PLANE_ARGB);
-        if (forward != null) GUIHelper.vector(graphics, forward.positionAtUV(config.forwardU(), config.forwardV()), forward.faceNormal().scale(-modelScale / 2), Z_LINE, FORWARD_ARGB);
-        if (upward != null) GUIHelper.vector(graphics, upward.positionAtUV(config.upwardU(), config.upwardV()), upward.faceNormal().scale(-modelScale / 2), Z_LINE, UPWARD_ARGB);
+        if (position != null)
+            GUIHelper.triangleOrQuad(graphics, position, Z_QUAD, PLANE_ARGB);
+        if (forward != null)
+            GUIHelper.vector(graphics, forward.positionAtUV(config.forwardU(), config.forwardV()), forward.faceNormal().scale(-modelScale / 2), Z_LINE, FORWARD_ARGB);
+        if (upward != null)
+            GUIHelper.vector(graphics, upward.positionAtUV(config.upwardU(), config.upwardV()), upward.faceNormal().scale(-modelScale / 2), Z_LINE, UPWARD_ARGB);
     }
 
     public void drawFocusedInModelArea(GuiGraphicsExtractor graphics) {
         if (focusedPolyhedron.isEmpty() || focusedRecord == null) return;
         Primitive focused = focusedPolyhedron.getFirst();
         GUIHelper.triangleOrQuad(graphics, focused, Z_QUAD, FOCUSED_ARGB, true);
-        for (Primitive primitive : focusedPolyhedron) GUIHelper.triangleOrQuad(graphics, primitive, Z_QUAD, FOCUSED_ARGB);
+        for (Primitive primitive : focusedPolyhedron)
+            GUIHelper.triangleOrQuad(graphics, primitive, Z_QUAD, FOCUSED_ARGB);
     }
 
     public void drawFocusedInTextureArea(GuiGraphicsExtractor graphics, Matrix4fc texturePose) {

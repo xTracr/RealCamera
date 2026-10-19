@@ -24,7 +24,9 @@ public final class OffsetConfig {
         this.roll = roll;
     }
 
-    /** Compensate local offsets for a mirrored preview; reflection stays outside the frame. */
+    /**
+     * Compensate local offsets for a mirrored preview; reflection stays outside the frame.
+     */
     public ReferenceFrame applyTo(ReferenceFrame frame, boolean mirrored) {
         int orientation = mirrored ? -1 : 1;
         Vec3 offset = new Vec3(orientation * z, y, x).scale(scale);

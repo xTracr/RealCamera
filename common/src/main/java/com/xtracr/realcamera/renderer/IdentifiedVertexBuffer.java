@@ -31,7 +31,9 @@ public final class IdentifiedVertexBuffer extends IterableVertexBuffer implement
         return textureId;
     }
 
-    /** Primitives share the snapshot's immutable vertices. */
+    /**
+     * Primitives share the snapshot's immutable vertices.
+     */
     public ModelSnapshot snapshot() {
         VertexData[] vertices = stream().map(VertexData::asImmutable).toArray(VertexData[]::new);
         Primitive[] primitives = new Primitive[primitiveCount];

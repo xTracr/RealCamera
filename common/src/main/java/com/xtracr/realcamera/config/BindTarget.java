@@ -10,8 +10,15 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
-/** Combines a path's data for editing and sharing; runtime solving uses TargetConfig only. */
-public record BindTarget(Identifier id, @Nullable TargetConfig targetConfig, RenderConfig renderConfig, OffsetConfig offsets) {
+/**
+ * Combines a path's data for editing and sharing; runtime solving uses TargetConfig only.
+ */
+public record BindTarget(
+        Identifier id,
+        @Nullable TargetConfig targetConfig,
+        RenderConfig renderConfig,
+        OffsetConfig offsets
+) {
     public static BindTarget blank(Identifier id) {
         TargetConfig target = id.getNamespace().equals(RealCamera.MOD_ID) ? new TargetConfig("", 0, 0, 0, 0, 0, 0) : null;
         return new BindTarget(id, target, new RenderConfig(), new OffsetConfig());

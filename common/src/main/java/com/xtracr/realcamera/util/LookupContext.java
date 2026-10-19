@@ -10,7 +10,9 @@ import org.joml.Matrix3fc;
 import org.joml.Matrix4fc;
 import org.jspecify.annotations.Nullable;
 
-/** Mutable lookup state for one target within a capture. Primitives retain their capture coordinates. */
+/**
+ * Mutable lookup state for one target within a capture. Primitives retain their capture coordinates.
+ */
 public final class LookupContext {
     private final UV[] uvs;
     private final @Nullable Primitive[] primitives = new Primitive[3];
@@ -24,7 +26,9 @@ public final class LookupContext {
         find(geometry, mode, null, null);
     }
 
-    /** Transform new vectors into the shared frame before accumulating them; null leaves coordinates unchanged. */
+    /**
+     * Transform new vectors into the shared frame before accumulating them; null leaves coordinates unchanged.
+     */
     public void find(IdentifiedGeometry geometry, LookupMode mode, @Nullable Matrix4fc positionTransform, @Nullable Matrix3fc directionTransform) {
         for (int i = 0; i < vectors.length; i++) {
             if (vectors[i] == null) primitives[i] = null;
@@ -46,7 +50,8 @@ public final class LookupContext {
                 if (positionTransform != null) vector = new Vec3(vector.toVector3f().mulPosition(positionTransform));
             } else {
                 vector = primitive.faceNormal();
-                if (directionTransform != null) vector = new Vec3(vector.toVector3f().mul(directionTransform)).normalize();
+                if (directionTransform != null)
+                    vector = new Vec3(vector.toVector3f().mul(directionTransform)).normalize();
             }
             if (!Double.isFinite(vector.lengthSqr()) || (i != 0 && vector.equals(Vec3.ZERO))) continue;
             vectors[i] = vector;
@@ -115,5 +120,5 @@ public final class LookupContext {
         return true;
     }
 
-    public enum LookupMode { CACHE_ONLY, SCAN_ONLY, CACHE_THEN_SCAN }
+    public enum LookupMode {CACHE_ONLY, SCAN_ONLY, CACHE_THEN_SCAN}
 }

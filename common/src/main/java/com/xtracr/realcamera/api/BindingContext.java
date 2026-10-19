@@ -27,7 +27,9 @@ public final class BindingContext {
         return partialTicks;
     }
 
-    /** UV definitions are optional; an approach may compute its own paths without them. */
+    /**
+     * UV definitions are optional; an approach may compute its own paths without them.
+     */
     public Iterable<Target> targets() {
         return () -> ConfigFile.config().binding.targetConfigs.entrySet().stream()
                 .filter(entry -> entry.getKey().getNamespace().equals(namespace))
@@ -35,7 +37,9 @@ public final class BindingContext {
                 .iterator();
     }
 
-    /** Apply the manual index after texture matching. */
+    /**
+     * Apply the manual index after texture matching.
+     */
     public List<Target> targets(String textureId) {
         List<Target> matched = ConfigFile.config().binding.targetConfigs.entrySet().stream()
                 .filter(entry -> entry.getKey().getNamespace().equals(namespace))

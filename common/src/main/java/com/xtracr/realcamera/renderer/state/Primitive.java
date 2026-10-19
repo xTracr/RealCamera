@@ -66,10 +66,14 @@ public sealed interface Primitive extends Iterable<VertexData> permits MutablePr
 
     Primitive asImmutable();
 
-    /** Returns an immutable primitive, copying each mapper result before the next call. */
+    /**
+     * Returns an immutable primitive, copying each mapper result before the next call.
+     */
     Primitive mapVertices(UnaryOperator<VertexData> mapper);
 
-    /** Points, lines and degenerate UV triangles never match. */
+    /**
+     * Points, lines and degenerate UV triangles never match.
+     */
     default boolean containsUV(float u, float v) {
         return false;
     }
@@ -86,7 +90,9 @@ public sealed interface Primitive extends Iterable<VertexData> permits MutablePr
         throw new UnsupportedOperationException("Primitive has no surface: " + getClass().getSimpleName());
     }
 
-    /** Winding normal of the first three vertices, or zero when degenerate. */
+    /**
+     * Winding normal of the first three vertices, or zero when degenerate.
+     */
     default Vec3 faceNormal() {
         throw new UnsupportedOperationException("Primitive has no face normal: " + getClass().getSimpleName());
     }
@@ -180,6 +186,33 @@ public sealed interface Primitive extends Iterable<VertexData> permits MutablePr
             this.c = c.asImmutable();
         }
 
+        static boolean containsUV(VertexData a, VertexData b, VertexData c, float u, float v) {
+            return MathUtil.pointInTriangle(u, v, a.u(), a.v(), b.u(), b.v(), c.u(), c.v());
+        }
+
+        static boolean containsXY(VertexData a, VertexData b, VertexData c, float x, float y) {
+            return MathUtil.pointInTriangle(x, y, a.x(), a.y(), b.x(), b.y(), c.x(), c.y());
+        }
+
+        static Vec3 positionAtUV(VertexData a, VertexData b, VertexData c, float u, float v) {
+            return containsUV(a, b, c, u, v) ? interpolateUV(a, b, c, u, v) : new Vec3(Double.NaN, Double.NaN, Double.NaN);
+        }
+
+        static Vec3 interpolateUV(VertexData a, VertexData b, VertexData c, float u, float v) {
+            double abU = (double) b.u() - a.u(), abV = (double) b.v() - a.v();
+            double acU = (double) c.u() - a.u(), acV = (double) c.v() - a.v();
+            double apU = (double) u - a.u(), apV = (double) v - a.v();
+            double determinant = abU * acV - abV * acU;
+            double beta = (apU * acV - apV * acU) / determinant;
+            double gamma = (abU * apV - abV * apU) / determinant;
+            return a.position().scale(1 - beta - gamma).add(b.position().scale(beta)).add(c.position().scale(gamma));
+        }
+
+        static Vec3 faceNormal(VertexData a, VertexData b, VertexData c) {
+            Vec3 origin = a.position();
+            return b.position().subtract(origin).cross(c.position().subtract(origin)).normalize();
+        }
+
         @Override
         public int vertexCount() {
             return 3;
@@ -229,33 +262,6 @@ public sealed interface Primitive extends Iterable<VertexData> permits MutablePr
         public Vec3 faceNormal() {
             return faceNormal(a, b, c);
         }
-
-        static boolean containsUV(VertexData a, VertexData b, VertexData c, float u, float v) {
-            return MathUtil.pointInTriangle(u, v, a.u(), a.v(), b.u(), b.v(), c.u(), c.v());
-        }
-
-        static boolean containsXY(VertexData a, VertexData b, VertexData c, float x, float y) {
-            return MathUtil.pointInTriangle(x, y, a.x(), a.y(), b.x(), b.y(), c.x(), c.y());
-        }
-
-        static Vec3 positionAtUV(VertexData a, VertexData b, VertexData c, float u, float v) {
-            return containsUV(a, b, c, u, v) ? interpolateUV(a, b, c, u, v) : new Vec3(Double.NaN, Double.NaN, Double.NaN);
-        }
-
-        static Vec3 interpolateUV(VertexData a, VertexData b, VertexData c, float u, float v) {
-            double abU = (double) b.u() - a.u(), abV = (double) b.v() - a.v();
-            double acU = (double) c.u() - a.u(), acV = (double) c.v() - a.v();
-            double apU = (double) u - a.u(), apV = (double) v - a.v();
-            double determinant = abU * acV - abV * acU;
-            double beta = (apU * acV - apV * acU) / determinant;
-            double gamma = (abU * apV - abV * apU) / determinant;
-            return a.position().scale(1 - beta - gamma).add(b.position().scale(beta)).add(c.position().scale(gamma));
-        }
-
-        static Vec3 faceNormal(VertexData a, VertexData b, VertexData c) {
-            Vec3 origin = a.position();
-            return b.position().subtract(origin).cross(c.position().subtract(origin)).normalize();
-        }
     }
 
     final class Quad implements Primitive {
@@ -266,6 +272,20 @@ public sealed interface Primitive extends Iterable<VertexData> permits MutablePr
             this.b = b.asImmutable();
             this.c = c.asImmutable();
             this.d = d.asImmutable();
+        }
+
+        static boolean containsUV(VertexData a, VertexData b, VertexData c, VertexData d, float u, float v) {
+            return Triangle.containsUV(a, b, c, u, v) || Triangle.containsUV(a, c, d, u, v);
+        }
+
+        static boolean containsXY(VertexData a, VertexData b, VertexData c, VertexData d, float x, float y) {
+            return Triangle.containsXY(a, b, c, x, y) || Triangle.containsXY(a, c, d, x, y);
+        }
+
+        static Vec3 positionAtUV(VertexData a, VertexData b, VertexData c, VertexData d, float u, float v) {
+            if (Triangle.containsUV(a, b, c, u, v)) return Triangle.interpolateUV(a, b, c, u, v);
+            if (Triangle.containsUV(a, c, d, u, v)) return Triangle.interpolateUV(a, c, d, u, v);
+            return new Vec3(Double.NaN, Double.NaN, Double.NaN);
         }
 
         @Override
@@ -317,20 +337,6 @@ public sealed interface Primitive extends Iterable<VertexData> permits MutablePr
         @Override
         public Vec3 faceNormal() {
             return Triangle.faceNormal(a, b, c);
-        }
-
-        static boolean containsUV(VertexData a, VertexData b, VertexData c, VertexData d, float u, float v) {
-            return Triangle.containsUV(a, b, c, u, v) || Triangle.containsUV(a, c, d, u, v);
-        }
-
-        static boolean containsXY(VertexData a, VertexData b, VertexData c, VertexData d, float x, float y) {
-            return Triangle.containsXY(a, b, c, x, y) || Triangle.containsXY(a, c, d, x, y);
-        }
-
-        static Vec3 positionAtUV(VertexData a, VertexData b, VertexData c, VertexData d, float u, float v) {
-            if (Triangle.containsUV(a, b, c, u, v)) return Triangle.interpolateUV(a, b, c, u, v);
-            if (Triangle.containsUV(a, c, d, u, v)) return Triangle.interpolateUV(a, c, d, u, v);
-            return new Vec3(Double.NaN, Double.NaN, Double.NaN);
         }
     }
 }
