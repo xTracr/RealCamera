@@ -11,7 +11,7 @@ public class DoubleSlider extends AbstractSliderButton {
     private final double min, max;
 
     public DoubleSlider(int width, int height, double value, double min, double max, Function<Double, Component> textFactory) {
-        super(0, 0, width, height, textFactory.apply(value), Mth.clamp(0, (value - min) / (max - min), 1));
+        super(0, 0, width, height, textFactory.apply(value), Mth.clamp((value - min) / (max - min), 0, 1));
         this.textFactory = textFactory;
         this.min = min;
         this.max = max;

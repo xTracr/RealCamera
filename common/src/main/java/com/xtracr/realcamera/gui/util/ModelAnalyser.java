@@ -1,4 +1,4 @@
-package com.xtracr.realcamera.gui;
+package com.xtracr.realcamera.gui.util;
 
 import com.google.common.collect.ImmutableSet;
 import com.mojang.blaze3d.platform.Lighting;
