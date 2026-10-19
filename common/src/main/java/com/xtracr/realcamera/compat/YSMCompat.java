@@ -5,19 +5,15 @@ import com.xtracr.realcamera.RealCamera;
 import com.xtracr.realcamera.api.BindingContext;
 import com.xtracr.realcamera.api.BindingResult;
 import com.xtracr.realcamera.api.RealCameraAPI;
-import com.xtracr.realcamera.config.binding.TargetConfig;
 import com.xtracr.realcamera.renderer.IdentifiedVertexBuffer;
 import com.xtracr.realcamera.renderer.MultiVertexCatcher;
-import com.xtracr.realcamera.renderer.state.Primitive;
-import com.xtracr.realcamera.renderer.state.VertexData;
-import com.xtracr.realcamera.util.PrimitiveLookup;
-import com.xtracr.realcamera.util.PrimitiveLookup.LookupMode;
+import com.xtracr.realcamera.util.LookupContext;
+import com.xtracr.realcamera.util.LookupContext.LookupMode;
 import com.xtracr.realcamera.util.ReferenceFrame;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
-import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.jspecify.annotations.Nullable;
@@ -44,8 +40,8 @@ public final class YSMCompat {
     private static @Nullable BindingResult computeResult(BindingContext context) {
         Minecraft client = context.client();
         float partialTicks = context.partialTicks();
-        // Accumulate position, forward and upward for this capture only; null means not found.
-        Map<String, Vec3[]> matches = new HashMap<>();
+        // Accumulate each path across capture directions and both lookup phases.
+        Map<String, LookupContext> lookups = new HashMap<>();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         EntityRenderState renderState = dispatcher.extractEntity(client.getCameraEntity(), partialTicks);
         PoseStack poseStack = new PoseStack();
@@ -53,12 +49,12 @@ public final class YSMCompat {
             poseStack.pushPose();
             poseStack.mulPose(recorder.matrix4f.invert(new Matrix4f()));
             dispatcher.submit(renderState, new CameraRenderState(), 0, 0, 0, poseStack, recorder.vertexCatcher.initCollector());
-            BindingResult result = recorder.findResult(context, matches, LookupMode.CACHE_ONLY);
+            BindingResult result = recorder.findResult(context, lookups, LookupMode.CACHE_ONLY);
             poseStack.popPose();
             if (result != null) return result;
         }
         for (TransformedVertexRecorder recorder : TRANSFORMED_RECORDERS) {
-            BindingResult result = recorder.findResult(context, matches, LookupMode.SCAN_ONLY);
+            BindingResult result = recorder.findResult(context, lookups, LookupMode.SCAN_ONLY);
             if (result != null) return result;
         }
         return null;
@@ -75,35 +71,16 @@ public final class YSMCompat {
             return this;
         }
 
-        private @Nullable BindingResult findResult(BindingContext context, Map<String, Vec3[]> matches, LookupMode mode) {
+        private @Nullable BindingResult findResult(BindingContext context, Map<String, LookupContext> lookups, LookupMode mode) {
             for (IdentifiedVertexBuffer buffer : vertexCatcher.collectBuffers()) {
                 for (var target : context.targets(buffer.textureId())) {
-                    Vec3[] vectors = matches.computeIfAbsent(target.path(), _ -> new Vec3[3]);
-                    ReferenceFrame frame = collectFrame(buffer, target.config(), vectors, mode);
+                    LookupContext lookup = lookups.computeIfAbsent(target.path(), _ -> new LookupContext(target.config()));
+                    lookup.find(buffer, mode, matrix4f, matrix3f);
+                    ReferenceFrame frame = lookup.tryBuild();
                     if (frame != null) return context.result(target.path(), frame);
                 }
             }
             return null;
-        }
-
-        private @Nullable ReferenceFrame collectFrame(IdentifiedVertexBuffer geometry, TargetConfig config, Vec3[] vectors, LookupMode mode) {
-            VertexData.UV[] uvs = {
-                    vectors[0] == null ? new VertexData.UV(config.posU(), config.posV()) : null,
-                    vectors[1] == null ? new VertexData.UV(config.forwardU(), config.forwardV()) : null,
-                    vectors[2] == null ? new VertexData.UV(config.upwardU(), config.upwardV()) : null
-            };
-            Primitive[] primitives = PrimitiveLookup.findPrimitives(geometry, uvs, mode);
-            for (int i = 0; i < primitives.length; i++) {
-                Primitive primitive = primitives[i];
-                if (primitive == null) continue;
-                Vec3 vector = i == 0
-                        ? new Vec3(primitive.positionAtUV(config.posU(), config.posV()).toVector3f().mulPosition(matrix4f))
-                        : new Vec3(primitive.faceNormal().toVector3f().mul(matrix3f)).normalize();
-                if (!Double.isFinite(vector.lengthSqr()) || (i != 0 && vector.equals(Vec3.ZERO))) continue;
-                vectors[i] = vector;
-            }
-            if (vectors[0] == null || vectors[1] == null || vectors[2] == null) return null;
-            return ReferenceFrame.tryFromForwardUp(vectors[0], vectors[1], vectors[2]);
         }
     }
 }

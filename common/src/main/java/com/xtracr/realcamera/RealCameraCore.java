@@ -8,15 +8,13 @@ import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.binding.OffsetConfig;
 import com.xtracr.realcamera.config.binding.RenderConfig;
-import com.xtracr.realcamera.config.binding.TargetConfig;
 import com.xtracr.realcamera.renderer.IdentifiedVertexBuffer;
 import com.xtracr.realcamera.renderer.MultiVertexCatcher;
 import com.xtracr.realcamera.renderer.RoutingSubmitCollector;
-import com.xtracr.realcamera.renderer.state.Primitive;
 import com.xtracr.realcamera.renderer.state.VertexData;
 import com.xtracr.realcamera.util.LocUtil;
 import com.xtracr.realcamera.util.MathUtil;
-import com.xtracr.realcamera.util.PrimitiveLookup;
+import com.xtracr.realcamera.util.LookupContext;
 import com.xtracr.realcamera.util.ReferenceFrame;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -167,17 +165,12 @@ public final class RealCameraCore {
         dispatcher.submit(dispatcher.extractEntity(entity, context.partialTicks()), new CameraRenderState(), 0, 0, 0, new PoseStack(), vertexCatcher.initCollector());
         for (IdentifiedVertexBuffer buffer : vertexCatcher.collectBuffers()) {
             for (var target : context.targets(buffer.textureId())) {
-                ReferenceFrame frame = computeSurfaceFrame(buffer, target.config());
+                LookupContext lookup = new LookupContext(target.config());
+                lookup.find(buffer, LookupContext.LookupMode.CACHE_THEN_SCAN);
+                ReferenceFrame frame = lookup.tryBuild();
                 if (frame != null) return context.result(target.path(), frame);
             }
         }
         return null;
-    }
-
-    private static @Nullable ReferenceFrame computeSurfaceFrame(IdentifiedVertexBuffer geometry, TargetConfig config) {
-        VertexData.UV[] uvs = {new VertexData.UV(config.posU(), config.posV()), new VertexData.UV(config.forwardU(), config.forwardV()), new VertexData.UV(config.upwardU(), config.upwardV())};
-        Primitive[] primitives = PrimitiveLookup.findPrimitives(geometry, uvs, PrimitiveLookup.LookupMode.CACHE_THEN_SCAN);
-        if (primitives[0] == null || primitives[1] == null || primitives[2] == null) return null;
-        return ReferenceFrame.tryFromForwardUp(primitives[0].positionAtUV(config.posU(), config.posV()), primitives[1].faceNormal(), primitives[2].faceNormal());
     }
 }

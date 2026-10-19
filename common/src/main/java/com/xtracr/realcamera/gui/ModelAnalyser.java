@@ -12,7 +12,7 @@ import com.xtracr.realcamera.renderer.gui.GuiCulledModelsRenderer;
 import com.xtracr.realcamera.renderer.state.ModelSnapshot;
 import com.xtracr.realcamera.renderer.state.Primitive;
 import com.xtracr.realcamera.renderer.state.VertexData;
-import com.xtracr.realcamera.util.PrimitiveLookup;
+import com.xtracr.realcamera.util.LookupContext;
 import com.xtracr.realcamera.util.ReferenceFrame;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.client.Minecraft;
@@ -38,7 +38,7 @@ public final class ModelAnalyser {
     private static final int PLANE_ARGB = 0x6F3333CC, FORWARD_ARGB = 0xFF00CC00, UPWARD_ARGB = 0xFFCC0000, LEFT_ARGB = 0xFF0000CC, FOCUSED_ARGB = 0x4FFFFFFF;
     private static final int Z_QUAD = GuiCulledModelsRenderer.MAX_Z + 10, Z_LINE = Z_QUAD + 10;
     private final List<Primitive> focusedPolyhedron = new ArrayList<>();
-    private Primitive[] targetPrimitives = new Primitive[3];
+    private @Nullable LookupContext targetLookup;
     private @Nullable ReferenceFrame cameraFrame;
     @Nullable
     private ModelSnapshot focusedRecord;
@@ -194,10 +194,11 @@ public final class ModelAnalyser {
     }
 
     public void drawBindTarget(GuiGraphicsExtractor graphics, @Nullable TargetConfig config, double modelScale) {
-        if (config == null) return;
-        if (targetPrimitives[0] != null) GUIHelper.triangleOrQuad(graphics, targetPrimitives[0], Z_QUAD, PLANE_ARGB);
-        if (targetPrimitives[1] != null) GUIHelper.vector(graphics, targetPrimitives[1].positionAtUV(config.forwardU(), config.forwardV()), targetPrimitives[1].faceNormal().scale(-modelScale / 2), Z_LINE, FORWARD_ARGB);
-        if (targetPrimitives[2] != null) GUIHelper.vector(graphics, targetPrimitives[2].positionAtUV(config.upwardU(), config.upwardV()), targetPrimitives[2].faceNormal().scale(-modelScale / 2), Z_LINE, UPWARD_ARGB);
+        if (config == null || targetLookup == null) return;
+        Primitive position = targetLookup.positionPrimitive(), forward = targetLookup.forwardPrimitive(), upward = targetLookup.upwardPrimitive();
+        if (position != null) GUIHelper.triangleOrQuad(graphics, position, Z_QUAD, PLANE_ARGB);
+        if (forward != null) GUIHelper.vector(graphics, forward.positionAtUV(config.forwardU(), config.forwardV()), forward.faceNormal().scale(-modelScale / 2), Z_LINE, FORWARD_ARGB);
+        if (upward != null) GUIHelper.vector(graphics, upward.positionAtUV(config.upwardU(), config.upwardV()), upward.faceNormal().scale(-modelScale / 2), Z_LINE, UPWARD_ARGB);
     }
 
     public void drawFocusedInModelArea(GuiGraphicsExtractor graphics) {
@@ -221,28 +222,22 @@ public final class ModelAnalyser {
 
     public List<ModelSnapshot> captureModel(Minecraft client, Entity entity, float partialTicks, PoseStack poseStack, @Nullable TargetConfig config, OffsetConfig offsets) {
         cameraFrame = null;
-        targetPrimitives = new Primitive[3];
+        targetLookup = null;
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         client.gameRenderer.getLighting().setupFor(Lighting.Entry.ENTITY_IN_UI);
         dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, vertexCatcher.initCollector());
         List<ModelSnapshot> records = new ArrayList<>();
         for (IdentifiedVertexBuffer buffer : vertexCatcher.collectBuffers()) {
             records.add(buffer.snapshot());
-            if (config != null) computeBinding(buffer, config, offsets);
+            if (config == null || !buffer.containsTextureId(config.textureId())) continue;
+            if (targetLookup == null) targetLookup = new LookupContext(config);
+            // Preserve the first partial match so its found primitives remain visible in the editor.
+            if (!targetLookup.isEmpty()) continue;
+            targetLookup.find(buffer, LookupContext.LookupMode.SCAN_ONLY);
+            ReferenceFrame frame = targetLookup.tryBuild(true);
+            if (frame != null) cameraFrame = offsets.applyTo(frame, true);
         }
         return records;
-    }
-
-    private void computeBinding(IdentifiedVertexBuffer builtBuffer, TargetConfig config, OffsetConfig offsets) {
-        if (!builtBuffer.textureId().contains(config.textureId())) return;
-        // Preserve the first partial match so its found primitives remain visible in the editor.
-        if (targetPrimitives[0] != null || targetPrimitives[1] != null || targetPrimitives[2] != null) return;
-        VertexData.UV[] uvs = {new VertexData.UV(config.posU(), config.posV()), new VertexData.UV(config.forwardU(), config.forwardV()), new VertexData.UV(config.upwardU(), config.upwardV())};
-        targetPrimitives = PrimitiveLookup.findPrimitives(builtBuffer, uvs, PrimitiveLookup.LookupMode.SCAN_ONLY);
-        if (targetPrimitives[0] == null || targetPrimitives[1] == null || targetPrimitives[2] == null) return;
-        ReferenceFrame frame = ReferenceFrame.tryFromForwardUp(targetPrimitives[0].positionAtUV(config.posU(), config.posV()),
-                targetPrimitives[1].faceNormal().scale(-1), targetPrimitives[2].faceNormal().scale(-1));
-        if (frame != null) cameraFrame = offsets.applyTo(frame, true);
     }
 
     private record ZEntry(ModelSnapshot record, Primitive primitive, float z) {
