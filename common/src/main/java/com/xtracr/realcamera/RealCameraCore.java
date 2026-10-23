@@ -8,10 +8,8 @@ import com.xtracr.realcamera.compat.DisableHelper;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.binding.OffsetConfig;
 import com.xtracr.realcamera.config.binding.RenderConfig;
-import com.xtracr.realcamera.renderer.IdentifiedVertexBuffer;
 import com.xtracr.realcamera.renderer.MultiVertexCatcher;
 import com.xtracr.realcamera.renderer.RoutingSubmitCollector;
-import com.xtracr.realcamera.renderer.state.VertexData;
 import com.xtracr.realcamera.util.LocUtil;
 import com.xtracr.realcamera.util.LookupContext;
 import com.xtracr.realcamera.util.MathUtil;
@@ -70,6 +68,7 @@ public final class RealCameraCore {
         smoothedCameraState = ReferenceFrame.IDENTITY;
         currentTarget = null;
         failureFrames = 0;
+        vertexCatcher.clear();
     }
 
     public static Vec3 getRawPos(Vec3 cameraPos, Vec3 entityPos) {
@@ -137,25 +136,25 @@ public final class RealCameraCore {
         dispatcher.submit(dispatcher.extractEntity(entity, partialTicks), new CameraRenderState(), 0, 0, 0, poseStack, collector);
         final float m02 = modelView.m02(), m12 = modelView.m12(), m22 = modelView.m22(), m32 = modelView.m32();
         final float depth = renderConfig.disablingDepth;
-        vertexCatcher.collectBuffers().forEach(builtBuffer -> {
-            RenderConfig.DisableCache disables = renderConfig.disableCache(builtBuffer.textureId());
-            if (disables.disableAll()) return;
-            submitNodeCollector.submitCustomGeometry(poseStack, builtBuffer.renderType(), (_, buffer) -> {
-                if (!builtBuffer.renderType().canConsolidateConsecutiveGeometry()) {
-                    for (VertexData vertex : builtBuffer) vertex.render(buffer);
+        for (var identifiedBuffer : vertexCatcher.collectBuffers()) {
+            RenderConfig.DisableCache disables = renderConfig.disableCache(identifiedBuffer.textureId());
+            if (disables.disableAll()) continue;
+            submitNodeCollector.submitCustomGeometry(poseStack, identifiedBuffer.renderType(), (_, buffer) -> {
+                if (!identifiedBuffer.renderType().canConsolidateConsecutiveGeometry()) {
+                    for (var vertex : identifiedBuffer) vertex.render(buffer);
                     return;
                 }
-                builtBuffer.primitiveStream().forEach(primitive -> {
-                    for (VertexData vertex : primitive) {
+                identifiedBuffer.primitiveStream().forEach(primitive -> {
+                    for (var vertex : primitive) {
                         if (Math.fma(m02, vertex.x(), Math.fma(m12, vertex.y(), Math.fma(m22, vertex.z(), m32))) > -depth)
                             continue;
                         if (disables.disable(vertex.u(), vertex.v())) continue;
-                        for (VertexData vertexData : primitive) vertexData.render(buffer);
+                        for (var vertexData : primitive) vertexData.render(buffer);
                         break;
                     }
                 });
             });
-        });
+        }
     }
 
     private static BindingResult computeResult(BindingContext context) {
@@ -163,7 +162,7 @@ public final class RealCameraCore {
         Entity entity = client.getCameraEntity();
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         dispatcher.submit(dispatcher.extractEntity(entity, context.partialTicks()), new CameraRenderState(), 0, 0, 0, new PoseStack(), vertexCatcher.initCollector());
-        for (IdentifiedVertexBuffer buffer : vertexCatcher.collectBuffers()) {
+        for (var buffer : vertexCatcher.collectBuffers()) {
             for (var target : context.targets(buffer.textureId())) {
                 LookupContext lookup = new LookupContext(target.config());
                 lookup.find(buffer, LookupContext.LookupMode.CACHE_THEN_SCAN);

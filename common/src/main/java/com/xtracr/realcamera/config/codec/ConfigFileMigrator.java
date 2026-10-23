@@ -1,6 +1,5 @@
 package com.xtracr.realcamera.config.codec;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.resources.Identifier;
 
@@ -9,15 +8,16 @@ public class ConfigFileMigrator {
         if (!root.has("binding") || !root.get("binding").isJsonObject()) return;
         JsonObject binding = root.getAsJsonObject("binding");
         if (binding.has("targetConfigs") || !binding.has("targetList")) return;
-        JsonObject targets = new JsonObject(), offsets = new JsonObject(), renders = new JsonObject();
-        for (String list : java.util.List.of("targetList", "fixedTargetList")) {
+        JsonObject targets = new JsonObject(), offsets = new JsonObject(), renders = new JsonObject(), priorities = new JsonObject();
+        for (var list : java.util.List.of("targetList", "fixedTargetList")) {
             if (!binding.has(list) || !binding.get(list).isJsonArray()) continue;
-            for (JsonElement element : binding.getAsJsonArray(list)) {
+            for (var element : binding.getAsJsonArray(list)) {
                 if (!element.isJsonObject()) continue;
                 JsonObject old = element.getAsJsonObject();
                 if (!old.has("name") || old.get("name").isJsonNull()) continue;
                 Identifier id = ConfigDecoder703.legacyId(old.get("name").getAsString());
                 String key = id.toString();
+                if (old.has("priority") && !old.get("priority").isJsonNull()) priorities.add(key, old.get("priority"));
                 if (old.has("targetConfig") && old.get("targetConfig").isJsonObject()
                         && old.has("textureId") && !old.get("textureId").isJsonNull()
                         && !id.getNamespace().equals("legacy")) {
@@ -40,5 +40,6 @@ public class ConfigFileMigrator {
         binding.add("targetConfigs", targets);
         binding.add("offsetConfigs", offsets);
         binding.add("renderConfigs", renders);
+        binding.add("priorities", priorities);
     }
 }

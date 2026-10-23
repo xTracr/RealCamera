@@ -67,5 +67,7 @@ public final class ConfigCodec {
             ByteBufCodecs.optional(TARGET_CONFIG_CODEC), target -> Optional.ofNullable(target.targetConfig()),
             OFFSET_CONFIG_CODEC, BindTarget::offsets,
             RENDER_CONFIG_CODEC, BindTarget::renderConfig,
-            (id, target, offsets, render) -> new BindTarget(id, target.orElse(null), render, offsets));
+            ByteBufCodecs.VAR_INT, BindTarget::priority,
+            (id, target, offsets, render, priority) ->
+                    new BindTarget(id, target.orElse(null), render, offsets, priority));
 }

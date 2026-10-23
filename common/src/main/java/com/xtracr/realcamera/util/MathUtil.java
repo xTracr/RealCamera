@@ -65,7 +65,7 @@ public final class MathUtil {
 
     public static Vec3 projectToVec2(Vec3 vec3, Matrix4fc... projectionMatrices) {
         Vector4f vector4f = new Vector4f((float) vec3.x(), (float) vec3.y(), (float) vec3.z(), 1.0f);
-        for (Matrix4fc matrix4f : projectionMatrices) vector4f.mul(matrix4f);
+        for (var matrix4f : projectionMatrices) vector4f.mul(matrix4f);
         if (vector4f.w() == 0.0) return Vec3.ZERO;
         return new Vec3(vector4f.x(), vector4f.y(), 0).scale(1 / (double) vector4f.w());
     }

@@ -76,7 +76,7 @@ public final class RealCameraAPI {
     }
 
     public static @Nullable BindingResult computeResult(Minecraft client, float partialTicks) {
-        for (Registration registration : REGISTRATIONS) {
+        for (var registration : REGISTRATIONS) {
             BindingResult result = registration.function.apply(client, partialTicks);
             if (result != null) return result;
         }

@@ -2,8 +2,6 @@ package com.xtracr.realcamera.renderer.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.xtracr.realcamera.renderer.state.ModelSnapshot;
-import com.xtracr.realcamera.renderer.state.VertexData;
 import com.xtracr.realcamera.renderer.state.gui.GuiFlattenedModelsRenderState;
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -28,9 +26,9 @@ public final class GuiFlattenedModelsRenderer extends PictureInPictureRenderer<G
 
         Matrix4f positionMatrix = poseStack.last().pose();
         Vector3f position = new Vector3f();
-        for (ModelSnapshot snapshot : renderState.snapshots()) {
+        for (var snapshot : renderState.snapshots()) {
             VertexConsumer buffer = bufferSource.getBuffer(snapshot.renderType());
-            for (VertexData vertex : snapshot) {
+            for (var vertex : snapshot) {
                 position.set(vertex.u(), vertex.v(), 0).mulPosition(positionMatrix);
                 buffer.addVertex(position.x, position.y, 0, vertex.argb(), vertex.u(), vertex.v(), vertex.overlay(), vertex.light(), 0, 0, 1);
             }

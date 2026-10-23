@@ -8,17 +8,15 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectSortedMaps;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.SubmitNodeCollection;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 import java.util.*;
 
-public final class MultiVertexCatcher {
+public final class MultiVertexCatcher implements AutoCloseable {
     private final SubmitNodeStorage storage = new SubmitNodeStorage();
     private final MeshCatcher meshCatcher = new MeshCatcher();
 
@@ -48,7 +46,7 @@ public final class MultiVertexCatcher {
             List<SubmitNodeStorage.ModelPartSubmit> modelPartSubmits = entry.getValue();
             VertexConsumer buffer = bufferSource.getBuffer(renderType);
 
-            for (SubmitNodeStorage.ModelPartSubmit submit : modelPartSubmits) {
+            for (var submit : modelPartSubmits) {
                 VertexConsumer wrappedBuffer = submit.sprite() == null ? buffer : submit.sprite().wrap(buffer);
                 poseStack.last().set(submit.pose());
                 submit.modelPart().render(poseStack, wrappedBuffer, submit.lightCoords(), submit.overlayCoords(), submit.tintedColor());
@@ -60,7 +58,7 @@ public final class MultiVertexCatcher {
     private static void renderCustomGeometry(Map<RenderType, List<SubmitNodeStorage.CustomGeometrySubmit>> customGeometrySubmits, MultiBufferSource.BufferSource bufferSource) {
         for (var entry : customGeometrySubmits.entrySet()) {
             VertexConsumer buffer = bufferSource.getBuffer(entry.getKey());
-            for (SubmitNodeStorage.CustomGeometrySubmit customGeometrySubmit : entry.getValue()) {
+            for (var customGeometrySubmit : entry.getValue()) {
                 customGeometrySubmit.customGeometryRenderer().render(customGeometrySubmit.pose(), buffer);
             }
         }
@@ -70,11 +68,11 @@ public final class MultiVertexCatcher {
      * @see FeatureRenderDispatcher#renderSolidFeatures()
      */
     private void renderSolidFeatures() {
-        for (SubmitNodeCollection collection : storage.getSubmitsPerOrder().values()) {
+        for (var collection : storage.getSubmitsPerOrder().values()) {
             PoseStack poseStack = new PoseStack();
             for (var entry : ((ModelFeatureRenderer$StorageAccessor) collection.getModelSubmits()).getSolidModelSubmits().entrySet()) {
                 VertexConsumer buffer = meshCatcher.getBuffer(entry.getKey());
-                for (SubmitNodeStorage.ModelSubmit<?> submit : entry.getValue()) {
+                for (var submit : entry.getValue()) {
                     renderModel(poseStack, submit, buffer);
                 }
             }
@@ -87,7 +85,7 @@ public final class MultiVertexCatcher {
      * @see FeatureRenderDispatcher#renderTranslucentFeatures()
      */
     private void renderTranslucentFeatures() {
-        for (SubmitNodeCollection collection : storage.getSubmitsPerOrder().values()) {
+        for (var collection : storage.getSubmitsPerOrder().values()) {
             PoseStack poseStack = new PoseStack();
             for (var submit : ((ModelFeatureRenderer$StorageAccessor) collection.getModelSubmits()).getTranslucentModelSubmits()) {
                 renderModel(poseStack, submit.modelSubmit(), meshCatcher.getBuffer(submit.renderType()));
@@ -98,9 +96,20 @@ public final class MultiVertexCatcher {
     }
 
     public SubmitNodeCollector initCollector() {
-        meshCatcher.clear();
-        storage.clear();
+        clear();
         return storage;
+    }
+
+    public void clear() {
+        storage.clear();
+        meshCatcher.clear();
+    }
+
+    /** Release captures and native buffers owned by a short-lived preview catcher. */
+    @Override
+    public void close() {
+        storage.clear();
+        meshCatcher.close();
     }
 
     public @NonNull Iterable<IdentifiedVertexBuffer> collectBuffers() {
@@ -110,12 +119,7 @@ public final class MultiVertexCatcher {
             storage.clear();
             meshCatcher.endBatch();
         }
-        return new Iterable<>() {
-            @Override
-            public @NotNull Iterator<IdentifiedVertexBuffer> iterator() {
-                return meshCatcher.collectBuffers();
-            }
-        };
+        return meshCatcher::collectBuffers;
     }
 
     static final class MeshCatcher extends MultiBufferSource.BufferSource {
@@ -139,11 +143,23 @@ public final class MultiVertexCatcher {
         }
 
         public void clear() {
-            for (MeshData meshData : caughtMeshes.keySet()) {
+            startedBuilders.clear();
+            for (var meshData : caughtMeshes.keySet()) {
                 meshData.close();
             }
             caughtMeshes.clear();
-            bufferPools.values().forEach(ByteBufferBuilderPool::release);
+            for (var byteBufferBuilderPool : bufferPools.values()) {
+                byteBufferBuilderPool.release();
+            }
+        }
+
+        private void close() {
+            clear();
+            for (var pool : bufferPools.values()) {
+                for (var buffer : pool.pool) buffer.close();
+            }
+            bufferPools.clear();
+            sharedBuffer.close();
         }
 
         @NonNull
@@ -153,7 +169,7 @@ public final class MultiVertexCatcher {
 
         @Override
         public void endBatch() {
-            for (RenderType renderType : bufferPools.keySet()) {
+            for (var renderType : bufferPools.keySet()) {
                 endBatch(renderType);
             }
         }

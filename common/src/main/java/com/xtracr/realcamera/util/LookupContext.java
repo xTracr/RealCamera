@@ -34,11 +34,11 @@ public final class LookupContext {
             if (vectors[i] == null) primitives[i] = null;
         }
         if (allPrimitivesFound()) return;
-        if (mode != LookupMode.SCAN_ONLY) {
+        if (mode == LookupMode.CACHE_ONLY || mode == LookupMode.CACHE_THEN_SCAN) {
             readCached(geometry);
         }
         if (mode != LookupMode.CACHE_ONLY && !allPrimitivesFound()) {
-            scan(geometry.primitives(), geometry.renderType());
+            scan(geometry.primitives(), geometry.renderType(), mode != LookupMode.SCAN_UNCACHED);
         }
         // Accept vectors after searching, so an invalid first hit is retried on a later find call.
         for (int i = 0; i < vectors.length; i++) {
@@ -97,16 +97,16 @@ public final class LookupContext {
         }
     }
 
-    private void scan(Iterable<Primitive> geometry, RenderType renderType) {
+    private void scan(Iterable<Primitive> geometry, RenderType renderType, boolean cache) {
         int primitiveIndex = 0;
-        for (Primitive primitive : geometry) {
+        for (var primitive : geometry) {
             Primitive retained = null;
             for (int i = 0; i < uvs.length; i++) {
                 UV uv = uvs[i];
                 if (primitives[i] != null || !primitive.containsUV(uv.u(), uv.v())) continue;
                 if (retained == null) retained = primitive.asImmutable();
                 primitives[i] = retained;
-                RenderTypeCache.cachePrimitive(renderType, uv, primitiveIndex);
+                if (cache) RenderTypeCache.cachePrimitive(renderType, uv, primitiveIndex);
             }
             if (allPrimitivesFound()) return;
             primitiveIndex++;
@@ -114,11 +114,11 @@ public final class LookupContext {
     }
 
     private boolean allPrimitivesFound() {
-        for (Primitive primitive : primitives) {
+        for (var primitive : primitives) {
             if (primitive == null) return false;
         }
         return true;
     }
 
-    public enum LookupMode {CACHE_ONLY, SCAN_ONLY, CACHE_THEN_SCAN}
+    public enum LookupMode {CACHE_ONLY, SCAN_ONLY, CACHE_THEN_SCAN, SCAN_UNCACHED}
 }

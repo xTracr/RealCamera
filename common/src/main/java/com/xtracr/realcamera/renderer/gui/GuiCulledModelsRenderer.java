@@ -2,9 +2,6 @@ package com.xtracr.realcamera.renderer.gui;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.xtracr.realcamera.renderer.state.ModelSnapshot;
-import com.xtracr.realcamera.renderer.state.Primitive;
-import com.xtracr.realcamera.renderer.state.VertexData;
 import com.xtracr.realcamera.renderer.state.gui.GuiCulledModelsRenderState;
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -29,22 +26,22 @@ public final class GuiCulledModelsRenderer extends PictureInPictureRenderer<GuiC
         poseStack.mulPose(renderState.transform());
 
         float minEntityZ = MIN_Z, maxEntityZ = MAX_Z;
-        for (ModelSnapshot snapshot : renderState.snapshots()) {
-            for (VertexData vertex : snapshot) {
+        for (var snapshot : renderState.snapshots()) {
+            for (var vertex : snapshot) {
                 if (vertex.z() < minEntityZ) minEntityZ = vertex.z();
                 if (vertex.z() > maxEntityZ) maxEntityZ = vertex.z();
             }
         }
         Matrix4f positionMatrix = poseStack.last().pose().scale(1, 1, (float) MAX_Z / (maxEntityZ - minEntityZ)).translate(0, 0, -minEntityZ);
         Matrix3f normalMatrix = positionMatrix.normal(new Matrix3f());
-        for (ModelSnapshot snapshot : renderState.snapshots()) {
+        for (var snapshot : renderState.snapshots()) {
             VertexConsumer buffer = bufferSource.getBuffer(snapshot.renderType());
             if (!snapshot.renderType().canConsolidateConsecutiveGeometry()) {
-                for (VertexData vertex : snapshot) vertex.render(buffer, positionMatrix, normalMatrix);
-                return;
+                for (var vertex : snapshot) vertex.render(buffer, positionMatrix, normalMatrix);
+                continue;
             }
-            for (Primitive primitive : snapshot.primitives()) {
-                for (VertexData vertex : primitive) vertex.render(buffer, positionMatrix, normalMatrix);
+            for (var primitive : snapshot.primitives()) {
+                for (var vertex : primitive) vertex.render(buffer, positionMatrix, normalMatrix);
             }
         }
     }

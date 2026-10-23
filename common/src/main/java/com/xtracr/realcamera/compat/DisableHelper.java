@@ -34,7 +34,7 @@ public final class DisableHelper {
         MAIN_FEATURE.registerOrInBinding(player -> {
             Item mainHand = player.getMainHandItem().getItem();
             Item offHand = player.getOffhandItem().getItem();
-            for (String pattern : ConfigFile.config().binding.disableMainFeatureItems)
+            for (var pattern : ConfigFile.config().binding.disableMainFeatureItems)
                 if (matchesItemPattern(mainHand, pattern) || matchesItemPattern(offHand, pattern))
                     return true;
             return false;
@@ -42,7 +42,7 @@ public final class DisableHelper {
         RENDER_MODEL.registerOrInBinding(player -> {
             Item mainHand = player.getMainHandItem().getItem();
             Item offHand = player.getOffhandItem().getItem();
-            for (String pattern : ConfigFile.config().binding.disableRenderItems)
+            for (var pattern : ConfigFile.config().binding.disableRenderItems)
                 if (matchesItemPattern(mainHand, pattern) || matchesItemPattern(offHand, pattern))
                     return true;
             return false;

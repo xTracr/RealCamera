@@ -8,17 +8,19 @@ import com.mojang.serialization.DataResult;
 import com.xtracr.realcamera.RealCamera;
 import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.compat.CompatibilityHelper;
-import com.xtracr.realcamera.config.*;
-import com.xtracr.realcamera.config.binding.TargetConfig;
+import com.xtracr.realcamera.config.BindTarget;
+import com.xtracr.realcamera.config.ConfigFile;
+import com.xtracr.realcamera.config.ConfigScreen;
+import com.xtracr.realcamera.config.ModConfig;
+import com.xtracr.realcamera.config.binding.OffsetConfig;
 import com.xtracr.realcamera.config.binding.RenderConfig;
 import com.xtracr.realcamera.config.binding.RenderConfig.DisableConfig;
-import com.xtracr.realcamera.config.binding.OffsetConfig;
+import com.xtracr.realcamera.config.binding.TargetConfig;
 import com.xtracr.realcamera.config.binding.UVRectangle;
 import com.xtracr.realcamera.config.codec.CodecDispatcher;
 import com.xtracr.realcamera.gui.components.*;
 import com.xtracr.realcamera.renderer.state.ModelSnapshot;
 import com.xtracr.realcamera.renderer.state.Primitive;
-import com.xtracr.realcamera.renderer.state.VertexData;
 import com.xtracr.realcamera.util.LocUtil;
 import com.xtracr.realcamera.util.MathUtil;
 import net.minecraft.ChatFormatting;
@@ -74,6 +76,7 @@ public final class ModelViewScreen extends Screen {
     private final EditBox textureIdField = createTextField(wideWidgetWidth, 1024);
     private final EditBox disabledNameField = createTextField(compactWidgetWidth, CONFIG_NAME_MAX_LENGTH);
     private final EditBox disabledIdField = createTextField(wideWidgetWidth, 1024);
+    private final NumberField<Integer> priorityField = NumberField.ofInt(font, widgetWidth - 2, widgetHeight - 2, 0, null);
     private final NumberField<Integer> focusedRectWidgetNumberField = NumberField.ofInt(font, widgetWidth - 2, widgetHeight - 2, 0, null).setMin(0);
     private final NumberField<Float> forwardUField = createFloatField(widgetWidth, 0);
     private final NumberField<Float> forwardVField = createFloatField(widgetWidth, 0);
@@ -129,7 +132,7 @@ public final class ModelViewScreen extends Screen {
             .displayOnlyValue()
             .create(0, 0, wideWidgetWidth, widgetHeight, CommonComponents.EMPTY, (_, i) -> {
                 boolean useSlider = i == 0;
-                for (NumberWidgetPair pair : widgetPairs) pair.syncAndSwitch(useSlider);
+                for (var pair : widgetPairs) pair.syncAndSwitch(useSlider);
                 initWidgets(page);
             });
     private final CycleButton<Category> toggleCategoryButton = createCyclingButtonBuilder(ImmutableSortedMap.of(
@@ -289,10 +292,11 @@ public final class ModelViewScreen extends Screen {
             if (toggleCategoryButton.getValue() != Category.DISABLE) loadBindTarget(bindTarget);
             initWidgets(page);
         }));
+        rows.addChild(priorityField, smallSettings).setTooltip(createTooltip("priority"));
         boolean editablePath = toggleCategoryButton.getValue() == Category.CONFIGS && hasTargetDefinition;
         pathField.setEditable(editablePath);
         if (!editablePath && pathField.isFocused()) pathField.setFocused(false);
-        rows.addChild(pathField, 2, smallSettings).setTooltip(createTooltip("targetPath"));
+        rows.addChild(pathField, 2, smallSettings).setTooltip(createTooltip("targetName"));
         grid.arrangeElements();
         FrameLayout.alignInRectangle(grid, x, y + 2, x + (xSize - middleWidth) / 2 - 4, y + ySize, 0, 0);
         grid.visitWidgets(this::addRenderableWidget);
@@ -562,7 +566,7 @@ public final class ModelViewScreen extends Screen {
         disableModeButton.setValue(config.disableAll() ? 0 : 1);
         focusedRectWidget = null;
         rectWidgets.clear();
-        for (UVRectangle rect : config.rectangles()) rectWidgets.add(createRectWidget(rect));
+        for (var rect : config.rectangles()) rectWidgets.add(createRectWidget(rect));
         focusedRectWidgetNumberField.setMax(rectWidgets.size());
         focusedRectWidgetNumberField.setNumber(0);
         rectWidgetsSizeWidget.setMessage(LocUtil.literal(String.valueOf(rectWidgets.size())));
@@ -654,7 +658,7 @@ public final class ModelViewScreen extends Screen {
 
     private List<BindTarget> visibleTargets() {
         List<BindTarget> targets = new ArrayList<>();
-        for (BindTarget target : ConfigFile.config().getBindTargets()) {
+        for (var target : ConfigFile.config().getBindTargets()) {
             if (target.id().getNamespace().equals(LEGACY_TARGET.getNamespace())
                     && (!ConfigFile.config().binding.legacyMode || !target.id().equals(LEGACY_TARGET))) continue;
             if (target.targetConfig() != null) targets.add(target);
@@ -672,6 +676,7 @@ public final class ModelViewScreen extends Screen {
     private void loadBindTarget(BindTarget target) {
         targetNamespace = target.id().getNamespace();
         pathField.setValue(target.id().getPath());
+        priorityField.setNumber(target.priority());
         TargetConfig config = target.targetConfig();
         hasTargetDefinition = config != null;
         pathField.setEditable(toggleCategoryButton.getValue() == Category.CONFIGS && hasTargetDefinition);
@@ -719,7 +724,7 @@ public final class ModelViewScreen extends Screen {
         offsets.bindRotation = bindRotButton.getValue() == 0;
         Identifier id = draftId();
         if (id == null) id = Identifier.fromNamespaceAndPath(targetNamespace, "new");
-        return new BindTarget(id, targetConfig, new RenderConfig(depthField.getNumber(), newDisableConfigs), offsets);
+        return new BindTarget(id, targetConfig, new RenderConfig(depthField.getNumber(), newDisableConfigs), offsets, priorityField.getNumber());
     }
 
     private @Nullable Identifier draftId() {
@@ -781,7 +786,7 @@ public final class ModelViewScreen extends Screen {
         if (focusedPolyhedron.length == 0) return false;
         if (inModelViewArea(mouseX, mouseY) && toggleCategoryButton.getValue() == Category.CONFIGS) {
             float u = 0, v = 0;
-            for (VertexData vertex : focusedPolyhedron[0]) {
+            for (var vertex : focusedPolyhedron[0]) {
                 u += vertex.u();
                 v += vertex.v();
             }
@@ -807,9 +812,9 @@ public final class ModelViewScreen extends Screen {
             }
             if (selectionModeButton.getValue() == 2) {
                 List<UVRectangleWidget> rectWidgets = new ArrayList<>();
-                for (Primitive primitive : focusedPolyhedron) {
+                for (var primitive : focusedPolyhedron) {
                     float uMin = 1f, vMin = 1f, uMax = 0, vMax = 0;
-                    for (VertexData vertex : primitive) {
+                    for (var vertex : primitive) {
                         if (vertex.u() < uMin) uMin = vertex.u();
                         if (vertex.v() < vMin) vMin = vertex.v();
                         if (vertex.u() > uMax) uMax = vertex.u();
@@ -835,8 +840,8 @@ public final class ModelViewScreen extends Screen {
                 rectWidgets.forEach(this::addRectWidget);
             } else {
                 float uMin = 1f, vMin = 1f, uMax = 0, vMax = 0;
-                for (Primitive primitive : focusedPolyhedron) {
-                    for (VertexData vertex : primitive) {
+                for (var primitive : focusedPolyhedron) {
+                    for (var vertex : primitive) {
                         if (vertex.u() < uMin) uMin = vertex.u();
                         if (vertex.v() < vMin) vMin = vertex.v();
                         if (vertex.u() > uMax) uMax = vertex.u();

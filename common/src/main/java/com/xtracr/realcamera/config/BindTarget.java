@@ -17,8 +17,22 @@ public record BindTarget(
         Identifier id,
         @Nullable TargetConfig targetConfig,
         RenderConfig renderConfig,
-        OffsetConfig offsets
+        OffsetConfig offsets,
+        @Deprecated int priority
 ) {
+    public BindTarget(Identifier id, @Nullable TargetConfig targetConfig, RenderConfig renderConfig, OffsetConfig offsets) {
+        this(id, targetConfig, renderConfig, offsets, defaultPriority(id));
+    }
+
+    public static int defaultPriority(Identifier id) {
+        if (!id.getNamespace().equals(RealCamera.MOD_ID)) return 0;
+        return switch (id.getPath()) {
+            case "minecraft_head", "skin_head" -> 5;
+            case "minecraft_head_2", "skin_head_2" -> 1;
+            default -> 0;
+        };
+    }
+
     public static BindTarget blank(Identifier id) {
         TargetConfig target = id.getNamespace().equals(RealCamera.MOD_ID) ? new TargetConfig("", 0, 0, 0, 0, 0, 0) : null;
         return new BindTarget(id, target, new RenderConfig(), new OffsetConfig());

@@ -16,14 +16,14 @@ public final class ConfigDecoder703 {
     static BindTarget decode(ByteBuf buffer) {
         String name = ByteBufCodecs.STRING_UTF8.decode(buffer);
         String textureId = ByteBufCodecs.STRING_UTF8.decode(buffer);
-        ByteBufCodecs.VAR_INT.decode(buffer); // Old selection priority is not part of the new data.
+        int priority = ByteBufCodecs.VAR_INT.decode(buffer);
         float depth = buffer.readFloat();
         TargetConfig target = new TargetConfig(textureId, buffer.readFloat(), buffer.readFloat(), buffer.readFloat(),
                 buffer.readFloat(), buffer.readFloat(), buffer.readFloat());
         OffsetConfig offsets = ConfigCodec.OFFSET_CONFIG_CODEC.decode(buffer);
         RenderConfig render = new RenderConfig(depth, ConfigCodec.DISABLE_CONFIGS.decode(buffer));
         var id = legacyId(name);
-        return new BindTarget(id, id.getNamespace().equals("legacy") ? null : target, render, offsets);
+        return new BindTarget(id, id.getNamespace().equals("legacy") ? null : target, render, offsets, priority);
     }
 
     public static Identifier legacyId(String name) {

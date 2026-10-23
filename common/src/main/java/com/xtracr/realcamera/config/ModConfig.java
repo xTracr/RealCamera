@@ -114,14 +114,14 @@ public final class ModConfig {
     }
 
     public BindTarget getBindTarget(Identifier id) {
-        return new BindTarget(id, binding.targetConfigs.get(id), binding.renderConfig(id), binding.offsets(id));
+        return new BindTarget(id, binding.targetConfigs.get(id), binding.renderConfig(id), binding.offsets(id), binding.priority(id));
     }
 
     public List<BindTarget> getBindTargets() {
         Set<Identifier> ids = new LinkedHashSet<>(binding.targetConfigs.keySet());
         ids.addAll(binding.offsetConfigs.keySet());
         ids.addAll(binding.renderConfigs.keySet());
-        return ids.stream().map(this::getBindTarget).toList();
+        return ids.stream().map(this::getBindTarget).sorted(Comparator.comparingInt(BindTarget::priority).reversed()).toList();
     }
 
     public void putBindTarget(BindTarget target) {
@@ -129,12 +129,14 @@ public final class ModConfig {
         else binding.targetConfigs.put(target.id(), target.targetConfig());
         binding.offsetConfigs.put(target.id(), target.offsets());
         binding.renderConfigs.put(target.id(), target.renderConfig());
+        binding.priorities.put(target.id(), target.priority());
     }
 
     public void removeBindTarget(Identifier id) {
         binding.targetConfigs.remove(id);
         binding.offsetConfigs.remove(id);
         binding.renderConfigs.remove(id);
+        binding.priorities.remove(id);
     }
 
     public static class Classic {
@@ -199,9 +201,11 @@ public final class ModConfig {
         public Map<Identifier, TargetConfig> targetConfigs = new LinkedHashMap<>();
         public Map<Identifier, OffsetConfig> offsetConfigs = new LinkedHashMap<>();
         public Map<Identifier, RenderConfig> renderConfigs = new LinkedHashMap<>();
+        @Deprecated
+        public Map<Identifier, Integer> priorities = new LinkedHashMap<>();
 
         public Binding() {
-            for (BindTarget target : List.of(
+            for (var target : List.of(
                     BindTarget.vanillaTarget("minecraft_head", false),
                     BindTarget.vanillaTarget("skin_head", false),
                     BindTarget.vanillaTarget("minecraft_head_2", true),
@@ -220,6 +224,11 @@ public final class ModConfig {
             return renderConfigs.computeIfAbsent(id, _ -> new RenderConfig());
         }
 
+        @Deprecated
+        public int priority(Identifier id) {
+            return priorities.getOrDefault(id, BindTarget.defaultPriority(id));
+        }
+
         private void clamp() {
             try {
                 InputConstants.getKey(screenModifierKey);
@@ -236,9 +245,11 @@ public final class ModConfig {
             if (targetConfigs == null) targetConfigs = new LinkedHashMap<>();
             if (offsetConfigs == null) offsetConfigs = new LinkedHashMap<>();
             if (renderConfigs == null) renderConfigs = new LinkedHashMap<>();
+            if (priorities == null) priorities = new LinkedHashMap<>();
             targetConfigs.entrySet().removeIf(entry -> entry.getValue() == null || entry.getValue().textureId() == null);
             offsetConfigs.values().removeIf(Objects::isNull);
             renderConfigs.values().removeIf(Objects::isNull);
+            priorities.values().removeIf(Objects::isNull);
             offsetConfigs.values().forEach(OffsetConfig::clamp);
         }
     }

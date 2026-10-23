@@ -5,7 +5,6 @@ import com.xtracr.realcamera.RealCamera;
 import com.xtracr.realcamera.api.BindingContext;
 import com.xtracr.realcamera.api.BindingResult;
 import com.xtracr.realcamera.api.RealCameraAPI;
-import com.xtracr.realcamera.renderer.IdentifiedVertexBuffer;
 import com.xtracr.realcamera.renderer.MultiVertexCatcher;
 import com.xtracr.realcamera.util.LookupContext;
 import com.xtracr.realcamera.util.LookupContext.LookupMode;
@@ -45,7 +44,7 @@ public final class YSMCompat {
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
         EntityRenderState renderState = dispatcher.extractEntity(client.getCameraEntity(), partialTicks);
         PoseStack poseStack = new PoseStack();
-        for (TransformedVertexRecorder recorder : TRANSFORMED_RECORDERS) {
+        for (var recorder : TRANSFORMED_RECORDERS) {
             poseStack.pushPose();
             poseStack.mulPose(recorder.matrix4f.invert(new Matrix4f()));
             dispatcher.submit(renderState, new CameraRenderState(), 0, 0, 0, poseStack, recorder.vertexCatcher.initCollector());
@@ -53,7 +52,7 @@ public final class YSMCompat {
             poseStack.popPose();
             if (result != null) return result;
         }
-        for (TransformedVertexRecorder recorder : TRANSFORMED_RECORDERS) {
+        for (var recorder : TRANSFORMED_RECORDERS) {
             BindingResult result = recorder.findResult(context, lookups, LookupMode.SCAN_ONLY);
             if (result != null) return result;
         }
@@ -72,7 +71,7 @@ public final class YSMCompat {
         }
 
         private @Nullable BindingResult findResult(BindingContext context, Map<String, LookupContext> lookups, LookupMode mode) {
-            for (IdentifiedVertexBuffer buffer : vertexCatcher.collectBuffers()) {
+            for (var buffer : vertexCatcher.collectBuffers()) {
                 for (var target : context.targets(buffer.textureId())) {
                     LookupContext lookup = lookups.computeIfAbsent(target.path(), _ -> new LookupContext(target.config()));
                     lookup.find(buffer, mode, matrix4f, matrix3f);

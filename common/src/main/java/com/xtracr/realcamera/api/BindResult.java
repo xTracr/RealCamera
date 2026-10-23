@@ -96,6 +96,7 @@ public class BindResult {
         if (target.targetConfig() != null) binding.targetConfigs.putIfAbsent(target.id(), target.targetConfig());
         binding.offsetConfigs.putIfAbsent(target.id(), target.offsets());
         binding.renderConfigs.putIfAbsent(target.id(), target.renderConfig());
+        binding.priorities.putIfAbsent(target.id(), target.priority());
         return new BindingResult(target.id(), frame);
     }
 

@@ -5,11 +5,15 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
 public final class LocUtil {
-    public static final String KEY_MOD_NAME = "general." + RealCamera.FULL_ID + ".modName";
+    // region Constants
+    public static MutableComponent MODEL_VIEW_TITLE() {
+        return Component.translatable("screen." + RealCamera.FULL_ID + ".modelView_title");
+    }
 
     public static MutableComponent MOD_NAME() {
-        return Component.translatable(KEY_MOD_NAME);
+        return Component.translatable("general." + RealCamera.FULL_ID + ".modName");
     }
+    // endregion
 
     public static MutableComponent CONFIG_CATEGORY(String key) {
         return Component.translatable("config.category." + RealCamera.FULL_ID + "." + key);
@@ -25,10 +29,6 @@ public final class LocUtil {
 
     public static MutableComponent MESSAGE(String key, Object... args) {
         return Component.translatable("message." + RealCamera.FULL_ID + "." + key, args);
-    }
-
-    public static MutableComponent MODEL_VIEW_TITLE() {
-        return Component.translatable("screen." + RealCamera.FULL_ID + ".modelView_title");
     }
 
     public static MutableComponent MODEL_VIEW_WIDGET(String key, Object... args) {

@@ -53,7 +53,7 @@ public final class RenderConfig {
 
         private DisableCache(String textureId, List<DisableConfig> configs) {
             boolean all = false;
-            for (DisableConfig config : configs) {
+            for (var config : configs) {
                 if (!textureId.contains(config.textureId())) continue;
                 if (config.disableAll()) {
                     all = true;
@@ -75,7 +75,7 @@ public final class RenderConfig {
             byte cached = uvResults.get(packed);
             if (cached != 0) return cached == 2;
             boolean disabled = false;
-            for (UVRectangle rect : rectangles) {
+            for (var rect : rectangles) {
                 if (!rect.contains(u, v)) continue;
                 disabled = true;
                 break;
