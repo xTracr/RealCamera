@@ -92,11 +92,19 @@ public final class RealCameraCore {
         Entity entity = client.getCameraEntity();
         boolean invisible = entity.isInvisible();
         entity.setInvisible(false);
+        RealCameraAPI.setRenderInCompute(true);
         BindingResult result;
         try {
             result = RealCameraAPI.computeResult(client, partialTicks);
+        } catch (Exception e) {
+            failureFrames++;
+            if (failureFrames < 60) {
+                return;
+            }
+            throw e;
         } finally {
             entity.setInvisible(invisible);
+            RealCameraAPI.setRenderInCompute(false);
         }
         if (result != null) {
             lastCameraState = ConfigFile.bindTargets().offsets(result.id()).applyTo(result.referenceFrame(), false);

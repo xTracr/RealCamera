@@ -31,7 +31,7 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
 #### Tips
 
 * Configs can have their priority adjusted - higher priority configs appear higher in the right-side list
-* In the mod settings, you can manually switch between available configurations by modifying the configuration index. You can also set it to a non-zero value to lock the active configuration
+* In the mod settings, you can manually switch between available configurations by modifying the configuration selector
 * When the main feature is enabled, hover over the configuration entries. The one annotated with `Current Config` is the configuration currently in use
 * Disable depth in `Preview` section to hide models blocking the view
 * About `Disable` section:
@@ -62,13 +62,13 @@ Snapshots are [here](https://github.com/xTracr/RealCamera/actions/workflows/buil
       ![disable_depth](https://github.com/xTracr/RealCamera/assets/57320980/78c246e8-34aa-4979-89de-780ee907870b)
 * What key to press can open Model View Screen?
     * Set the key binding by yourself
-* Why can't i open the Config Screen?
-    * Please downlowd [Cloth Config API](https://modrinth.com/mod/cloth-config)
+* Why can't I open the Config Screen?
+    * Please download [Cloth Config API](https://modrinth.com/mod/cloth-config)
 * Why does it show binding failed when use YSM models?
     * Snapshot 0.6.15 "try" to fix problems, but it didn't fully fix completely
     * When your model rotates to a specific angle, the position you bound may disappear due to YSM's `face culling feature`, resulting in binding failure
     * You can alleviate this problem by increasing the `Bind Result Retention Frames`
-* Why does the disabled texture appear when i downloaded Better Combat and attack?
+* Why does the disabled texture appear when I downloaded Better Combat and attack?
     * Open settings of Better Combat and change Auto to False in First person player animation
 
 ### Compatibility

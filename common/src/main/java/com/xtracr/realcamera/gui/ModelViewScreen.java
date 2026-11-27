@@ -7,6 +7,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.serialization.DataResult;
 import com.xtracr.realcamera.RealCamera;
 import com.xtracr.realcamera.RealCameraCore;
+import com.xtracr.realcamera.api.RealCameraAPI;
 import com.xtracr.realcamera.compat.CompatibilityHelper;
 import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.ConfigFile;
@@ -425,7 +426,7 @@ public final class ModelViewScreen extends Screen {
     }
 
     private List<ModelSnapshot> captureRotatedEntity(ModelAnalyser analyser, BindTarget target, LivingEntity entity) {
-        CompatibilityHelper.isRenderInScreen = true;
+        RealCameraAPI.setRenderInScreen(true);
         float entityBodyYaw = entity.yBodyRot;
         float entityYaw = entity.getYRot();
         float entityPitch = entity.getXRot();
@@ -447,7 +448,7 @@ public final class ModelViewScreen extends Screen {
             modelPose.translate(0, -entity.getBbHeight() / 2.0f, 0);
             return analyser.captureModel(minecraft, entity, 1.0f, modelPose, target.targetConfig(), target.offsets());
         } finally {
-            CompatibilityHelper.isRenderInScreen = false;
+            RealCameraAPI.setRenderInScreen(false);
             entity.yBodyRot = entityBodyYaw;
             entity.setYRot(entityYaw);
             entity.setXRot(entityPitch);
@@ -515,7 +516,7 @@ public final class ModelViewScreen extends Screen {
     }
 
     private void importBindTarget(Button button) {
-        String base64 = minecraft.keyboardHandler.getClipboard();
+        String base64 = minecraft.keyboardHandler.getClipboard().strip();
         DataResult<BindTarget> result = CodecDispatcher.fromCompressedBase64(base64);
         switch (result) {
             case DataResult.Success<BindTarget> success -> {
