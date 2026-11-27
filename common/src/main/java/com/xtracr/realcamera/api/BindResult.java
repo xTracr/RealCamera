@@ -27,7 +27,7 @@ public class BindResult {
     }
 
     public static BindResult getOrCreate(String name) {
-        return new BindResult(ConfigFile.config().getBindTarget(ConfigDecoder703.legacyId(name)));
+        return new BindResult(ConfigFile.bindTargets().get(ConfigDecoder703.legacyId(name)));
     }
 
     public boolean available() {
@@ -92,11 +92,7 @@ public class BindResult {
         ReferenceFrame frame = frame();
         if (frame == null) return null;
         // Cached legacy results must not replace settings edited after they were created.
-        var binding = ConfigFile.config().binding;
-        if (target.targetConfig() != null) binding.targetConfigs.putIfAbsent(target.id(), target.targetConfig());
-        binding.offsetConfigs.putIfAbsent(target.id(), target.offsets());
-        binding.renderConfigs.putIfAbsent(target.id(), target.renderConfig());
-        binding.priorities.putIfAbsent(target.id(), target.priority());
+        ConfigFile.bindTargets().putIfAbsent(target);
         return new BindingResult(target.id(), frame);
     }
 

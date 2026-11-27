@@ -110,7 +110,7 @@ public final class RealCameraAPI {
     public static BindResult computeBindResult(Minecraft client, float partialTicks) {
         BindingResult result = computeResult(client, partialTicks);
         if (result == null) return BindResult.EMPTY;
-        BindResult legacy = new BindResult(ConfigFile.config().getBindTarget(result.id()));
+        BindResult legacy = new BindResult(ConfigFile.bindTargets().get(result.id()));
         legacy.setPosition(result.referenceFrame().origin());
         legacy.setForward(result.referenceFrame().forward());
         legacy.setUpward(result.referenceFrame().upward());

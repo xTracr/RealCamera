@@ -5,6 +5,7 @@ import com.xtracr.realcamera.api.BindingContext;
 import com.xtracr.realcamera.api.BindingResult;
 import com.xtracr.realcamera.api.RealCameraAPI;
 import com.xtracr.realcamera.compat.DisableHelper;
+import com.xtracr.realcamera.config.BindTarget;
 import com.xtracr.realcamera.config.ConfigFile;
 import com.xtracr.realcamera.config.binding.OffsetConfig;
 import com.xtracr.realcamera.config.binding.RenderConfig;
@@ -48,7 +49,9 @@ public final class RealCameraCore {
     }
 
     public static @Nullable OffsetConfig currentOffsets() {
-        return currentTarget == null ? null : ConfigFile.config().binding.offsetConfigs.get(currentTarget);
+        if (currentTarget == null) return null;
+        BindTarget target = ConfigFile.bindTargets().find(currentTarget);
+        return target == null ? null : target.offsets();
     }
 
     public static void initialize(Minecraft client, boolean advanceGameTime) {
@@ -96,9 +99,7 @@ public final class RealCameraCore {
             entity.setInvisible(invisible);
         }
         if (result != null) {
-            ReferenceFrame camera = ConfigFile.config().binding.offsets(result.id()).applyTo(result.referenceFrame(), false);
-            ConfigFile.config().binding.renderConfig(result.id());
-            lastCameraState = camera;
+            lastCameraState = ConfigFile.bindTargets().offsets(result.id()).applyTo(result.referenceFrame(), false);
             currentTarget = result.id();
             failureFrames = 0;
         } else {
@@ -122,7 +123,7 @@ public final class RealCameraCore {
 
     public static void renderCameraEntity(Minecraft client, float partialTicks, SubmitNodeCollector submitNodeCollector, Matrix4f modelView) {
         if (currentTarget == null) return;
-        RenderConfig renderConfig = ConfigFile.config().binding.renderConfig(currentTarget);
+        RenderConfig renderConfig = ConfigFile.bindTargets().renderConfig(currentTarget);
         Matrix4f invertedCameraPose = new Matrix4f(lastCameraState.toRotationMatrix(new Matrix3f()))
                 .scale(-1f, 1f, -1f)
                 .invert()

@@ -287,7 +287,7 @@ public final class ModelViewScreen extends Screen {
             if (toggleCategoryButton.getValue() == Category.DISABLE && !syncDisableDraft(button, true)) return;
             button.setTooltip(null);
             BindTarget bindTarget = genBindTarget();
-            ConfigFile.config().putBindTarget(bindTarget);
+            ConfigFile.bindTargets().put(bindTarget);
             ConfigFile.save();
             if (toggleCategoryButton.getValue() != Category.DISABLE) loadBindTarget(bindTarget);
             initWidgets(page);
@@ -355,9 +355,9 @@ public final class ModelViewScreen extends Screen {
                         .setTooltip(Tooltip.create(Objects.equals(target.id(), RealCameraCore.currentTarget()) ?
                                 LocUtil.literal(name + "\n").append(LocUtil.MODEL_VIEW_WIDGET("currentConfig")) :
                                 LocUtil.literal(name)));
-                if (target.targetConfig() == null) continue;
+                if (target.targetConfig().isEmpty()) continue;
                 rows.addChild(new SimpleIconButton(48, 0, _ -> {
-                    ConfigFile.config().removeBindTarget(target.id());
+                    ConfigFile.bindTargets().remove(target.id());
                     ConfigFile.save();
                     if (Objects.equals(draftId(), target.id())) loadAdjacentBindTarget(targetIndex);
                     initWidgets(page * widgetsPerPage > size - 2 && size > 1 ? page - 1 : page);
@@ -469,7 +469,7 @@ public final class ModelViewScreen extends Screen {
         focusedTextureId = analyser.getFocusedTextureId();
     }
 
-    private void renderCulledModels(GuiGraphicsExtractor graphics, ModelAnalyser analyser, @Nullable TargetConfig config, List<ModelSnapshot> modelRecords) {
+    private void renderCulledModels(GuiGraphicsExtractor graphics, ModelAnalyser analyser, TargetConfig config, List<ModelSnapshot> modelRecords) {
         int x1 = modelViewArea.left(), y1 = modelViewArea.top(), x2 = modelViewArea.right(), y2 = modelViewArea.bottom();
         GUIHelper.enableScissor(graphics, modelViewArea);
         float invScale = 1.0f / modelScale;
@@ -658,10 +658,10 @@ public final class ModelViewScreen extends Screen {
 
     private List<BindTarget> visibleTargets() {
         List<BindTarget> targets = new ArrayList<>();
-        for (var target : ConfigFile.config().getBindTargets()) {
+        for (var target : ConfigFile.bindTargets().all()) {
             if (target.id().getNamespace().equals(LEGACY_TARGET.getNamespace())
                     && (!ConfigFile.config().binding.legacyMode || !target.id().equals(LEGACY_TARGET))) continue;
-            if (target.targetConfig() != null) targets.add(target);
+            if (!target.targetConfig().isEmpty()) targets.add(target);
             else if (Objects.equals(target.id(), RealCameraCore.currentTarget())) targets.addFirst(target);
         }
         return targets;
@@ -678,20 +678,20 @@ public final class ModelViewScreen extends Screen {
         pathField.setValue(target.id().getPath());
         priorityField.setNumber(target.priority());
         TargetConfig config = target.targetConfig();
-        hasTargetDefinition = config != null;
+        hasTargetDefinition = !config.isEmpty();
         pathField.setEditable(toggleCategoryButton.getValue() == Category.CONFIGS && hasTargetDefinition);
-        textureIdField.setValue(config == null ? "" : config.textureId());
+        textureIdField.setValue(config.textureId());
         textureIdField.setEditable(hasTargetDefinition);
         for (var field : List.of(forwardUField, forwardVField, upwardUField, upwardVField, posUField, posVField)) {
             field.active = hasTargetDefinition;
         }
         depthField.setNumber(target.renderConfig().disablingDepth);
-        forwardUField.setNumber(config == null ? 0 : config.forwardU());
-        forwardVField.setNumber(config == null ? 0 : config.forwardV());
-        upwardUField.setNumber(config == null ? 0 : config.upwardU());
-        upwardVField.setNumber(config == null ? 0 : config.upwardV());
-        posUField.setNumber(config == null ? 0 : config.posU());
-        posVField.setNumber(config == null ? 0 : config.posV());
+        forwardUField.setNumber(config.forwardU());
+        forwardVField.setNumber(config.forwardV());
+        upwardUField.setNumber(config.upwardU());
+        upwardVField.setNumber(config.upwardV());
+        posUField.setNumber(config.posU());
+        posVField.setNumber(config.posV());
         OffsetConfig offsets = target.offsets();
         bindXButton.setValue(offsets.bindX ? 0 : 1);
         bindYButton.setValue(offsets.bindY ? 0 : 1);
@@ -716,7 +716,7 @@ public final class ModelViewScreen extends Screen {
             if (newDisableConfigs.get(i).name().equals(currentDisableConfig.name()))
                 newDisableConfigs.set(i, currentDisableConfig);
         }
-        TargetConfig targetConfig = hasTargetDefinition ? new TargetConfig(textureIdField.getValue(), forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber()) : null;
+        TargetConfig targetConfig = hasTargetDefinition ? new TargetConfig(textureIdField.getValue(), forwardUField.getNumber(), forwardVField.getNumber(), upwardUField.getNumber(), upwardVField.getNumber(), posUField.getNumber(), posVField.getNumber()) : TargetConfig.EMPTY;
         OffsetConfig offsets = new OffsetConfig(scaleField.getNumber(), offsetXPair.getNumber(), offsetYPair.getNumber(), offsetZPair.getNumber(), offsetPitchPair.getNumber(), offsetYawPair.getNumber(), offsetRollPair.getNumber());
         offsets.bindX = bindXButton.getValue() == 0;
         offsets.bindY = bindYButton.getValue() == 0;

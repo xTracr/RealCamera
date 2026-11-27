@@ -23,7 +23,7 @@ public final class ConfigDecoder703 {
         OffsetConfig offsets = ConfigCodec.OFFSET_CONFIG_CODEC.decode(buffer);
         RenderConfig render = new RenderConfig(depth, ConfigCodec.DISABLE_CONFIGS.decode(buffer));
         var id = legacyId(name);
-        return new BindTarget(id, id.getNamespace().equals("legacy") ? null : target, render, offsets, priority);
+        return new BindTarget(id, id.getNamespace().equals("legacy") ? TargetConfig.EMPTY : target, render, offsets, priority);
     }
 
     public static Identifier legacyId(String name) {

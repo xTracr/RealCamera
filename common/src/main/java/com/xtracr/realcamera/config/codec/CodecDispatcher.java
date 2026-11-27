@@ -15,7 +15,7 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
 public final class CodecDispatcher {
-    static final short CURRENT_VERSION = 709;
+    static final short CURRENT_VERSION = 710;
     static final Short2ReferenceMap<StreamDecoder<ByteBuf, BindTarget>> CODECS = Short2ReferenceMap.ofEntries(
             Short2ReferenceMap.entry((short) 703, ConfigDecoder703::decode),
             Short2ReferenceMap.entry(CURRENT_VERSION, ConfigCodec.CODEC)

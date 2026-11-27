@@ -192,8 +192,8 @@ public final class ModelAnalyser {
         GUIHelper.vector(graphics, start, cameraFrame.left().scale(-modelScale / 6), Z_LINE, LEFT_ARGB);
     }
 
-    public void drawBindTarget(GuiGraphicsExtractor graphics, @Nullable TargetConfig config, double modelScale) {
-        if (config == null || targetLookup == null) return;
+    public void drawBindTarget(GuiGraphicsExtractor graphics, TargetConfig config, double modelScale) {
+        if (config.isEmpty() || targetLookup == null) return;
         Primitive position = targetLookup.positionPrimitive(), forward = targetLookup.forwardPrimitive(), upward = targetLookup.upwardPrimitive();
         if (position != null)
             GUIHelper.triangleOrQuad(graphics, position, Z_QUAD, PLANE_ARGB);
@@ -223,7 +223,7 @@ public final class ModelAnalyser {
         }
     }
 
-    public List<ModelSnapshot> captureModel(Minecraft client, Entity entity, float partialTicks, PoseStack poseStack, @Nullable TargetConfig config, OffsetConfig offsets) {
+    public List<ModelSnapshot> captureModel(Minecraft client, Entity entity, float partialTicks, PoseStack poseStack, TargetConfig config, OffsetConfig offsets) {
         cameraFrame = null;
         targetLookup = null;
         EntityRenderDispatcher dispatcher = client.getEntityRenderDispatcher();
@@ -232,7 +232,7 @@ public final class ModelAnalyser {
         List<ModelSnapshot> records = new ArrayList<>();
         for (var buffer : vertexCatcher.collectBuffers()) {
             records.add(buffer.snapshot());
-            if (config == null || !buffer.containsTextureId(config.textureId())) continue;
+            if (config.isEmpty() || !buffer.containsTextureId(config.textureId())) continue;
             if (targetLookup == null) targetLookup = new LookupContext(config);
             // Preserve the first partial match so its found primitives remain visible in the editor.
             if (!targetLookup.isEmpty()) continue;

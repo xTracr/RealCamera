@@ -11,7 +11,6 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 
 import java.util.List;
-import java.util.Optional;
 
 public final class ConfigCodec {
     static final StreamCodec<ByteBuf, TargetConfig> TARGET_CONFIG_CODEC = StreamCodec.composite(
@@ -64,10 +63,9 @@ public final class ConfigCodec {
             RenderConfig::new);
     static final StreamCodec<ByteBuf, BindTarget> CODEC = StreamCodec.composite(
             ByteBufCodecs.STRING_UTF8.map(Identifier::parse, Identifier::toString), BindTarget::id,
-            ByteBufCodecs.optional(TARGET_CONFIG_CODEC), target -> Optional.ofNullable(target.targetConfig()),
-            OFFSET_CONFIG_CODEC, BindTarget::offsets,
+            TARGET_CONFIG_CODEC, BindTarget::targetConfig,
             RENDER_CONFIG_CODEC, BindTarget::renderConfig,
+            OFFSET_CONFIG_CODEC, BindTarget::offsets,
             ByteBufCodecs.VAR_INT, BindTarget::priority,
-            (id, target, offsets, render, priority) ->
-                    new BindTarget(id, target.orElse(null), render, offsets, priority));
+            BindTarget::new);
 }

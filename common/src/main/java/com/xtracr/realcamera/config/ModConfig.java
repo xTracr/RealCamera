@@ -2,13 +2,10 @@ package com.xtracr.realcamera.config;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.xtracr.realcamera.config.binding.OffsetConfig;
-import com.xtracr.realcamera.config.binding.RenderConfig;
-import com.xtracr.realcamera.config.binding.TargetConfig;
-import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.jspecify.annotations.Nullable;
 
-import java.util.*;
+import java.util.List;
 
 public final class ModConfig {
     public static final double MIN_OFFSET_D = -1.0, MAX_OFFSET_D = 1.0;
@@ -113,32 +110,6 @@ public final class ModConfig {
         return classic.roll;
     }
 
-    public BindTarget getBindTarget(Identifier id) {
-        return new BindTarget(id, binding.targetConfigs.get(id), binding.renderConfig(id), binding.offsets(id), binding.priority(id));
-    }
-
-    public List<BindTarget> getBindTargets() {
-        Set<Identifier> ids = new LinkedHashSet<>(binding.targetConfigs.keySet());
-        ids.addAll(binding.offsetConfigs.keySet());
-        ids.addAll(binding.renderConfigs.keySet());
-        return ids.stream().map(this::getBindTarget).sorted(Comparator.comparingInt(BindTarget::priority).reversed()).toList();
-    }
-
-    public void putBindTarget(BindTarget target) {
-        if (target.targetConfig() == null) binding.targetConfigs.remove(target.id());
-        else binding.targetConfigs.put(target.id(), target.targetConfig());
-        binding.offsetConfigs.put(target.id(), target.offsets());
-        binding.renderConfigs.put(target.id(), target.renderConfig());
-        binding.priorities.put(target.id(), target.priority());
-    }
-
-    public void removeBindTarget(Identifier id) {
-        binding.targetConfigs.remove(id);
-        binding.offsetConfigs.remove(id);
-        binding.renderConfigs.remove(id);
-        binding.priorities.remove(id);
-    }
-
     public static class Classic {
         public AdjustMode adjustMode = AdjustMode.CAMERA;
         public boolean disableWhenSneaking = false;
@@ -198,36 +169,6 @@ public final class ModConfig {
         public double rotationSmoothFactor = 0.4;
         public List<String> disableMainFeatureItems = List.of();
         public List<String> disableRenderItems = DEFAULT_DISABLE_RENDER_ITEMS;
-        public Map<Identifier, TargetConfig> targetConfigs = new LinkedHashMap<>();
-        public Map<Identifier, OffsetConfig> offsetConfigs = new LinkedHashMap<>();
-        public Map<Identifier, RenderConfig> renderConfigs = new LinkedHashMap<>();
-        @Deprecated
-        public Map<Identifier, Integer> priorities = new LinkedHashMap<>();
-
-        public Binding() {
-            for (var target : List.of(
-                    BindTarget.vanillaTarget("minecraft_head", false),
-                    BindTarget.vanillaTarget("skin_head", false),
-                    BindTarget.vanillaTarget("minecraft_head_2", true),
-                    BindTarget.vanillaTarget("skin_head_2", true))) {
-                targetConfigs.put(target.id(), target.targetConfig());
-                offsetConfigs.put(target.id(), target.offsets());
-                renderConfigs.put(target.id(), target.renderConfig());
-            }
-        }
-
-        public OffsetConfig offsets(Identifier id) {
-            return offsetConfigs.computeIfAbsent(id, _ -> new OffsetConfig());
-        }
-
-        public RenderConfig renderConfig(Identifier id) {
-            return renderConfigs.computeIfAbsent(id, _ -> new RenderConfig());
-        }
-
-        @Deprecated
-        public int priority(Identifier id) {
-            return priorities.getOrDefault(id, BindTarget.defaultPriority(id));
-        }
 
         private void clamp() {
             try {
@@ -242,15 +183,6 @@ public final class ModConfig {
             rotationSmoothFactor = Mth.clamp(rotationSmoothFactor, 0.0, 1.0);
             if (disableMainFeatureItems == null) disableMainFeatureItems = List.of();
             if (disableRenderItems == null) disableRenderItems = List.of();
-            if (targetConfigs == null) targetConfigs = new LinkedHashMap<>();
-            if (offsetConfigs == null) offsetConfigs = new LinkedHashMap<>();
-            if (renderConfigs == null) renderConfigs = new LinkedHashMap<>();
-            if (priorities == null) priorities = new LinkedHashMap<>();
-            targetConfigs.entrySet().removeIf(entry -> entry.getValue() == null || entry.getValue().textureId() == null);
-            offsetConfigs.values().removeIf(Objects::isNull);
-            renderConfigs.values().removeIf(Objects::isNull);
-            priorities.values().removeIf(Objects::isNull);
-            offsetConfigs.values().forEach(OffsetConfig::clamp);
         }
     }
 }

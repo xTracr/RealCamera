@@ -6,7 +6,6 @@ import com.xtracr.realcamera.config.binding.RenderConfig;
 import com.xtracr.realcamera.config.binding.TargetConfig;
 import com.xtracr.realcamera.config.binding.UVRectangle;
 import net.minecraft.resources.Identifier;
-import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -15,12 +14,12 @@ import java.util.List;
  */
 public record BindTarget(
         Identifier id,
-        @Nullable TargetConfig targetConfig,
+        TargetConfig targetConfig,
         RenderConfig renderConfig,
         OffsetConfig offsets,
         @Deprecated int priority
 ) {
-    public BindTarget(Identifier id, @Nullable TargetConfig targetConfig, RenderConfig renderConfig, OffsetConfig offsets) {
+    public BindTarget(Identifier id, TargetConfig targetConfig, RenderConfig renderConfig, OffsetConfig offsets) {
         this(id, targetConfig, renderConfig, offsets, defaultPriority(id));
     }
 
@@ -34,8 +33,18 @@ public record BindTarget(
     }
 
     public static BindTarget blank(Identifier id) {
-        TargetConfig target = id.getNamespace().equals(RealCamera.MOD_ID) ? new TargetConfig("", 0, 0, 0, 0, 0, 0) : null;
-        return new BindTarget(id, target, new RenderConfig(), new OffsetConfig());
+        return new BindTarget(id, TargetConfig.EMPTY, new RenderConfig(), new OffsetConfig());
+    }
+
+    /**
+     * The targets a fresh installation starts with; they are written as individual files on first launch.
+     */
+    public static List<BindTarget> defaults() {
+        return List.of(
+                vanillaTarget("minecraft_head", false),
+                vanillaTarget("skin_head", false),
+                vanillaTarget("minecraft_head_2", true),
+                vanillaTarget("skin_head_2", true));
     }
 
     public static BindTarget vanillaTarget(String path, boolean shouldBind) {
