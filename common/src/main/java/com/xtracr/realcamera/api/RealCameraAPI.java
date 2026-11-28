@@ -1,7 +1,9 @@
 package com.xtracr.realcamera.api;
 
 import com.xtracr.realcamera.RealCamera;
+import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
+import com.xtracr.realcamera.util.CrosshairUtil;
 import com.xtracr.realcamera.util.ReferenceFrame;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
@@ -155,6 +157,21 @@ public final class RealCameraAPI {
     @ApiStatus.Experimental
     public static boolean isRenderInScreen() {
         return renderInScreen;
+    }
+
+    /**
+     * Return the crosshair offset computed for the current frame, in projection space.
+     * <p>
+     * X points right and Y points up, measured in GUI-scaled pixels, so an unmodified GUI pose needs
+     * {@code translate(offset.x, -offset.y)}. The Z component is always zero.
+     * <p>
+     * The value is recomputed once per frame and is {@link Vec3#ZERO} when the dynamic crosshair is
+     * disabled, the camera is inactive, or nothing is hit.
+     */
+    @ApiStatus.Experimental
+    public static Vec3 getCrosshairOffset() {
+        if (!ConfigFile.config().dynamicCrosshair || !RealCameraCore.isActive()) return Vec3.ZERO;
+        return CrosshairUtil.offset;
     }
 
     /**
