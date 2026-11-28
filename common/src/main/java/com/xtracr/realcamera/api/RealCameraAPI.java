@@ -1,6 +1,9 @@
 package com.xtracr.realcamera.api;
 
+import com.xtracr.realcamera.RealCamera;
+import com.xtracr.realcamera.RealCameraCore;
 import com.xtracr.realcamera.config.ConfigFile;
+import com.xtracr.realcamera.util.CrosshairUtil;
 import com.xtracr.realcamera.util.ReferenceFrame;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
@@ -14,10 +17,17 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
+@SuppressWarnings("unused")
 public final class RealCameraAPI {
     private static final List<Registration> REGISTRATIONS = new ArrayList<>();
+    private static final List<Consumer<Boolean>> COMPUTE_HOOKS = new CopyOnWriteArrayList<>();
+    private static final List<Consumer<Boolean>> SCREEN_HOOKS = new CopyOnWriteArrayList<>();
+    private static boolean renderInCompute;
+    private static boolean renderInScreen;
 
     /**
      * Construct a frame from a finite origin and nonparallel forward/up directions.
@@ -81,6 +91,87 @@ public final class RealCameraAPI {
             if (result != null) return result;
         }
         return null;
+    }
+
+    /**
+     * Register a hook notified whenever the compute stage starts or stops.
+     *
+     * @param hook receives the new state
+     */
+    @ApiStatus.Experimental
+    public static void registerRenderInComputeHook(Consumer<Boolean> hook) {
+        COMPUTE_HOOKS.add(Objects.requireNonNull(hook));
+    }
+
+    /**
+     * Not for external use; the mod updates this state as the compute stage runs.
+     */
+    @ApiStatus.Internal
+    public static void setRenderInCompute(boolean rendering) {
+        renderInCompute = rendering;
+        for (Consumer<Boolean> hook : COMPUTE_HOOKS) {
+            try {
+                hook.accept(rendering);
+            } catch (Exception exception) {
+                RealCamera.LOGGER.warn("Compute stage hook failed", exception);
+            }
+        }
+    }
+
+    /**
+     * Return whether the compute stage is currently running.
+     */
+    @ApiStatus.Experimental
+    public static boolean isRenderInCompute() {
+        return renderInCompute;
+    }
+
+    /**
+     * Register a hook notified whenever the model view screen stage starts or stops.
+     *
+     * @param hook receives the new state
+     */
+    @ApiStatus.Experimental
+    public static void registerRenderInScreenHook(Consumer<Boolean> hook) {
+        SCREEN_HOOKS.add(Objects.requireNonNull(hook));
+    }
+
+    /**
+     * Not for external use; the mod updates this state as the model view screen stage runs.
+     */
+    @ApiStatus.Internal
+    public static void setRenderInScreen(boolean rendering) {
+        renderInScreen = rendering;
+        for (Consumer<Boolean> hook : SCREEN_HOOKS) {
+            try {
+                hook.accept(rendering);
+            } catch (Exception exception) {
+                RealCamera.LOGGER.warn("Screen stage hook failed", exception);
+            }
+        }
+    }
+
+    /**
+     * Return whether the model view screen stage is currently running.
+     */
+    @ApiStatus.Experimental
+    public static boolean isRenderInScreen() {
+        return renderInScreen;
+    }
+
+    /**
+     * Return the crosshair offset computed for the current frame, in projection space.
+     * <p>
+     * X points right and Y points up, measured in GUI-scaled pixels, so an unmodified GUI pose needs
+     * {@code translate(offset.x, -offset.y)}. The Z component is always zero.
+     * <p>
+     * The value is recomputed once per frame and is {@link Vec3#ZERO} when the dynamic crosshair is
+     * disabled, the camera is inactive, or nothing is hit.
+     */
+    @ApiStatus.Experimental
+    public static Vec3 getCrosshairOffset() {
+        if (!ConfigFile.config().dynamicCrosshair || !RealCameraCore.isActive()) return Vec3.ZERO;
+        return CrosshairUtil.offset;
     }
 
     /**
